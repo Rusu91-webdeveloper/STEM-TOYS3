@@ -1,12 +1,13 @@
 "use client";
 
-import { Search, ShoppingBag, X } from "lucide-react";
+import { Search, ShoppingBag, ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ProductGrid } from "@/features/products";
+import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import type { Product } from "@/types/product";
 
 import { OptimizedProductImage } from "./OptimizedProductImage";
@@ -75,6 +76,47 @@ export function ProductsMainDisplay({
   // Track previous products count to detect changes requiring loading animation
   const [prevProductCount, setPrevProductCount] = useState(
     displayedProducts.length
+  );
+
+  // Cart state for list view cards — keyed by product ID
+  const { addItem } = useShoppingCart();
+  const [cartStates, setCartStates] = useState<
+    Record<string, "idle" | "adding" | "added">
+  >({});
+
+  const handleAddToCart = useCallback(
+    (product: any, e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (cartStates[product.id] === "adding") return;
+      const isBook = Boolean(
+        product.isBook ||
+          product.attributes?.author ||
+          product.tags?.includes("book")
+      );
+      setCartStates(s => ({ ...s, [product.id]: "adding" }));
+      addItem(
+        {
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.images?.[0] ?? "",
+          quantity: 1,
+          isBook,
+          slug: product.slug,
+        },
+        1
+      );
+      setTimeout(
+        () => setCartStates(s => ({ ...s, [product.id]: "added" })),
+        300
+      );
+      setTimeout(
+        () => setCartStates(s => ({ ...s, [product.id]: "idle" })),
+        1800
+      );
+    },
+    [addItem, cartStates]
   );
 
   const IconComponent =
@@ -369,10 +411,12 @@ export function ProductsMainDisplay({
                     )
                   : null;
 
+              const cartState = cartStates[product.id] ?? "idle";
+              const isOutOfStock = (product.stockQuantity ?? 1) <= 0;
+
               return (
-                <Link
+                <div
                   key={product.id}
-                  href={`/products/${product.slug}`}
                   className={`${productsGlassCardClass} flex flex-row overflow-hidden transition-all duration-200 hover:shadow-md relative group animate-fadeIn`}
                   style={{ animationDelay: `${Math.min(index * 0.1, 0.5)}s` }}
                 >
@@ -385,8 +429,11 @@ export function ProductsMainDisplay({
                     </div>
                   )}
 
-                  {/* Thumbnail — compact square on mobile, wider on sm+ */}
-                  <div className="relative z-10 w-24 h-24 sm:h-48 sm:w-44 lg:w-52 flex-shrink-0 overflow-hidden rounded-l-xl sm:rounded-l-xl border-r border-slate-200 bg-gradient-to-b from-slate-50 to-white">
+                  {/* Thumbnail — tappable link */}
+                  <Link
+                    href={`/products/${product.slug}`}
+                    className="relative z-10 w-24 h-24 sm:h-48 sm:w-44 lg:w-52 flex-shrink-0 overflow-hidden rounded-l-xl border-r border-slate-200 bg-gradient-to-b from-slate-50 to-white block"
+                  >
                     {product.images && product.images.length > 0 ? (
                       <OptimizedProductImage
                         src={product.images[0]}
@@ -401,7 +448,7 @@ export function ProductsMainDisplay({
                         <ShoppingBag className="w-6 h-6 text-slate-300" />
                       </div>
                     )}
-                  </div>
+                  </Link>
 
                   {/* Info panel */}
                   <div className="relative z-10 flex flex-1 flex-col justify-between p-3 sm:p-5 min-w-0">
@@ -413,9 +460,12 @@ export function ProductsMainDisplay({
                         </span>
                       )}
 
-                      <p className="font-semibold text-sm sm:text-base text-slate-900 leading-snug line-clamp-2 sm:line-clamp-2 mb-1 sm:mb-2">
+                      <Link
+                        href={`/products/${product.slug}`}
+                        className="font-semibold text-sm sm:text-base text-slate-900 leading-snug line-clamp-2 mb-1 sm:mb-2 hover:text-sky-700 transition-colors block"
+                      >
                         {displayName}
-                      </p>
+                      </Link>
 
                       {/* Description — hidden on mobile, visible sm+ */}
                       <p className="hidden sm:block text-sm text-slate-500 line-clamp-2 leading-relaxed mb-3">
@@ -443,9 +493,9 @@ export function ProductsMainDisplay({
                       </div>
                     </div>
 
-                    {/* Price row */}
+                    {/* Price + Cart button row */}
                     <div className="flex items-center justify-between gap-2 mt-auto">
-                      <div className="flex items-baseline gap-1.5 flex-wrap">
+                      <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
                         <span className="text-base sm:text-lg font-bold text-slate-900">
                           {product.price
                             ? `${product.price} RON`
@@ -459,16 +509,41 @@ export function ProductsMainDisplay({
                           )}
                       </div>
 
-                      {/* CTA — icon on mobile, text on sm+ */}
-                      <div className="flex-shrink-0 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors duration-200 shadow-sm text-xs sm:text-sm font-semibold px-2.5 py-1.5 sm:px-4 sm:py-2 whitespace-nowrap">
-                        <span className="hidden sm:inline">
-                          {t("viewDetails", "Vezi detalii")}
-                        </span>
-                        <span className="sm:hidden">→</span>
-                      </div>
+                      {/* Add to Cart button */}
+                      <button
+                        type="button"
+                        onClick={e => handleAddToCart(product, e)}
+                        disabled={cartState === "adding" || isOutOfStock}
+                        className={`flex-shrink-0 inline-flex items-center gap-1.5 rounded-xl text-xs sm:text-sm font-semibold px-2.5 py-1.5 sm:px-4 sm:py-2 transition-all duration-200 shadow-sm whitespace-nowrap ${
+                          cartState === "added"
+                            ? "bg-emerald-500 text-white"
+                            : cartState === "adding"
+                              ? "bg-slate-200 text-slate-400"
+                              : isOutOfStock
+                                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                : "bg-slate-900 hover:bg-sky-700 text-white"
+                        }`}
+                      >
+                        {cartState === "adding" ? (
+                          <div className="h-3.5 w-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                        ) : cartState === "added" ? (
+                          <>
+                            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            <span className="hidden sm:inline">Added!</span>
+                            <span className="sm:hidden">✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            <span className="hidden sm:inline">
+                              {t("addToCart", "Add to Cart")}
+                            </span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>

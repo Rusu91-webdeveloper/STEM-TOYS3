@@ -384,20 +384,26 @@ export function ProductCard({
             )}
           </Button>
 
-          {/* Always visible safe cart button for Mobile */}
+          {/* Always visible cart button for Mobile — colored for visibility */}
           <Button
             onClick={handleAddToCart}
             disabled={isAddingToCart || isOutOfStock}
             size="icon"
             className={cn(
-              "flex h-9 w-9 rounded-full border border-slate-200 bg-white text-slate-900 shadow-sm sm:hidden",
+              "flex h-9 w-9 rounded-full shadow-md sm:hidden transition-all duration-200",
               justAdded
-                ? "border-emerald-500 bg-emerald-500 text-white"
-                : isBundle && "border-cyan-200 text-cyan-700"
+                ? "bg-emerald-500 text-white border-0"
+                : isOutOfStock
+                  ? "bg-slate-200 text-slate-400 border-0"
+                  : isBundle
+                    ? "bg-gradient-to-br from-cyan-600 to-sky-600 text-white border-0"
+                    : "bg-slate-900 text-white border-0 hover:bg-sky-700"
             )}
           >
             {isAddingToCart ? (
-              <div className="h-3.5 w-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+              <div className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+            ) : justAdded ? (
+              <ShoppingCart className="h-4 w-4" />
             ) : (
               <ShoppingCart className="h-4 w-4" />
             )}
@@ -437,31 +443,56 @@ export function ProductCard({
           )}
         </div>
 
-        <div className="mt-auto flex items-end justify-between gap-2 border-t border-slate-100 pt-2.5">
-          <div className="flex flex-col">
-            <div className="flex items-baseline gap-2">
-              <span className="text-base sm:text-lg font-semibold text-slate-900">
-                {formatPrice(product.price)}
+        <div className="mt-auto border-t border-slate-100 pt-2.5 space-y-2">
+          <div className="flex items-baseline gap-2">
+            <span className="text-base sm:text-lg font-semibold text-slate-900">
+              {formatPrice(product.price)}
+            </span>
+            {isOnSale && (
+              <span className="text-[11px] font-medium text-slate-400 line-through">
+                {formatPrice(product.compareAtPrice!)}
               </span>
-              {isOnSale && (
-                <span className="text-[11px] font-medium text-slate-400 line-through">
-                  {formatPrice(product.compareAtPrice!)}
-                </span>
-              )}
-            </div>
+            )}
             {isBundle && savingsAmount > 0 && (
-              <span className="text-[11px] font-medium text-emerald-600">
+              <span className="text-[11px] font-medium text-emerald-600 ml-auto">
                 Save {formatPrice(savingsAmount)}
               </span>
             )}
           </div>
 
-          <Link
-            href={`/products/${product.slug}`}
-            className="inline-flex items-center rounded-lg px-2 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+          <Button
+            onClick={handleAddToCart}
+            disabled={isAddingToCart || isOutOfStock}
+            size="sm"
+            className={cn(
+              "w-full h-9 text-xs font-semibold rounded-xl transition-all duration-200 shadow-sm",
+              justAdded
+                ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                : isOutOfStock
+                  ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  : isBundle
+                    ? "bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-700 hover:to-sky-700 text-white hover:shadow-md"
+                    : "bg-slate-900 hover:bg-sky-700 text-white hover:shadow-md"
+            )}
           >
-            Details
-          </Link>
+            {isAddingToCart ? (
+              <span className="flex items-center justify-center gap-1.5">
+                <div className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                Adding...
+              </span>
+            ) : justAdded ? (
+              <span className="flex items-center justify-center gap-1.5">
+                <ShoppingCart className="h-3.5 w-3.5" /> Added!
+              </span>
+            ) : isOutOfStock ? (
+              "Out of Stock"
+            ) : (
+              <span className="flex items-center justify-center gap-1.5">
+                <ShoppingCart className="h-3.5 w-3.5" />
+                {isBundle ? "Add Bundle" : "Add to Cart"}
+              </span>
+            )}
+          </Button>
         </div>
       </div>
     </div>
