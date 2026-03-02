@@ -184,26 +184,25 @@ export function ProductImageGallery({
           role="dialog"
           aria-modal="true"
           aria-label="Product image full screen viewer"
-          className="fixed inset-0 z-[90] bg-black/95 p-0 sm:p-6"
+          className="fixed inset-0 z-[90] bg-black/95"
           onClick={closeFullscreen}
         >
-          {/* Close button — fixed to viewport so it always shows above the image */}
-          <Button
+          {/* Top-right X — large and always visible */}
+          <button
             type="button"
-            variant="ghost"
-            size="icon"
-            className="absolute right-3 top-3 z-[100] h-10 w-10 rounded-full border border-white/25 bg-black/70 text-white hover:bg-white/20 sm:right-5 sm:top-5"
             onClick={event => {
               event.stopPropagation();
               closeFullscreen();
             }}
             aria-label="Close full screen image viewer"
+            className="absolute right-3 top-3 z-[100] flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur border border-white/30 hover:bg-white/30 transition-colors sm:right-5 sm:top-5 sm:h-12 sm:w-12"
           >
-            <X className="h-5 w-5" />
-          </Button>
+            <X className="h-6 w-6" />
+          </button>
 
+          {/* Image + nav — stop propagation so only X / bottom button close */}
           <div
-            className="relative mx-auto flex h-full w-full max-w-6xl items-center justify-center"
+            className="relative mx-auto flex h-full w-full max-w-6xl items-center justify-center pb-24 sm:pb-16 sm:px-16"
             onClick={event => event.stopPropagation()}
           >
             {images.length > 1 && (
@@ -243,9 +242,27 @@ export function ProductImageGallery({
               </Button>
             )}
 
-            <div className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/25 bg-black/70 px-3 py-1 text-xs font-medium text-white">
-              {currentImageIndex + 1} / {images.length}
-            </div>
+            {/* Image counter */}
+            {images.length > 1 && (
+              <div className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/25 bg-black/70 px-3 py-1 text-xs font-medium text-white">
+                {currentImageIndex + 1} / {images.length}
+              </div>
+            )}
+          </div>
+
+          {/* Bottom close pill — thumb-friendly, impossible to miss on mobile */}
+          <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center sm:bottom-8">
+            <button
+              type="button"
+              onClick={event => {
+                event.stopPropagation();
+                closeFullscreen();
+              }}
+              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 shadow-xl hover:bg-slate-100 transition-colors active:scale-95"
+            >
+              <X className="h-4 w-4" />
+              Close
+            </button>
           </div>
         </div>
       )}
