@@ -310,21 +310,6 @@ export function ProductsMainDisplay({
         </div>
       )}
 
-      {/* Loading overlay */}
-      {loading && (
-        <div
-          className={`${productsGlassCardClass} relative mb-6 flex items-center justify-center p-8 transition-all duration-300`}
-        >
-          <div className="flex flex-col items-center">
-            <div className="relative mb-4">
-              <div className="w-12 h-12 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
-            </div>
-            <p className="text-sm font-medium text-slate-600">
-              {t("filtering", "Filtering Products...")}
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Products Display */}
       <div className={viewMode === "list" ? "space-y-4" : ""}>

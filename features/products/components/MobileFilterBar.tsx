@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Filter, Zap, Star, Gift, TrendingUp, Sparkles } from "lucide-react";
+import { X, Filter, Zap, Star, Gift, TrendingUp } from "lucide-react";
 import React from "react";
 
 interface MobileFilterBarProps {
@@ -89,14 +89,6 @@ export function MobileFilterBar({
           </div>
 
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={onOpenFilters}
-              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:border-slate-300"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-sky-600" />
-              <span>{t("advancedFilters", "More")}</span>
-            </button>
-
             {activeFilterCount > 0 && (
               <button
                 onClick={onClearFilters}
