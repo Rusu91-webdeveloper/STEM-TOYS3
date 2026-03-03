@@ -362,13 +362,28 @@ export async function POST(request: Request) {
             }
             if (supplierOrderCount === 0) {
               const reason =
-                "Supplier orders were not created after Netopia payment confirmation. Manual fulfillment review required.";
+                "Supplier orders were not created after Netopia payment confirmation. Manual fulfillment review required: create or fix supplier lines in Admin and then create the AWB/shipping label manually.";
               await db.order.update({
                 where: { id: resolvedOrderId },
                 data: {
                   manualShippingReviewRequired: true,
                   shippingReviewReason: reason,
                 },
+              });
+              // Notify admin that this order needs manual supplier/shipping review
+              const { AdminNotificationService } = await import(
+                "@/lib/email/admin-notification-service"
+              );
+              AdminNotificationService.sendOrderIssueNotification(
+                resolvedOrderId,
+                "MANUAL_SHIPPING_REVIEW_REQUIRED",
+                reason,
+                "HIGH"
+              ).catch(err => {
+                console.error(
+                  `⚠️ [WEBHOOK] Failed to send manual shipping review notification for order ${resolvedOrderId}:`,
+                  err
+                );
               });
               console.warn(
                 `⚠️ [WEBHOOK] Skipping AWB for order ${resolvedOrderId}: ${reason}`

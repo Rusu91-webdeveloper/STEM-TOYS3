@@ -249,13 +249,25 @@ async function handleSuccessfulPayment(
       }
       if (supplierOrderCount === 0) {
         const reason =
-          "Supplier orders were not created after Stripe payment confirmation. Manual fulfillment review required.";
+          "Supplier orders were not created after Stripe payment confirmation. Manual fulfillment review required: create or fix supplier lines in Admin and then create the AWB/shipping label manually.";
         await db.order.update({
           where: { id: order.id },
           data: {
             manualShippingReviewRequired: true,
             shippingReviewReason: reason,
           },
+        });
+        // Notify admin that this order needs manual supplier/shipping review
+        AdminNotificationService.sendOrderIssueNotification(
+          order.id,
+          "MANUAL_SHIPPING_REVIEW_REQUIRED",
+          reason,
+          "HIGH"
+        ).catch(err => {
+          console.error(
+            `⚠️ [STRIPE][WEBHOOK] Failed to send manual shipping review notification for order ${order.id}:`,
+            err
+          );
         });
         console.warn(
           `⚠️ [STRIPE][WEBHOOK] Skipping AWB for order ${order.id}: ${reason}`

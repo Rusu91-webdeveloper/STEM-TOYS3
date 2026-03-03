@@ -817,13 +817,27 @@ export const createFanAwbForOrder = async (
   const missingProductLinks = physicalItems.filter(item => !item.productId);
   if (missingProductLinks.length > 0) {
     const reason =
-      "Order contains physical items without linked product records. Manual fulfillment review required.";
+      "Order contains physical items without linked product records. Manual fulfillment review required: fix the product links, then create supplier lines and the AWB/shipping label manually in Admin.";
     await db.order.update({
       where: { id: order.id },
       data: {
         manualShippingReviewRequired: true,
         shippingReviewReason: reason,
       },
+    });
+    const { AdminNotificationService } = await import(
+      "@/lib/email/admin-notification-service"
+    );
+    AdminNotificationService.sendOrderIssueNotification(
+      order.id,
+      "MANUAL_SHIPPING_REVIEW_REQUIRED",
+      reason,
+      "HIGH"
+    ).catch(err => {
+      console.error(
+        `[FAN Courier] Failed to send manual shipping review notification for order ${order.orderNumber}:`,
+        err
+      );
     });
     return {
       success: false,
@@ -889,13 +903,27 @@ export const createFanAwbForOrder = async (
   });
   if (products.length !== productIds.length) {
     const reason =
-      "One or more ordered products are missing from catalog. Manual fulfillment review required.";
+      "One or more ordered products are missing from catalog. Manual fulfillment review required: fix the missing products, then create supplier lines and the AWB/shipping label manually in Admin.";
     await db.order.update({
       where: { id: order.id },
       data: {
         manualShippingReviewRequired: true,
         shippingReviewReason: reason,
       },
+    });
+    const { AdminNotificationService } = await import(
+      "@/lib/email/admin-notification-service"
+    );
+    AdminNotificationService.sendOrderIssueNotification(
+      order.id,
+      "MANUAL_SHIPPING_REVIEW_REQUIRED",
+      reason,
+      "HIGH"
+    ).catch(err => {
+      console.error(
+        `[FAN Courier] Failed to send manual shipping review notification for order ${order.orderNumber}:`,
+        err
+      );
     });
     return {
       success: false,
@@ -960,14 +988,28 @@ export const createFanAwbForOrder = async (
   ) {
     const reason =
       supplierContext.suppliers.length > 1
-        ? "Order contains items from multiple suppliers; split shipments manually per supplier."
-        : "One or more products have no assigned supplier; manual shipment review required.";
+        ? "Order contains items from multiple suppliers; split shipments manually per supplier, then create supplier lines and the AWB/shipping label for each shipment in Admin."
+        : "One or more products have no assigned supplier; manual shipment review required: assign suppliers, then create supplier lines and the AWB/shipping label manually in Admin.";
     await db.order.update({
       where: { id: order.id },
       data: {
         manualShippingReviewRequired: true,
         shippingReviewReason: reason,
       },
+    });
+    const { AdminNotificationService } = await import(
+      "@/lib/email/admin-notification-service"
+    );
+    AdminNotificationService.sendOrderIssueNotification(
+      order.id,
+      "MANUAL_SHIPPING_REVIEW_REQUIRED",
+      reason,
+      "HIGH"
+    ).catch(err => {
+      console.error(
+        `[FAN Courier] Failed to send manual shipping review notification for order ${order.orderNumber}:`,
+        err
+      );
     });
     return {
       success: false,

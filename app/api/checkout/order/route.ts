@@ -1681,13 +1681,25 @@ export async function POST(request: Request) {
 
           if (supplierOrderCount === 0) {
             const reason =
-              "Supplier orders were not created for this COD order. Manual fulfillment review required.";
+              "Supplier orders were not created for this COD order. Manual fulfillment review required: create or fix supplier lines in Admin and then create the AWB/shipping label manually.";
             await db.order.update({
               where: { id: dbOrder.id },
               data: {
                 manualShippingReviewRequired: true,
                 shippingReviewReason: reason,
               },
+            });
+            // Notify admin that this order needs manual supplier/shipping review
+            AdminNotificationService.sendOrderIssueNotification(
+              dbOrder.id,
+              "MANUAL_SHIPPING_REVIEW_REQUIRED",
+              reason,
+              "HIGH"
+            ).catch(err => {
+              console.error(
+                `[CHECKOUT][COD] Failed to send manual shipping review notification for order ${dbOrder.id}:`,
+                err
+              );
             });
             console.warn(
               `[CHECKOUT][COD] Skipping AWB for order ${dbOrder.id}: ${reason}`
