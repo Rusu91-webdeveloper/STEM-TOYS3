@@ -4,8 +4,10 @@ import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import { invalidateCachePattern } from "@/lib/cache";
-import { db } from "@/lib/db";
 import { invalidateAnalyticsOnOrderChange } from "@/lib/cache/analytics-cache";
+import { parseCodGuaranteeEvidence } from "@/lib/checkout/cod-guarantee";
+import { db } from "@/lib/db";
+import { getStripeServerClient } from "@/lib/stripe-server";
 import {
   deriveOrderFulfillmentSummary,
   groupSupplierOrdersForOperations,
@@ -156,6 +158,11 @@ export async function GET(
       status: order.status,
       paymentStatus: order.paymentStatus,
       paymentMethod: order.paymentMethod,
+      shippingMethod: order.shippingMethod ?? undefined,
+      notes: order.notes,
+      tags: order.tags ?? [],
+      codFeeEstimate: order.codFeeEstimate,
+      codAmount: order.codAmount,
       subtotal: order.subtotal,
       tax: order.tax,
       shippingCost: order.shippingCost,
@@ -207,35 +214,35 @@ export async function GET(
           sku: supplierSkus.length === 1 ? supplierSkus[0] : null,
           supplierSkus,
           supplierLineCount: supplierMeta?.lineCount ?? 0,
-        id: item.id,
-        name:
-          item.product?.name ??
-          item.book?.name ??
-          item.name ??
-          "Product no longer available",
-        price: item.price,
-        quantity: item.quantity,
-        isDigital: item.isDigital ?? false,
-        returnStatus: item.returnStatus,
-        isBook: !!item.book,
-        product: item.product
-          ? {
-              id: item.productId,
-              name: item.product.name,
-              slug: item.product.slug,
-              images: item.product.images,
-              sku: item.product.sku ?? null,
-            }
-          : null,
-        book: item.book
-          ? {
-              id: item.bookId,
-              name: item.book.name,
-              author: item.book.author,
-              slug: item.book.slug,
-              coverImage: item.book.coverImage,
-            }
-          : null,
+          id: item.id,
+          name:
+            item.product?.name ??
+            item.book?.name ??
+            item.name ??
+            "Product no longer available",
+          price: item.price,
+          quantity: item.quantity,
+          isDigital: item.isDigital ?? false,
+          returnStatus: item.returnStatus,
+          isBook: !!item.book,
+          product: item.product
+            ? {
+                id: item.productId,
+                name: item.product.name,
+                slug: item.product.slug,
+                images: item.product.images,
+                sku: item.product.sku ?? null,
+              }
+            : null,
+          book: item.book
+            ? {
+                id: item.bookId,
+                name: item.book.name,
+                author: item.book.author,
+                slug: item.book.slug,
+                coverImage: item.book.coverImage,
+              }
+            : null,
         };
       }),
       supplierOrders: order.supplierOrders.map(so => ({
@@ -300,6 +307,7 @@ export async function PATCH(
         status: true,
         paymentMethod: true,
         paymentStatus: true,
+        notes: true,
       },
     });
 
@@ -368,6 +376,39 @@ export async function PATCH(
         shippingAddress: true,
       },
     });
+
+    // For delivered COD orders, release the guarantee hold if it was authorized and not captured.
+    if (status === "DELIVERED" && isCODOrder) {
+      const codGuarantee = parseCodGuaranteeEvidence(existingOrder.notes);
+      const guaranteePiId = codGuarantee.authorizedPaymentIntentId;
+      if (guaranteePiId) {
+        try {
+          const stripe = getStripeServerClient();
+          const intent = await stripe.paymentIntents.retrieve(guaranteePiId);
+          if (intent.status === "requires_capture") {
+            await stripe.paymentIntents.cancel(guaranteePiId, {
+              cancellation_reason: "abandoned",
+            });
+            await db.order.update({
+              where: { id: updatedOrder.id },
+              data: {
+                notes: [
+                  updatedOrder.notes,
+                  `COD Guarantee released at ${new Date().toISOString()} - PI: ${guaranteePiId}`,
+                ]
+                  .filter(Boolean)
+                  .join(" | "),
+              },
+            });
+          }
+        } catch (releaseError) {
+          console.error(
+            `Failed to release COD guarantee hold for order ${updatedOrder.id}:`,
+            releaseError
+          );
+        }
+      }
+    }
 
     // Send email notification if status changed to SHIPPED, DELIVERED, CANCELLED, or COMPLETED
     try {

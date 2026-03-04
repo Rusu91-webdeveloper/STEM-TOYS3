@@ -141,14 +141,20 @@ export const PaymentSummary = React.memo(function PaymentSummary({
             </div>
             <div className="mt-2 grid gap-1 text-xs text-orange-700 sm:grid-cols-2">
               <div>
-                <span className="font-medium">{t("feeBreakdown", "Structură taxă")}:</span>{" "}
+                <span className="font-medium">
+                  {t("feeBreakdown", "Structură taxă")}:
+                </span>{" "}
                 <span>
-                  {codPercentageLabel}% ({codFeeResult.breakdown.percentageFee.toFixed(2)} RON) +{" "}
-                  {codFeeResult.breakdown.fixedFee.toFixed(2)} RON {t("fixed", "fix")}
+                  {codPercentageLabel}% (
+                  {codFeeResult.breakdown.percentageFee.toFixed(2)} RON) +{" "}
+                  {codFeeResult.breakdown.fixedFee.toFixed(2)} RON{" "}
+                  {t("fixed", "fix")}
                 </span>
               </div>
               <div className="sm:text-right">
-                <span className="font-medium">{t("totalWithCOD", "Total cu ramburs")}:</span>{" "}
+                <span className="font-medium">
+                  {t("totalWithCOD", "Total cu ramburs")}:
+                </span>{" "}
                 <span>{codFeeResult.orderTotalWithFee.toFixed(2)} RON</span>
               </div>
             </div>
@@ -157,6 +163,16 @@ export const PaymentSummary = React.memo(function PaymentSummary({
                 "codNotice",
                 "💡 Plătești cash la primirea coletului. Curierul va colecta suma totală."
               )}
+            </p>
+            <p className="mt-1 text-xs text-orange-800/90">
+              În caz de refuz la livrare sau nepreluare colet (RTO), se pot
+              aplica costurile logistice efective tur + retur, conform
+              politicilor afișate înainte de comandă.
+            </p>
+            <p className="mt-1 text-xs text-orange-800/90">
+              Dacă există diferențe peste garanția COD autorizată, acestea se
+              gestionează prin procedurile legale și contabile aplicabile în
+              România.
             </p>
           </div>
         </div>

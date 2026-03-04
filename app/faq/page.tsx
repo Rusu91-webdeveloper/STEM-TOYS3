@@ -4,7 +4,14 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Shield, Users, Star, Clock } from "lucide-react";
+import {
+  CheckCircle,
+  Shield,
+  Users,
+  Star,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { useTranslation } from "@/lib/i18n";
 
@@ -23,8 +30,7 @@ const faqCards = [
     highlight: {
       border: "border-emerald-400/30 bg-emerald-500/10",
       title: "🎯 Real Results:",
-      body:
-        '"My 8-year-old went from crying over math homework to asking for more experiments. The transformation happened in just 3 weeks!" - Sarah M., Parent',
+      body: '"My 8-year-old went from crying over math homework to asking for more experiments. The transformation happened in just 3 weeks!" - Sarah M., Parent',
     },
   },
   {
@@ -35,8 +41,7 @@ const faqCards = [
     highlight: {
       border: "border-amber-400/30 bg-amber-500/10",
       title: "🛡️ Our Promise:",
-      body:
-        "If you're not 100% satisfied with your choice, we'll not only refund you but also personally help you find the perfect toy for your child's specific needs.",
+      body: "If you're not 100% satisfied with your choice, we'll not only refund you but also personally help you find the perfect toy for your child's specific needs.",
     },
   },
   {
@@ -74,6 +79,14 @@ const faqCards = [
       "No questions asked policy",
     ],
   },
+];
+
+const codTransparencyHighlights = [
+  "Refuzul la livrare sau nepreluarea coletului este tratat ca retur la expeditor (RTO).",
+  "Pentru RTO se pot aplica doar costurile logistice efective (transport tur + retur), dacă acestea sunt comunicate înainte de comandă.",
+  "Dreptul de retragere în 14 zile se aplică după recepția produsului, nu la refuzul livrării.",
+  "Pentru produse neconforme/defecte, costurile de transport pentru remediere sunt suportate de vânzător.",
+  "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale/contabile aplicabile în România.",
 ];
 
 export default function FAQPage() {
@@ -123,6 +136,14 @@ export default function FAQPage() {
           text: "Susținem calitatea produselor noastre. Dacă nu ești mulțumit de achiziție, te rugăm să contactezi echipa noastră de servicii pentru clienți și vom lucra cu tine pentru a găsi o soluție. Include consultare gratuită personalizată pentru a găsi alternativa perfectă. Satisfacția ta este prioritatea noastră.",
         },
       },
+      {
+        "@type": "Question",
+        name: "Ce se întâmplă dacă refuz o comandă ramburs la livrare?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Refuzul la livrare sau nepreluarea coletului este tratat ca retur la expeditor (RTO). În acest caz se pot aplica doar costurile logistice efective tur + retur, dacă au fost comunicate înainte de finalizarea comenzii. Dreptul de retragere în 14 zile se aplică după recepția produsului. Pentru diferențe peste garanția COD autorizată se aplică procedurile legale și contabile din România.",
+        },
+      },
     ],
   };
 
@@ -137,8 +158,12 @@ export default function FAQPage() {
         <section className="container mx-auto max-w-5xl px-3 py-6 sm:px-6 sm:py-10 md:py-14">
           <div className="text-center">
             <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/90 via-indigo-900/75 to-slate-950/90 p-8 shadow-xl shadow-black/40 backdrop-blur sm:p-10">
-              <h1 className="text-2xl font-bold leading-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">{t("faqH1")}</h1>
-              <p className="mt-4 text-sm text-slate-200 sm:text-base md:text-lg">{t("faqSubtitle")}</p>
+              <h1 className="text-2xl font-bold leading-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
+                {t("faqH1")}
+              </h1>
+              <p className="mt-4 text-sm text-slate-200 sm:text-base md:text-lg">
+                {t("faqSubtitle")}
+              </p>
 
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 {socialProofBadges.map(({ icon: Icon, label }) => (
@@ -159,7 +184,9 @@ export default function FAQPage() {
                   size="lg"
                   className="rounded-xl bg-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-400 sm:text-base"
                 >
-                  <Link href="/contact">{t("faqGetPersonalizedRecommendations")}</Link>
+                  <Link href="/contact">
+                    {t("faqGetPersonalizedRecommendations")}
+                  </Link>
                 </Button>
                 <Button
                   asChild
@@ -175,29 +202,58 @@ export default function FAQPage() {
 
           <div className="mt-10 space-y-6 sm:space-y-8 md:space-y-12">
             {faqCards.map(
-              ({ icon: Icon, gradient, titleKey, bodyKey, highlight, certifications, highlightStats, commitments }) => (
-                <section key={titleKey} className={`rounded-3xl ${gradient} p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-6 md:p-8`}>
+              ({
+                icon: Icon,
+                gradient,
+                titleKey,
+                bodyKey,
+                highlight,
+                certifications,
+                highlightStats,
+                commitments,
+              }) => (
+                <section
+                  key={titleKey}
+                  className={`rounded-3xl ${gradient} p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-6 md:p-8`}
+                >
                   <div className="flex items-start gap-3 sm:gap-4">
                     <Icon className="h-6 w-6 flex-shrink-0 text-emerald-500 sm:h-7 sm:w-7 md:h-8 md:w-8" />
                     <div className="space-y-3">
-                      <h2 className="text-base font-bold text-slate-900 sm:text-lg md:text-2xl">{t(titleKey)}</h2>
-                      <p className="text-xs leading-relaxed text-slate-700 sm:text-sm md:text-base lg:text-lg">{t(bodyKey)}</p>
+                      <h2 className="text-base font-bold text-slate-900 sm:text-lg md:text-2xl">
+                        {t(titleKey)}
+                      </h2>
+                      <p className="text-xs leading-relaxed text-slate-700 sm:text-sm md:text-base lg:text-lg">
+                        {t(bodyKey)}
+                      </p>
 
                       {highlight && (
-                        <div className={`rounded-2xl border ${highlight.border} p-4 text-xs text-slate-900 shadow-inner sm:text-sm md:text-base`}>
+                        <div
+                          className={`rounded-2xl border ${highlight.border} p-4 text-xs text-slate-900 shadow-inner sm:text-sm md:text-base`}
+                        >
                           <p className="font-semibold">{highlight.title}</p>
-                          <p className="mt-2 text-slate-700">{highlight.body}</p>
+                          <p className="mt-2 text-slate-700">
+                            {highlight.body}
+                          </p>
                         </div>
                       )}
 
                       {certifications && (
                         <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
-                          <p className="text-xs font-semibold text-white sm:text-sm md:text-base">🔒 Safety Certifications:</p>
+                          <p className="text-xs font-semibold text-white sm:text-sm md:text-base">
+                            🔒 Safety Certifications:
+                          </p>
                           <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-200 sm:text-sm md:grid-cols-4">
                             {certifications.map(cert => (
-                              <div key={cert.title} className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
-                                <div className="font-semibold text-white">{cert.title}</div>
-                                <div className="text-[10px] text-slate-300 sm:text-xs">{cert.subtitle}</div>
+                              <div
+                                key={cert.title}
+                                className="rounded-xl border border-white/10 bg-white/5 p-3 text-center"
+                              >
+                                <div className="font-semibold text-white">
+                                  {cert.title}
+                                </div>
+                                <div className="text-[10px] text-slate-300 sm:text-xs">
+                                  {cert.subtitle}
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -209,9 +265,16 @@ export default function FAQPage() {
                           <p className="font-semibold">📈 Proven Results:</p>
                           <div className="mt-3 grid grid-cols-3 gap-3 text-center">
                             {highlightStats.map(stat => (
-                              <div key={stat.label} className="rounded-xl border border-purple-200/60 bg-white/70 p-3">
-                                <div className="text-lg font-bold text-purple-700 sm:text-xl md:text-2xl">{stat.value}</div>
-                                <div className="text-[10px] text-purple-700/80 sm:text-xs md:text-sm">{stat.label}</div>
+                              <div
+                                key={stat.label}
+                                className="rounded-xl border border-purple-200/60 bg-white/70 p-3"
+                              >
+                                <div className="text-lg font-bold text-purple-700 sm:text-xl md:text-2xl">
+                                  {stat.value}
+                                </div>
+                                <div className="text-[10px] text-purple-700/80 sm:text-xs md:text-sm">
+                                  {stat.label}
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -220,10 +283,15 @@ export default function FAQPage() {
 
                       {commitments && (
                         <div className="rounded-2xl border border-rose-300/40 bg-rose-500/10 p-4 text-xs text-slate-900 shadow-inner sm:text-sm md:text-base">
-                          <p className="font-semibold">💯 Our Commitment to You:</p>
+                          <p className="font-semibold">
+                            💯 Our Commitment to You:
+                          </p>
                           <div className="mt-3 space-y-2 text-slate-700">
                             {commitments.map(item => (
-                              <div key={item} className="flex items-center gap-2 text-xs sm:text-sm md:text-base">
+                              <div
+                                key={item}
+                                className="flex items-center gap-2 text-xs sm:text-sm md:text-base"
+                              >
                                 <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-300" />
                                 <span>{item}</span>
                               </div>
@@ -238,13 +306,47 @@ export default function FAQPage() {
             )}
           </div>
 
+          <section className="mt-8 rounded-3xl border border-amber-200/80 bg-amber-50/80 p-6 shadow-lg shadow-slate-900/10 sm:mt-10 sm:p-8">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-6 w-6 flex-shrink-0 text-amber-700" />
+              <div>
+                <h2 className="text-base font-bold text-slate-900 sm:text-lg md:text-2xl">
+                  Clarificare COD: Refuz livrare și costuri RTO
+                </h2>
+                <ul className="mt-3 space-y-2 text-xs leading-relaxed text-slate-700 sm:text-sm md:text-base">
+                  {codTransparencyHighlights.map(item => (
+                    <li key={item}>• {item}</li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-xs text-slate-700 sm:text-sm">
+                  Detalii complete în{" "}
+                  <Link
+                    href="/shipping"
+                    className="font-semibold text-sky-700 underline underline-offset-4 hover:text-sky-600"
+                  >
+                    Politica de Livrare
+                  </Link>{" "}
+                  și{" "}
+                  <Link
+                    href="/terms"
+                    className="font-semibold text-sky-700 underline underline-offset-4 hover:text-sky-600"
+                  >
+                    Termeni și Condiții
+                  </Link>
+                  .
+                </p>
+              </div>
+            </div>
+          </section>
+
           <section className="mt-8 rounded-3xl border border-sky-500/40 bg-gradient-to-br from-sky-500/20 via-indigo-900/50 to-slate-950/80 p-6 text-center text-slate-100 shadow-xl shadow-sky-500/30 sm:mt-12 sm:p-8 md:mt-16 md:p-12">
             <h2 className="text-base font-bold text-white sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
               Ready to Transform Your Child's Learning?
             </h2>
             <p className="mt-3 text-xs text-slate-200 sm:text-sm md:text-base lg:text-lg xl:text-xl">
-              Families worldwide are discovering how STEM education prepares children for tomorrow's AI-driven world.
-              Start today with quality guaranteed products.
+              Families worldwide are discovering how STEM education prepares
+              children for tomorrow's AI-driven world. Start today with quality
+              guaranteed products.
             </p>
             <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <Button
@@ -264,7 +366,8 @@ export default function FAQPage() {
               </Button>
             </div>
             <p className="mt-4 text-[10px] text-slate-200 sm:text-xs md:text-sm">
-              ⚡ Limited time: Free consultation worth €50 - Only 50 spots this month
+              ⚡ Limited time: Free consultation worth €50 - Only 50 spots this
+              month
             </p>
           </section>
         </section>

@@ -1,10 +1,17 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useCart } from "@/features/cart";
+import {
+  COD_CONSENT_TEXT,
+  COD_CONSENT_VERSION,
+} from "@/lib/checkout/cod-consent";
+import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 import {
@@ -13,6 +20,8 @@ import {
 } from "@/lib/shipping/cod-thresholds";
 import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 
+import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
+import { fetchCODSettings } from "../lib/checkoutApi";
 import {
   PaymentDetails,
   PaymentMethod,
@@ -25,8 +34,6 @@ import { PaymentMethodSelector } from "./PaymentMethodSelector";
 import { PaymentSummary } from "./PaymentSummary";
 import { StripePaymentForm } from "./StripePaymentForm";
 import { StripeProvider } from "./StripeProvider";
-import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
-import { fetchCODSettings } from "../lib/checkoutApi";
 
 interface PaymentCard {
   id: string;
@@ -42,6 +49,9 @@ interface PaymentCard {
 interface PaymentFormProps {
   initialData?: PaymentDetails;
   initialPaymentMethod?: PaymentMethod;
+  initialCodConsentAccepted?: boolean;
+  initialCodGuaranteePaymentIntentId?: string;
+  initialCodGuaranteeAmount?: number;
   billingAddressSameAsShipping?: boolean;
   shippingAddress?: ShippingAddress;
   billingAddress?: ShippingAddress;
@@ -56,13 +66,22 @@ interface PaymentFormProps {
     billingAddressSameAsShipping: boolean;
     billingAddress?: ShippingAddress;
     stripePaymentIntentId?: string;
+    codConsentAccepted?: boolean;
+    codConsentAcceptedAt?: string;
+    codConsentVersion?: string;
+    codConsentText?: string;
+    codGuaranteePaymentIntentId?: string;
+    codGuaranteeAmount?: number;
   }) => void;
   onBack: () => void;
 }
 
 export function PaymentForm({
-  initialData,
+  initialData: _initialData,
   initialPaymentMethod,
+  initialCodConsentAccepted = false,
+  initialCodGuaranteePaymentIntentId,
+  initialCodGuaranteeAmount,
   billingAddressSameAsShipping = true,
   shippingAddress,
   billingAddress,
@@ -75,11 +94,13 @@ export function PaymentForm({
 }: PaymentFormProps) {
   const { getCartTotal, items: cartItems } = useCart();
   const { t } = useTranslation();
+  const { formatPrice } = useCurrency();
   const { settings } = useCheckoutSettings();
   const isCheckoutRestricted = settings?.checkoutAdminOnly === true && !isAdmin;
   const stripeEnabled =
     !isCheckoutRestricted && process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
   const stripeAttemptIdRef = useRef<string | null>(null);
+  const codGuaranteeAttemptIdRef = useRef<string | null>(null);
 
   const [useSameAddress, setUseSameAddress] = useState(
     billingAddressSameAsShipping
@@ -98,6 +119,7 @@ export function PaymentForm({
   const [totalAmount, setTotalAmount] = useState(0);
   const [isCalculatingTotal, setIsCalculatingTotal] = useState(true);
   const [calculatedShippingCost, setCalculatedShippingCost] = useState(0);
+  const [baseShippingForGuarantee, setBaseShippingForGuarantee] = useState(0);
   const [userLocation, setUserLocation] = useState<string>("");
   const [userLocale, setUserLocale] = useState<string>("");
   const [codConfig, setCodConfig] = useState<{
@@ -116,6 +138,29 @@ export function PaymentForm({
   );
   const [stripeIntentAmount, setStripeIntentAmount] = useState<number | null>(
     null
+  );
+  const [codGuaranteeClientSecret, setCodGuaranteeClientSecret] = useState<
+    string | null
+  >(null);
+  const [codGuaranteePaymentIntentId, setCodGuaranteePaymentIntentId] =
+    useState<string | undefined>(initialCodGuaranteePaymentIntentId);
+  const [isCreatingCodGuaranteeIntent, setIsCreatingCodGuaranteeIntent] =
+    useState(false);
+  const [codGuaranteeIntentError, setCodGuaranteeIntentError] = useState<
+    string | null
+  >(null);
+  const [codGuaranteeIntentAmount, setCodGuaranteeIntentAmount] = useState<
+    number | null
+  >(
+    initialCodGuaranteeAmount
+      ? Math.round(initialCodGuaranteeAmount * 100)
+      : null
+  );
+  const [codGuaranteeAuthorized, setCodGuaranteeAuthorized] = useState(
+    Boolean(initialCodGuaranteePaymentIntentId && initialCodGuaranteeAmount)
+  );
+  const [codConsentAccepted, setCodConsentAccepted] = useState(
+    initialCodConsentAccepted
   );
 
   const isNetopia = useMemo(
@@ -149,6 +194,17 @@ export function PaymentForm({
     selectedPaymentMethod === "cash_on_delivery" &&
     codTotals !== null &&
     codTotals.total > codThreshold;
+  const codGuaranteeAmount = useMemo(() => {
+    if (selectedPaymentMethod !== "cash_on_delivery") {
+      return 0;
+    }
+    const shippingBase = Math.max(
+      0,
+      calculatedShippingCost,
+      baseShippingForGuarantee
+    );
+    return Math.round(shippingBase * 2 * 100) / 100;
+  }, [selectedPaymentMethod, calculatedShippingCost, baseShippingForGuarantee]);
 
   useEffect(() => {
     function calculateTotal() {
@@ -166,6 +222,7 @@ export function PaymentForm({
           shippingMethod?.price !== undefined && shippingMethod.price >= 0
             ? shippingMethod.price
             : deliveryPrice;
+        setBaseShippingForGuarantee(baseShippingPrice);
 
         let shippingCost = 0;
         if (hasPhysicalItems) {
@@ -183,19 +240,11 @@ export function PaymentForm({
           }
         }
 
-        const taxRate = settings?.taxSettings?.active
-          ? parseFloat(settings.taxSettings.rate) / 100
-          : 0;
-        const includeInPrice = settings?.taxSettings?.includeInPrice !== false;
-
         const cartTotalIncludingVAT = subtotal;
 
         // Store shipping cost for COD fee calculation
         setCalculatedShippingCost(shippingCost);
 
-        const subtotalExcludingVAT = includeInPrice
-          ? cartTotalIncludingVAT / (1 + taxRate)
-          : cartTotalIncludingVAT;
         const totalBeforeDiscount =
           cartTotalIncludingVAT + shippingCost - discountAmount;
 
@@ -301,18 +350,18 @@ export function PaymentForm({
       clearStripeIntent();
       setStripeIntentError(null);
       setIsCreatingStripeIntent(false);
-      return;
+      return undefined;
     }
 
     if (selectedPaymentMethod !== "stripe_new") {
       clearStripeIntent();
       setStripeIntentError(null);
       setIsCreatingStripeIntent(false);
-      return;
+      return undefined;
     }
 
     if (isCalculatingTotal || totalAmount <= 0) {
-      return;
+      return undefined;
     }
 
     const amountInMinorUnits = Math.round(totalAmount * 100);
@@ -322,7 +371,7 @@ export function PaymentForm({
       stripeIntentAmount === amountInMinorUnits &&
       stripePaymentIntentId
     ) {
-      return;
+      return undefined;
     }
 
     let isActive = true;
@@ -409,6 +458,137 @@ export function PaymentForm({
     stripePaymentIntentId,
   ]);
 
+  useEffect(() => {
+    const clearCodGuaranteeIntent = () => {
+      setCodGuaranteeClientSecret(null);
+      setCodGuaranteePaymentIntentId(undefined);
+      setCodGuaranteeIntentAmount(null);
+      setCodGuaranteeAuthorized(false);
+    };
+
+    if (!stripeEnabled) {
+      clearCodGuaranteeIntent();
+      setCodGuaranteeIntentError(null);
+      setIsCreatingCodGuaranteeIntent(false);
+      return undefined;
+    }
+
+    if (selectedPaymentMethod !== "cash_on_delivery") {
+      clearCodGuaranteeIntent();
+      setCodGuaranteeIntentError(null);
+      setIsCreatingCodGuaranteeIntent(false);
+      return undefined;
+    }
+
+    if (isCalculatingTotal || codGuaranteeAmount <= 0) {
+      return undefined;
+    }
+
+    const amountInMinorUnits = Math.round(codGuaranteeAmount * 100);
+
+    if (
+      codGuaranteeAuthorized &&
+      codGuaranteePaymentIntentId &&
+      codGuaranteeIntentAmount === amountInMinorUnits
+    ) {
+      return undefined;
+    }
+
+    if (
+      codGuaranteeClientSecret &&
+      codGuaranteeIntentAmount === amountInMinorUnits &&
+      codGuaranteePaymentIntentId
+    ) {
+      return undefined;
+    }
+
+    let isActive = true;
+
+    const createCodGuaranteeIntent = async () => {
+      setIsCreatingCodGuaranteeIntent(true);
+      setCodGuaranteeIntentError(null);
+      try {
+        const checkoutAttemptId =
+          codGuaranteeAttemptIdRef.current ||
+          (typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}${Math.random().toString(36).slice(2)}`);
+        codGuaranteeAttemptIdRef.current = checkoutAttemptId;
+
+        const payload: Record<string, unknown> = {
+          amount: amountInMinorUnits,
+          checkoutAttemptId,
+          metadata: {
+            checkoutStep: "payment",
+            paymentFlow: "cod_guarantee",
+            shippingCountry: shippingAddress?.country || "",
+          },
+        };
+
+        if (codGuaranteePaymentIntentId) {
+          payload.paymentIntentId = codGuaranteePaymentIntentId;
+        }
+
+        const response = await fetch("/api/stripe/create-payment-intent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "Failed to create COD guarantee");
+        }
+
+        const data = await response.json();
+        if (!isActive) {
+          return;
+        }
+
+        setCodGuaranteeClientSecret(data.clientSecret);
+        setCodGuaranteePaymentIntentId(data.paymentIntentId);
+        setCodGuaranteeIntentAmount(amountInMinorUnits);
+        setCodGuaranteeAuthorized(false);
+        setCodGuaranteeIntentError(null);
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+        console.error("Error creating COD guarantee intent:", error);
+        clearCodGuaranteeIntent();
+        setCodGuaranteeIntentError(
+          t(
+            "codGuaranteeIntentError",
+            "Nu am reușit să autorizăm garanția COD. Reîncearcă."
+          )
+        );
+      } finally {
+        if (isActive) {
+          setIsCreatingCodGuaranteeIntent(false);
+        }
+      }
+    };
+
+    createCodGuaranteeIntent();
+
+    return () => {
+      isActive = false;
+    };
+  }, [
+    stripeEnabled,
+    selectedPaymentMethod,
+    isCalculatingTotal,
+    codGuaranteeAmount,
+    shippingAddress,
+    t,
+    codGuaranteeAuthorized,
+    codGuaranteeClientSecret,
+    codGuaranteeIntentAmount,
+    codGuaranteePaymentIntentId,
+  ]);
+
   const showBillingForm = !useSameAddress;
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -432,6 +612,22 @@ export function PaymentForm({
         country: address?.country || "",
       },
     };
+  };
+
+  const submitCODOrder = (guaranteePaymentIntentId: string) => {
+    const codConsentAcceptedAt = new Date().toISOString();
+    onSubmit({
+      paymentMethod: "cash_on_delivery",
+      billingAddressSameAsShipping: useSameAddress,
+      billingAddress: useSameAddress ? undefined : currentBillingAddress,
+      stripePaymentIntentId: undefined,
+      codConsentAccepted: true,
+      codConsentAcceptedAt,
+      codConsentVersion: COD_CONSENT_VERSION,
+      codConsentText: COD_CONSENT_TEXT,
+      codGuaranteePaymentIntentId: guaranteePaymentIntentId,
+      codGuaranteeAmount,
+    });
   };
 
   const handlePaymentSuccess = (paymentDetails: PaymentDetails) => {
@@ -459,6 +655,12 @@ export function PaymentForm({
           billingAddressSameAsShipping: useSameAddress,
           billingAddress: useSameAddress ? undefined : currentBillingAddress,
           stripePaymentIntentId: resolvedPaymentIntentId,
+          codConsentAccepted: undefined,
+          codConsentAcceptedAt: undefined,
+          codConsentVersion: undefined,
+          codConsentText: undefined,
+          codGuaranteePaymentIntentId: undefined,
+          codGuaranteeAmount: undefined,
         });
         return;
       }
@@ -470,7 +672,34 @@ export function PaymentForm({
       billingAddressSameAsShipping: useSameAddress,
       billingAddress: useSameAddress ? undefined : currentBillingAddress,
       stripePaymentIntentId: resolvedPaymentIntentId,
+      codConsentAccepted: undefined,
+      codConsentAcceptedAt: undefined,
+      codConsentVersion: undefined,
+      codConsentText: undefined,
+      codGuaranteePaymentIntentId: undefined,
+      codGuaranteeAmount: undefined,
     });
+  };
+
+  const handleCODGuaranteeSuccess = (paymentDetails: PaymentDetails) => {
+    const guaranteeIntentId =
+      paymentDetails.stripePaymentIntentId || codGuaranteePaymentIntentId;
+    if (!guaranteeIntentId) {
+      setPaymentError(
+        t(
+          "codGuaranteeIntentMissing",
+          "Nu am putut confirma autorizarea garanției COD. Reîncearcă."
+        )
+      );
+      return;
+    }
+
+    setCodGuaranteePaymentIntentId(guaranteeIntentId);
+    setCodGuaranteeAuthorized(true);
+    setCodGuaranteeIntentAmount(Math.round(codGuaranteeAmount * 100));
+    setCodGuaranteeIntentError(null);
+    setPaymentError(null);
+    submitCODOrder(guaranteeIntentId);
   };
 
   const handlePaymentError = (_error: string) => {
@@ -479,10 +708,23 @@ export function PaymentForm({
     );
   };
 
+  const handleCODGuaranteeError = (_error: string) => {
+    const message = t(
+      "codGuaranteeAuthFailed",
+      "Autorizarea garanției COD a eșuat. Verifică datele cardului și încearcă din nou."
+    );
+    setCodGuaranteeAuthorized(false);
+    setCodGuaranteeIntentError(message);
+    setPaymentError(message);
+  };
+
   const handlePaymentMethodChange = (value: string) => {
     setSelectedPaymentMethod(value);
     setUseNewCard(value === "stripe_new");
     setPaymentError(null);
+    if (value !== "cash_on_delivery") {
+      setCodGuaranteeIntentError(null);
+    }
     if (value !== "stripe_new") {
       setStripeClientSecret(null);
       setStripePaymentIntentId(undefined);
@@ -524,11 +766,26 @@ export function PaymentForm({
         billingAddressSameAsShipping: useSameAddress,
         billingAddress: useSameAddress ? undefined : currentBillingAddress,
         stripePaymentIntentId: undefined,
+        codConsentAccepted: undefined,
+        codConsentAcceptedAt: undefined,
+        codConsentVersion: undefined,
+        codConsentText: undefined,
+        codGuaranteePaymentIntentId: undefined,
+        codGuaranteeAmount: undefined,
       });
       return;
     }
 
     if (selectedPaymentMethod === "cash_on_delivery") {
+      if (!stripeEnabled) {
+        setPaymentError(
+          t(
+            "codRequiresStripe",
+            "Rambursul este disponibil doar cu autorizare de garanție pe card."
+          )
+        );
+        return;
+      }
       if (
         shippingMethod?.isMixedSupplierCart ||
         shippingMethod?.requiresPrepaid
@@ -550,13 +807,52 @@ export function PaymentForm({
         );
         return;
       }
+      if (!codConsentAccepted) {
+        setPaymentError(
+          t(
+            "codConsentRequired",
+            "Pentru plata ramburs trebuie să accepți condițiile privind costurile de livrare și retur."
+          )
+        );
+        return;
+      }
+      if (codGuaranteeAmount <= 0) {
+        setPaymentError(
+          t(
+            "codGuaranteeAmountInvalid",
+            "Nu am putut calcula garanția COD. Reîncearcă după actualizarea adresei de livrare."
+          )
+        );
+        return;
+      }
+      if (codGuaranteeAuthorized && codGuaranteePaymentIntentId) {
+        submitCODOrder(codGuaranteePaymentIntentId);
+        return;
+      }
+      if (isCreatingCodGuaranteeIntent || !codGuaranteeClientSecret) {
+        setPaymentError(
+          t(
+            "codGuaranteeStillLoading",
+            "Așteaptă câteva secunde până pregătim autorizarea garanției COD."
+          )
+        );
+        return;
+      }
 
-      onSubmit({
-        paymentMethod: selectedPaymentMethod,
-        billingAddressSameAsShipping: useSameAddress,
-        billingAddress: useSameAddress ? undefined : currentBillingAddress,
-        stripePaymentIntentId: undefined,
-      });
+      const codSubmitButton = document.querySelector(
+        ".cod-guarantee-submit-button"
+      ) as HTMLButtonElement | null;
+      if (codSubmitButton) {
+        codSubmitButton.click();
+        return;
+      }
+
+      setPaymentError(
+        t(
+          "codGuaranteeButtonMissing",
+          "Nu am putut porni autorizarea garanției COD. Reîncarcă pagina și încearcă din nou."
+        )
+      );
       return;
     }
 
@@ -579,6 +875,12 @@ export function PaymentForm({
           billingAddressSameAsShipping: useSameAddress,
           billingAddress: useSameAddress ? undefined : currentBillingAddress,
           stripePaymentIntentId: undefined,
+          codConsentAccepted: undefined,
+          codConsentAcceptedAt: undefined,
+          codConsentVersion: undefined,
+          codConsentText: undefined,
+          codGuaranteePaymentIntentId: undefined,
+          codGuaranteeAmount: undefined,
         });
         return;
       }
@@ -663,6 +965,127 @@ export function PaymentForm({
                     ? t("recipientCompany", "companie")
                     : t("recipientIndividual", "persoană fizică"),
               }
+            )}
+          </div>
+        )}
+        {selectedPaymentMethod === "cash_on_delivery" && (
+          <div className="my-4 space-y-3 rounded-md border border-amber-200 bg-amber-50 p-4">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="cod-consent"
+                checked={codConsentAccepted}
+                onCheckedChange={checked => {
+                  const isAccepted = checked === true;
+                  setCodConsentAccepted(isAccepted);
+                  if (isAccepted) {
+                    setPaymentError(null);
+                  }
+                }}
+                className="mt-0.5"
+              />
+              <label
+                htmlFor="cod-consent"
+                className="text-sm font-medium leading-5 text-amber-950"
+              >
+                {t(
+                  "codConsentLabel",
+                  "Confirm că am citit condițiile COD și accept costurile logistice reale de tur + retur în caz de refuz/nepreluare colet."
+                )}
+              </label>
+            </div>
+            <p className="text-xs leading-5 text-amber-900">
+              {t("codConsentBody", COD_CONSENT_TEXT)}
+            </p>
+            <p className="text-xs text-amber-900">
+              {t("codConsentLinksPrefix", "Detalii complete:")}{" "}
+              <Link className="underline underline-offset-2" href="/shipping">
+                {t("shippingPolicy", "Politica de livrare")}
+              </Link>
+              ,{" "}
+              <Link className="underline underline-offset-2" href="/returns">
+                {t("returnsPolicy", "Politica de retur")}
+              </Link>{" "}
+              {t("andText", "și")}{" "}
+              <Link className="underline underline-offset-2" href="/terms">
+                {t("termsAndConditions", "Termeni și Condiții")}
+              </Link>
+              .
+            </p>
+          </div>
+        )}
+        {stripeEnabled && selectedPaymentMethod === "cash_on_delivery" && (
+          <div className="my-4 space-y-3 rounded-md border border-sky-200 bg-sky-50 p-4">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-semibold text-sky-900">
+                {t(
+                  "codGuaranteeTitle",
+                  "Garanție COD (pre-autorizare card pentru cost logistic)"
+                )}
+              </p>
+              <p className="text-xs text-sky-800">
+                {t(
+                  "codGuaranteeDescription",
+                  "La plasarea comenzii se autorizează pe card o garanție egală cu costul logistic estimat tur + retur. Suma nu este încasată acum. Este capturată doar dacă refuzi coletul / nu îl ridici (RTO), conform termenilor."
+                )}
+              </p>
+              <p className="text-xs text-sky-900/90">
+                {t(
+                  "codGuaranteePostRefusalNotice",
+                  "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale/contabile aplicabile în România, nu prin debit automat separat post-refuz."
+                )}
+              </p>
+              <p className="text-xs font-medium text-sky-900">
+                {t("codGuaranteeAmount", "Valoare garanție autorizată:")}{" "}
+                {formatPrice(codGuaranteeAmount)}
+              </p>
+              {codGuaranteeAuthorized && codGuaranteePaymentIntentId && (
+                <p className="text-xs font-medium text-emerald-700">
+                  {t(
+                    "codGuaranteeAuthorized",
+                    "Garanție autorizată. Poți continua la pasul următor."
+                  )}
+                </p>
+              )}
+            </div>
+
+            {codGuaranteeIntentError && (
+              <div className="p-3 rounded-md bg-red-50 text-red-700 text-sm">
+                {codGuaranteeIntentError}
+              </div>
+            )}
+
+            {isCreatingCodGuaranteeIntent && !codGuaranteeClientSecret && (
+              <div className="flex justify-center items-center gap-2 text-sm text-muted-foreground border rounded-md py-3 bg-white">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {t(
+                  "initializingCodGuarantee",
+                  "Pregătim autorizarea garanției COD..."
+                )}
+              </div>
+            )}
+
+            {codGuaranteeClientSecret && !codGuaranteeAuthorized && (
+              <StripeProvider
+                options={{
+                  clientSecret: codGuaranteeClientSecret,
+                  appearance: { theme: "stripe" },
+                }}
+              >
+                <StripePaymentForm
+                  clientSecret={codGuaranteeClientSecret}
+                  paymentIntentId={codGuaranteePaymentIntentId}
+                  onSuccess={handleCODGuaranteeSuccess}
+                  onError={handleCODGuaranteeError}
+                  billingDetails={getBillingDetails()}
+                  amount={Math.round(codGuaranteeAmount * 100)}
+                  isCalculatingTotal={isCalculatingTotal}
+                  submitButtonClassName="cod-guarantee-submit-button"
+                  submitLabel={t(
+                    "authorizeCodGuarantee",
+                    `Autorizează ${formatPrice(codGuaranteeAmount)}`
+                  )}
+                />
+              </StripeProvider>
             )}
           </div>
         )}

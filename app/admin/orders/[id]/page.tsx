@@ -37,6 +37,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { parseCodGuaranteeEvidence } from "@/lib/checkout/cod-guarantee";
 import { useCurrency } from "@/lib/currency";
 
 // Types
@@ -134,6 +135,10 @@ type OrderDetails = {
   paymentStatus: string;
   paymentMethod: string;
   shippingMethod?: string;
+  notes?: string | null;
+  tags?: string[];
+  codFeeEstimate?: number | null;
+  codAmount?: number | null;
   subtotal: number;
   tax: number;
   shippingCost: number;
@@ -317,6 +322,73 @@ const getOosOpsSnapshot = (supplierOrder: SupplierOrder) => {
   };
 };
 
+type CodConsentInfo = {
+  accepted: boolean;
+  acceptedAt: string | null;
+  version: string | null;
+  termsSnapshot: string | null;
+  source: "notes" | "tags" | "none";
+};
+
+const getCodConsentInfo = (order: OrderDetails): CodConsentInfo => {
+  const tags = Array.isArray(order.tags) ? order.tags : [];
+  const codVersionTag = tags.find(tag => tag.startsWith("COD_CONSENT_V"));
+  const versionFromTag = codVersionTag
+    ? codVersionTag.replace("COD_CONSENT_V", "").replace(/_/g, "-")
+    : null;
+
+  const noteSegments = (order.notes || "")
+    .split("|")
+    .map(segment => segment.trim())
+    .filter(Boolean);
+
+  const acceptedSegment = noteSegments.find(segment =>
+    segment.startsWith("COD Consent accepted at ")
+  );
+  const snapshotSegment = noteSegments.find(segment =>
+    segment.startsWith("COD Consent terms snapshot:")
+  );
+
+  let acceptedAt: string | null = null;
+  let versionFromNotes: string | null = null;
+
+  if (acceptedSegment) {
+    const acceptedMatch = acceptedSegment.match(
+      /^COD Consent accepted at (.+) \(version (.+)\)$/
+    );
+    if (acceptedMatch) {
+      acceptedAt = acceptedMatch[1]?.trim() || null;
+      versionFromNotes = acceptedMatch[2]?.trim() || null;
+    }
+  }
+
+  return {
+    accepted: Boolean(acceptedSegment || versionFromTag),
+    acceptedAt,
+    version: versionFromNotes || versionFromTag,
+    termsSnapshot: snapshotSegment
+      ? snapshotSegment.replace("COD Consent terms snapshot:", "").trim()
+      : null,
+    source: acceptedSegment ? "notes" : versionFromTag ? "tags" : "none",
+  };
+};
+
+const formatAdminDateTime = (rawValue?: string | null): string => {
+  if (!rawValue) return "—";
+  const parsed = new Date(rawValue);
+  if (Number.isNaN(parsed.getTime())) {
+    return rawValue;
+  }
+  return parsed.toLocaleString("ro-RO", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+};
+
 // Helper functions
 const getStatusIcon = (status: string) => {
   switch (status.toUpperCase()) {
@@ -423,7 +495,8 @@ const getSupplierLineWorkflowHint = (supplierOrder: SupplierOrder) => {
   if (phase === "SHIPPED" || supplierOrder.status === "SHIPPED") {
     return {
       title: "Next step",
-      description: "Monitor the shipment and mark Delivered when courier confirms delivery.",
+      description:
+        "Monitor the shipment and mark Delivered when courier confirms delivery.",
       tone: "info" as const,
     };
   }
@@ -478,12 +551,18 @@ const getSupplierLineChecklistSteps = (supplierOrder: SupplierOrder) => {
   const placedMarked =
     awbMarked ||
     hasTracking ||
-    ["PLACED_TO_SUPPLIER", "AWB_PENDING", "ISSUE_OOS", "ISSUE_DELAYED"].includes(
-      status
-    ) ||
-    ["PLACED_TO_SUPPLIER", "AWB_PENDING", "ISSUE_OOS", "ISSUE_DELAYED"].includes(
-      phase
-    );
+    [
+      "PLACED_TO_SUPPLIER",
+      "AWB_PENDING",
+      "ISSUE_OOS",
+      "ISSUE_DELAYED",
+    ].includes(status) ||
+    [
+      "PLACED_TO_SUPPLIER",
+      "AWB_PENDING",
+      "ISSUE_OOS",
+      "ISSUE_DELAYED",
+    ].includes(phase);
   const awbSaved = hasTracking || awbMarked;
 
   const completedStepCount = delivered
@@ -528,11 +607,12 @@ const getSupplierLineChecklistSteps = (supplierOrder: SupplierOrder) => {
 
   return steps.map(step => ({
     ...step,
-    state: completedStepCount >= step.index
-      ? ("done" as const)
-      : completedStepCount + 1 === step.index
-        ? ("current" as const)
-        : ("next" as const),
+    state:
+      completedStepCount >= step.index
+        ? ("done" as const)
+        : completedStepCount + 1 === step.index
+          ? ("current" as const)
+          : ("next" as const),
   }));
 };
 
@@ -647,6 +727,7 @@ export default function OrderDetailsPage() {
   const [trackingInput, setTrackingInput] = useState("");
   const [creatingAwb, setCreatingAwb] = useState(false);
   const [resendingAwbEmail, setResendingAwbEmail] = useState(false);
+  const [rejectingCOD, setRejectingCOD] = useState(false);
   const [savingSupplierStatusId, setSavingSupplierStatusId] = useState<
     string | null
   >(null);
@@ -1344,6 +1425,64 @@ export default function OrderDetailsPage() {
     }
   };
 
+  const markCODRejected = async () => {
+    if (!order) return;
+
+    const reason = window.prompt(
+      "COD rejection reason (required):",
+      "Customer refused delivery"
+    );
+    if (!reason || !reason.trim()) {
+      return;
+    }
+
+    const extraNotes = window.prompt(
+      "Optional notes for COD refusal/RTO (optional):",
+      ""
+    );
+
+    setRejectingCOD(true);
+    try {
+      const response = await fetch(`/api/admin/orders/${order.id}/cod-reject`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reason: reason.trim(),
+          notes: extraNotes?.trim() || undefined,
+          captureGuarantee: true,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.error || data?.details || "COD reject failed");
+      }
+
+      toast({
+        title: "COD rejection recorded",
+        description: data?.guaranteeCaptured
+          ? `Guarantee captured: ${formatPrice(Number(data?.guaranteeCaptureAmount || 0))}`
+          : "Order rejected. Guarantee capture requires manual review.",
+      });
+
+      await fetchOrderDetails();
+    } catch (error) {
+      console.error("Error rejecting COD order:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to reject COD order.",
+        variant: "destructive",
+      });
+    } finally {
+      setRejectingCOD(false);
+    }
+  };
+
   // Update order status
   const updateOrderStatus = async () => {
     if (!order || !newStatus || newStatus === order.status) return;
@@ -1453,11 +1592,15 @@ export default function OrderDetailsPage() {
   );
   const hasPhysicalItems = order.items.some(item => item.isDigital !== true);
   const fulfillment = order.fulfillment;
+  const isCODOrder = ["cash_on_delivery", "cod"].includes(
+    String(order.paymentMethod || "").toLowerCase()
+  );
+  const codConsentInfo = isCODOrder ? getCodConsentInfo(order) : null;
+  const codGuaranteeEvidence = isCODOrder
+    ? parseCodGuaranteeEvidence(order.notes)
+    : null;
   const canShowSupplierOrdersSection =
-    order.paymentStatus === "PAID" ||
-    ["cash_on_delivery", "cod"].includes(
-      String(order.paymentMethod || "").toLowerCase()
-    );
+    order.paymentStatus === "PAID" || isCODOrder;
 
   return (
     <div className="space-y-6">
@@ -1473,7 +1616,9 @@ export default function OrderDetailsPage() {
             </Link>
             <Separator orientation="vertical" className="h-10 mt-0.5" />
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Order #{order.orderNumber}</h1>
+              <h1 className="text-2xl font-bold tracking-tight">
+                Order #{order.orderNumber}
+              </h1>
               <p className="text-sm text-muted-foreground mt-0.5">
                 Placed{" "}
                 {order.date
@@ -1491,7 +1636,8 @@ export default function OrderDetailsPage() {
                       fulfillment.displayStatus
                     )}`}
                   >
-                    Fulfillment: {formatWorkflowLabel(fulfillment.displayStatus)}
+                    Fulfillment:{" "}
+                    {formatWorkflowLabel(fulfillment.displayStatus)}
                   </span>
                   {fulfillment.hasMixedSuppliers && (
                     <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
@@ -1561,7 +1707,8 @@ export default function OrderDetailsPage() {
               className="min-h-[80px] border-red-200 focus:border-red-400 bg-white"
             />
             <p className="text-xs text-red-600 mt-1">
-              This reason will be sent to the customer in the cancellation email.
+              This reason will be sent to the customer in the cancellation
+              email.
             </p>
           </div>
         )}
@@ -1661,7 +1808,8 @@ export default function OrderDetailsPage() {
                             <span
                               className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600 font-mono"
                               title={
-                                item.supplierSkus && item.supplierSkus.length > 0
+                                item.supplierSkus &&
+                                item.supplierSkus.length > 0
                                   ? item.supplierSkus.join(", ")
                                   : undefined
                               }
@@ -1684,11 +1832,12 @@ export default function OrderDetailsPage() {
                               </span>
                             )}
                           </div>
-                          {item.supplierSkus && item.supplierSkus.length > 1 && (
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              Component SKUs: {item.supplierSkus.join(", ")}
-                            </p>
-                          )}
+                          {item.supplierSkus &&
+                            item.supplierSkus.length > 1 && (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Component SKUs: {item.supplierSkus.join(", ")}
+                              </p>
+                            )}
                         </>
                       )}
                       {item.isDigital && (
@@ -1881,515 +2030,392 @@ export default function OrderDetailsPage() {
                       </div>
                     )}
 
-	                    <div className="flex items-center justify-between">
-	                      <p className="text-sm font-medium">
-	                        Supplier Order Lines
-	                      </p>
-	                      <p className="text-xs text-muted-foreground">
-	                        Use the quick steps below and only use manual status
-	                        dropdown for special cases
-	                      </p>
-	                    </div>
-		                    <div className="rounded-lg border bg-slate-50 p-4 space-y-2">
-		                      <p className="text-sm font-medium">
-		                        Supplier Fulfillment Playbook (per supplier line)
-		                      </p>
-	                      <ol className="list-decimal pl-4 space-y-1 text-xs text-muted-foreground">
-	                        <li>
-	                          Place the order on supplier website, then click{" "}
-	                          <strong>Placed to Supplier</strong>.
-	                        </li>
-	                        <li>
-	                          When supplier sends AWB, save the tracking number
-	                          (AWB), then click <strong>AWB Uploaded</strong>.
-	                        </li>
-	                        <li>
-	                          After courier pickup/dispatch is confirmed, click{" "}
-	                          <strong>Shipped</strong>.
-	                        </li>
-	                        <li>
-	                          When delivered, click <strong>Delivered</strong>.
-	                        </li>
-	                      </ol>
-		                      <p className="text-xs text-slate-600">
-		                        Parent order status updates automatically based on
-		                        supplier line statuses.
-		                      </p>
-		                      <p className="text-xs text-slate-600">
-		                        Important: use the supplier line steps below for
-		                        dropshipping workflow. The top order status is the
-		                        overall order status.
-		                      </p>
-		                    </div>
-		                    {order.supplierOrders.map(so => {
-		                      const hasTracking = Boolean(so.trackingNumber?.trim());
-		                      const workflowHint = getSupplierLineWorkflowHint(so);
-		                      const checklistSteps = getSupplierLineChecklistSteps(so);
-		                      const hintToneClasses =
-		                        workflowHint.tone === "success"
-	                          ? "border-green-200 bg-green-50 text-green-900"
-	                          : workflowHint.tone === "warning"
-	                            ? "border-amber-200 bg-amber-50 text-amber-900"
-	                            : "border-blue-200 bg-blue-50 text-blue-900";
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">
+                        Supplier Order Lines
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Use the quick steps below and only use manual status
+                        dropdown for special cases
+                      </p>
+                    </div>
+                    <div className="rounded-lg border bg-slate-50 p-4 space-y-2">
+                      <p className="text-sm font-medium">
+                        Supplier Fulfillment Playbook (per supplier line)
+                      </p>
+                      <ol className="list-decimal pl-4 space-y-1 text-xs text-muted-foreground">
+                        <li>
+                          Place the order on supplier website, then click{" "}
+                          <strong>Placed to Supplier</strong>.
+                        </li>
+                        <li>
+                          When supplier sends AWB, save the tracking number
+                          (AWB), then click <strong>AWB Uploaded</strong>.
+                        </li>
+                        <li>
+                          After courier pickup/dispatch is confirmed, click{" "}
+                          <strong>Shipped</strong>.
+                        </li>
+                        <li>
+                          When delivered, click <strong>Delivered</strong>.
+                        </li>
+                      </ol>
+                      <p className="text-xs text-slate-600">
+                        Parent order status updates automatically based on
+                        supplier line statuses.
+                      </p>
+                      <p className="text-xs text-slate-600">
+                        Important: use the supplier line steps below for
+                        dropshipping workflow. The top order status is the
+                        overall order status.
+                      </p>
+                    </div>
+                    {order.supplierOrders.map(so => {
+                      const hasTracking = Boolean(so.trackingNumber?.trim());
+                      const workflowHint = getSupplierLineWorkflowHint(so);
+                      const checklistSteps = getSupplierLineChecklistSteps(so);
+                      const hintToneClasses =
+                        workflowHint.tone === "success"
+                          ? "border-green-200 bg-green-50 text-green-900"
+                          : workflowHint.tone === "warning"
+                            ? "border-amber-200 bg-amber-50 text-amber-900"
+                            : "border-blue-200 bg-blue-50 text-blue-900";
 
-	                      return (
-	                      <div
-	                        key={so.id}
-	                        className="p-4 border rounded-lg space-y-3"
-	                      >
-	                        <div className="flex items-center justify-between">
-	                          <div>
-	                            <p className="font-medium">{so.supplierName}</p>
-	                            <p className="text-sm text-muted-foreground">
-	                              {so.productName} × {so.quantity}
-	                            </p>
-	                            <div className="mt-1 flex flex-wrap gap-2 text-xs">
-	                              {so.sku && (
-	                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
-	                                  SKU: {so.sku}
-	                                </span>
-	                              )}
-	                              {so.supplierOrderId && (
-	                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
-	                                  Supplier Ref: {so.supplierOrderId}
-	                                </span>
-	                              )}
-	                            </div>
-	                          </div>
-	                          <span
-                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                              so.status === "SHIPPED"
-                                ? "bg-purple-100 text-purple-800"
-                                : so.status === "DELIVERED"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-blue-100 text-blue-800"
-                            }`}
-                          >
-                            {so.status}
-	                          </span>
-	                        </div>
-
-	                        <div
-	                          className={`rounded-md border p-3 ${hintToneClasses}`}
-		                        >
-		                          <p className="text-sm font-medium">
-		                            What to do now: {workflowHint.title}
-		                          </p>
-		                          <p className="mt-1 text-xs opacity-90">
-		                            {workflowHint.description}
-		                          </p>
-		                        </div>
-
-		                        <div className="rounded-md border bg-white p-3 space-y-2">
-		                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-		                            <p className="text-sm font-medium">
-		                              Step-by-step checklist
-		                            </p>
-		                            <p className="text-xs text-muted-foreground">
-		                              Follow the current step first, then continue in order
-		                            </p>
-		                          </div>
-		                          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
-		                            {checklistSteps.map(step => {
-		                              const stateClasses =
-		                                step.state === "done"
-		                                  ? "border-green-200 bg-green-50"
-		                                  : step.state === "current"
-		                                    ? "border-blue-300 bg-blue-50 ring-1 ring-blue-200"
-		                                    : "border-slate-200 bg-slate-50";
-		                              const badgeClasses =
-		                                step.state === "done"
-		                                  ? "bg-green-600 text-white"
-		                                  : step.state === "current"
-		                                    ? "bg-blue-600 text-white"
-		                                    : "bg-slate-200 text-slate-700";
-		                              return (
-		                                <div
-		                                  key={`${so.id}-step-${step.index}`}
-		                                  className={`rounded-md border p-2 space-y-1 ${stateClasses}`}
-		                                >
-		                                  <div className="flex items-center gap-2">
-		                                    <span
-		                                      className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold ${badgeClasses}`}
-		                                    >
-		                                      {step.index}
-		                                    </span>
-		                                    <span className="text-xs font-medium leading-tight">
-		                                      {step.title}
-		                                    </span>
-		                                  </div>
-		                                  <p className="text-[11px] text-muted-foreground leading-tight">
-		                                    {step.detail}
-		                                  </p>
-		                                </div>
-		                              );
-		                            })}
-		                          </div>
-		                        </div>
-
-	                        {so.phase && (
-	                          <div>
-                            <span
-                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getPhaseColor(
-                                so.phase
-                              )}`}
-                            >
-                              Workflow phase: {formatWorkflowLabel(so.phase)}
-                            </span>
-	                          </div>
-	                        )}
-
-		                        <div className="rounded-md border bg-slate-50/70 p-3 space-y-3">
-		                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-		                            <div>
-		                            <p className="text-sm font-medium">
-		                              Step 1 / Step 3 / Step 4 / Step 5 Buttons
-		                            </p>
-		                            <p className="text-xs text-muted-foreground">
-		                              Click these when each step is completed. Step 2
-		                              (AWB save) is the tracking box below.
-		                            </p>
-		                            </div>
-	                            <Button
-	                              type="button"
-	                              size="sm"
-	                              variant="outline"
-	                              onClick={() => copySupplierLineForOrdering(so)}
-	                            >
-	                              <Copy className="mr-2 h-4 w-4" />
-	                              Copy Supplier Line
-	                            </Button>
-	                          </div>
-	                          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
-	                            {QUICK_SUPPLIER_WORKFLOW_ACTIONS.map(action => {
-	                              const isCurrent = so.status === action.status;
-	                              const isDisabled =
-	                                savingSupplierStatusId === so.id ||
-	                                Boolean(action.requiresTracking && !hasTracking);
-	                              return (
-	                                <Button
-	                                  key={`${so.id}-${action.status}`}
-	                                  type="button"
-	                                  size="sm"
-	                                  variant={isCurrent ? "default" : "outline"}
-	                                  disabled={isDisabled}
-	                                  onClick={() =>
-	                                    applyQuickSupplierStatus(so, action.status)
-	                                  }
-	                                  className="justify-start h-auto py-2"
-	                                  title={
-	                                    action.requiresTracking && !hasTracking
-	                                      ? "Save tracking number first"
-	                                      : action.description
-	                                  }
-	                                >
-	                                  <span className="text-left">
-	                                    <span className="block text-xs font-medium">
-	                                      {action.label}
-	                                    </span>
-	                                    <span className="block text-[10px] opacity-80 whitespace-normal leading-tight">
-	                                      {action.description}
-	                                    </span>
-	                                  </span>
-	                                </Button>
-	                              );
-	                            })}
-	                          </div>
-		                          {!hasTracking && (
-		                            <p className="text-xs text-amber-700">
-		                              Step 2 first: save AWB/tracking below to enable{" "}
-		                              <strong>AWB Uploaded</strong> and{" "}
-		                              <strong>Shipped</strong>.
-		                            </p>
-		                          )}
-		                        </div>
-
-	                        <div className="grid grid-cols-2 gap-4 text-sm">
-	                          <div>
-                            <span className="text-muted-foreground">Cost:</span>
-                            <span className="ml-2 font-medium">
-                              {formatPrice(so.totalCost)}
-                            </span>
-                          </div>
-	                          <div>
-	                            <span className="text-muted-foreground">
-	                              Tracking:
-	                            </span>
-	                            <span className="ml-2 font-medium">
-	                              {so.trackingNumber || "Not added yet"}
-	                            </span>
-	                          </div>
-	                        </div>
-
-	                        <div className="space-y-2 rounded-md border bg-white p-3">
-	                          <label className="text-sm font-medium">
-	                            Advanced / Manual Supplier Status (optional)
-	                          </label>
-	                          <p className="text-xs text-muted-foreground">
-	                            Use quick step buttons above for normal flow. Use
-	                            this dropdown only for special cases.
-	                          </p>
-	                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                            <Select
-                              value={supplierStatusDrafts[so.id] || so.status}
-                              onValueChange={value =>
-                                setSupplierStatusDrafts(prev => ({
-                                  ...prev,
-                                  [so.id]: value,
-                                }))
-                              }
-                            >
-                              <SelectTrigger className="w-full sm:w-[260px]">
-                                <SelectValue placeholder="Choose status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {SUPPLIER_WORKFLOW_STATUS_OPTIONS.map(
-                                  statusOption => (
-                                    <SelectItem
-                                      key={statusOption}
-                                      value={statusOption}
-                                    >
-                                      {formatWorkflowLabel(statusOption)}
-                                    </SelectItem>
-                                  )
+                      return (
+                        <div
+                          key={so.id}
+                          className="p-4 border rounded-lg space-y-3"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">{so.supplierName}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {so.productName} × {so.quantity}
+                              </p>
+                              <div className="mt-1 flex flex-wrap gap-2 text-xs">
+                                {so.sku && (
+                                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
+                                    SKU: {so.sku}
+                                  </span>
                                 )}
-                              </SelectContent>
-                            </Select>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={
-                                savingSupplierStatusId === so.id ||
-                                (supplierStatusDrafts[so.id] || so.status) ===
-                                  so.status
-                              }
-                              onClick={() => updateSupplierOrderStatus(so.id)}
+                                {so.supplierOrderId && (
+                                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
+                                    Supplier Ref: {so.supplierOrderId}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                so.status === "SHIPPED"
+                                  ? "bg-purple-100 text-purple-800"
+                                  : so.status === "DELIVERED"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-blue-100 text-blue-800"
+                              }`}
                             >
-                              {savingSupplierStatusId === so.id ? (
-                                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                              ) : (
-                                <Save className="h-4 w-4 mr-2" />
-                              )}
-                              Save Status
-                            </Button>
+                              {so.status}
+                            </span>
                           </div>
-                        </div>
 
-                        {(so.phase === "ISSUE_OOS" ||
-                          so.phase === "ISSUE_DELAYED") &&
-                          (() => {
-                            const oosOps = getOosOpsSnapshot(so);
-                            const oosNotificationDraft =
-                              getOosNotificationDraft(so.id);
+                          <div
+                            className={`rounded-md border p-3 ${hintToneClasses}`}
+                          >
+                            <p className="text-sm font-medium">
+                              What to do now: {workflowHint.title}
+                            </p>
+                            <p className="mt-1 text-xs opacity-90">
+                              {workflowHint.description}
+                            </p>
+                          </div>
 
-                            return (
-                              <div className="space-y-3 rounded-lg border border-red-200 bg-red-50/60 p-3">
-                                <div className="flex items-center gap-2">
-                                  <MessageSquareWarning className="h-4 w-4 text-red-700" />
-                                  <p className="text-sm font-medium text-red-900">
-                                    Out-of-Stock Resolution Workflow
-                                  </p>
-                                </div>
-                                <p className="text-xs text-red-800">
-                                  Choose a resolution path, save it to the
-                                  supplier line, then copy the customer message
-                                  template and send it.
-                                </p>
-
-                                <div className="flex flex-wrap gap-2">
-                                  {typeof oosOps.issueAgeHours === "number" && (
-                                    <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-700 border">
-                                      Issue age:{" "}
-                                      {Math.floor(oosOps.issueAgeHours)}h
-                                    </span>
-                                  )}
-                                  {typeof oosOps.inactivityHours ===
-                                    "number" && (
-                                    <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-700 border">
-                                      Last activity:{" "}
-                                      {Math.floor(oosOps.inactivityHours)}h ago
-                                    </span>
-                                  )}
-                                  {oosOps.needsCustomerNotification ? (
-                                    <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 border border-red-200">
-                                      Customer not notified yet
-                                    </span>
-                                  ) : (
-                                    <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 border border-green-200">
-                                      Customer contact logged
-                                    </span>
-                                  )}
-                                  {oosOps.isSlaOverdue && (
-                                    <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 border border-amber-200">
-                                      Follow-up overdue ({OOS_SLA_WARNING_HOURS}
-                                      h+)
-                                    </span>
-                                  )}
-                                </div>
-
-                                <div className="grid gap-3 md:grid-cols-2">
-                                  <div className="space-y-2">
-                                    <label className="text-sm font-medium">
-                                      Resolution Action
-                                    </label>
-                                    <Select
-                                      value={getOosDraft(so.id).action}
-                                      onValueChange={value =>
-                                        setOosDraft(so.id, {
-                                          action: value as OosResolutionAction,
-                                        })
-                                      }
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Choose action" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {OOS_RESOLUTION_OPTIONS.map(option => (
-                                          <SelectItem
-                                            key={option.value}
-                                            value={option.value}
-                                          >
-                                            {option.label} (
-                                            {formatWorkflowLabel(
-                                              option.targetStatus
-                                            )}
-                                            )
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="space-y-2">
-                                    <label className="text-sm font-medium">
-                                      Internal Details
-                                    </label>
-                                    <Textarea
-                                      value={getOosDraft(so.id).detail}
-                                      onChange={e =>
-                                        setOosDraft(so.id, {
-                                          detail: e.target.value,
-                                        })
-                                      }
-                                      placeholder={
-                                        OOS_RESOLUTION_OPTIONS.find(
-                                          option =>
-                                            option.value ===
-                                            getOosDraft(so.id).action
-                                        )?.detailPlaceholder ||
-                                        "Add internal details"
-                                      }
-                                      className="min-h-[84px] bg-white"
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">
-                                    Customer Message Template (Preview)
-                                  </label>
-                                  <Textarea
-                                    value={buildOosCustomerMessage(
-                                      so,
-                                      getOosDraft(so.id).action,
-                                      getOosDraft(so.id).detail
-                                    )}
-                                    readOnly
-                                    className="min-h-[140px] bg-white text-xs"
-                                  />
-                                </div>
-
-                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => copyOosCustomerMessage(so)}
+                          <div className="rounded-md border bg-white p-3 space-y-2">
+                            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                              <p className="text-sm font-medium">
+                                Step-by-step checklist
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Follow the current step first, then continue in
+                                order
+                              </p>
+                            </div>
+                            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
+                              {checklistSteps.map(step => {
+                                const stateClasses =
+                                  step.state === "done"
+                                    ? "border-green-200 bg-green-50"
+                                    : step.state === "current"
+                                      ? "border-blue-300 bg-blue-50 ring-1 ring-blue-200"
+                                      : "border-slate-200 bg-slate-50";
+                                const badgeClasses =
+                                  step.state === "done"
+                                    ? "bg-green-600 text-white"
+                                    : step.state === "current"
+                                      ? "bg-blue-600 text-white"
+                                      : "bg-slate-200 text-slate-700";
+                                return (
+                                  <div
+                                    key={`${so.id}-step-${step.index}`}
+                                    className={`rounded-md border p-2 space-y-1 ${stateClasses}`}
                                   >
-                                    <Copy className="mr-2 h-4 w-4" />
-                                    Copy Customer Message
-                                  </Button>
+                                    <div className="flex items-center gap-2">
+                                      <span
+                                        className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold ${badgeClasses}`}
+                                      >
+                                        {step.index}
+                                      </span>
+                                      <span className="text-xs font-medium leading-tight">
+                                        {step.title}
+                                      </span>
+                                    </div>
+                                    <p className="text-[11px] text-muted-foreground leading-tight">
+                                      {step.detail}
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {so.phase && (
+                            <div>
+                              <span
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getPhaseColor(
+                                  so.phase
+                                )}`}
+                              >
+                                Workflow phase: {formatWorkflowLabel(so.phase)}
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="rounded-md border bg-slate-50/70 p-3 space-y-3">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <p className="text-sm font-medium">
+                                  Step 1 / Step 3 / Step 4 / Step 5 Buttons
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Click these when each step is completed. Step
+                                  2 (AWB save) is the tracking box below.
+                                </p>
+                              </div>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => copySupplierLineForOrdering(so)}
+                              >
+                                <Copy className="mr-2 h-4 w-4" />
+                                Copy Supplier Line
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
+                              {QUICK_SUPPLIER_WORKFLOW_ACTIONS.map(action => {
+                                const isCurrent = so.status === action.status;
+                                const isDisabled =
+                                  savingSupplierStatusId === so.id ||
+                                  Boolean(
+                                    action.requiresTracking && !hasTracking
+                                  );
+                                return (
                                   <Button
+                                    key={`${so.id}-${action.status}`}
+                                    type="button"
                                     size="sm"
-                                    variant="outline"
-                                    onClick={() => sendOosCustomerEmail(so)}
-                                    disabled={
-                                      sendingOosEmailId === so.id ||
-                                      !order?.email ||
-                                      order.email === "N/A"
+                                    variant={isCurrent ? "default" : "outline"}
+                                    disabled={isDisabled}
+                                    onClick={() =>
+                                      applyQuickSupplierStatus(
+                                        so,
+                                        action.status
+                                      )
+                                    }
+                                    className="justify-start h-auto py-2"
+                                    title={
+                                      action.requiresTracking && !hasTracking
+                                        ? "Save tracking number first"
+                                        : action.description
                                     }
                                   >
-                                    {sendingOosEmailId === so.id ? (
-                                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <Mail className="mr-2 h-4 w-4" />
-                                    )}
-                                    Send OOS Email
+                                    <span className="text-left">
+                                      <span className="block text-xs font-medium">
+                                        {action.label}
+                                      </span>
+                                      <span className="block text-[10px] opacity-80 whitespace-normal leading-tight">
+                                        {action.description}
+                                      </span>
+                                    </span>
                                   </Button>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => applyOosResolution(so)}
-                                    disabled={savingOosResolutionId === so.id}
-                                  >
-                                    {savingOosResolutionId === so.id ? (
-                                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <Save className="mr-2 h-4 w-4" />
-                                    )}
-                                    Save OOS Resolution
-                                  </Button>
-                                </div>
+                                );
+                              })}
+                            </div>
+                            {!hasTracking && (
+                              <p className="text-xs text-amber-700">
+                                Step 2 first: save AWB/tracking below to enable{" "}
+                                <strong>AWB Uploaded</strong> and{" "}
+                                <strong>Shipped</strong>.
+                              </p>
+                            )}
+                          </div>
 
-                                <div className="space-y-3 rounded-md border bg-white/80 p-3">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <div>
-                                      <p className="text-sm font-medium">
-                                        Customer Contact Log
-                                      </p>
-                                      <p className="text-xs text-muted-foreground">
-                                        Log when/how you contacted the customer
-                                        and what they replied.
-                                      </p>
-                                    </div>
-                                    {oosOps.latestNotification?.timestamp && (
-                                      <span className="text-xs text-muted-foreground">
-                                        Last contact:{" "}
-                                        {oosOps.latestNotification.timestamp.toLocaleString()}
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-muted-foreground">
+                                Cost:
+                              </span>
+                              <span className="ml-2 font-medium">
+                                {formatPrice(so.totalCost)}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">
+                                Tracking:
+                              </span>
+                              <span className="ml-2 font-medium">
+                                {so.trackingNumber || "Not added yet"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 rounded-md border bg-white p-3">
+                            <label className="text-sm font-medium">
+                              Advanced / Manual Supplier Status (optional)
+                            </label>
+                            <p className="text-xs text-muted-foreground">
+                              Use quick step buttons above for normal flow. Use
+                              this dropdown only for special cases.
+                            </p>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                              <Select
+                                value={supplierStatusDrafts[so.id] || so.status}
+                                onValueChange={value =>
+                                  setSupplierStatusDrafts(prev => ({
+                                    ...prev,
+                                    [so.id]: value,
+                                  }))
+                                }
+                              >
+                                <SelectTrigger className="w-full sm:w-[260px]">
+                                  <SelectValue placeholder="Choose status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {SUPPLIER_WORKFLOW_STATUS_OPTIONS.map(
+                                    statusOption => (
+                                      <SelectItem
+                                        key={statusOption}
+                                        value={statusOption}
+                                      >
+                                        {formatWorkflowLabel(statusOption)}
+                                      </SelectItem>
+                                    )
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={
+                                  savingSupplierStatusId === so.id ||
+                                  (supplierStatusDrafts[so.id] || so.status) ===
+                                    so.status
+                                }
+                                onClick={() => updateSupplierOrderStatus(so.id)}
+                              >
+                                {savingSupplierStatusId === so.id ? (
+                                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                ) : (
+                                  <Save className="h-4 w-4 mr-2" />
+                                )}
+                                Save Status
+                              </Button>
+                            </div>
+                          </div>
+
+                          {(so.phase === "ISSUE_OOS" ||
+                            so.phase === "ISSUE_DELAYED") &&
+                            (() => {
+                              const oosOps = getOosOpsSnapshot(so);
+                              const oosNotificationDraft =
+                                getOosNotificationDraft(so.id);
+
+                              return (
+                                <div className="space-y-3 rounded-lg border border-red-200 bg-red-50/60 p-3">
+                                  <div className="flex items-center gap-2">
+                                    <MessageSquareWarning className="h-4 w-4 text-red-700" />
+                                    <p className="text-sm font-medium text-red-900">
+                                      Out-of-Stock Resolution Workflow
+                                    </p>
+                                  </div>
+                                  <p className="text-xs text-red-800">
+                                    Choose a resolution path, save it to the
+                                    supplier line, then copy the customer
+                                    message template and send it.
+                                  </p>
+
+                                  <div className="flex flex-wrap gap-2">
+                                    {typeof oosOps.issueAgeHours ===
+                                      "number" && (
+                                      <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-700 border">
+                                        Issue age:{" "}
+                                        {Math.floor(oosOps.issueAgeHours)}h
+                                      </span>
+                                    )}
+                                    {typeof oosOps.inactivityHours ===
+                                      "number" && (
+                                      <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-700 border">
+                                        Last activity:{" "}
+                                        {Math.floor(oosOps.inactivityHours)}h
+                                        ago
+                                      </span>
+                                    )}
+                                    {oosOps.needsCustomerNotification ? (
+                                      <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 border border-red-200">
+                                        Customer not notified yet
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 border border-green-200">
+                                        Customer contact logged
+                                      </span>
+                                    )}
+                                    {oosOps.isSlaOverdue && (
+                                      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 border border-amber-200">
+                                        Follow-up overdue (
+                                        {OOS_SLA_WARNING_HOURS}
+                                        h+)
                                       </span>
                                     )}
                                   </div>
 
-                                  {(!order?.email || order.email === "N/A") && (
-                                    <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                                      Customer email is not available for this
-                                      order. Use phone/WhatsApp contact and log
-                                      it below.
-                                    </div>
-                                  )}
-
                                   <div className="grid gap-3 md:grid-cols-2">
                                     <div className="space-y-2">
                                       <label className="text-sm font-medium">
-                                        Channel
+                                        Resolution Action
                                       </label>
                                       <Select
-                                        value={oosNotificationDraft.channel}
+                                        value={getOosDraft(so.id).action}
                                         onValueChange={value =>
-                                          setOosNotificationDraft(so.id, {
-                                            channel:
-                                              value as OosNotificationChannel,
+                                          setOosDraft(so.id, {
+                                            action:
+                                              value as OosResolutionAction,
                                           })
                                         }
                                       >
                                         <SelectTrigger>
-                                          <SelectValue />
+                                          <SelectValue placeholder="Choose action" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                          {OOS_NOTIFICATION_CHANNEL_OPTIONS.map(
-                                            channel => (
+                                          {OOS_RESOLUTION_OPTIONS.map(
+                                            option => (
                                               <SelectItem
-                                                key={channel}
-                                                value={channel}
+                                                key={option.value}
+                                                value={option.value}
                                               >
-                                                {channel}
+                                                {option.label} (
+                                                {formatWorkflowLabel(
+                                                  option.targetStatus
+                                                )}
+                                                )
                                               </SelectItem>
                                             )
                                           )}
@@ -2398,16 +2424,23 @@ export default function OrderDetailsPage() {
                                     </div>
                                     <div className="space-y-2">
                                       <label className="text-sm font-medium">
-                                        Contact Summary
+                                        Internal Details
                                       </label>
                                       <Textarea
-                                        value={oosNotificationDraft.summary}
+                                        value={getOosDraft(so.id).detail}
                                         onChange={e =>
-                                          setOosNotificationDraft(so.id, {
-                                            summary: e.target.value,
+                                          setOosDraft(so.id, {
+                                            detail: e.target.value,
                                           })
                                         }
-                                        placeholder="What did you tell the customer? (ETA, replacement options, refund offer)"
+                                        placeholder={
+                                          OOS_RESOLUTION_OPTIONS.find(
+                                            option =>
+                                              option.value ===
+                                              getOosDraft(so.id).action
+                                          )?.detailPlaceholder ||
+                                          "Add internal details"
+                                        }
                                         className="min-h-[84px] bg-white"
                                       />
                                     </div>
@@ -2415,185 +2448,322 @@ export default function OrderDetailsPage() {
 
                                   <div className="space-y-2">
                                     <label className="text-sm font-medium">
-                                      Customer Response (Optional)
+                                      Customer Message Template (Preview)
                                     </label>
                                     <Textarea
-                                      value={
-                                        oosNotificationDraft.customerResponse
-                                      }
-                                      onChange={e =>
-                                        setOosNotificationDraft(so.id, {
-                                          customerResponse: e.target.value,
-                                        })
-                                      }
-                                      placeholder="Customer chose wait / replacement / refund, or asked for more time"
-                                      className="min-h-[72px] bg-white"
+                                      value={buildOosCustomerMessage(
+                                        so,
+                                        getOosDraft(so.id).action,
+                                        getOosDraft(so.id).detail
+                                      )}
+                                      readOnly
+                                      className="min-h-[140px] bg-white text-xs"
                                     />
                                   </div>
 
-                                  <div className="flex justify-end">
+                                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() =>
-                                        logOosCustomerNotification(so)
-                                      }
+                                      onClick={() => copyOosCustomerMessage(so)}
+                                    >
+                                      <Copy className="mr-2 h-4 w-4" />
+                                      Copy Customer Message
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => sendOosCustomerEmail(so)}
                                       disabled={
-                                        savingOosNotificationId === so.id
+                                        sendingOosEmailId === so.id ||
+                                        !order?.email ||
+                                        order.email === "N/A"
                                       }
                                     >
-                                      {savingOosNotificationId === so.id ? (
+                                      {sendingOosEmailId === so.id ? (
+                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Mail className="mr-2 h-4 w-4" />
+                                      )}
+                                      Send OOS Email
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => applyOosResolution(so)}
+                                      disabled={savingOosResolutionId === so.id}
+                                    >
+                                      {savingOosResolutionId === so.id ? (
                                         <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                                       ) : (
                                         <Save className="mr-2 h-4 w-4" />
                                       )}
-                                      Mark Customer Notified
+                                      Save OOS Resolution
                                     </Button>
                                   </div>
-                                </div>
 
-                                {oosOps.events.length > 0 && (
-                                  <div className="space-y-2 rounded-md border bg-white/80 p-3">
-                                    <div className="flex items-center justify-between">
-                                      <p className="text-sm font-medium">
-                                        OOS Timeline
-                                      </p>
-                                      <span className="text-xs text-muted-foreground">
-                                        {oosOps.events.length} event
-                                        {oosOps.events.length === 1 ? "" : "s"}
-                                      </span>
+                                  <div className="space-y-3 rounded-md border bg-white/80 p-3">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div>
+                                        <p className="text-sm font-medium">
+                                          Customer Contact Log
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                          Log when/how you contacted the
+                                          customer and what they replied.
+                                        </p>
+                                      </div>
+                                      {oosOps.latestNotification?.timestamp && (
+                                        <span className="text-xs text-muted-foreground">
+                                          Last contact:{" "}
+                                          {oosOps.latestNotification.timestamp.toLocaleString()}
+                                        </span>
+                                      )}
                                     </div>
+
+                                    {(!order?.email ||
+                                      order.email === "N/A") && (
+                                      <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                                        Customer email is not available for this
+                                        order. Use phone/WhatsApp contact and
+                                        log it below.
+                                      </div>
+                                    )}
+
+                                    <div className="grid gap-3 md:grid-cols-2">
+                                      <div className="space-y-2">
+                                        <label className="text-sm font-medium">
+                                          Channel
+                                        </label>
+                                        <Select
+                                          value={oosNotificationDraft.channel}
+                                          onValueChange={value =>
+                                            setOosNotificationDraft(so.id, {
+                                              channel:
+                                                value as OosNotificationChannel,
+                                            })
+                                          }
+                                        >
+                                          <SelectTrigger>
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {OOS_NOTIFICATION_CHANNEL_OPTIONS.map(
+                                              channel => (
+                                                <SelectItem
+                                                  key={channel}
+                                                  value={channel}
+                                                >
+                                                  {channel}
+                                                </SelectItem>
+                                              )
+                                            )}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <label className="text-sm font-medium">
+                                          Contact Summary
+                                        </label>
+                                        <Textarea
+                                          value={oosNotificationDraft.summary}
+                                          onChange={e =>
+                                            setOosNotificationDraft(so.id, {
+                                              summary: e.target.value,
+                                            })
+                                          }
+                                          placeholder="What did you tell the customer? (ETA, replacement options, refund offer)"
+                                          className="min-h-[84px] bg-white"
+                                        />
+                                      </div>
+                                    </div>
+
                                     <div className="space-y-2">
-	                                      {oosOps.events
-	                                        .slice(0, 8)
-	                                        .map((event, idx) => (
-                                          <div
-                                            key={`${event.tag}-${event.timestampText || idx}-${idx}`}
-                                            className="rounded border bg-white p-2 text-xs"
-                                          >
-                                            <div className="flex flex-wrap items-center justify-between gap-2">
-                                              <span className="font-medium">
-                                                {formatOosEventLabel(event.tag)}
-                                              </span>
-                                              <span className="text-muted-foreground">
-                                                {event.timestamp
-                                                  ? event.timestamp.toLocaleString()
-                                                  : event.timestampText ||
-                                                    "Unknown time"}
-                                              </span>
+                                      <label className="text-sm font-medium">
+                                        Customer Response (Optional)
+                                      </label>
+                                      <Textarea
+                                        value={
+                                          oosNotificationDraft.customerResponse
+                                        }
+                                        onChange={e =>
+                                          setOosNotificationDraft(so.id, {
+                                            customerResponse: e.target.value,
+                                          })
+                                        }
+                                        placeholder="Customer chose wait / replacement / refund, or asked for more time"
+                                        className="min-h-[72px] bg-white"
+                                      />
+                                    </div>
+
+                                    <div className="flex justify-end">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() =>
+                                          logOosCustomerNotification(so)
+                                        }
+                                        disabled={
+                                          savingOosNotificationId === so.id
+                                        }
+                                      >
+                                        {savingOosNotificationId === so.id ? (
+                                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                          <Save className="mr-2 h-4 w-4" />
+                                        )}
+                                        Mark Customer Notified
+                                      </Button>
+                                    </div>
+                                  </div>
+
+                                  {oosOps.events.length > 0 && (
+                                    <div className="space-y-2 rounded-md border bg-white/80 p-3">
+                                      <div className="flex items-center justify-between">
+                                        <p className="text-sm font-medium">
+                                          OOS Timeline
+                                        </p>
+                                        <span className="text-xs text-muted-foreground">
+                                          {oosOps.events.length} event
+                                          {oosOps.events.length === 1
+                                            ? ""
+                                            : "s"}
+                                        </span>
+                                      </div>
+                                      <div className="space-y-2">
+                                        {oosOps.events
+                                          .slice(0, 8)
+                                          .map((event, idx) => (
+                                            <div
+                                              key={`${event.tag}-${event.timestampText || idx}-${idx}`}
+                                              className="rounded border bg-white p-2 text-xs"
+                                            >
+                                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                                <span className="font-medium">
+                                                  {formatOosEventLabel(
+                                                    event.tag
+                                                  )}
+                                                </span>
+                                                <span className="text-muted-foreground">
+                                                  {event.timestamp
+                                                    ? event.timestamp.toLocaleString()
+                                                    : event.timestampText ||
+                                                      "Unknown time"}
+                                                </span>
+                                              </div>
+                                              <div className="mt-1 text-muted-foreground space-y-1">
+                                                {Object.entries(event.data).map(
+                                                  ([k, v]) => (
+                                                    <div key={k}>
+                                                      <span className="font-medium text-foreground/80">
+                                                        {k}:
+                                                      </span>{" "}
+                                                      <span>{v}</span>
+                                                    </div>
+                                                  )
+                                                )}
+                                              </div>
                                             </div>
-                                            <div className="mt-1 text-muted-foreground space-y-1">
-	                                              {Object.entries(event.data).map(
-	                                                ([k, v]) => (
-	                                                  <div key={k}>
-                                                    <span className="font-medium text-foreground/80">
-                                                      {k}:
-                                                    </span>{" "}
-                                                    <span>{v}</span>
-	                                                  </div>
-	                                                )
-	                                              )}
-	                                            </div>
-	                                          </div>
-	                                        ))}
-	                                    </div>
-	                                  </div>
-	                                )}
+                                          ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                          {so.notes && (
+                            <div className="space-y-1">
+                              <label className="text-sm font-medium">
+                                Supplier Line Notes
+                              </label>
+                              <div className="rounded-md border bg-muted/30 p-2 text-xs whitespace-pre-wrap text-muted-foreground">
+                                {so.notes}
                               </div>
-                            );
-                          })()}
-
-                        {so.notes && (
-                          <div className="space-y-1">
-                            <label className="text-sm font-medium">
-                              Supplier Line Notes
-                            </label>
-                            <div className="rounded-md border bg-muted/30 p-2 text-xs whitespace-pre-wrap text-muted-foreground">
-                              {so.notes}
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {/* Tracking Number */}
-	                        <div className="space-y-2 rounded-md border bg-slate-50/70 p-3">
-	                          <div className="flex items-center justify-between">
-	                            <label className="text-sm font-medium">
-	                              Step 2 - Save Supplier AWB / Tracking
-	                            </label>
-	                            {editingTracking === so.id ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setEditingTracking(null);
-                                  setTrackingInput("");
-                                }}
-                              >
-                                Cancel
-                              </Button>
+                          {/* Tracking Number */}
+                          <div className="space-y-2 rounded-md border bg-slate-50/70 p-3">
+                            <div className="flex items-center justify-between">
+                              <label className="text-sm font-medium">
+                                Step 2 - Save Supplier AWB / Tracking
+                              </label>
+                              {editingTracking === so.id ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingTracking(null);
+                                    setTrackingInput("");
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingTracking(so.id);
+                                    setTrackingInput(so.trackingNumber || "");
+                                  }}
+                                >
+                                  <Edit className="h-3 w-3 mr-1" />
+                                  {so.trackingNumber ? "Edit" : "Add"}
+                                </Button>
+                              )}
+                            </div>
+                            {editingTracking === so.id ? (
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={trackingInput}
+                                  onChange={e =>
+                                    setTrackingInput(e.target.value)
+                                  }
+                                  placeholder="Enter AWB/tracking number"
+                                  className="flex-1 px-3 py-2 border rounded-md text-sm"
+                                />
+                                <Button
+                                  size="sm"
+                                  onClick={() => updateTrackingNumber(so)}
+                                >
+                                  Save
+                                </Button>
+                              </div>
                             ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setEditingTracking(so.id);
-                                  setTrackingInput(so.trackingNumber || "");
-                                }}
-                              >
-                                <Edit className="h-3 w-3 mr-1" />
-                                {so.trackingNumber ? "Edit" : "Add"}
-                              </Button>
+                              <p className="text-sm text-muted-foreground">
+                                {so.trackingNumber || "No tracking number"}
+                              </p>
                             )}
+                            <p className="text-xs text-muted-foreground">
+                              Saving tracking can auto-set the supplier line to{" "}
+                              <strong>AWB Uploaded</strong> when applicable.
+                            </p>
                           </div>
-                          {editingTracking === so.id ? (
-                            <div className="flex gap-2">
-                              <input
-                                type="text"
-                                value={trackingInput}
-                                onChange={e => setTrackingInput(e.target.value)}
-                                placeholder="Enter AWB/tracking number"
-                                className="flex-1 px-3 py-2 border rounded-md text-sm"
-                              />
-	                              <Button
-	                                size="sm"
-	                                onClick={() => updateTrackingNumber(so)}
-	                              >
-	                                Save
-	                              </Button>
+
+                          {so.carrier && (
+                            <div className="text-sm">
+                              <span className="text-muted-foreground">
+                                Carrier:
+                              </span>
+                              <span className="ml-2">{so.carrier}</span>
                             </div>
-	                          ) : (
-	                            <p className="text-sm text-muted-foreground">
-	                              {so.trackingNumber || "No tracking number"}
-	                            </p>
-	                          )}
-	                          <p className="text-xs text-muted-foreground">
-	                            Saving tracking can auto-set the supplier line to{" "}
-	                            <strong>AWB Uploaded</strong> when applicable.
-	                          </p>
-	                        </div>
+                          )}
 
-                        {so.carrier && (
-                          <div className="text-sm">
-                            <span className="text-muted-foreground">
-                              Carrier:
-                            </span>
-                            <span className="ml-2">{so.carrier}</span>
-                          </div>
-                        )}
-
-                        {so.shippedAt && (
-                          <div className="text-sm">
-                            <span className="text-muted-foreground">
-                              Shipped:
-                            </span>
-                            <span className="ml-2">
-                              {new Date(so.shippedAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                          {so.shippedAt && (
+                            <div className="text-sm">
+                              <span className="text-muted-foreground">
+                                Shipped:
+                              </span>
+                              <span className="ml-2">
+                                {new Date(so.shippedAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-4 text-muted-foreground">
@@ -2645,16 +2815,24 @@ export default function OrderDetailsPage() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-0.5 text-sm">
-                <p className="font-semibold">{order.shippingAddress.fullName}</p>
-                <p className="text-muted-foreground">{order.shippingAddress.addressLine1}</p>
+                <p className="font-semibold">
+                  {order.shippingAddress.fullName}
+                </p>
+                <p className="text-muted-foreground">
+                  {order.shippingAddress.addressLine1}
+                </p>
                 {order.shippingAddress.addressLine2 && (
-                  <p className="text-muted-foreground">{order.shippingAddress.addressLine2}</p>
+                  <p className="text-muted-foreground">
+                    {order.shippingAddress.addressLine2}
+                  </p>
                 )}
                 <p className="text-muted-foreground">
                   {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
                   {order.shippingAddress.postalCode}
                 </p>
-                <p className="text-muted-foreground">{order.shippingAddress.country}</p>
+                <p className="text-muted-foreground">
+                  {order.shippingAddress.country}
+                </p>
                 {order.shippingAddress.phone && (
                   <p className="pt-2 font-medium">
                     {order.shippingAddress.phone}
@@ -2693,6 +2871,113 @@ export default function OrderDetailsPage() {
                   {order.paymentStatus}
                 </span>
               </div>
+              {isCODOrder && codConsentInfo && (
+                <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium text-amber-950">
+                      COD Policy Acceptance
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        codConsentInfo.accepted
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {codConsentInfo.accepted ? "Accepted" : "Not recorded"}
+                    </span>
+                  </div>
+                  <div className="mt-2 space-y-1.5 text-xs text-amber-950">
+                    <div className="flex justify-between gap-3">
+                      <span className="text-amber-800/80">Accepted at</span>
+                      <span className="font-medium">
+                        {formatAdminDateTime(codConsentInfo.acceptedAt)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-amber-800/80">Version</span>
+                      <span className="font-medium">
+                        {codConsentInfo.version || "—"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-amber-800/80">Proof source</span>
+                      <span className="font-medium uppercase">
+                        {codConsentInfo.source}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-amber-800/80">
+                        Guarantee authorized
+                      </span>
+                      <span className="font-medium">
+                        {codGuaranteeEvidence?.authorizedAt
+                          ? formatAdminDateTime(
+                              codGuaranteeEvidence.authorizedAt
+                            )
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-amber-800/80">
+                        Guarantee amount
+                      </span>
+                      <span className="font-medium">
+                        {typeof codGuaranteeEvidence?.authorizedAmount ===
+                        "number"
+                          ? formatPrice(codGuaranteeEvidence.authorizedAmount)
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-amber-800/80">Guarantee PI</span>
+                      <span className="font-mono text-[11px]">
+                        {codGuaranteeEvidence?.authorizedPaymentIntentId || "—"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-amber-800/80">
+                        Guarantee captured
+                      </span>
+                      <span className="font-medium">
+                        {codGuaranteeEvidence?.capturedAt
+                          ? `${formatPrice(codGuaranteeEvidence.capturedAmount || 0)} at ${formatAdminDateTime(
+                              codGuaranteeEvidence.capturedAt
+                            )}`
+                          : "No"}
+                      </span>
+                    </div>
+                  </div>
+                  {codConsentInfo.termsSnapshot && (
+                    <p className="mt-2 text-xs text-amber-900/90">
+                      <span className="font-medium">Snapshot:</span>{" "}
+                      {codConsentInfo.termsSnapshot}
+                    </p>
+                  )}
+                  <div className="mt-3 flex justify-end">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={markCODRejected}
+                      disabled={
+                        rejectingCOD ||
+                        order.status === "CANCELLED" ||
+                        order.paymentStatus === "PAID"
+                      }
+                    >
+                      {rejectingCOD ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Mark Refused (RTO) + Capture Guarantee"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -2702,7 +2987,8 @@ export default function OrderDetailsPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   <Truck className="h-4 w-4" />
-                  {courierName === "SAMEDAY" ? "Sameday" : "FanCourier"} Shipment
+                  {courierName === "SAMEDAY" ? "Sameday" : "FanCourier"}{" "}
+                  Shipment
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0 space-y-3">
@@ -2719,22 +3005,23 @@ export default function OrderDetailsPage() {
                   </span>
                 </div>
                 <div className="flex flex-col gap-2 pt-1">
-                  {activeShipment?.awbNumber && courierName === "FANCOURIER" && (
-                    <Button
-                      onClick={resendAwbEmail}
-                      size="sm"
-                      variant="outline"
-                      disabled={resendingAwbEmail}
-                      className="w-full"
-                    >
-                      {resendingAwbEmail ? (
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Mail className="h-4 w-4 mr-2" />
-                      )}
-                      Resend AWB Email
-                    </Button>
-                  )}
+                  {activeShipment?.awbNumber &&
+                    courierName === "FANCOURIER" && (
+                      <Button
+                        onClick={resendAwbEmail}
+                        size="sm"
+                        variant="outline"
+                        disabled={resendingAwbEmail}
+                        className="w-full"
+                      >
+                        {resendingAwbEmail ? (
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Mail className="h-4 w-4 mr-2" />
+                        )}
+                        Resend AWB Email
+                      </Button>
+                    )}
                   <Button
                     onClick={createAwb}
                     size="sm"
@@ -2791,7 +3078,6 @@ export default function OrderDetailsPage() {
               </div>
             </CardContent>
           </Card>
-
         </div>
       </div>
     </div>

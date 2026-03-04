@@ -87,14 +87,14 @@ export default function TermsPage() {
             <section id="intro">
               <h2>1. Introducere</h2>
               <p>
-                Bine ați venit pe platforma TechTots ("noi", "al nostru"). Acești
-                termeni reglementează accesul și utilizarea site-ului, produselor
-                și serviciilor noastre.
+                Bine ați venit pe platforma TechTots ("noi", "al nostru").
+                Acești termeni reglementează accesul și utilizarea site-ului,
+                produselor și serviciilor noastre.
               </p>
               <p>
                 Prin accesarea sau utilizarea serviciilor, sunteți de acord cu
-                acești termeni și cu Politica de Confidențialitate. Dacă nu sunteți
-                de acord, vă rugăm să nu utilizați serviciile noastre.
+                acești termeni și cu Politica de Confidențialitate. Dacă nu
+                sunteți de acord, vă rugăm să nu utilizați serviciile noastre.
               </p>
             </section>
             <Separator className="my-6 border-white/10" />
@@ -102,12 +102,12 @@ export default function TermsPage() {
               <h2>2. Utilizarea Serviciilor</h2>
               <ul>
                 <li>
-                  Utilizați serviciile doar în scopuri legale și în conformitate cu
-                  acești termeni.
+                  Utilizați serviciile doar în scopuri legale și în conformitate
+                  cu acești termeni.
                 </li>
                 <li>
-                  Nu utilizați serviciile pentru a încălca legi sau a restricționa
-                  drepturile altor utilizatori.
+                  Nu utilizați serviciile pentru a încălca legi sau a
+                  restricționa drepturile altor utilizatori.
                 </li>
                 <li>
                   Nu încercați să accesați neautorizat părți ale platformei.
@@ -118,8 +118,8 @@ export default function TermsPage() {
             <section id="conturi">
               <h2>3. Conturi Utilizator</h2>
               <p>
-                Pentru a comanda, trebuie să furnizați informații corecte și să vă
-                protejați contul. Sunteți responsabil pentru toate acțiunile
+                Pentru a comanda, trebuie să furnizați informații corecte și să
+                vă protejați contul. Sunteți responsabil pentru toate acțiunile
                 efectuate din contul dvs.
               </p>
               <p>
@@ -131,8 +131,9 @@ export default function TermsPage() {
             <section id="ip">
               <h2>4. Proprietate Intelectuală</h2>
               <p>
-                Toate materialele de pe platformă (texte, imagini, software) sunt
-                proprietatea TechTots sau a partenerilor și sunt protejate de lege.
+                Toate materialele de pe platformă (texte, imagini, software)
+                sunt proprietatea TechTots sau a partenerilor și sunt protejate
+                de lege.
               </p>
             </section>
             <Separator className="my-6 border-white/10" />
@@ -140,7 +141,8 @@ export default function TermsPage() {
               <h2>5. Produse și Comenzi</h2>
               <p>
                 Toate produsele sunt oferite în limita stocului disponibil. Ne
-                rezervăm dreptul de a modifica sau retrage produse fără notificare.
+                rezervăm dreptul de a modifica sau retrage produse fără
+                notificare.
               </p>
               <p>
                 Prețurile pot fi modificate oricând. Putem refuza comenzi la
@@ -151,9 +153,36 @@ export default function TermsPage() {
             <section id="livrare">
               <h2>6. Livrare</h2>
               <p>
-                Termenele de livrare sunt estimative. TechTots nu răspunde pentru
-                întârzieri cauzate de factori externi.
+                Termenele de livrare sunt estimative. TechTots nu răspunde
+                pentru întârzieri cauzate de factori externi.
               </p>
+              <ul>
+                <li>
+                  Costurile de transport, taxele pentru plata ramburs (dacă
+                  există) și condițiile de livrare sunt afișate înainte de
+                  finalizarea comenzii.
+                </li>
+                <li>
+                  Refuzul coletului la livrare sau nepreluarea comenzii din
+                  punctul de ridicare reprezintă retur la expeditor (RTO) și nu
+                  drept de retragere după livrare.
+                </li>
+                <li>
+                  În caz de RTO, clientul poate suporta costurile logistice
+                  efective (transport tur + retur), în măsura în care acestea au
+                  fost comunicate precontractual.
+                </li>
+                <li>
+                  Dacă există diferențe de recuperat peste garanția COD
+                  autorizată, acestea se gestionează prin fluxurile
+                  legale/contabile aplicabile în România (ex. facturare),
+                  nefiind un debit automat separat post-refuz.
+                </li>
+                <li>
+                  Pentru detalii complete, consultați{" "}
+                  <Link href="/shipping">Politica de Livrare</Link>.
+                </li>
+              </ul>
             </section>
             <Separator className="my-6 border-white/10" />
             <section id="retur">
@@ -162,6 +191,25 @@ export default function TermsPage() {
                 Politica noastră de retur este concepută pentru satisfacția dvs.
                 Consultați pagina dedicată pentru detalii.
               </p>
+              <ul>
+                <li>
+                  După recepția produsului, consumatorul are drept de retragere
+                  în 14 zile, conform legislației aplicabile.
+                </li>
+                <li>
+                  Costul direct al returului poate fi suportat de client doar
+                  dacă această informație a fost prezentată clar înainte de
+                  comandă.
+                </li>
+                <li>
+                  Pentru produse neconforme sau defecte, costurile de transport
+                  aferente remedierii sunt suportate de vânzător.
+                </li>
+                <li>
+                  Detalii complete:{" "}
+                  <Link href="/returns">Politica de Returnare</Link>.
+                </li>
+              </ul>
             </section>
             <Separator className="my-6 border-white/10" />
             <section id="garantii">
@@ -189,8 +237,8 @@ export default function TermsPage() {
                   decorative
                   className="inline align-text-bottom mr-1 text-amber-200"
                 />
-                TechTots nu răspunde pentru daune indirecte sau pierderi rezultate
-                din utilizarea serviciilor sau produselor.
+                TechTots nu răspunde pentru daune indirecte sau pierderi
+                rezultate din utilizarea serviciilor sau produselor.
               </p>
             </section>
             <Separator className="my-6 border-white/10" />
@@ -205,8 +253,8 @@ export default function TermsPage() {
             <section id="lege">
               <h2>11. Lege Aplicabilă</h2>
               <p>
-                Acești termeni sunt guvernați de legea română. Orice litigiu va fi
-                soluționat de instanțele competente din România.
+                Acești termeni sunt guvernați de legea română. Orice litigiu va
+                fi soluționat de instanțele competente din România.
               </p>
             </section>
             <Separator className="my-6 border-white/10" />
@@ -286,7 +334,7 @@ export default function TermsPage() {
                 href={`mailto:${contactEmail}`}
                 className="text-emerald-200 underline underline-offset-4 hover:text-white"
               >
-                  {contactEmail}
+                {contactEmail}
               </a>
             </p>
             <p className="mt-2">

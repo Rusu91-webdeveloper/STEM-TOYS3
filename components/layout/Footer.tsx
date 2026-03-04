@@ -45,7 +45,7 @@ export default function Footer({
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   const toggleSection = (title: string) => {
-    setOpenSections((prev) => ({
+    setOpenSections(prev => ({
       ...prev,
       [title]: !prev[title],
     }));
@@ -111,9 +111,9 @@ export default function Footer({
     companyAddressParts.length > 0
       ? companyAddressParts.join(", ")
       : t(
-        "footerLegalAddress",
-        "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70"
-      );
+          "footerLegalAddress",
+          "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70"
+        );
 
   const socialLinks = [
     {
@@ -249,24 +249,24 @@ export default function Footer({
     href?: string;
     icon: typeof Phone;
   }> = [
-      {
-        label: t("footerPhoneLabel", "Phone"),
-        value: resolvedPhone,
-        href: `tel:${resolvedPhone.replace(/[^\d+]/g, "")}`,
-        icon: Phone,
-      },
-      {
-        label: t("footerEmailLabel", "Email"),
-        value: resolvedEmail,
-        href: `mailto:${resolvedEmail}`,
-        icon: Mail,
-      },
-      {
-        label: t("footerAddressLabel", "Headquarters"),
-        value: companyAddress,
-        icon: MapPin,
-      },
-    ];
+    {
+      label: t("footerPhoneLabel", "Phone"),
+      value: resolvedPhone,
+      href: `tel:${resolvedPhone.replace(/[^\d+]/g, "")}`,
+      icon: Phone,
+    },
+    {
+      label: t("footerEmailLabel", "Email"),
+      value: resolvedEmail,
+      href: `mailto:${resolvedEmail}`,
+      icon: Mail,
+    },
+    {
+      label: t("footerAddressLabel", "Headquarters"),
+      value: companyAddress,
+      icon: MapPin,
+    },
+  ];
 
   const socialBaseClass =
     "group relative flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 sm:h-11 sm:w-11";
@@ -282,7 +282,7 @@ export default function Footer({
       <div className="container mx-auto px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         {/* Top Info Bar (Returns) */}
         <div className="mb-6 flex items-center justify-center text-center sm:mb-10">
-          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-xs font-medium text-gray-300 shadow-sm backdrop-blur-sm sm:px-6 sm:py-2 sm:text-sm">
+          <div className="inline-flex max-w-3xl flex-col items-center gap-1 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-medium text-gray-300 shadow-sm backdrop-blur-sm sm:px-6 sm:py-3 sm:text-sm">
             <span>
               {getReturnPolicyText()} ·{" "}
               <Link
@@ -292,6 +292,16 @@ export default function Footer({
                 {t("seeReturnPolicy", "See policy")}
               </Link>
             </span>
+            <span className="text-[11px] text-gray-400 sm:text-xs">
+              Comenzi COD: refuz/nepreluare colet (RTO) poate genera cost
+              logistic tur + retur ·{" "}
+              <Link
+                href="/shipping"
+                className="text-sky-300 underline underline-offset-2 transition-colors hover:text-sky-200"
+              >
+                Detalii livrare
+              </Link>
+            </span>
           </div>
         </div>
 
@@ -299,7 +309,10 @@ export default function Footer({
           {/* Brand Column */}
           <div className="flex flex-col gap-6 lg:col-span-4">
             <div className="flex flex-col gap-4">
-              <Link href="/" className="relative block h-10 w-32 sm:h-12 sm:w-40">
+              <Link
+                href="/"
+                className="relative block h-10 w-32 sm:h-12 sm:w-40"
+              >
                 <Image
                   src="/TechTots_LOGO.png"
                   alt={`${storeName} Logo`}
@@ -317,7 +330,7 @@ export default function Footer({
 
             {/* Socials - Compact */}
             <div className="flex flex-wrap gap-2">
-              {socialLinks.map((link) => (
+              {socialLinks.map(link => (
                 <Link
                   key={link.name}
                   href={link.href}
@@ -333,7 +346,7 @@ export default function Footer({
 
             {/* Contact Info - Compact List */}
             <div className="flex flex-col gap-3">
-              {contactDetails.map((detail) => (
+              {contactDetails.map(detail => (
                 <div key={detail.label} className="flex items-start gap-3">
                   <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-white/5 text-sky-400">
                     <detail.icon className="h-3 w-3" aria-hidden="true" />
@@ -362,7 +375,7 @@ export default function Footer({
 
           {/* Navigation Columns - Accordion on Mobile */}
           <div className="grid gap-4 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-3 lg:gap-8">
-            {navSections.map((section) => {
+            {navSections.map(section => {
               const isOpen = openSections[section.title];
               return (
                 <div
@@ -385,16 +398,20 @@ export default function Footer({
                       </h3>
                     </div>
                     <ChevronDown
-                      className={`h-4 w-4 text-gray-500 transition-transform lg:hidden ${isOpen ? "rotate-180" : ""
-                        }`}
+                      className={`h-4 w-4 text-gray-500 transition-transform lg:hidden ${
+                        isOpen ? "rotate-180" : ""
+                      }`}
                     />
                   </button>
 
                   <ul
-                    className={`mt-2 space-y-1 overflow-hidden transition-all lg:block lg:h-auto lg:overflow-visible ${isOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0 lg:opacity-100"
-                      }`}
+                    className={`mt-2 space-y-1 overflow-hidden transition-all lg:block lg:h-auto lg:overflow-visible ${
+                      isOpen
+                        ? "max-h-60 opacity-100"
+                        : "max-h-0 opacity-0 lg:opacity-100"
+                    }`}
                   >
-                    {section.items.map((item) => (
+                    {section.items.map(item => (
                       <li key={item.label}>
                         <Link
                           href={item.href}
@@ -419,14 +436,17 @@ export default function Footer({
             {/* Copyright & Legal */}
             <div className="flex flex-col gap-4 text-center lg:text-left">
               <p className="text-xs text-gray-500">
-                © {new Date().getFullYear()} {storeName}. {t("allRightsReserved")}
+                © {new Date().getFullYear()} {storeName}.{" "}
+                {t("allRightsReserved")}
               </p>
               <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 lg:justify-start">
                 {[
                   { name: "Privacy Policy", href: "/privacy" },
                   { name: "Terms of Service", href: "/terms" },
-                  { name: "GDPR", href: "/gdpr" }
-                ].map((item) => (
+                  { name: "Shipping", href: "/shipping" },
+                  { name: "Returns", href: "/returns" },
+                  { name: "GDPR", href: "/gdpr" },
+                ].map(item => (
                   <Link
                     key={item.name}
                     href={item.href}
@@ -436,7 +456,11 @@ export default function Footer({
                       ? t("privacyPolicy")
                       : item.name === "Terms of Service"
                         ? t("termsOfService")
-                        : item.name}
+                        : item.name === "Shipping"
+                          ? t("shipping", "Livrare")
+                          : item.name === "Returns"
+                            ? t("returns", "Retururi")
+                            : item.name}
                   </Link>
                 ))}
               </div>
@@ -450,7 +474,12 @@ export default function Footer({
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 transition-colors hover:bg-white/10"
               >
-                <NTPLogo color="#ffffff" version="horizontal" secret="156180" aria-hidden="true" />
+                <NTPLogo
+                  color="#ffffff"
+                  version="horizontal"
+                  secret="156180"
+                  aria-hidden="true"
+                />
                 <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
                   Secure Payment
                 </span>

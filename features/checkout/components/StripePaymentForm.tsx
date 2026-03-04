@@ -1,6 +1,11 @@
 "use client";
 
-import { PaymentElement, useStripe, useElements, type StripePaymentElementOptions } from "@stripe/react-stripe-js";
+import {
+  PaymentElement,
+  useStripe,
+  useElements,
+  type StripePaymentElementOptions,
+} from "@stripe/react-stripe-js";
 import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 
@@ -30,6 +35,8 @@ interface StripePaymentFormProps {
       country: string;
     };
   };
+  submitButtonClassName?: string;
+  submitLabel?: string;
 }
 
 export function StripePaymentForm({
@@ -40,6 +47,8 @@ export function StripePaymentForm({
   amount,
   isCalculatingTotal = false,
   billingDetails,
+  submitButtonClassName = "stripe-submit-button",
+  submitLabel,
 }: StripePaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
@@ -63,7 +72,9 @@ export function StripePaymentForm({
     // Add a timeout to detect when Stripe fails to load
     const timeoutId = setTimeout(() => {
       if (!stripe || !elements) {
-        console.warn("Stripe failed to load within timeout - using custom form");
+        console.warn(
+          "Stripe failed to load within timeout - using custom form"
+        );
         setStripeLoaded(false);
       }
     }, 3000); // 3 second timeout
@@ -78,7 +89,10 @@ export function StripePaymentForm({
       console.log("Stripe object:", stripe);
       console.log("Elements object:", elements);
       console.log("Environment:", process.env.NODE_ENV);
-      console.log("Stripe key available:", !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+      console.log(
+        "Stripe key available:",
+        !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+      );
     }
 
     return () => clearTimeout(timeoutId);
@@ -90,15 +104,15 @@ export function StripePaymentForm({
   // PaymentElement options to enable Google Pay and Apple Pay
   const paymentElementOptions: StripePaymentElementOptions = {
     layout: {
-      type: 'tabs',
+      type: "tabs",
       defaultCollapsed: false,
     },
     wallets: {
-      applePay: 'auto',
-      googlePay: 'auto',
+      applePay: "auto",
+      googlePay: "auto",
     },
     business: {
-      name: 'STEM Toys',
+      name: "STEM Toys",
     },
   };
 
@@ -116,7 +130,10 @@ export function StripePaymentForm({
       const { paymentIntent: existingIntent } =
         await stripe.retrievePaymentIntent(clientSecret);
       // With manual capture, "requires_capture" means payment is authorized and ready
-      if (existingIntent?.status === "succeeded" || existingIntent?.status === "requires_capture") {
+      if (
+        existingIntent?.status === "succeeded" ||
+        existingIntent?.status === "requires_capture"
+      ) {
         onSuccess(buildPaymentDetails(existingIntent));
         return;
       }
@@ -156,7 +173,10 @@ export function StripePaymentForm({
             const { paymentIntent: existingIntent } =
               await stripe.retrievePaymentIntent(clientSecret);
             // With manual capture, "requires_capture" means payment is authorized and ready
-            if (existingIntent?.status === "succeeded" || existingIntent?.status === "requires_capture") {
+            if (
+              existingIntent?.status === "succeeded" ||
+              existingIntent?.status === "requires_capture"
+            ) {
               onSuccess(buildPaymentDetails(existingIntent));
               return;
             }
@@ -173,7 +193,10 @@ export function StripePaymentForm({
 
       // With manual capture, status will be "requires_capture" after successful authorization
       // The actual capture happens when the order is created
-      if (paymentIntent?.status === "succeeded" || paymentIntent?.status === "requires_capture") {
+      if (
+        paymentIntent?.status === "succeeded" ||
+        paymentIntent?.status === "requires_capture"
+      ) {
         onSuccess(buildPaymentDetails(paymentIntent));
       } else {
         throw new Error("Payment processing failed");
@@ -181,7 +204,7 @@ export function StripePaymentForm({
     } catch (error) {
       const errorMessage =
         (error as Error).message || "An error occurred with your payment";
-      
+
       // Handle payment_intent_unexpected_state error (fallback check)
       // This occurs when trying to confirm a PaymentIntent that's already in a terminal state
       if (
@@ -201,7 +224,10 @@ export function StripePaymentForm({
     }
   };
 
-  if (process.env.NODE_ENV === "production" && (!stripeLoaded || stripeFailed)) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    (!stripeLoaded || stripeFailed)
+  ) {
     return (
       <StripeCriticalWarning
         onRetry={() => {
@@ -217,7 +243,8 @@ export function StripePaymentForm({
       <div className="space-y-4 bg-orange-50 border border-orange-200 rounded-lg p-4 text-sm text-orange-700">
         <p>
           Stripe nu a reușit să se încarce în această sesiune de dezvoltare.
-          Reîmprospătează pagina sau dezactivează service worker-ul pentru a continua testarea.
+          Reîmprospătează pagina sau dezactivează service worker-ul pentru a
+          continua testarea.
         </p>
         <Button
           variant="outline"
@@ -235,17 +262,18 @@ export function StripePaymentForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-white rounded-lg border p-4 space-y-4">
         <div className="border rounded-md p-3">
-          <PaymentElement 
-            id="payment-element" 
+          <PaymentElement
+            id="payment-element"
             key={clientSecret}
             options={paymentElementOptions}
           />
         </div>
-        {cardError && (
-          <p className="text-red-500 text-sm mt-1">{cardError}</p>
-        )}
+        {cardError && <p className="text-red-500 text-sm mt-1">{cardError}</p>}
         <div className="pt-2 text-sm text-gray-500">
-          <p>Plățile sunt procesate prin Stripe și pot necesita verificare 3D Secure.</p>
+          <p>
+            Plățile sunt procesate prin Stripe și pot necesita verificare 3D
+            Secure.
+          </p>
         </div>
       </div>
 
@@ -253,7 +281,7 @@ export function StripePaymentForm({
         <Button
           type="submit"
           disabled={!stripe || isProcessing || isCalculatingTotal}
-          className="px-8 stripe-submit-button"
+          className={`px-8 ${submitButtonClassName}`}
         >
           {isProcessing ? (
             <>
@@ -266,7 +294,7 @@ export function StripePaymentForm({
               Calculez totalul...
             </>
           ) : (
-            `Plătește ${formatPrice(displayAmount)}`
+            submitLabel || `Plătește ${formatPrice(displayAmount)}`
           )}
         </Button>
       </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   CreditCard,
   Loader2,
@@ -216,12 +217,17 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
           "codUnavailableLocker",
           "Pentru livrarea la FANbox, plata ramburs nu este disponibilă."
         )
-      : codBlockedByMixedSupplier
+      : !stripeEnabled
         ? t(
-            "codUnavailableMixedSupplier",
-            "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul."
+            "codUnavailableGuarantee",
+            "Rambursul necesită autorizare garanție pe card. Activează plata cu cardul pentru a folosi COD."
           )
-        : undefined;
+        : codBlockedByMixedSupplier
+          ? t(
+              "codUnavailableMixedSupplier",
+              "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul."
+            )
+          : undefined;
 
     // Show COD for Romanian physical carts, but keep it disabled when business rules require prepaid.
     if (codEnabled && isRomanianUser && !isDigitalOnlyCart) {
@@ -232,7 +238,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
         icon: <Banknote className="h-6 w-6" />,
         provider: "cod",
         fee: "3% + 5 RON",
-        description: "Plătești numerar la primirea coletului",
+        description: "Plătești la primirea coletului (RTO la refuz/nepreluare)",
         badge: codDisabledReason
           ? t("codUnavailableBadge", "Doar card online")
           : t("codPopular", "Popular în România"),
@@ -257,6 +263,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     stripeEnabled,
     t,
   ]);
+  const hasCodOption = paymentMethods.some(method => method.provider === "cod");
 
   useEffect(() => {
     if (paymentMethods.length === 0) {
@@ -459,6 +466,43 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
                   "codUnavailableMixedSupplier",
                   "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul."
                 )}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      {hasCodOption && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 px-4 py-3.5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+              <Info className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-amber-900">
+                Informare COD (ramburs)
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-amber-800">
+                Refuzul la livrare sau nepreluarea coletului sunt tratate ca RTO
+                (retur la expeditor). În acest caz se pot aplica costurile
+                logistice efective tur + retur, conform politicilor afișate
+                înainte de comandă.
+              </p>
+              <p className="mt-1.5 text-xs text-amber-900">
+                Vezi{" "}
+                <Link
+                  href="/shipping"
+                  className="font-semibold underline underline-offset-4 hover:text-amber-700"
+                >
+                  Politica de Livrare
+                </Link>{" "}
+                și{" "}
+                <Link
+                  href="/terms"
+                  className="font-semibold underline underline-offset-4 hover:text-amber-700"
+                >
+                  Termeni și Condiții
+                </Link>
+                .
               </p>
             </div>
           </div>

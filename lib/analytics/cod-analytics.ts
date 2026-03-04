@@ -1,6 +1,6 @@
 /**
  * COD (Cash on Delivery) Analytics
- * 
+ *
  * Tracks COD order performance, rejection rates, and related metrics
  */
 
@@ -42,7 +42,7 @@ export interface CODRejectionReason {
 
 /**
  * Get COD analytics for a date range
- * 
+ *
  * @param startDate - Start date (defaults to 30 days ago)
  * @param endDate - End date (defaults to now)
  * @returns COD analytics result
@@ -159,7 +159,7 @@ export async function getCODAnalytics(
 
 /**
  * Mark a COD order as rejected
- * 
+ *
  * @param orderId - Order ID
  * @param reason - Rejection reason
  * @param notes - Additional notes
@@ -182,22 +182,25 @@ export async function markCODOrderAsRejected(
     throw new Error(`Order ${orderId} is not a COD order`);
   }
 
+  const rejectionNote = `COD REJECTED - Reason: ${reason}${
+    notes ? ` | ${notes}` : ""
+  }`;
+  const mergedNotes = [order.notes, rejectionNote].filter(Boolean).join(" | ");
+
   // Update order status and notes
   await db.order.update({
     where: { id: orderId },
     data: {
       paymentStatus: "FAILED",
       status: "CANCELLED",
-      notes: `COD REJECTED - Reason: ${reason}${notes ? ` | ${notes}` : ""}${
-        order.notes ? ` | Previous: ${order.notes}` : ""
-      }`,
+      notes: mergedNotes || null,
     },
   });
 }
 
 /**
  * Get COD rejection reasons (parsed from notes)
- * 
+ *
  * @param startDate - Start date
  * @param endDate - End date
  * @returns Array of rejection reasons with counts
@@ -295,4 +298,3 @@ export async function getCODPerformanceMetrics(): Promise<{
     rejectionTrend,
   };
 }
-

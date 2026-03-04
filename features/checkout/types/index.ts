@@ -95,4 +95,10 @@ export interface CheckoutData {
     value: number;
   } | null;
   stripePaymentIntentId?: string;
+  codConsentAccepted?: boolean;
+  codConsentAcceptedAt?: string;
+  codConsentVersion?: string;
+  codConsentText?: string;
+  codGuaranteePaymentIntentId?: string;
+  codGuaranteeAmount?: number;
 }

@@ -142,6 +142,56 @@ export async function createOrder(orderData: any) {
         );
       }
 
+      if (errorData.error === "COD_CONSENT_REQUIRED") {
+        throw new CheckoutError(
+          "COD_CONSENT_REQUIRED",
+          errorData.message ||
+            "Pentru plata ramburs trebuie să accepți condițiile COD înainte de finalizarea comenzii.",
+          false,
+          "payment"
+        );
+      }
+
+      if (errorData.error === "COD_CONSENT_VERSION_MISMATCH") {
+        throw new CheckoutError(
+          "COD_CONSENT_VERSION_MISMATCH",
+          errorData.message ||
+            "Condițiile COD au fost actualizate. Reîncarcă pagina și acceptă noile condiții.",
+          false,
+          "payment"
+        );
+      }
+
+      if (errorData.error === "COD_GUARANTEE_REQUIRED") {
+        throw new CheckoutError(
+          "COD_GUARANTEE_REQUIRED",
+          errorData.message ||
+            "Pentru plata ramburs este necesară autorizarea garanției logistice.",
+          false,
+          "payment"
+        );
+      }
+
+      if (errorData.error === "COD_GUARANTEE_AMOUNT_MISMATCH") {
+        throw new CheckoutError(
+          "COD_GUARANTEE_AMOUNT_MISMATCH",
+          errorData.message ||
+            "Suma garanției COD nu este validă. Reîmprospătează checkout-ul și încearcă din nou.",
+          false,
+          "payment"
+        );
+      }
+
+      if (errorData.error === "COD_GUARANTEE_INTENT_INVALID") {
+        throw new CheckoutError(
+          "COD_GUARANTEE_INTENT_INVALID",
+          errorData.message ||
+            "Autorizarea garanției COD nu mai este validă. Reautentifică cardul și încearcă din nou.",
+          false,
+          "payment"
+        );
+      }
+
       throw new CheckoutError(
         "CHECKOUT_ORDER_FAILED",
         errorData.message ||

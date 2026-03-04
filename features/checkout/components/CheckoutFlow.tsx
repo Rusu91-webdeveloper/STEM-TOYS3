@@ -62,7 +62,8 @@ export function CheckoutFlow() {
       return 0;
     }
 
-    const isMixedSupplierCart = checkoutData.shippingMethod?.isMixedSupplierCart === true;
+    const isMixedSupplierCart =
+      checkoutData.shippingMethod?.isMixedSupplierCart === true;
     const mixedSupplierSurcharge = Math.max(
       0,
       checkoutData.shippingMethod?.mixedSupplierSurcharge || 0
@@ -153,7 +154,7 @@ export function CheckoutFlow() {
     cartTotal: number
   ): number => {
     if (coupon.type === "PERCENTAGE") {
-      return Math.round((cartTotal * coupon.value) / 100 * 100) / 100;
+      return Math.round(((cartTotal * coupon.value) / 100) * 100) / 100;
     }
     return Math.min(coupon.value, cartTotal);
   };
@@ -232,12 +233,12 @@ export function CheckoutFlow() {
     }
 
     const cartTotal = getCartTotal();
-    
+
     // Skip if cart total hasn't changed significantly
     if (Math.abs(cartTotal - prevCartTotalRef.current) < 0.01) {
       return;
     }
-    
+
     prevCartTotalRef.current = cartTotal;
 
     if (cartTotal <= 0) {
@@ -395,7 +396,10 @@ export function CheckoutFlow() {
 
         if (response.ok) {
           const paymentResult = await response.json();
-          console.log("✅ [CHECKOUT] Payment URL received:", paymentResult.paymentUrl);
+          console.log(
+            "✅ [CHECKOUT] Payment URL received:",
+            paymentResult.paymentUrl
+          );
 
           if (paymentResult.paymentUrl) {
             // Clear cart before redirect
@@ -413,23 +417,27 @@ export function CheckoutFlow() {
           console.error("❌ [CHECKOUT] Payment creation failed:");
           console.error("   Status:", response.status);
           console.error("   Error:", errorData.error || "Unknown error");
-          console.error("   Details:", errorData.details || "No details provided");
-          
+          console.error(
+            "   Details:",
+            errorData.details || "No details provided"
+          );
+
           throw new Error(
-            errorData.details || 
-            errorData.error || 
-            "Failed to create Netopia payment. Please check your payment settings."
+            errorData.details ||
+              errorData.error ||
+              "Failed to create Netopia payment. Please check your payment settings."
           );
         }
       }
     } catch (error) {
       console.error("❌ [CHECKOUT] Netopia payment failed:", error);
-      
+
       // Provide user-friendly error message
-      const userMessage = error instanceof Error 
-        ? error.message
-        : "Failed to initiate Netopia payment. Please try again or contact support.";
-      
+      const userMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to initiate Netopia payment. Please try again or contact support.";
+
       setOrderError(new Error(userMessage));
       throw error;
     } finally {
@@ -439,8 +447,26 @@ export function CheckoutFlow() {
 
   const handleCODPayment = async () => {
     try {
+      if (
+        checkoutData.codConsentAccepted !== true ||
+        !checkoutData.codConsentAcceptedAt ||
+        !checkoutData.codConsentVersion ||
+        !checkoutData.codConsentText ||
+        !checkoutData.codGuaranteePaymentIntentId ||
+        !checkoutData.codGuaranteeAmount
+      ) {
+        throw new Error(
+          t(
+            "codConsentMissing",
+            "Pentru plata ramburs trebuie să accepți condițiile COD și să autorizezi garanția logistică înainte de finalizarea comenzii."
+          )
+        );
+      }
+
       // Import COD fee calculator
-      const { calculateCODFee } = await import("@/lib/pricing/cod-fee-calculator");
+      const { calculateCODFee } = await import(
+        "@/lib/pricing/cod-fee-calculator"
+      );
 
       // Get tax settings from database
       let taxRate = 0;
@@ -481,10 +507,11 @@ export function CheckoutFlow() {
         subtotalExcludingVAT = cartTotalIncludingVAT;
         tax = 0;
       }
-      
+
       // Calculate order total before COD fee
-      const orderTotalBeforeCOD = cartTotalIncludingVAT + shippingCost - discountAmount;
-      
+      const orderTotalBeforeCOD =
+        cartTotalIncludingVAT + shippingCost - discountAmount;
+
       // Get COD settings from database
       let codConfig = undefined;
       try {
@@ -501,11 +528,11 @@ export function CheckoutFlow() {
       } catch (error) {
         console.warn("Failed to fetch COD settings, using default:", error);
       }
-      
+
       // Calculate COD fee using settings from database
       const codFeeResult = calculateCODFee(orderTotalBeforeCOD, codConfig);
       const codFee = codFeeResult.fee;
-      
+
       // Final total including COD fee
       const total = orderTotalBeforeCOD + codFee;
 
@@ -532,6 +559,12 @@ export function CheckoutFlow() {
         // Store COD fee in metadata
         codFee,
         codAmount: total, // Total amount to collect on delivery
+        codConsentAccepted: checkoutData.codConsentAccepted,
+        codConsentAcceptedAt: checkoutData.codConsentAcceptedAt,
+        codConsentVersion: checkoutData.codConsentVersion,
+        codConsentText: checkoutData.codConsentText,
+        codGuaranteePaymentIntentId: checkoutData.codGuaranteePaymentIntentId,
+        codGuaranteeAmount: checkoutData.codGuaranteeAmount,
       };
 
       console.log("🚀 [CHECKOUT] Creating COD order...");
@@ -566,12 +599,13 @@ export function CheckoutFlow() {
       }
     } catch (error) {
       console.error("❌ [CHECKOUT] COD order creation failed:", error);
-      
+
       // Provide user-friendly error message
-      const userMessage = error instanceof Error 
-        ? error.message
-        : "Failed to create COD order. Please try again or contact support.";
-      
+      const userMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to create COD order. Please try again or contact support.";
+
       setOrderError(new Error(userMessage));
       throw error;
     } finally {
@@ -799,6 +833,11 @@ export function CheckoutFlow() {
               <PaymentForm
                 initialData={checkoutData.paymentDetails}
                 initialPaymentMethod={checkoutData.paymentMethod}
+                initialCodConsentAccepted={checkoutData.codConsentAccepted}
+                initialCodGuaranteePaymentIntentId={
+                  checkoutData.codGuaranteePaymentIntentId
+                }
+                initialCodGuaranteeAmount={checkoutData.codGuaranteeAmount}
                 billingAddressSameAsShipping={
                   checkoutData.billingAddressSameAsShipping
                 }

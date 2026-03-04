@@ -178,7 +178,9 @@ export function OrderReview({
                   {checkoutData.lockerAddressSnapshot.county}
                 </p>
               )}
-              <p className={`font-medium ${pricingData.shippingCost === 0 ? "text-emerald-600" : ""}`}>
+              <p
+                className={`font-medium ${pricingData.shippingCost === 0 ? "text-emerald-600" : ""}`}
+              >
                 {pricingData.shippingCost === 0 ? (
                   <>
                     {checkoutData.shippingMethod.price > 0 && (
@@ -233,8 +235,48 @@ export function OrderReview({
               <p className="text-gray-600">
                 {t(
                   "codReviewNotice",
-                  "Plătești cash la primirea coletului. Curierul va colecta suma totală."
+                  "Plătești la primirea coletului. Refuzul la livrare sau nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă."
                 )}
+              </p>
+              <p className="text-gray-600">
+                {t(
+                  "codReviewPostRefusal",
+                  "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale/contabile aplicabile în România."
+                )}
+              </p>
+              <p
+                className={
+                  checkoutData.codConsentAccepted
+                    ? "text-emerald-600"
+                    : "text-red-600"
+                }
+              >
+                {checkoutData.codConsentAccepted
+                  ? t(
+                      "codConsentConfirmed",
+                      "Condițiile COD au fost confirmate."
+                    )
+                  : t(
+                      "codConsentMissingReview",
+                      "Condițiile COD trebuie acceptate în pasul anterior."
+                    )}
+              </p>
+              <p
+                className={
+                  checkoutData.codGuaranteePaymentIntentId
+                    ? "text-emerald-600"
+                    : "text-red-600"
+                }
+              >
+                {checkoutData.codGuaranteePaymentIntentId
+                  ? t(
+                      "codGuaranteeConfirmed",
+                      "Garanția logistică COD este autorizată pe card."
+                    )
+                  : t(
+                      "codGuaranteeMissingReview",
+                      "Garanția logistică COD nu este autorizată."
+                    )}
               </p>
             </div>
           ) : checkoutData.paymentDetails ? (
@@ -312,15 +354,15 @@ export function OrderReview({
         </div>
       </div>
 
-        <OrderSummarySection
-          subtotal={pricingData.subtotal}
-          tax={pricingData.tax}
-          shippingCost={pricingData.shippingCost}
-          total={pricingData.total}
-          codFee={pricingData.codFee}
-          discountAmount={pricingData.discountAmount}
-          appliedCoupon={pricingData.appliedCoupon}
-        />
+      <OrderSummarySection
+        subtotal={pricingData.subtotal}
+        tax={pricingData.tax}
+        shippingCost={pricingData.shippingCost}
+        total={pricingData.total}
+        codFee={pricingData.codFee}
+        discountAmount={pricingData.discountAmount}
+        appliedCoupon={pricingData.appliedCoupon}
+      />
 
       <OrderActions
         onBack={onBack}

@@ -5,6 +5,12 @@ import { z } from "zod";
 
 import type { CartItem } from "@/features/cart/context/CartContext";
 import { auth } from "@/lib/auth";
+import { formatCodGuaranteeAuthorizationNote } from "@/lib/checkout/cod-guarantee";
+import { COD_CONSENT_VERSION } from "@/lib/checkout/cod-consent";
+import {
+  analyzeSupplierCartComposition,
+  applyMixedSupplierShippingRules,
+} from "@/lib/checkout/supplier-cart-rules";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
 import { AdminNotificationService } from "@/lib/email/admin-notification-service";
@@ -18,11 +24,11 @@ import {
   parseShippingMethodId,
 } from "@/lib/shipping/couriers";
 import { calculateDeclaredValue } from "@/lib/shipping/declared-value";
+import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 import {
   calculateShippingQuote,
   resolveShippingService,
 } from "@/lib/shipping/shipping-pricing";
-import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 import { getStripeApiVersion, getStripeCurrency } from "@/lib/stripe-config";
 import {
   shouldAutoFulfillOrder,
@@ -35,10 +41,6 @@ import {
   shouldAlertHighValueOrder,
   getNotificationSettings,
 } from "@/lib/utils/order-processing";
-import {
-  analyzeSupplierCartComposition,
-  applyMixedSupplierShippingRules,
-} from "@/lib/checkout/supplier-cart-rules";
 import {
   getShippingSettings,
   getTaxSettings,
@@ -135,6 +137,12 @@ const orderSchema = z.object({
   stripePaymentIntentId: z.string().optional(), // Accept payment intent ID
   codFee: z.number().optional(), // COD fee amount
   codAmount: z.number().optional(), // Total COD amount to collect
+  codConsentAccepted: z.boolean().optional(),
+  codConsentAcceptedAt: z.string().optional(),
+  codConsentVersion: z.string().optional(),
+  codConsentText: z.string().optional(),
+  codGuaranteePaymentIntentId: z.string().optional(),
+  codGuaranteeAmount: z.number().optional(),
   notes: z.string().nullable().optional(),
   orderNotes: z.string().optional(),
 });
@@ -368,11 +376,12 @@ export async function POST(request: Request) {
 
     // Determine payment provider from order data
     const paymentProvider = orderData.paymentProvider || "netopia";
-    const isStripePayment =
-      paymentProvider === "stripe" || Boolean(orderData.stripePaymentIntentId);
     const isCODPayment =
       orderData.paymentMethod === "cash_on_delivery" ||
       paymentProvider === "cod";
+    const isStripePayment =
+      paymentProvider === "stripe" ||
+      (!isCODPayment && Boolean(orderData.stripePaymentIntentId));
     const isNetopiaPayment =
       paymentProvider === "netopia" &&
       typeof orderData.paymentMethod === "string" &&
@@ -390,6 +399,77 @@ export async function POST(request: Request) {
       );
     }
 
+    const codConsentAccepted = orderData.codConsentAccepted === true;
+    const codConsentVersion = normalizeOptionalString(
+      orderData.codConsentVersion
+    );
+    const codConsentText = normalizeOptionalString(orderData.codConsentText);
+    const codConsentAcceptedAtRaw = normalizeOptionalString(
+      orderData.codConsentAcceptedAt
+    );
+    const codConsentAcceptedAtDate = codConsentAcceptedAtRaw
+      ? new Date(codConsentAcceptedAtRaw)
+      : null;
+    const codConsentAcceptedAt =
+      codConsentAcceptedAtDate &&
+      !Number.isNaN(codConsentAcceptedAtDate.getTime())
+        ? codConsentAcceptedAtDate.toISOString()
+        : null;
+    const codGuaranteePaymentIntentId = normalizeOptionalString(
+      orderData.codGuaranteePaymentIntentId
+    );
+    const codGuaranteeAmountInput =
+      typeof orderData.codGuaranteeAmount === "number"
+        ? Math.round(orderData.codGuaranteeAmount * 100) / 100
+        : null;
+
+    if (isCODPayment) {
+      if (
+        !codConsentAccepted ||
+        !codConsentVersion ||
+        !codConsentText ||
+        !codConsentAcceptedAt
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "COD consent is required. Please accept COD delivery and return cost terms before placing the order.",
+            error: "COD_CONSENT_REQUIRED",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (codConsentVersion !== COD_CONSENT_VERSION) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "COD terms were updated. Please review and accept the latest terms before placing the order.",
+            error: "COD_CONSENT_VERSION_MISMATCH",
+            details: {
+              expectedVersion: COD_CONSENT_VERSION,
+              receivedVersion: codConsentVersion,
+            },
+          },
+          { status: 400 }
+        );
+      }
+
+      if (!codGuaranteePaymentIntentId || !codGuaranteeAmountInput) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "COD guarantee authorization is required before placing this order.",
+            error: "COD_GUARANTEE_REQUIRED",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Optional testing gate: keep checkout admin-only only when explicitly enabled.
     const isAdmin = user?.role === "ADMIN";
     const checkoutAdminOnly = process.env.CHECKOUT_ADMIN_ONLY === "true";
@@ -405,26 +485,25 @@ export async function POST(request: Request) {
       );
     }
 
-    // Only validate Stripe configuration if this is a Stripe payment
-    if (isStripePayment) {
+    // Only validate Stripe configuration if this order needs Stripe validation
+    if (isStripePayment || (isCODPayment && codGuaranteePaymentIntentId)) {
       const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
       if (!stripeSecretKey) {
         console.error(
-          "Stripe secret key is not set but order requires Stripe payment."
+          "Stripe secret key is not set but order requires Stripe validation."
         );
 
         // In development, allow order creation but log warning
         if (process.env.NODE_ENV === "development") {
           console.warn(
-            "Development mode: Stripe payment requested but Stripe not configured. Order will be created with PENDING payment status."
+            "Development mode: Stripe validation requested but Stripe not configured."
           );
         } else {
           // In production, return an error for Stripe payments
           return NextResponse.json(
             {
               success: false,
-              message:
-                "Stripe payment configuration error. Please contact support.",
+              message: "Stripe configuration error. Please contact support.",
               error: "STRIPE_NOT_CONFIGURED",
             },
             { status: 500 }
@@ -928,6 +1007,114 @@ export async function POST(request: Request) {
       }
     }
 
+    const expectedCodGuaranteeAmount = isCODPayment
+      ? Math.round(Math.max(finalShippingCost, shippingBasePrice) * 2 * 100) /
+        100
+      : 0;
+    const expectedCodGuaranteeMinor = Math.round(
+      expectedCodGuaranteeAmount * 100
+    );
+
+    if (isCODPayment && codGuaranteeAmountInput !== null) {
+      if (
+        Math.abs(codGuaranteeAmountInput - expectedCodGuaranteeAmount) > 0.01
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "COD guarantee amount mismatch. Please refresh checkout and authorize the updated guarantee amount.",
+            error: "COD_GUARANTEE_AMOUNT_MISMATCH",
+            details: {
+              expectedAmount: expectedCodGuaranteeAmount,
+              providedAmount: codGuaranteeAmountInput,
+            },
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (isCODPayment && codGuaranteePaymentIntentId) {
+      if (!stripeClient) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Stripe client not configured for COD guarantee validation.",
+            error: "STRIPE_CLIENT_MISSING",
+          },
+          { status: 500 }
+        );
+      }
+
+      try {
+        const codGuaranteeIntent = await stripeClient.paymentIntents.retrieve(
+          codGuaranteePaymentIntentId
+        );
+
+        if (codGuaranteeIntent.amount !== expectedCodGuaranteeMinor) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "COD guarantee authorization amount is invalid. Please reauthorize and try again.",
+              error: "COD_GUARANTEE_AMOUNT_MISMATCH",
+              details: {
+                paymentIntentAmount: codGuaranteeIntent.amount,
+                expectedAmount: expectedCodGuaranteeMinor,
+              },
+            },
+            { status: 400 }
+          );
+        }
+
+        if (codGuaranteeIntent.currency !== getStripeCurrency()) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "COD guarantee currency mismatch. Please refresh and try again.",
+              error: "COD_GUARANTEE_INTENT_INVALID",
+            },
+            { status: 400 }
+          );
+        }
+
+        if (
+          codGuaranteeIntent.status !== "requires_capture" &&
+          codGuaranteeIntent.status !== "succeeded"
+        ) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "COD guarantee was not authorized successfully. Please reauthorize and try again.",
+              error: "COD_GUARANTEE_INTENT_INVALID",
+              details: {
+                paymentIntentStatus: codGuaranteeIntent.status,
+              },
+            },
+            { status: 400 }
+          );
+        }
+      } catch (err) {
+        console.error(
+          `Failed to validate COD guarantee payment intent ${codGuaranteePaymentIntentId}:`,
+          err
+        );
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Failed to validate COD guarantee authorization. Please try again.",
+            error: "COD_GUARANTEE_INTENT_INVALID",
+          },
+          { status: 500 }
+        );
+      }
+    }
+
     // Validate Stripe payment intent (amount/currency) before creating order
     const expectedAmountMinor = Math.round(orderTotal * 100);
     const stripeCurrency = getStripeCurrency();
@@ -1115,6 +1302,29 @@ export async function POST(request: Request) {
         `Split shipment order (${supplierCartAnalysis.supplierCount} fulfillment sources${supplierCartAnalysis.supplierNames.length ? `: ${supplierCartAnalysis.supplierNames.join(", ")}` : ""}). Prepaid only.`
       );
     }
+    const codConsentVersionTag = codConsentVersion
+      ? `COD_CONSENT_V${codConsentVersion.replace(/[^A-Za-z0-9]/g, "_")}`
+      : null;
+    const orderTags = supplierCartAnalysis.isMixedSupplierCart
+      ? ["MIXED_SUPPLIER", "MULTI_PARCEL"]
+      : [];
+    if (isCODPayment && codConsentVersionTag) {
+      orderTags.push(codConsentVersionTag);
+    }
+    if (isCODPayment && codGuaranteePaymentIntentId) {
+      orderTags.push("COD_GUARANTEE_AUTHORIZED");
+    }
+    const codConsentSnapshot = codConsentText
+      ? codConsentText.slice(0, 500)
+      : null;
+    const codGuaranteeAuthorizationNote =
+      isCODPayment && codGuaranteePaymentIntentId
+        ? formatCodGuaranteeAuthorizationNote({
+            authorizedAt: new Date().toISOString(),
+            paymentIntentId: codGuaranteePaymentIntentId,
+            amount: expectedCodGuaranteeAmount,
+          })
+        : null;
     try {
       console.log(
         `Creating order with ${items.length} items:`,
@@ -1151,9 +1361,7 @@ export async function POST(request: Request) {
             declaredValue,
             codAmount: isCODPayment ? codAmount : null,
             currency: "RON",
-            tags: supplierCartAnalysis.isMixedSupplierCart
-              ? ["MIXED_SUPPLIER", "MULTI_PARCEL"]
-              : [],
+            tags: orderTags,
             // For Netopia we keep the order in a "pending review" state
             // (valid OrderStatus enum) until the IPN/webhook confirms
             // payment success or failure. The actual payment lifecycle
@@ -1174,6 +1382,13 @@ export async function POST(request: Request) {
                       2
                     )} RON, Amount to Collect: ${codAmount.toFixed(2)} RON`
                   : null,
+                isCODPayment && codConsentAcceptedAt && codConsentVersion
+                  ? `COD Consent accepted at ${codConsentAcceptedAt} (version ${codConsentVersion})`
+                  : null,
+                isCODPayment && codConsentSnapshot
+                  ? `COD Consent terms snapshot: ${codConsentSnapshot}`
+                  : null,
+                codGuaranteeAuthorizationNote,
                 ...(orderData.notes ? [orderData.notes] : []),
                 ...operationalNotes,
               ]
@@ -1449,6 +1664,35 @@ export async function POST(request: Request) {
           );
           // If capture fails, we should probably handle this more gracefully
           // For now, log the error but don't fail the order since the payment is authorized
+        }
+      }
+
+      if (stripeClient && isCODPayment && codGuaranteePaymentIntentId) {
+        const codGuaranteeMetadata: Record<string, string> = {
+          orderId: dbOrder.id,
+          orderNumber: dbOrder.orderNumber || orderNumber,
+          userId: user.id,
+          paymentFlow: "cod_guarantee",
+          guaranteeAmount: expectedCodGuaranteeAmount.toFixed(2),
+        };
+
+        const customerEmail = user.email || "";
+        if (customerEmail) {
+          codGuaranteeMetadata.userEmail = customerEmail;
+        }
+
+        try {
+          await stripeClient.paymentIntents.update(
+            codGuaranteePaymentIntentId,
+            {
+              metadata: codGuaranteeMetadata,
+            }
+          );
+        } catch (stripeError) {
+          console.error(
+            `Failed to update COD guarantee payment intent ${codGuaranteePaymentIntentId}:`,
+            stripeError
+          );
         }
       }
 
