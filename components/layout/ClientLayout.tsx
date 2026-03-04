@@ -1,12 +1,14 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+import { Suspense } from "react";
+
 import { AccountLinkingNotice } from "@/components/auth/AccountLinkingNotice";
 import { DatabaseConfigNotice } from "@/components/auth/DatabaseConfigNotice";
 // import { SessionValidator } from "@/components/auth/SessionValidator";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import PromotionalPopup from "@/components/PromotionalPopup";
-import { usePathname } from "next/navigation";
 
 export default function ClientLayout({
   children,
@@ -26,7 +28,9 @@ export default function ClientLayout({
       {/* <SessionValidator /> */}
       <AccountLinkingNotice />
       <DatabaseConfigNotice />
-      <Header />
+      <Suspense fallback={<div className="h-[72px] w-full" aria-hidden />}>
+        <Header />
+      </Suspense>
       <main
         className={`relative flex-grow ${
           isStorefrontSurface

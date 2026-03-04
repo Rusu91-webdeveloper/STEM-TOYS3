@@ -298,7 +298,6 @@ export default function Header() {
                   className="object-contain"
                   src="/TechTots_LOGO.png"
                   alt="TechTots Logo"
-                  priority
                   fill
                   sizes="(max-width: 640px) 7rem, (max-width: 768px) 8rem, (max-width: 1280px) 9rem, 9rem"
                 />

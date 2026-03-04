@@ -606,7 +606,7 @@ function ClientProductsPageContent({
   // Helper functions for hero section
   const getCategoryImagePath = () => {
     if (!activeCategory) {
-      return "/HeroImage.png";
+      return "/images/optimized/homepage_hero_banner_01_fallback.jpg";
     }
 
     // Map category IDs to actual image file names
@@ -618,7 +618,10 @@ function ClientProductsPageContent({
       "educational-books": "/images/category_banner_books_01.jpg",
     };
 
-    return imageMap[activeCategory.id] || "/HeroImage.png";
+    return (
+      imageMap[activeCategory.id] ||
+      "/images/optimized/homepage_hero_banner_01_fallback.jpg"
+    );
   };
 
   const getCategoryTitle = () => {

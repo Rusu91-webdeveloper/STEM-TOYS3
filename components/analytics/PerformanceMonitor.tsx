@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+
 import { initPerformanceTracking } from "@/lib/analytics/web-vitals";
 
 interface PerformanceMonitorProps {
@@ -19,10 +20,10 @@ export default function PerformanceMonitor({
     initPerformanceTracking({
       sendToGA4: true,
       sendToConsole: enableConsoleLogging,
-      sendToAPI: true,
+      sendToAPI: enableAPILogging,
       apiEndpoint: apiEndpoint || "/api/analytics/web-vitals",
     });
-  }, [enableConsoleLogging, apiEndpoint]);
+  }, [enableConsoleLogging, enableAPILogging, apiEndpoint]);
 
   // This component doesn't render anything
   return null;

@@ -347,8 +347,6 @@ async function fetchHomepageBundlesOptimized(): Promise<HomeBundle[]> {
 
 // **PERFORMANCE**: Incremental Static Regeneration for optimal TTFB and LCP
 export const revalidate = 1800; // Revalidate every 30 minutes for better cache freshness
-// Route uses dynamic no-store fetch via cache/redis during build; avoid static pre-render
-export const dynamic = "force-dynamic";
 
 export default async function Home() {
   // **PERFORMANCE**: Aggressive caching strategy for TTFB optimization

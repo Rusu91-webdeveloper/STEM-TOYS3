@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
+import { useState } from "react";
 
 import { Container } from "@/components/ui/container";
 
@@ -20,7 +20,9 @@ export function BlogHeroSection({
   language,
   onLanguageToggle,
 }: BlogHeroSectionProps) {
-  const [heroImageSrc, setHeroImageSrc] = useState("/HeroImage.png");
+  const [heroImageSrc, setHeroImageSrc] = useState(
+    "/images/optimized/homepage_hero_banner_01_fallback.jpg"
+  );
 
   return (
     <section className="relative w-full flex items-center justify-center">

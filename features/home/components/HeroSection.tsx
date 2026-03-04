@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { gradientButtonClass } from "@/features/home/components/homeTheme";
 import { useABTest } from "@/hooks/useABTest";
@@ -17,6 +17,7 @@ import {
 
 const HERO_HEADLINE_TEST_NAME = "homepage_hero_headline";
 const HERO_CTA_TEST_NAME = "homepage_hero_cta";
+const HERO_IMAGE_SRC = "/images/optimized/homepage_hero_banner_01_fallback.jpg";
 
 interface HeroSectionProps {
   t: (key: string, defaultValue?: string) => string;
@@ -36,7 +37,6 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
     track: trackCTAAB,
   } = useABTest(HERO_CTA_TEST_NAME);
   const hasTrackedHeroImpressionRef = useRef(false);
-  const [heroImageSrc, setHeroImageSrc] = useState("/HeroImage.png");
 
   const headlineVariantKey =
     (headlineVariant?.name ?? headlineVariant?.id ?? "control").toLowerCase();
@@ -102,19 +102,14 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
     >
       <div className="absolute inset-0 z-0 select-none">
         <Image
-          src={heroImageSrc}
+          src={HERO_IMAGE_SRC}
           alt={t("inspireMinds", "Inspire Curious Minds")}
           fill
           priority
           sizes="100vw"
           className="h-full w-full object-cover object-center"
           fetchPriority="high"
-          quality={90}
-          onError={() => {
-            if (heroImageSrc !== "/HeroImageTechTechtots.png") {
-              setHeroImageSrc("/HeroImageTechTechtots.png");
-            }
-          }}
+          quality={85}
         />
         <div
           className="absolute inset-0 bg-gradient-to-r from-blue-900/45 via-blue-700/32 to-sky-500/15"

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import React, { useEffect, useRef, useState } from "react";
+
 import {
   // glassCardClass,
   gradientButtonClass,
@@ -13,34 +14,63 @@ interface MobileConversionOptimizerProps {
 
 // Hormozi Style Mobile Conversion Optimizer
 // Adds sticky CTAs, mobile-specific optimizations, and conversion tracking
-function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
+function MobileConversionOptimizer({ t: _t }: MobileConversionOptimizerProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
+  const dismissedRef = useRef(false);
+  const isVisibleRef = useRef(false);
+  const progressBarRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Only run on client side
-    if (typeof window === "undefined") return;
-
-    // Restore dismissed state
-    const dismissed = localStorage.getItem("home-sticky-cta-dismissed");
-    if (dismissed === "true") {
-      setIsVisible(false);
+    try {
+      dismissedRef.current =
+        localStorage.getItem("home-sticky-cta-dismissed") === "true";
+    } catch {
+      dismissedRef.current = false;
     }
 
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setScrollY(currentScrollY);
+    let frameId = 0;
+    let ticking = false;
 
-      // Show sticky CTA after user scrolls past hero section (400px)
-      if (localStorage.getItem("home-sticky-cta-dismissed") === "true") {
-        setIsVisible(false);
-      } else {
-        setIsVisible(currentScrollY > 400);
+    const updateMobileIndicators = () => {
+      const currentScrollY = window.scrollY;
+      const scrollableHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+      const progress =
+        scrollableHeight > 0
+          ? Math.min((currentScrollY / scrollableHeight) * 100, 100)
+          : 0;
+
+      if (progressBarRef.current) {
+        progressBarRef.current.style.width = `${progress}%`;
       }
+
+      const nextVisible = !dismissedRef.current && currentScrollY > 400;
+      if (nextVisible !== isVisibleRef.current) {
+        isVisibleRef.current = nextVisible;
+        setIsVisible(nextVisible);
+      }
+
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (ticking) {
+        return;
+      }
+
+      ticking = true;
+      frameId = window.requestAnimationFrame(updateMobileIndicators);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    handleScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
   }, []);
 
   const trackConversion = (action: string, element: string) => {
@@ -87,6 +117,8 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
 
               <button
                 onClick={() => {
+                  dismissedRef.current = true;
+                  isVisibleRef.current = false;
                   setIsVisible(false);
                   try {
                     localStorage.setItem("home-sticky-cta-dismissed", "true");
@@ -207,14 +239,9 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
       {/* Mobile Scroll Progress Indicator */}
       <div className="fixed top-0 left-0 right-0 z-40 md:hidden">
         <div
+          ref={progressBarRef}
           className="h-1 bg-gradient-to-r from-green-600 to-emerald-600 transition-all duration-300 ease-out"
-          style={{
-            width:
-              typeof window !== "undefined" &&
-              document?.documentElement?.scrollHeight
-                ? `${Math.min((scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100, 100)}%`
-                : "0%",
-          }}
+          style={{ width: "0%" }}
         />
       </div>
 

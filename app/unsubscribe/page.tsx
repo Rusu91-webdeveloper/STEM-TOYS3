@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { CheckCircle, Loader2, Mail, XCircle } from "lucide-react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,8 +17,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, CheckCircle, XCircle, Mail } from "lucide-react";
 
 interface UnsubscribeData {
   success: boolean;
@@ -24,7 +26,7 @@ interface UnsubscribeData {
   error?: string;
 }
 
-export default function UnsubscribePage() {
+function UnsubscribePageContent() {
   const searchParams = useSearchParams();
   const [data, setData] = useState<UnsubscribeData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,7 +125,7 @@ export default function UnsubscribePage() {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <a href="/">Return to Homepage</a>
+              <Link href="/">Return to Homepage</Link>
             </Button>
           </CardContent>
         </Card>
@@ -152,7 +154,7 @@ export default function UnsubscribePage() {
               </AlertDescription>
             </Alert>
             <Button asChild className="w-full">
-              <a href="/">Return to Homepage</a>
+              <Link href="/">Return to Homepage</Link>
             </Button>
           </CardContent>
         </Card>
@@ -262,12 +264,31 @@ export default function UnsubscribePage() {
                 )}
               </Button>
               <Button type="button" variant="outline" asChild>
-                <a href="/">Cancel</a>
+                <Link href="/">Cancel</Link>
               </Button>
             </div>
           </form>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function UnsubscribePageFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+        <p>Validating unsubscribe link...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function UnsubscribePage() {
+  return (
+    <Suspense fallback={<UnsubscribePageFallback />}>
+      <UnsubscribePageContent />
+    </Suspense>
   );
 }

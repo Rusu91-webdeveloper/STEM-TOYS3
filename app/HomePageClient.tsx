@@ -2,20 +2,17 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import React, { Suspense } from "react";
 
-import { publicConfig } from "@/lib/config/app-config";
-
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
-import {
-  BundlesShowcaseSection,
-  CategoriesSection,
-  FeaturedProductsGrid,
-  PerformanceOptimizer,
-  PillarSection,
-} from "@/features/home/components";
+import { BundlesShowcaseSection } from "@/features/home/components/BundlesShowcaseSection";
+import { CategoriesSection } from "@/features/home/components/CategoriesSection";
+import { FeaturedProductsGrid } from "@/features/home/components/FeaturedProductsGrid";
 import { HeroSection } from "@/features/home/components/HeroSection";
+import PillarSection from "@/features/home/components/PillarSection";
 import type { HomeBundle } from "@/features/home/types";
+import { publicConfig } from "@/lib/config/app-config";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { getBaseUrl } from "@/lib/site";
@@ -160,12 +157,6 @@ export default function HomePageClient({
 }) {
   // Force the component to display all 6 products by duplicating some if needed
   const initialFeaturedProducts = [...originalFeaturedProducts];
-
-  // Log the original products for debugging
-  console.log(`Original products count: ${originalFeaturedProducts.length}`);
-  console.log(
-    `Product names: ${originalFeaturedProducts.map(p => p.name).join(", ")}`
-  );
 
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
@@ -323,9 +314,6 @@ export default function HomePageClient({
       <div className={homePageOverlayTopClass} aria-hidden />
       <div className={homePageOverlayBottomClass} aria-hidden />
       <div className={homePageContentWrapperClass}>
-        {/* Performance Optimizer - Loads first for optimal Core Web Vitals */}
-        <PerformanceOptimizer />
-
         {/* **PERFORMANCE**: Hero Section - Critical for FCP */}
         <HeroSection t={t} />
 
@@ -367,12 +355,12 @@ export default function HomePageClient({
                     Build a real toy-store experience with ready-made bundles instead of shopping items one by one.
                   </p>
                 </div>
-                <a
+                <Link
                   href="/products?bundleView=bundles"
                   className="inline-flex h-11 items-center justify-center rounded-xl border border-white/30 bg-white/15 px-5 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20"
                 >
                   Shop Bundles
-                </a>
+                </Link>
               </div>
             </div>
           </div>

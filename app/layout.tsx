@@ -1,23 +1,22 @@
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { cookies } from "next/headers";
 
-import ConversionTrackingProvider from "@/components/conversion-tracking/ConversionTrackingProvider";
-import PerformanceMonitor from "@/components/analytics/PerformanceMonitor";
 import AnalyticsWrapper from "@/components/analytics/AnalyticsWrapper";
+import PerformanceMonitor from "@/components/analytics/PerformanceMonitor";
+import { SafeSessionProvider } from "@/components/auth/SafeSessionProvider";
+import ConversionTrackingProvider from "@/components/conversion-tracking/ConversionTrackingProvider";
+import { CriticalCSS } from "@/components/CriticalCSS";
 import ClientLayout from "@/components/layout/ClientLayout";
-import { getStoreSettings } from "@/lib/utils/store-settings";
-import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import StructuredDataInjector from "@/components/seo/StructuredDataInjector";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { Toaster } from "@/components/ui/toaster";
 import CartProviderWrapper from "@/features/cart/components/CartProviderWrapper.client";
 import { CentralizedSessionProvider } from "@/lib/auth/SessionContext";
 import { CurrencyProvider } from "@/lib/currency";
 import { I18nProvider } from "@/lib/i18n";
-import { CriticalCSS } from "@/components/CriticalCSS";
-import { SafeSessionProvider } from "@/components/auth/SafeSessionProvider";
+import { getStoreSettings } from "@/lib/utils/store-settings";
 
 import "./globals.css";
 import { metadata as appMetadata } from "./metadata";
@@ -29,18 +28,24 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = appMetadata;
+export const revalidate = 3600;
+
+const STORE_SETTINGS_TIMEOUT_MS = 150;
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Read the language cookie on the server side
-  const cookieStore = await cookies();
-  const initialLanguage = cookieStore.get("language")?.value ?? "ro";
+  const initialLanguage = "ro";
 
-  // SSR store settings to avoid client fetch on first paint
-  const initialStoreSettings = await getStoreSettings();
+  // Don't let slow DB/cache calls block initial document response.
+  const initialStoreSettings = await Promise.race([
+    getStoreSettings(),
+    new Promise<null>(resolve =>
+      setTimeout(() => resolve(null), STORE_SETTINGS_TIMEOUT_MS)
+    ),
+  ]);
 
   return (
     <html
@@ -66,14 +71,6 @@ export default async function RootLayout({
           href="/images/optimized/homepage_hero_banner_01_fallback.jpg"
           as="image"
           fetchPriority="high"
-        />
-
-        {/* **PERFORMANCE**: Font preconnect for faster loading */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
         />
 
         {/* Analytics Components (Client-only to avoid SSR issues) */}

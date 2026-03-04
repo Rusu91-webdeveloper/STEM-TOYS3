@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 
 // Dynamically import client-only analytics components to avoid SSR issues
 // This must be a Client Component to use ssr: false
@@ -38,6 +39,77 @@ const TikTokPixel = dynamic(
  * and only renders if the pixel is configured and active.
  */
 export default function AnalyticsWrapper() {
+  const [canLoadAnalytics, setCanLoadAnalytics] = useState(false);
+
+  useEffect(() => {
+    const hasAnalyticsConsent = () => {
+      try {
+        const localStorageKeys = [
+          "analytics_consent",
+          "cookie_consent",
+          "consent_analytics",
+          "gdpr_analytics_consent",
+        ];
+        const acceptedValues = new Set([
+          "true",
+          "1",
+          "yes",
+          "accepted",
+          "granted",
+          "all",
+        ]);
+        const rejectedValues = new Set([
+          "false",
+          "0",
+          "no",
+          "denied",
+          "rejected",
+        ]);
+
+        for (const key of localStorageKeys) {
+          const value = window.localStorage.getItem(key);
+          if (!value) continue;
+          const normalized = value.toLowerCase();
+          if (acceptedValues.has(normalized)) return true;
+          if (rejectedValues.has(normalized)) return false;
+        }
+
+        const cookie = document.cookie
+          .split(";")
+          .map(item => item.trim())
+          .find(item =>
+            /^(analytics_consent|cookie_consent|consent_analytics)=/i.test(item)
+          );
+
+        if (cookie) {
+          const [, rawValue = ""] = cookie.split("=");
+          const normalized = decodeURIComponent(rawValue).toLowerCase();
+          if (acceptedValues.has(normalized)) return true;
+          if (rejectedValues.has(normalized)) return false;
+        }
+      } catch {
+        // Keep defaults if storage/cookie access fails.
+      }
+
+      // Preserve current behavior when no explicit consent signal exists.
+      return true;
+    };
+
+    const activate = () => setCanLoadAnalytics(hasAnalyticsConsent());
+
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(activate, { timeout: 3000 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = window.setTimeout(activate, 1200);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  if (!canLoadAnalytics) {
+    return null;
+  }
+
   return (
     <>
       <GoogleAnalytics />
