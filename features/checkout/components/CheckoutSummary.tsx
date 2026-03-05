@@ -11,6 +11,7 @@ import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 
 import { fetchCODSettings, fetchTaxSettings, fetchShippingSettings } from "../lib/checkoutApi";
 import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
+import { ShippingMethod } from "../types";
 
 interface TaxSettings {
   rate: string;
@@ -26,6 +27,7 @@ interface CheckoutSummaryProps {
   selectedPaymentMethod?: string;
   stripePaymentIntentId?: string;
   currentStep?: string;
+  shippingMethod?: ShippingMethod;
 }
 
 export function CheckoutSummary({
@@ -36,6 +38,7 @@ export function CheckoutSummary({
   selectedPaymentMethod,
   stripePaymentIntentId,
   currentStep,
+  shippingMethod,
 }: CheckoutSummaryProps) {
   const { cartItems, getCartTotal, isLoading } = useCart();
   const { formatPrice } = useCurrency();
@@ -113,6 +116,13 @@ export function CheckoutSummary({
   const cartTotalIncludingVAT = getCartTotal();
   const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
   const isCOD = selectedPaymentMethod === "cash_on_delivery";
+  const isLockerShippingMethod = useMemo(() => {
+    if (!shippingMethod) return false;
+    if (shippingMethod.requiresLocker) return true;
+    if (shippingMethod.methodType === "easybox") return true;
+    const methodId = (shippingMethod.id || "").toLowerCase();
+    return methodId.includes("fanbox") || methodId.includes("easybox");
+  }, [shippingMethod]);
   
   // Disable discount code input if a Stripe payment intent has been created (payment amount is locked)
   // Note: We also hide the discount field completely on the review step
@@ -163,16 +173,20 @@ export function CheckoutSummary({
   const codFee = useMemo(() => {
     if (!isCOD) return 0;
     try {
-      const config = codConfig ? {
-        percentage: codConfig.percentage,
-        fixedFee: codConfig.fixedFee,
-      } : undefined;
+      const config = codConfig
+        ? {
+            percentage: codConfig.percentage,
+            fixedFee: isLockerShippingMethod ? 0 : codConfig.fixedFee,
+          }
+        : isLockerShippingMethod
+          ? { fixedFee: 0 }
+          : undefined;
       return calculateCODFee(baseTotal, config).fee;
     } catch (error) {
       console.error("Error calculating COD fee:", error);
       return 0;
     }
-  }, [baseTotal, isCOD, codConfig]);
+  }, [baseTotal, isCOD, codConfig, isLockerShippingMethod]);
   const total = baseTotal + codFee;
 
   // Calculate how much more needed for free shipping
@@ -341,7 +355,11 @@ export function CheckoutSummary({
 
         {isCOD && (
           <div className="flex justify-between text-sm text-slate-300 sm:text-base">
-            <span>{t("codFee", "Cash on delivery fee")}</span>
+            <span>
+              {isLockerShippingMethod
+                ? t("codLockerFee", "Taxă plată la FANbox")
+                : t("codFee", "Cash on delivery fee")}
+            </span>
             <span>{formatPrice(codFee)}</span>
           </div>
         )}

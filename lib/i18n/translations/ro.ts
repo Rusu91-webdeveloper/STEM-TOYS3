@@ -2001,8 +2001,28 @@ export const ro = {
   codOrderSuccessMessage:
     "Comanda ta a fost plasată. Vei plăti cash la primirea coletului. Vei primi un email de confirmare în curând.",
   codPaymentMethod: "Plată la livrare (Ramburs)",
+  codLockerPaymentMethod: "Plată la FANbox (card la locker)",
+  codHomeMethodDescription:
+    "Plătești la primirea coletului (RTO la refuz/nepreluare).",
+  codLockerMethodDescription:
+    "Plătești la ridicare, cu cardul la terminalul FANbox (RTO la refuz/nepreluare).",
+  codLockerBadge: "Card la FANbox",
+  codLockerProviderChip: "Card la locker",
+  codLockerFeePreview: "Fără taxă fixă de 5 RON",
+  codInfoTitle: "Informare COD (ramburs)",
+  codInfoBody:
+    "Refuzul la livrare sau nepreluarea coletului sunt tratate ca RTO (retur la expeditor). În acest caz se pot aplica costurile logistice efective tur + retur, conform politicilor afișate înainte de comandă.",
+  codLockerInfoTitle: "Informare plată la FANbox",
+  codLockerInfoBody:
+    "Pentru livrarea la FANbox, plata se face la ridicare, cu cardul la terminalul locker-ului. Nepreluarea coletului este tratată ca RTO (retur la expeditor), iar costurile logistice efective tur + retur pot fi aplicate conform politicilor afișate înainte de comandă.",
   codReviewNotice:
     "Plătești cash la primirea coletului. Curierul va colecta suma totală.",
+  codLockerReviewNotice:
+    "Plătești la ridicare, cu cardul la terminalul FANbox. Nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă.",
+  codLockerFee: "Taxă plată la FANbox",
+  totalWithLockerCOD: "Total cu plată la FANbox",
+  codLockerNotice:
+    "Pentru FANbox, plata se face la ridicare, cu cardul la terminalul locker-ului.",
   codUnavailableBadge: "Doar card online",
   codUnavailableLocker:
     "Pentru livrarea la FANbox, plata ramburs nu este disponibilă.",

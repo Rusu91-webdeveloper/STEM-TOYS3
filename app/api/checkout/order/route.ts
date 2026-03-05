@@ -931,14 +931,19 @@ export async function POST(request: Request) {
         if (codSettings?.active) {
           codConfig = {
             percentage: parseFloat(codSettings.percentage || "3") / 100,
-            fixedFee: parseFloat(codSettings.fixedFee || "5.00"),
+            fixedFee: lockerRequired
+              ? 0
+              : parseFloat(codSettings.fixedFee || "5.00"),
           };
         }
       } catch (error) {
         console.error("Error fetching COD settings, using default:", error);
       }
 
-      const codFeeResult = calculateCODFee(orderTotalBeforeCOD, codConfig);
+      const codFeeResult = calculateCODFee(
+        orderTotalBeforeCOD,
+        codConfig || (lockerRequired ? { fixedFee: 0 } : undefined)
+      );
       codFee = codFeeResult.fee;
     }
 

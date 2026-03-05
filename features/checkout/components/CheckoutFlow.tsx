@@ -880,6 +880,7 @@ export function CheckoutFlow() {
           appliedCoupon={appliedCoupon}
           onCouponRemoved={handleCouponRemoved}
           selectedPaymentMethod={checkoutData.paymentMethod}
+          shippingMethod={checkoutData.shippingMethod}
           stripePaymentIntentId={
             checkoutData.stripePaymentIntentId ||
             checkoutData.paymentDetails?.stripePaymentIntentId

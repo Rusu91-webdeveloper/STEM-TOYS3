@@ -54,6 +54,18 @@ export function usePricingBreakdown({
   const cartSubtotal = getCartTotal();
   const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
   const isCOD = checkoutData.paymentMethod === "cash_on_delivery";
+  const isLockerShippingMethod = Boolean(
+    checkoutData.lockerId ||
+      checkoutData.lockerAddressSnapshot ||
+      checkoutData.shippingMethod?.requiresLocker ||
+      checkoutData.shippingMethod?.methodType === "easybox" ||
+      (checkoutData.shippingMethod?.id || "")
+        .toLowerCase()
+        .includes("fanbox") ||
+      (checkoutData.shippingMethod?.id || "")
+        .toLowerCase()
+        .includes("easybox")
+  );
   let shippingCost = 0;
 
   if (hasPhysicalItems) {
@@ -111,10 +123,14 @@ export function usePricingBreakdown({
   let codFee = 0;
   if (isCOD) {
     try {
-      const config = codConfig ? {
-        percentage: codConfig.percentage,
-        fixedFee: codConfig.fixedFee,
-      } : undefined;
+      const config = codConfig
+        ? {
+            percentage: codConfig.percentage,
+            fixedFee: isLockerShippingMethod ? 0 : codConfig.fixedFee,
+          }
+        : isLockerShippingMethod
+          ? { fixedFee: 0 }
+          : undefined;
       codFee = calculateCODFee(baseTotal, config).fee;
     } catch (error) {
       console.error("Error calculating COD fee:", error);

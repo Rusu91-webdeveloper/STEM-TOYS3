@@ -45,12 +45,27 @@ export const PaymentSummary = React.memo(function PaymentSummary({
     if (!isCOD) return null;
     const orderTotal = getCartTotal() + shippingCost - discountAmount;
     try {
-      return calculateCODFee(orderTotal, codConfig || undefined);
+      const config = codConfig
+        ? {
+            percentage: codConfig.percentage,
+            fixedFee: isLockerCodFlow ? 0 : codConfig.fixedFee,
+          }
+        : isLockerCodFlow
+          ? { fixedFee: 0 }
+          : undefined;
+      return calculateCODFee(orderTotal, config);
     } catch (error) {
       console.error("Error calculating COD fee:", error);
       return null;
     }
-  }, [isCOD, getCartTotal, shippingCost, discountAmount, codConfig]);
+  }, [
+    isCOD,
+    getCartTotal,
+    shippingCost,
+    discountAmount,
+    codConfig,
+    isLockerCodFlow,
+  ]);
 
   return (
     <>
@@ -127,15 +142,15 @@ export const PaymentSummary = React.memo(function PaymentSummary({
       {/* COD Fee Display */}
       {isCOD && codFeeResult && (
         <div className="my-6">
-          <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0">
                 <span className="text-sm font-semibold text-orange-800">
                   {isLockerCodFlow
                     ? t("codLockerFee", "Taxă plată la FANbox")
                     : t("codFee", "Taxă ramburs")}
                 </span>
-                <span className="rounded-full border border-orange-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-orange-600">
+                <span className="ml-2 inline-flex rounded-full border border-orange-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-orange-600">
                   {isLockerCodFlow
                     ? t("codLockerBadge", "Card la FANbox")
                     : t("cashOnDelivery", "Ramburs")}
@@ -145,28 +160,24 @@ export const PaymentSummary = React.memo(function PaymentSummary({
                 +{codFeeResult.fee.toFixed(2)} RON
               </span>
             </div>
-            <div className="mt-2 grid gap-1 text-xs text-orange-700 sm:grid-cols-2">
-              <div>
-                <span className="font-medium">
-                  {t("feeBreakdown", "Structură taxă")}:
-                </span>{" "}
+            <div className="mt-3 rounded-xl border border-amber-200 bg-white/80 p-3 text-sm text-orange-900">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-medium">{t("feeBreakdown", "Structură taxă")}</span>
                 <span>
-                  {codPercentageLabel}% (
-                  {codFeeResult.breakdown.percentageFee.toFixed(2)} RON) +{" "}
-                  {codFeeResult.breakdown.fixedFee.toFixed(2)} RON{" "}
-                  {t("fixed", "fix")}
+                  {codPercentageLabel}% ({codFeeResult.breakdown.percentageFee.toFixed(2)} RON) +{" "}
+                  {codFeeResult.breakdown.fixedFee.toFixed(2)} RON {t("fixed", "fix")}
                 </span>
               </div>
-              <div className="sm:text-right">
-                <span className="font-medium">
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 font-semibold text-orange-800">
+                <span>
                   {isLockerCodFlow
                     ? t("totalWithLockerCOD", "Total cu plată la FANbox")
                     : t("totalWithCOD", "Total cu ramburs")}
-                </span>{" "}
+                </span>
                 <span>{codFeeResult.orderTotalWithFee.toFixed(2)} RON</span>
               </div>
             </div>
-            <p className="mt-2 text-xs font-medium text-orange-700">
+            <p className="mt-3 text-sm font-medium text-orange-800">
               {isLockerCodFlow
                 ? t(
                     "codLockerNotice",
@@ -177,12 +188,12 @@ export const PaymentSummary = React.memo(function PaymentSummary({
                     "💡 Plătești cash la primirea coletului. Curierul va colecta suma totală."
                   )}
             </p>
-            <p className="mt-1 text-xs text-orange-800/90">
+            <p className="mt-2 text-xs leading-relaxed text-orange-900/90">
               În caz de refuz la livrare sau nepreluare colet (RTO), se pot
               aplica costurile logistice efective tur + retur, conform
               politicilor afișate înainte de comandă.
             </p>
-            <p className="mt-1 text-xs text-orange-800/90">
+            <p className="mt-1 text-xs leading-relaxed text-orange-900/90">
               Dacă există diferențe peste garanția COD autorizată, acestea se
               gestionează prin procedurile legale și contabile aplicabile în
               România.

@@ -186,7 +186,15 @@ export function PaymentForm({
     if (selectedPaymentMethod !== "cash_on_delivery") return null;
     const baseTotal = Math.max(0, totalAmount);
     try {
-      const fee = calculateCODFee(baseTotal, codConfig || undefined).fee;
+      const config = codConfig
+        ? {
+            percentage: codConfig.percentage,
+            fixedFee: isLockerShippingMethod ? 0 : codConfig.fixedFee,
+          }
+        : isLockerShippingMethod
+          ? { fixedFee: 0 }
+          : undefined;
+      const fee = calculateCODFee(baseTotal, config).fee;
       return {
         baseTotal,
         fee,
@@ -196,7 +204,7 @@ export function PaymentForm({
       console.error("Error calculating COD total:", error);
       return { baseTotal, fee: 0, total: baseTotal };
     }
-  }, [selectedPaymentMethod, totalAmount, codConfig]);
+  }, [selectedPaymentMethod, totalAmount, codConfig, isLockerShippingMethod]);
   const isCodLimitExceeded =
     selectedPaymentMethod === "cash_on_delivery" &&
     codTotals !== null &&
@@ -977,34 +985,44 @@ export function PaymentForm({
           </div>
         )}
         {selectedPaymentMethod === "cash_on_delivery" && (
-          <div className="my-4 space-y-3 rounded-md border border-amber-200 bg-amber-50 p-4">
-            <div className="flex items-start gap-3">
-              <Checkbox
-                id="cod-consent"
-                checked={codConsentAccepted}
-                onCheckedChange={checked => {
-                  const isAccepted = checked === true;
-                  setCodConsentAccepted(isAccepted);
-                  if (isAccepted) {
-                    setPaymentError(null);
-                  }
-                }}
-                className="mt-0.5"
-              />
+          <div className="my-4 space-y-4 rounded-2xl border border-amber-300 bg-amber-50 p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-amber-950">
+                1. Confirmare condiții
+              </p>
+              <span className="rounded-full border border-amber-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                Obligatoriu
+              </span>
+            </div>
+            <div className="rounded-xl border border-amber-300 bg-white px-3 py-3">
               <label
                 htmlFor="cod-consent"
-                className="text-sm font-medium leading-5 text-amber-950"
+                className="flex cursor-pointer items-start gap-3"
               >
-                {t(
-                  "codConsentLabel",
-                  "Confirm că am citit condițiile COD și accept costurile logistice reale de tur + retur în caz de refuz/nepreluare colet."
-                )}
+                <Checkbox
+                  id="cod-consent"
+                  checked={codConsentAccepted}
+                  onCheckedChange={checked => {
+                    const isAccepted = checked === true;
+                    setCodConsentAccepted(isAccepted);
+                    if (isAccepted) {
+                      setPaymentError(null);
+                    }
+                  }}
+                  className="mt-0.5 h-7 w-7 rounded-md border-2 border-amber-600 data-[state=checked]:border-emerald-700 data-[state=checked]:bg-emerald-700 data-[state=checked]:text-white"
+                />
+                <span className="text-sm font-semibold leading-6 text-amber-950">
+                  {t(
+                    "codConsentLabel",
+                    "Confirm că am citit condițiile COD și accept costurile logistice reale de tur + retur în caz de refuz/nepreluare colet."
+                  )}
+                </span>
               </label>
             </div>
-            <p className="text-xs leading-5 text-amber-900">
+            <p className="text-xs leading-5 text-amber-900/95">
               {t("codConsentBody", COD_CONSENT_TEXT)}
             </p>
-            <p className="text-xs text-amber-900">
+            <p className="text-xs text-amber-900/95">
               {t("codConsentLinksPrefix", "Detalii complete:")}{" "}
               <Link className="underline underline-offset-2" href="/shipping">
                 {t("shippingPolicy", "Politica de livrare")}
@@ -1022,21 +1040,22 @@ export function PaymentForm({
           </div>
         )}
         {stripeEnabled && selectedPaymentMethod === "cash_on_delivery" && (
-          <div className="my-4 space-y-3 rounded-md border border-sky-200 bg-sky-50 p-4">
+          <div className="my-4 space-y-3 rounded-2xl border border-sky-300 bg-sky-50 p-4 shadow-sm">
             <div className="flex flex-col gap-1">
-              <p className="text-sm font-semibold text-sky-900">
+              <p className="text-sm font-semibold text-sky-950">
+                2.{" "}
                 {t(
                   "codGuaranteeTitle",
                   "Garanție COD (pre-autorizare card pentru cost logistic)"
                 )}
               </p>
-              <p className="text-xs text-sky-800">
+              <p className="text-xs leading-relaxed text-sky-900">
                 {t(
                   "codGuaranteeDescription",
                   "La plasarea comenzii se autorizează pe card o garanție egală cu costul logistic estimat tur + retur. Suma nu este încasată acum. Este capturată doar dacă refuzi coletul / nu îl ridici (RTO), conform termenilor."
                 )}
               </p>
-              <p className="text-xs text-sky-900/90">
+              <p className="text-xs leading-relaxed text-sky-900/90">
                 {t(
                   "codGuaranteePostRefusalNotice",
                   "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale/contabile aplicabile în România, nu prin debit automat separat post-refuz."

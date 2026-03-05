@@ -1814,7 +1814,27 @@ export const en = {
   codOrderSuccessMessage:
     "Your order has been placed. You'll pay cash on delivery. You'll receive a confirmation email soon.",
   codPaymentMethod: "Cash on delivery",
+  codLockerPaymentMethod: "Pay at FANbox (card at locker)",
+  codHomeMethodDescription:
+    "Pay when the courier delivers your parcel (RTO on refusal/non-collection).",
+  codLockerMethodDescription:
+    "Pay at pickup with your card at the FANbox terminal (RTO on refusal/non-collection).",
+  codLockerBadge: "Card at FANbox",
+  codLockerProviderChip: "Card at locker",
+  codLockerFeePreview: "No fixed 5 RON fee",
+  codInfoTitle: "COD information",
+  codInfoBody:
+    "Delivery refusal or parcel non-collection are treated as RTO (return to sender). In this case, effective outbound + return logistics costs may apply according to policies shown before placing the order.",
+  codLockerInfoTitle: "FANbox payment information",
+  codLockerInfoBody:
+    "For FANbox delivery, payment is made at pickup with your card at the locker terminal. Non-collection is treated as RTO (return to sender), and effective outbound + return logistics costs may apply according to policies shown before placing the order.",
   codReviewNotice: "Pay in cash when the courier delivers your package.",
+  codLockerReviewNotice:
+    "Pay at pickup with your card at the FANbox terminal. Parcel non-collection (RTO) may generate effective outbound + return logistics costs according to policies shown before placing the order.",
+  codLockerFee: "FANbox payment fee",
+  totalWithLockerCOD: "Total with FANbox payment",
+  codLockerNotice:
+    "For FANbox, payment is made at pickup with your card at the locker terminal.",
   codUnavailableBadge: "Card payment only",
   codUnavailableLocker:
     "Cash on delivery is not available for FANbox deliveries.",
