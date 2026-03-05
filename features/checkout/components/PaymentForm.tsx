@@ -167,6 +167,13 @@ export function PaymentForm({
     () => selectedPaymentMethod.startsWith("netopia_"),
     [selectedPaymentMethod]
   );
+  const isLockerShippingMethod = useMemo(() => {
+    if (!shippingMethod) return false;
+    if (shippingMethod.requiresLocker) return true;
+    if (shippingMethod.methodType === "easybox") return true;
+    const methodId = (shippingMethod.id || "").toLowerCase();
+    return methodId.includes("fanbox") || methodId.includes("easybox");
+  }, [shippingMethod]);
   const recipientType = useMemo(() => {
     const billing = useSameAddress ? shippingAddress : currentBillingAddress;
     return getRecipientType([shippingAddress, billing]);
@@ -951,6 +958,7 @@ export function PaymentForm({
           getCartTotal={getCartTotal}
           shippingCost={calculatedShippingCost}
           codConfig={codConfig}
+          isLockerCodFlow={isLockerShippingMethod}
         />
 
         {selectedPaymentMethod === "cash_on_delivery" && isCodLimitExceeded && (

@@ -15,6 +15,7 @@ interface PaymentSummaryProps {
   getCartTotal: () => number;
   shippingCost?: number;
   codConfig?: { percentage: number; fixedFee: number } | null;
+  isLockerCodFlow?: boolean;
 }
 
 export const PaymentSummary = React.memo(function PaymentSummary({
@@ -27,6 +28,7 @@ export const PaymentSummary = React.memo(function PaymentSummary({
   getCartTotal,
   shippingCost = 0,
   codConfig = null,
+  isLockerCodFlow = false,
 }: PaymentSummaryProps) {
   const { t } = useTranslation();
   const isNetopia = selectedPaymentMethod.startsWith("netopia_");
@@ -129,10 +131,14 @@ export const PaymentSummary = React.memo(function PaymentSummary({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-orange-800">
-                  {t("codFee", "Taxă ramburs")}
+                  {isLockerCodFlow
+                    ? t("codLockerFee", "Taxă plată la FANbox")
+                    : t("codFee", "Taxă ramburs")}
                 </span>
                 <span className="rounded-full border border-orange-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-orange-600">
-                  {t("cashOnDelivery", "Ramburs")}
+                  {isLockerCodFlow
+                    ? t("codLockerBadge", "Card la FANbox")
+                    : t("cashOnDelivery", "Ramburs")}
                 </span>
               </div>
               <span className="text-sm font-bold text-orange-700">
@@ -153,16 +159,23 @@ export const PaymentSummary = React.memo(function PaymentSummary({
               </div>
               <div className="sm:text-right">
                 <span className="font-medium">
-                  {t("totalWithCOD", "Total cu ramburs")}:
+                  {isLockerCodFlow
+                    ? t("totalWithLockerCOD", "Total cu plată la FANbox")
+                    : t("totalWithCOD", "Total cu ramburs")}
                 </span>{" "}
                 <span>{codFeeResult.orderTotalWithFee.toFixed(2)} RON</span>
               </div>
             </div>
             <p className="mt-2 text-xs font-medium text-orange-700">
-              {t(
-                "codNotice",
-                "💡 Plătești cash la primirea coletului. Curierul va colecta suma totală."
-              )}
+              {isLockerCodFlow
+                ? t(
+                    "codLockerNotice",
+                    "💡 Pentru FANbox, plata se face la ridicare, cu cardul la terminalul locker-ului."
+                  )
+                : t(
+                    "codNotice",
+                    "💡 Plătești cash la primirea coletului. Curierul va colecta suma totală."
+                  )}
             </p>
             <p className="mt-1 text-xs text-orange-800/90">
               În caz de refuz la livrare sau nepreluare colet (RTO), se pot

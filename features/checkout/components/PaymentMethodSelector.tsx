@@ -76,6 +76,14 @@ const isEnabledEnvFlag = (value: string | undefined): boolean => {
   );
 };
 
+const isLockerDeliveryMethod = (method?: ShippingMethod): boolean => {
+  if (!method) return false;
+  if (method.requiresLocker) return true;
+  if (method.methodType === "easybox") return true;
+  const methodId = (method.id || "").toLowerCase();
+  return methodId.includes("fanbox") || methodId.includes("easybox");
+};
+
 export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   selectedPaymentMethod,
   onPaymentMethodChange,
@@ -100,13 +108,14 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   const allowCodForLocker = isEnabledEnvFlag(
     process.env.NEXT_PUBLIC_FANCOURIER_ALLOW_COD_FANBOX
   );
+  const isLockerShippingMethod = useMemo(
+    () => isLockerDeliveryMethod(shippingMethod),
+    [shippingMethod]
+  );
+  const isLockerCodFlow = allowCodForLocker && isLockerShippingMethod;
   const codBlockedByFanbox = useMemo(() => {
     if (allowCodForLocker) return false;
-    if (!shippingMethod) return false;
-    if (shippingMethod.requiresLocker) return true;
-    if (shippingMethod.methodType === "easybox") return true;
-    const methodId = (shippingMethod.id || "").toLowerCase();
-    return methodId.includes("fanbox") || methodId.includes("easybox");
+    return isLockerDeliveryMethod(shippingMethod);
   }, [allowCodForLocker, shippingMethod]);
   const codBlockedByMixedSupplier = useMemo(() => {
     return Boolean(
@@ -249,14 +258,26 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       methods.push({
         id: "cash_on_delivery",
         type: "cash_on_delivery",
-        name: "Ramburs",
+        name: isLockerCodFlow
+          ? t("codLockerPaymentMethod", "Plată la FANbox (card la locker)")
+          : t("cashOnDelivery", "Ramburs"),
         icon: <Banknote className="h-6 w-6" />,
         provider: "cod",
         fee: "3% + 5 RON",
-        description: "Plătești la primirea coletului (RTO la refuz/nepreluare)",
+        description: isLockerCodFlow
+          ? t(
+              "codLockerMethodDescription",
+              "Plătești la ridicare, cu cardul la terminalul FANbox (RTO la refuz/nepreluare)."
+            )
+          : t(
+              "codHomeMethodDescription",
+              "Plătești la primirea coletului (RTO la refuz/nepreluare)."
+            ),
         badge: codDisabledReason
           ? t("codUnavailableBadge", "Doar card online")
-          : t("codPopular", "Popular în România"),
+          : isLockerCodFlow
+            ? t("codLockerBadge", "Card la FANbox")
+            : t("codPopular", "Popular în România"),
         badgeVariant: codDisabledReason ? "unavailable" : "popular",
         disabled: Boolean(codDisabledReason),
         disabledReason: codDisabledReason,
@@ -272,6 +293,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     isDigitalOnlyCart,
     codBlockedByFanbox,
     codBlockedByMixedSupplier,
+    isLockerCodFlow,
     netopiaEnabled,
     codEnabled,
     savedCards,
@@ -395,7 +417,9 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
           bg: "bg-amber-100",
           text: "text-amber-700",
           icon: <Banknote className="h-3.5 w-3.5" />,
-          label: "Ramburs",
+          label: isLockerCodFlow
+            ? t("codLockerProviderChip", "Card la locker")
+            : t("cashOnDelivery", "Ramburs"),
         };
     }
   };
@@ -494,13 +518,20 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-amber-900">
-                Informare COD (ramburs)
+                {isLockerCodFlow
+                  ? t("codLockerInfoTitle", "Informare plată la FANbox")
+                  : t("codInfoTitle", "Informare COD (ramburs)")}
               </p>
               <p className="mt-1 text-sm leading-relaxed text-amber-800">
-                Refuzul la livrare sau nepreluarea coletului sunt tratate ca RTO
-                (retur la expeditor). În acest caz se pot aplica costurile
-                logistice efective tur + retur, conform politicilor afișate
-                înainte de comandă.
+                {isLockerCodFlow
+                  ? t(
+                      "codLockerInfoBody",
+                      "Pentru livrarea la FANbox, plata se face la ridicare, cu cardul la terminalul locker-ului. Nepreluarea coletului este tratată ca RTO (retur la expeditor), iar costurile logistice efective tur + retur pot fi aplicate conform politicilor afișate înainte de comandă."
+                    )
+                  : t(
+                      "codInfoBody",
+                      "Refuzul la livrare sau nepreluarea coletului sunt tratate ca RTO (retur la expeditor). În acest caz se pot aplica costurile logistice efective tur + retur, conform politicilor afișate înainte de comandă."
+                    )}
               </p>
               <p className="mt-1.5 text-xs text-amber-900">
                 Vezi{" "}

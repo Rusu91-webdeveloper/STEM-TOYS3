@@ -38,6 +38,21 @@ export function OrderReview({
 }: OrderReviewProps) {
   const { formatPrice } = useCurrency();
   const { t } = useTranslation();
+  const isLockerShippingForOrder = useMemo(() => {
+    const shippingMethod = checkoutData.shippingMethod;
+    const methodId = (shippingMethod?.id || "").toLowerCase();
+    return (
+      Boolean(checkoutData.lockerId || checkoutData.lockerAddressSnapshot) ||
+      shippingMethod?.requiresLocker === true ||
+      shippingMethod?.methodType === "easybox" ||
+      methodId.includes("fanbox") ||
+      methodId.includes("easybox")
+    );
+  }, [
+    checkoutData.lockerAddressSnapshot,
+    checkoutData.lockerId,
+    checkoutData.shippingMethod,
+  ]);
 
   // Get pricing breakdown from the extracted hook
   const pricingData = usePricingBreakdown({
@@ -65,7 +80,9 @@ export function OrderReview({
     }
 
     if (checkoutData.paymentMethod === "cash_on_delivery") {
-      return t("codPaymentMethod", "Plată la livrare (Ramburs)");
+      return isLockerShippingForOrder
+        ? t("codLockerPaymentMethod", "Plată la FANbox (card la locker)")
+        : t("codPaymentMethod", "Plată la livrare (Ramburs)");
     }
 
     if (checkoutData.paymentDetails?.cardNumber) {
@@ -73,7 +90,7 @@ export function OrderReview({
     }
 
     return checkoutData.paymentMethod;
-  }, [checkoutData.paymentDetails, checkoutData.paymentMethod, t]);
+  }, [checkoutData.paymentDetails, checkoutData.paymentMethod, isLockerShippingForOrder, t]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -233,10 +250,15 @@ export function OrderReview({
             <div className="text-xs sm:text-sm space-y-1">
               <p className="font-medium break-words">{paymentMethodLabel}</p>
               <p className="text-gray-600">
-                {t(
-                  "codReviewNotice",
-                  "Plătești la primirea coletului. Refuzul la livrare sau nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă."
-                )}
+                {isLockerShippingForOrder
+                  ? t(
+                      "codLockerReviewNotice",
+                      "Plătești la ridicare, cu cardul la terminalul FANbox. Nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă."
+                    )
+                  : t(
+                      "codReviewNotice",
+                      "Plătești la primirea coletului. Refuzul la livrare sau nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă."
+                    )}
               </p>
               <p className="text-gray-600">
                 {t(
