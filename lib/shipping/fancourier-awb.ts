@@ -18,6 +18,7 @@ import {
 } from "@/lib/integrations/fancourier/client";
 import type {
   FanCourierAwbPayload,
+  FanCourierPaymentParty,
   FanCourierServiceType,
 } from "@/lib/integrations/fancourier/types";
 import type { FanCourierSenderConfig } from "@/lib/integrations/fancourier/types";
@@ -92,7 +93,8 @@ const redactPayload = (
  */
 const resolveFanCourierService = (
   methodId?: string | null,
-  pickupLocation?: string | null
+  pickupLocation?: string | null,
+  isCodPayment?: boolean
 ): FanCourierServiceType => {
   const normalized = methodId?.includes(":")
     ? methodId.split(":")[1]?.toLowerCase().trim()
@@ -103,11 +105,17 @@ const resolveFanCourierService = (
     normalized === "fan_box";
 
   if (wantsFanbox && pickupLocation) {
+    if (isCodPayment) {
+      return "FANbox Cont Colector";
+    }
     return "FANbox";
   }
 
   return "Standard";
 };
+
+const isFanboxService = (service: FanCourierServiceType): boolean =>
+  service === "FANbox" || service === "FANbox Cont Colector";
 
 const extractPickupLocation = (snapshot: unknown, lockerId?: string | null) => {
   if (snapshot && typeof snapshot === "object") {
@@ -544,14 +552,15 @@ const resolveAwbOptionCodes = (service: FanCourierServiceType): string[] => {
   );
 
   const resolved = new Set<string>(globalOptions);
-  const serviceSpecific =
-    service === "FANbox" ? fanboxOptions : standardOptions;
+  const serviceSpecific = isFanboxService(service)
+    ? fanboxOptions
+    : standardOptions;
   for (const code of serviceSpecific) {
     resolved.add(code);
   }
 
   // FanCourier docs indicate FANbox locker pickup should use option "V".
-  if (service === "FANbox") {
+  if (isFanboxService(service)) {
     resolved.add("V");
   } else {
     resolved.delete("V");
@@ -560,10 +569,18 @@ const resolveAwbOptionCodes = (service: FanCourierServiceType): string[] => {
   return Array.from(resolved);
 };
 
-const resolveCodReturnPayment = (): string => {
+const resolveCodReturnPayment = (): FanCourierPaymentParty | number => {
   const raw = (process.env.FANCOURIER_RETURN_PAYMENT || "").trim();
   if (!raw) return "sender";
-  return raw;
+  const normalized = raw.toLowerCase();
+  if (normalized === "sender" || normalized === "recipient") {
+    return normalized;
+  }
+  const numeric = Number(raw);
+  if (Number.isFinite(numeric)) {
+    return numeric;
+  }
+  return "sender";
 };
 
 const parsePositiveDimensionCm = (raw: string | undefined): number | null => {
@@ -613,7 +630,7 @@ const resolveShipmentDimensions = (
     };
   }
 
-  if (service === "FANbox") {
+  if (isFanboxService(service)) {
     return getFanCourierDefaultDimensions();
   }
 
@@ -661,7 +678,8 @@ const buildAwbPayload = (
     extractPickupLocation(input.order.lockerAddressSnapshot, input.order.lockerId);
   const service = resolveFanCourierService(
     input.order.shippingMethod,
-    pickupLocation
+    pickupLocation,
+    isCodPayment
   );
   const recipientAddress = extractRecipientAddressParts({
     addressLine1: input.order.shippingAddress.addressLine1,
@@ -724,7 +742,7 @@ const buildAwbPayload = (
             apartment: recipientAddress.apartment,
             zipCode: input.order.shippingAddress.postalCode,
             pickupLocation:
-              service === "FANbox" ? (pickupLocation ?? undefined) : undefined,
+              isFanboxService(service) ? (pickupLocation ?? undefined) : undefined,
           },
         },
         sender: {
@@ -1121,7 +1139,8 @@ export const createFanAwbForOrder = async (
       payload.shipments[0]?.recipient?.address?.pickupLocation || null;
     if (
       !awbNumber &&
-      currentService === "FANbox" &&
+      (currentService === "FANbox" ||
+        currentService === "FANbox Cont Colector") &&
       hasPickupLocationValidationError(response)
     ) {
       const fallbackPickupLocation = pickupLocationCandidates.find(

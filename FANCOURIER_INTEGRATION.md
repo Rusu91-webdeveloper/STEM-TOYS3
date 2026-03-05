@@ -66,6 +66,13 @@ Optional (COD): for some FAN accounts, COD AWBs require `info.returnPayment`.
 FANCOURIER_RETURN_PAYMENT=sender   # default: sender
 ```
 
+Optional (locker COD): enable COD for FANbox checkout/orders.
+
+```
+FANCOURIER_ALLOW_COD_FANBOX=true
+NEXT_PUBLIC_FANCOURIER_ALLOW_COD_FANBOX=true
+```
+
 Supplier fallback email (used if the supplier profile lacks an email):
 
 ```
@@ -124,12 +131,18 @@ The payload includes:
   rules
 - Declared value (insurance) when applicable
 - Recipient address from checkout
-- Service: `Standard` or `FANbox`
+- Service:
+  - `Standard` for non-locker deliveries
+  - `FANbox` for locker deliveries with prepaid card payment
+  - `FANbox Cont Colector` for locker deliveries with COD (ramburs)
 - AWB options codes (`info.options`) resolved from env:
   - `FANCOURIER_AWB_OPTIONS` (global)
   - `FANCOURIER_AWB_OPTIONS_STANDARD` (Standard only)
   - `FANCOURIER_AWB_OPTIONS_FANBOX` (FANbox only)
   - For FANbox shipments, option `V` is auto-added.
+  - For card-at-locker (mPOS), FAN docs reference option `Y` (enable in
+    `FANCOURIER_AWB_OPTIONS_FANBOX` only after FAN activates this capability on
+    your account).
 
 ### 4.5 FanCourier pickup address
 

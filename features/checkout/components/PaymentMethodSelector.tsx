@@ -65,6 +65,17 @@ type PaymentMethodItem = {
   bgColor: string;
 };
 
+const isEnabledEnvFlag = (value: string | undefined): boolean => {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return (
+    normalized === "true" ||
+    normalized === "1" ||
+    normalized === "yes" ||
+    normalized === "on"
+  );
+};
+
 export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   selectedPaymentMethod,
   onPaymentMethodChange,
@@ -86,13 +97,17 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   const netopiaEnabled =
     !isCheckoutRestricted && process.env.NEXT_PUBLIC_NETOPIA_ENABLED === "true";
   const codEnabled = !isCheckoutRestricted;
+  const allowCodForLocker = isEnabledEnvFlag(
+    process.env.NEXT_PUBLIC_FANCOURIER_ALLOW_COD_FANBOX
+  );
   const codBlockedByFanbox = useMemo(() => {
+    if (allowCodForLocker) return false;
     if (!shippingMethod) return false;
     if (shippingMethod.requiresLocker) return true;
     if (shippingMethod.methodType === "easybox") return true;
     const methodId = (shippingMethod.id || "").toLowerCase();
     return methodId.includes("fanbox") || methodId.includes("easybox");
-  }, [shippingMethod]);
+  }, [allowCodForLocker, shippingMethod]);
   const codBlockedByMixedSupplier = useMemo(() => {
     return Boolean(
       shippingMethod?.isMixedSupplierCart || shippingMethod?.requiresPrepaid

@@ -46,6 +46,7 @@ export interface FanCourierRecipient {
 export type FanCourierServiceType =
     | "Standard"
     | "FANbox"
+    | "FANbox Cont Colector"
     | "Express"
     | "RedCode"
     | "Cont Colector"
@@ -85,7 +86,7 @@ export interface FanCourierShipmentInfo {
     declaredValue: number;
     payment: FanCourierPaymentParty;
     refund?: number | null;
-    returnPayment?: number | null;
+    returnPayment?: FanCourierPaymentParty | number | null;
     observation?: string | null;
     content?: string | null;
     length?: number;

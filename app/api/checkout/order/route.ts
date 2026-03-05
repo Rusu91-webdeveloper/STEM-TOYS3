@@ -163,6 +163,17 @@ const normalizeOptionalString = (value: unknown): string | null => {
   return trimmed.length > 0 ? trimmed : null;
 };
 
+const isEnabledEnvFlag = (value: string | undefined): boolean => {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return (
+    normalized === "true" ||
+    normalized === "1" ||
+    normalized === "yes" ||
+    normalized === "on"
+  );
+};
+
 type CheckoutAddressInput = z.infer<typeof shippingAddressSchema>;
 
 const parseStreetAndNumber = (
@@ -379,6 +390,10 @@ export async function POST(request: Request) {
     const isCODPayment =
       orderData.paymentMethod === "cash_on_delivery" ||
       paymentProvider === "cod";
+    const allowCodForLocker = isEnabledEnvFlag(
+      process.env.FANCOURIER_ALLOW_COD_FANBOX ||
+        process.env.NEXT_PUBLIC_FANCOURIER_ALLOW_COD_FANBOX
+    );
     const isStripePayment =
       paymentProvider === "stripe" ||
       (!isCODPayment && Boolean(orderData.stripePaymentIntentId));
@@ -387,12 +402,12 @@ export async function POST(request: Request) {
       typeof orderData.paymentMethod === "string" &&
       orderData.paymentMethod.startsWith("netopia_");
 
-    if (lockerRequired && isCODPayment) {
+    if (lockerRequired && isCODPayment && !allowCodForLocker) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Cash on delivery is not available for FANbox/Easybox delivery. Please choose card payment.",
+            "Cash on delivery for FANbox/Easybox is not enabled for this store.",
           error: "COD_NOT_ALLOWED_FOR_LOCKER",
         },
         { status: 400 }
