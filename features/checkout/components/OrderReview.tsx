@@ -90,7 +90,12 @@ export function OrderReview({
     }
 
     return checkoutData.paymentMethod;
-  }, [checkoutData.paymentDetails, checkoutData.paymentMethod, isLockerShippingForOrder, t]);
+  }, [
+    checkoutData.paymentDetails,
+    checkoutData.paymentMethod,
+    isLockerShippingForOrder,
+    t,
+  ]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -287,7 +292,7 @@ export function OrderReview({
                 className={
                   checkoutData.codGuaranteePaymentIntentId
                     ? "text-emerald-600"
-                    : "text-red-600"
+                    : "text-slate-600"
                 }
               >
                 {checkoutData.codGuaranteePaymentIntentId
@@ -296,8 +301,8 @@ export function OrderReview({
                       "Garanția logistică COD este autorizată pe card."
                     )
                   : t(
-                      "codGuaranteeMissingReview",
-                      "Garanția logistică COD nu este autorizată."
+                      "codGuaranteeNotRequiredReview",
+                      "Pentru această comandă nu este necesară garanția logistică COD."
                     )}
               </p>
             </div>

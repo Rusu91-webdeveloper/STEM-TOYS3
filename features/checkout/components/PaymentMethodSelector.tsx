@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   CreditCard,
   Loader2,
@@ -10,6 +9,7 @@ import {
   Info,
   Lock,
 } from "lucide-react";
+import Link from "next/link";
 import React, { useEffect, useMemo } from "react";
 
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/features/cart";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+
 import { ShippingMethod } from "../types";
 
 interface PaymentCard {
@@ -65,17 +66,6 @@ type PaymentMethodItem = {
   bgColor: string;
 };
 
-const isEnabledEnvFlag = (value: string | undefined): boolean => {
-  if (!value) return false;
-  const normalized = value.trim().toLowerCase();
-  return (
-    normalized === "true" ||
-    normalized === "1" ||
-    normalized === "yes" ||
-    normalized === "on"
-  );
-};
-
 const isLockerDeliveryMethod = (method?: ShippingMethod): boolean => {
   if (!method) return false;
   if (method.requiresLocker) return true;
@@ -84,7 +74,7 @@ const isLockerDeliveryMethod = (method?: ShippingMethod): boolean => {
   return methodId.includes("fanbox") || methodId.includes("easybox");
 };
 
-export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
+const PaymentMethodSelectorComponent = ({
   selectedPaymentMethod,
   onPaymentMethodChange,
   savedCards,
@@ -96,7 +86,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   isAdmin = false,
   checkoutAdminOnly = false,
   shippingMethod,
-}: PaymentMethodSelectorProps) {
+}: PaymentMethodSelectorProps) => {
   const { t } = useTranslation();
   const { items: cartItems } = useCart();
   const isCheckoutRestricted = checkoutAdminOnly && !isAdmin;
@@ -105,23 +95,17 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   const netopiaEnabled =
     !isCheckoutRestricted && process.env.NEXT_PUBLIC_NETOPIA_ENABLED === "true";
   const codEnabled = !isCheckoutRestricted;
-  const allowCodForLocker = isEnabledEnvFlag(
-    process.env.NEXT_PUBLIC_FANCOURIER_ALLOW_COD_FANBOX
-  );
-  const isLockerShippingMethod = useMemo(
+  const codBlockedByFanbox = useMemo(
     () => isLockerDeliveryMethod(shippingMethod),
     [shippingMethod]
   );
-  const isLockerCodFlow = allowCodForLocker && isLockerShippingMethod;
-  const codBlockedByFanbox = useMemo(() => {
-    if (allowCodForLocker) return false;
-    return isLockerDeliveryMethod(shippingMethod);
-  }, [allowCodForLocker, shippingMethod]);
-  const codBlockedByMixedSupplier = useMemo(() => {
-    return Boolean(
-      shippingMethod?.isMixedSupplierCart || shippingMethod?.requiresPrepaid
-    );
-  }, [shippingMethod]);
+  const codBlockedByMixedSupplier = useMemo(
+    () =>
+      Boolean(
+        shippingMethod?.isMixedSupplierCart || shippingMethod?.requiresPrepaid
+      ),
+    [shippingMethod]
+  );
 
   // Check if cart contains only digital books (no physical items)
   const isDigitalOnlyCart =
@@ -159,8 +143,8 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   };
 
   // Determine if user should see Netopia options
-  const isRomanianUser = useMemo(() => {
-    return (
+  const isRomanianUser = useMemo(
+    () =>
       userLocation === "RO" ||
       userLocation === "Romania" ||
       userLocale === "ro" ||
@@ -168,9 +152,9 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       billingCountry === "Romania" ||
       billingCountry === "RO" ||
       shippingCountry === "Romania" ||
-      shippingCountry === "RO"
-    );
-  }, [userLocation, userLocale, billingCountry, shippingCountry]);
+      shippingCountry === "RO",
+    [userLocation, userLocale, billingCountry, shippingCountry]
+  );
 
   // Get available payment methods based on user location
   const paymentMethods = useMemo(() => {
@@ -258,28 +242,17 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       methods.push({
         id: "cash_on_delivery",
         type: "cash_on_delivery",
-        name: isLockerCodFlow
-          ? t("codLockerPaymentMethod", "Plată la FANbox (card la locker)")
-          : t("cashOnDelivery", "Ramburs"),
+        name: t("cashOnDelivery", "Ramburs"),
         icon: <Banknote className="h-6 w-6" />,
         provider: "cod",
-        fee: isLockerCodFlow
-          ? t("codLockerFeePreview", "Fără taxă fixă de 5 RON")
-          : "3% + 5 RON",
-        description: isLockerCodFlow
-          ? t(
-              "codLockerMethodDescription",
-              "Plătești la ridicare, cu cardul la terminalul FANbox (RTO la refuz/nepreluare)."
-            )
-          : t(
-              "codHomeMethodDescription",
-              "Plătești la primirea coletului (RTO la refuz/nepreluare)."
-            ),
+        fee: "3% + 5 RON",
+        description: t(
+          "codHomeMethodDescription",
+          "Plătești la primirea coletului (RTO la refuz/nepreluare)."
+        ),
         badge: codDisabledReason
           ? t("codUnavailableBadge", "Doar card online")
-          : isLockerCodFlow
-            ? t("codLockerBadge", "Card la FANbox")
-            : t("codPopular", "Popular în România"),
+          : t("codPopular", "Popular în România"),
         badgeVariant: codDisabledReason ? "unavailable" : "popular",
         disabled: Boolean(codDisabledReason),
         disabledReason: codDisabledReason,
@@ -295,7 +268,6 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     isDigitalOnlyCart,
     codBlockedByFanbox,
     codBlockedByMixedSupplier,
-    isLockerCodFlow,
     netopiaEnabled,
     codEnabled,
     savedCards,
@@ -419,9 +391,14 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
           bg: "bg-amber-100",
           text: "text-amber-700",
           icon: <Banknote className="h-3.5 w-3.5" />,
-          label: isLockerCodFlow
-            ? t("codLockerProviderChip", "Card la locker")
-            : t("cashOnDelivery", "Ramburs"),
+          label: t("cashOnDelivery", "Ramburs"),
+        };
+      default:
+        return {
+          bg: "bg-slate-100",
+          text: "text-slate-700",
+          icon: <CreditCard className="h-3.5 w-3.5" />,
+          label: "Payment",
         };
     }
   };
@@ -514,20 +491,13 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-amber-900">
-                {isLockerCodFlow
-                  ? t("codLockerInfoTitle", "Informare plată la FANbox")
-                  : t("codInfoTitle", "Informare COD (ramburs)")}
+                {t("codInfoTitle", "Informare COD (ramburs)")}
               </p>
               <p className="mt-1 text-sm leading-relaxed text-amber-800">
-                {isLockerCodFlow
-                  ? t(
-                      "codLockerInfoBody",
-                      "Pentru livrarea la FANbox, plata se face la ridicare, cu cardul la terminalul locker-ului. Nepreluarea coletului este tratată ca RTO (retur la expeditor), iar costurile logistice efective tur + retur pot fi aplicate conform politicilor afișate înainte de comandă."
-                    )
-                  : t(
-                      "codInfoBody",
-                      "Refuzul la livrare sau nepreluarea coletului sunt tratate ca RTO (retur la expeditor). În acest caz se pot aplica costurile logistice efective tur + retur, conform politicilor afișate înainte de comandă."
-                    )}
+                {t(
+                  "codInfoBody",
+                  "Refuzul la livrare sau nepreluarea coletului sunt tratate ca RTO (retur la expeditor). În acest caz se pot aplica costurile logistice efective tur + retur, conform politicilor afișate înainte de comandă."
+                )}
               </p>
               <p className="mt-1.5 text-xs text-amber-900">
                 Vezi{" "}
@@ -573,14 +543,13 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
               htmlFor={`payment-${method.id}`}
               className={cn(
                 "group relative flex gap-3 px-4 py-4 transition-colors",
-                index !== paymentMethods.length - 1 && "border-b border-slate-200",
+                index !== paymentMethods.length - 1 &&
+                  "border-b border-slate-200",
                 isDisabled
                   ? "cursor-not-allowed bg-slate-50/80 opacity-85"
                   : "cursor-pointer bg-white",
                 !isDisabled &&
-                  (isSelected
-                    ? "bg-emerald-50/50"
-                    : "hover:bg-slate-50")
+                  (isSelected ? "bg-emerald-50/50" : "hover:bg-slate-50")
               )}
             >
               {/* Selection indicator - high contrast for visibility */}
@@ -710,4 +679,8 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       </div>
     </div>
   );
-});
+};
+
+PaymentMethodSelectorComponent.displayName = "PaymentMethodSelector";
+
+export const PaymentMethodSelector = React.memo(PaymentMethodSelectorComponent);

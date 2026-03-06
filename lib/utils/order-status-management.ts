@@ -1,7 +1,9 @@
-import { db } from "@/lib/db";
-import { sendEmail } from "@/lib/email";
-import { getNotificationSettings } from "./order-processing";
 import { sendEmailViaUnifiedSystem } from "@/lib/brevoTemplates";
+import { parseCodGuaranteeEvidence } from "@/lib/checkout/cod-guarantee";
+import { db } from "@/lib/db";
+import { getStripeServerClient } from "@/lib/stripe-server";
+
+import { getNotificationSettings } from "./order-processing";
 
 export type OrderStatus =
   | "PROCESSING"
@@ -21,6 +23,47 @@ export interface OrderStatusUpdate {
   notes?: string;
   updatedBy?: string;
   timestamp: Date;
+}
+
+const isCodPaymentMethod = (paymentMethod?: string | null) =>
+  paymentMethod === "cash_on_delivery" || paymentMethod === "cod";
+
+async function releaseCodGuaranteeHoldIfNeeded(params: {
+  orderId: string;
+  notes?: string | null;
+}): Promise<void> {
+  const codGuarantee = parseCodGuaranteeEvidence(params.notes);
+  const guaranteePiId = codGuarantee.authorizedPaymentIntentId;
+
+  if (!guaranteePiId) return;
+
+  try {
+    const stripe = getStripeServerClient();
+    const intent = await stripe.paymentIntents.retrieve(guaranteePiId);
+
+    if (intent.status !== "requires_capture") return;
+
+    await stripe.paymentIntents.cancel(guaranteePiId, {
+      cancellation_reason: "abandoned",
+    });
+
+    await db.order.update({
+      where: { id: params.orderId },
+      data: {
+        notes: [
+          params.notes,
+          `COD Guarantee released at ${new Date().toISOString()} - PI: ${guaranteePiId}`,
+        ]
+          .filter(Boolean)
+          .join(" | "),
+      },
+    });
+  } catch (releaseError) {
+    console.error(
+      `Failed to release COD guarantee hold for order ${params.orderId}:`,
+      releaseError
+    );
+  }
 }
 
 /**
@@ -67,6 +110,8 @@ export async function updateOrderStatus(
       };
     }
 
+    const isCODOrder = isCodPaymentMethod(order.paymentMethod);
+
     // Update order status
     const updatedOrder = await db.order.update({
       where: { id: orderId },
@@ -76,6 +121,9 @@ export async function updateOrderStatus(
         ...(newStatus === "SHIPPED" && { shippedAt: new Date() }),
         ...(newStatus === "DELIVERED" && { deliveredAt: new Date() }),
         ...(newStatus === "COMPLETED" && { completedAt: new Date() }),
+        ...(newStatus === "DELIVERED" &&
+          isCODOrder &&
+          order.paymentStatus !== "PAID" && { paymentStatus: "PAID" }),
       },
     });
 
@@ -90,6 +138,13 @@ export async function updateOrderStatus(
         updatedBy,
       },
     });
+
+    if (newStatus === "DELIVERED" && isCODOrder) {
+      await releaseCodGuaranteeHoldIfNeeded({
+        orderId,
+        notes: order.notes,
+      });
+    }
 
     // Send notification if enabled
     if (sendNotification) {
@@ -157,10 +212,7 @@ async function sendOrderStatusNotification(
       return;
     }
 
-    // Determine which notification to send
     let shouldSend = false;
-    let template = "";
-    let subject = "";
 
     switch (toStatus) {
       case "FULFILLED":
@@ -368,6 +420,8 @@ export async function autoAdvanceOrderStatus(
             return true;
           }
         }
+        break;
+      default:
         break;
     }
 

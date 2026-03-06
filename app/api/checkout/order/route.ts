@@ -5,8 +5,13 @@ import { z } from "zod";
 
 import type { CartItem } from "@/features/cart/context/CartContext";
 import { auth } from "@/lib/auth";
-import { formatCodGuaranteeAuthorizationNote } from "@/lib/checkout/cod-guarantee";
 import { COD_CONSENT_VERSION } from "@/lib/checkout/cod-consent";
+import { formatCodGuaranteeAuthorizationNote } from "@/lib/checkout/cod-guarantee";
+import {
+  evaluateCodGuaranteePolicy,
+  isLockerShippingMethodId,
+} from "@/lib/checkout/cod-guarantee-policy";
+import { getCodGuaranteeUserStats } from "@/lib/checkout/cod-guarantee-risk";
 import {
   analyzeSupplierCartComposition,
   applyMixedSupplierShippingRules,
@@ -161,17 +166,6 @@ const normalizeOptionalString = (value: unknown): string | null => {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
-};
-
-const isEnabledEnvFlag = (value: string | undefined): boolean => {
-  if (!value) return false;
-  const normalized = value.trim().toLowerCase();
-  return (
-    normalized === "true" ||
-    normalized === "1" ||
-    normalized === "yes" ||
-    normalized === "on"
-  );
 };
 
 type CheckoutAddressInput = z.infer<typeof shippingAddressSchema>;
@@ -358,10 +352,8 @@ export async function POST(request: Request) {
     const shippingAddressData = normalizedShippingAddressResult.address;
     const billingAddressData = normalizedBillingAddress;
 
-    const shippingMethodId = (orderData.shippingMethod?.id || "").toLowerCase();
-    const lockerRequired =
-      shippingMethodId.includes("fanbox") ||
-      shippingMethodId.includes("easybox");
+    const shippingMethodId = orderData.shippingMethod?.id || "";
+    const lockerRequired = isLockerShippingMethodId(shippingMethodId);
     if (lockerRequired && !normalizeOptionalString(orderData.lockerId)) {
       return NextResponse.json(
         {
@@ -390,10 +382,6 @@ export async function POST(request: Request) {
     const isCODPayment =
       orderData.paymentMethod === "cash_on_delivery" ||
       paymentProvider === "cod";
-    const allowCodForLocker = isEnabledEnvFlag(
-      process.env.FANCOURIER_ALLOW_COD_FANBOX ||
-        process.env.NEXT_PUBLIC_FANCOURIER_ALLOW_COD_FANBOX
-    );
     const isStripePayment =
       paymentProvider === "stripe" ||
       (!isCODPayment && Boolean(orderData.stripePaymentIntentId));
@@ -401,13 +389,16 @@ export async function POST(request: Request) {
       paymentProvider === "netopia" &&
       typeof orderData.paymentMethod === "string" &&
       orderData.paymentMethod.startsWith("netopia_");
+    const codGuaranteeUserStats = isCODPayment
+      ? await getCodGuaranteeUserStats(user.id)
+      : { priorOrderCount: 0, priorCodRtoCount: 0 };
 
-    if (lockerRequired && isCODPayment && !allowCodForLocker) {
+    if (lockerRequired && isCODPayment) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Cash on delivery for FANbox/Easybox is not enabled for this store.",
+            "Cash on delivery is not available for FANbox/Easybox deliveries. Please use online card payment.",
           error: "COD_NOT_ALLOWED_FOR_LOCKER",
         },
         { status: 400 }
@@ -437,6 +428,9 @@ export async function POST(request: Request) {
       typeof orderData.codGuaranteeAmount === "number"
         ? Math.round(orderData.codGuaranteeAmount * 100) / 100
         : null;
+    let effectiveCodGuaranteePaymentIntentId = codGuaranteePaymentIntentId;
+    let effectiveCodGuaranteeAmountInput = codGuaranteeAmountInput;
+    let codGuaranteeReleaseNote: string | null = null;
 
     if (isCODPayment) {
       if (
@@ -471,18 +465,6 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
-
-      if (!codGuaranteePaymentIntentId || !codGuaranteeAmountInput) {
-        return NextResponse.json(
-          {
-            success: false,
-            message:
-              "COD guarantee authorization is required before placing this order.",
-            error: "COD_GUARANTEE_REQUIRED",
-          },
-          { status: 400 }
-        );
-      }
     }
 
     // Optional testing gate: keep checkout admin-only only when explicitly enabled.
@@ -501,7 +483,7 @@ export async function POST(request: Request) {
     }
 
     // Only validate Stripe configuration if this order needs Stripe validation
-    if (isStripePayment || (isCODPayment && codGuaranteePaymentIntentId)) {
+    if (isStripePayment) {
       const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
       if (!stripeSecretKey) {
         console.error(
@@ -1027,6 +1009,37 @@ export async function POST(request: Request) {
       }
     }
 
+    const codGuaranteePolicy = isCODPayment
+      ? evaluateCodGuaranteePolicy({
+          orderTotal,
+          recipientType,
+          isLockerDelivery: lockerRequired,
+          priorOrderCount: codGuaranteeUserStats.priorOrderCount,
+          priorCodRtoCount: codGuaranteeUserStats.priorCodRtoCount,
+        })
+      : null;
+    const codGuaranteeRequired = codGuaranteePolicy?.required === true;
+
+    if (isCODPayment && codGuaranteeRequired) {
+      if (
+        !effectiveCodGuaranteePaymentIntentId ||
+        !effectiveCodGuaranteeAmountInput
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "COD guarantee authorization is required before placing this order.",
+            error: "COD_GUARANTEE_REQUIRED",
+            details: {
+              reasons: codGuaranteePolicy?.reasons ?? [],
+            },
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const expectedCodGuaranteeAmount = isCODPayment
       ? Math.round(Math.max(finalShippingCost, shippingBasePrice) * 2 * 100) /
         100
@@ -1035,9 +1048,15 @@ export async function POST(request: Request) {
       expectedCodGuaranteeAmount * 100
     );
 
-    if (isCODPayment && codGuaranteeAmountInput !== null) {
+    if (
+      isCODPayment &&
+      codGuaranteeRequired &&
+      effectiveCodGuaranteeAmountInput !== null
+    ) {
       if (
-        Math.abs(codGuaranteeAmountInput - expectedCodGuaranteeAmount) > 0.01
+        Math.abs(
+          effectiveCodGuaranteeAmountInput - expectedCodGuaranteeAmount
+        ) > 0.01
       ) {
         return NextResponse.json(
           {
@@ -1047,7 +1066,7 @@ export async function POST(request: Request) {
             error: "COD_GUARANTEE_AMOUNT_MISMATCH",
             details: {
               expectedAmount: expectedCodGuaranteeAmount,
-              providedAmount: codGuaranteeAmountInput,
+              providedAmount: effectiveCodGuaranteeAmountInput,
             },
           },
           { status: 400 }
@@ -1055,7 +1074,11 @@ export async function POST(request: Request) {
       }
     }
 
-    if (isCODPayment && codGuaranteePaymentIntentId) {
+    if (
+      isCODPayment &&
+      codGuaranteeRequired &&
+      effectiveCodGuaranteePaymentIntentId
+    ) {
       if (!stripeClient) {
         return NextResponse.json(
           {
@@ -1070,7 +1093,7 @@ export async function POST(request: Request) {
 
       try {
         const codGuaranteeIntent = await stripeClient.paymentIntents.retrieve(
-          codGuaranteePaymentIntentId
+          effectiveCodGuaranteePaymentIntentId
         );
 
         if (codGuaranteeIntent.amount !== expectedCodGuaranteeMinor) {
@@ -1120,7 +1143,7 @@ export async function POST(request: Request) {
         }
       } catch (err) {
         console.error(
-          `Failed to validate COD guarantee payment intent ${codGuaranteePaymentIntentId}:`,
+          `Failed to validate COD guarantee payment intent ${effectiveCodGuaranteePaymentIntentId}:`,
           err
         );
         return NextResponse.json(
@@ -1133,6 +1156,33 @@ export async function POST(request: Request) {
           { status: 500 }
         );
       }
+    }
+
+    if (isCODPayment && !codGuaranteeRequired) {
+      if (effectiveCodGuaranteePaymentIntentId && stripeClient) {
+        try {
+          const staleGuaranteeIntent =
+            await stripeClient.paymentIntents.retrieve(
+              effectiveCodGuaranteePaymentIntentId
+            );
+          if (staleGuaranteeIntent.status === "requires_capture") {
+            await stripeClient.paymentIntents.cancel(
+              effectiveCodGuaranteePaymentIntentId,
+              {
+                cancellation_reason: "abandoned",
+              }
+            );
+            codGuaranteeReleaseNote = `COD Guarantee released automatically at ${new Date().toISOString()} - PI: ${effectiveCodGuaranteePaymentIntentId}`;
+          }
+        } catch (releaseError) {
+          console.warn(
+            `Failed to auto-release optional COD guarantee ${effectiveCodGuaranteePaymentIntentId}:`,
+            releaseError
+          );
+        }
+      }
+      effectiveCodGuaranteePaymentIntentId = null;
+      effectiveCodGuaranteeAmountInput = null;
     }
 
     // Validate Stripe payment intent (amount/currency) before creating order
@@ -1322,6 +1372,9 @@ export async function POST(request: Request) {
         `Split shipment order (${supplierCartAnalysis.supplierCount} fulfillment sources${supplierCartAnalysis.supplierNames.length ? `: ${supplierCartAnalysis.supplierNames.join(", ")}` : ""}). Prepaid only.`
       );
     }
+    if (codGuaranteeReleaseNote) {
+      operationalNotes.push(codGuaranteeReleaseNote);
+    }
     const codConsentVersionTag = codConsentVersion
       ? `COD_CONSENT_V${codConsentVersion.replace(/[^A-Za-z0-9]/g, "_")}`
       : null;
@@ -1331,17 +1384,17 @@ export async function POST(request: Request) {
     if (isCODPayment && codConsentVersionTag) {
       orderTags.push(codConsentVersionTag);
     }
-    if (isCODPayment && codGuaranteePaymentIntentId) {
+    if (isCODPayment && effectiveCodGuaranteePaymentIntentId) {
       orderTags.push("COD_GUARANTEE_AUTHORIZED");
     }
     const codConsentSnapshot = codConsentText
       ? codConsentText.slice(0, 500)
       : null;
     const codGuaranteeAuthorizationNote =
-      isCODPayment && codGuaranteePaymentIntentId
+      isCODPayment && effectiveCodGuaranteePaymentIntentId
         ? formatCodGuaranteeAuthorizationNote({
             authorizedAt: new Date().toISOString(),
-            paymentIntentId: codGuaranteePaymentIntentId,
+            paymentIntentId: effectiveCodGuaranteePaymentIntentId,
             amount: expectedCodGuaranteeAmount,
           })
         : null;
@@ -1687,7 +1740,11 @@ export async function POST(request: Request) {
         }
       }
 
-      if (stripeClient && isCODPayment && codGuaranteePaymentIntentId) {
+      if (
+        stripeClient &&
+        isCODPayment &&
+        effectiveCodGuaranteePaymentIntentId
+      ) {
         const codGuaranteeMetadata: Record<string, string> = {
           orderId: dbOrder.id,
           orderNumber: dbOrder.orderNumber || orderNumber,
@@ -1703,14 +1760,14 @@ export async function POST(request: Request) {
 
         try {
           await stripeClient.paymentIntents.update(
-            codGuaranteePaymentIntentId,
+            effectiveCodGuaranteePaymentIntentId,
             {
               metadata: codGuaranteeMetadata,
             }
           );
         } catch (stripeError) {
           console.error(
-            `Failed to update COD guarantee payment intent ${codGuaranteePaymentIntentId}:`,
+            `Failed to update COD guarantee payment intent ${effectiveCodGuaranteePaymentIntentId}:`,
             stripeError
           );
         }

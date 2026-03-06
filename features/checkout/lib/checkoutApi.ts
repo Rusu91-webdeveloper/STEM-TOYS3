@@ -142,6 +142,16 @@ export async function createOrder(orderData: any) {
         );
       }
 
+      if (errorData.error === "COD_NOT_ALLOWED_FOR_LOCKER") {
+        throw new CheckoutError(
+          "COD_NOT_ALLOWED_FOR_LOCKER",
+          errorData.message ||
+            "Pentru livrarea la FANbox/Easybox, plata ramburs nu este disponibilă. Alege plata online cu cardul.",
+          false,
+          "payment"
+        );
+      }
+
       if (errorData.error === "COD_CONSENT_REQUIRED") {
         throw new CheckoutError(
           "COD_CONSENT_REQUIRED",
@@ -340,5 +350,54 @@ export async function fetchCODSettings() {
       fixedFee: "5.00",
       active: true,
     };
+  }
+}
+
+export interface CodGuaranteePolicyResponse {
+  required: boolean;
+  mode: "off" | "always" | "risk_based";
+  reasons: string[];
+  thresholds: {
+    highOrderValue: number;
+    newCustomerMinTotal: number;
+    b2bMinTotal: number;
+    codRtoCount: number;
+  };
+  userStats: {
+    priorOrderCount: number;
+    priorCodRtoCount: number;
+  };
+}
+
+export async function fetchCodGuaranteePolicy(input: {
+  orderTotal: number;
+  recipientType: "B2B" | "B2C";
+  shippingMethodId?: string;
+}): Promise<CodGuaranteePolicyResponse | null> {
+  try {
+    const params = new URLSearchParams({
+      orderTotal: Math.max(0, input.orderTotal).toFixed(2),
+      recipientType: input.recipientType,
+    });
+    if (input.shippingMethodId) {
+      params.set("shippingMethodId", input.shippingMethodId);
+    }
+
+    const response = await fetch(
+      `/api/checkout/cod-guarantee-policy?${params.toString()}`,
+      {
+        cache: "no-store",
+      }
+    );
+    if (!response.ok) {
+      throw new Error(
+        `Error fetching COD guarantee policy: ${response.statusText}`
+      );
+    }
+
+    return (await response.json()) as CodGuaranteePolicyResponse;
+  } catch (error) {
+    console.error("Failed to fetch COD guarantee policy:", error);
+    return null;
   }
 }

@@ -21,7 +21,7 @@ import {
 import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 
 import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
-import { fetchCODSettings } from "../lib/checkoutApi";
+import { fetchCODSettings, fetchCodGuaranteePolicy } from "../lib/checkoutApi";
 import {
   PaymentDetails,
   PaymentMethod,
@@ -162,6 +162,9 @@ export function PaymentForm({
   const [codConsentAccepted, setCodConsentAccepted] = useState(
     initialCodConsentAccepted
   );
+  const [codGuaranteeRequired, setCodGuaranteeRequired] = useState(true);
+  const [isResolvingCodGuaranteePolicy, setIsResolvingCodGuaranteePolicy] =
+    useState(false);
 
   const isNetopia = useMemo(
     () => selectedPaymentMethod.startsWith("netopia_"),
@@ -220,6 +223,70 @@ export function PaymentForm({
     );
     return Math.round(shippingBase * 2 * 100) / 100;
   }, [selectedPaymentMethod, calculatedShippingCost, baseShippingForGuarantee]);
+  const codOrderTotalForPolicy = useMemo(() => {
+    if (selectedPaymentMethod !== "cash_on_delivery") return 0;
+    if (codTotals) return Math.max(0, codTotals.total);
+    return Math.max(0, totalAmount);
+  }, [selectedPaymentMethod, codTotals, totalAmount]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const resolveCodGuaranteePolicy = async () => {
+      if (selectedPaymentMethod !== "cash_on_delivery") {
+        setCodGuaranteeRequired(false);
+        setIsResolvingCodGuaranteePolicy(false);
+        return;
+      }
+
+      if (isLockerShippingMethod) {
+        setCodGuaranteeRequired(false);
+        setIsResolvingCodGuaranteePolicy(false);
+        return;
+      }
+
+      if (isCalculatingTotal || codOrderTotalForPolicy <= 0) {
+        setIsResolvingCodGuaranteePolicy(true);
+        return;
+      }
+
+      setIsResolvingCodGuaranteePolicy(true);
+
+      try {
+        const policy = await fetchCodGuaranteePolicy({
+          orderTotal: codOrderTotalForPolicy,
+          recipientType,
+          shippingMethodId: shippingMethod?.id,
+        });
+
+        if (!isActive) return;
+
+        // Fail-safe: if policy cannot be resolved, keep guarantee required.
+        setCodGuaranteeRequired(policy?.required ?? true);
+      } catch (error) {
+        if (!isActive) return;
+        console.error("Error resolving COD guarantee policy:", error);
+        setCodGuaranteeRequired(true);
+      } finally {
+        if (isActive) {
+          setIsResolvingCodGuaranteePolicy(false);
+        }
+      }
+    };
+
+    resolveCodGuaranteePolicy();
+
+    return () => {
+      isActive = false;
+    };
+  }, [
+    selectedPaymentMethod,
+    isLockerShippingMethod,
+    isCalculatingTotal,
+    codOrderTotalForPolicy,
+    recipientType,
+    shippingMethod?.id,
+  ]);
 
   useEffect(() => {
     function calculateTotal() {
@@ -488,7 +555,7 @@ export function PaymentForm({
       return undefined;
     }
 
-    if (selectedPaymentMethod !== "cash_on_delivery") {
+    if (selectedPaymentMethod !== "cash_on_delivery" || !codGuaranteeRequired) {
       clearCodGuaranteeIntent();
       setCodGuaranteeIntentError(null);
       setIsCreatingCodGuaranteeIntent(false);
@@ -594,6 +661,7 @@ export function PaymentForm({
   }, [
     stripeEnabled,
     selectedPaymentMethod,
+    codGuaranteeRequired,
     isCalculatingTotal,
     codGuaranteeAmount,
     shippingAddress,
@@ -629,7 +697,7 @@ export function PaymentForm({
     };
   };
 
-  const submitCODOrder = (guaranteePaymentIntentId: string) => {
+  const submitCODOrder = (guaranteePaymentIntentId?: string) => {
     const codConsentAcceptedAt = new Date().toISOString();
     onSubmit({
       paymentMethod: "cash_on_delivery",
@@ -641,7 +709,9 @@ export function PaymentForm({
       codConsentVersion: COD_CONSENT_VERSION,
       codConsentText: COD_CONSENT_TEXT,
       codGuaranteePaymentIntentId: guaranteePaymentIntentId,
-      codGuaranteeAmount,
+      codGuaranteeAmount: guaranteePaymentIntentId
+        ? codGuaranteeAmount
+        : undefined,
     });
   };
 
@@ -792,11 +862,29 @@ export function PaymentForm({
     }
 
     if (selectedPaymentMethod === "cash_on_delivery") {
+      if (isLockerShippingMethod) {
+        setPaymentError(
+          t(
+            "codUnavailableLocker",
+            "Pentru livrarea la FANbox, plata ramburs nu este disponibilă."
+          )
+        );
+        return;
+      }
       if (!stripeEnabled) {
         setPaymentError(
           t(
             "codRequiresStripe",
             "Rambursul este disponibil doar cu autorizare de garanție pe card."
+          )
+        );
+        return;
+      }
+      if (isResolvingCodGuaranteePolicy) {
+        setPaymentError(
+          t(
+            "codGuaranteePolicyLoading",
+            "Verificăm eligibilitatea garanției COD. Încearcă din nou în câteva secunde."
           )
         );
         return;
@@ -831,6 +919,11 @@ export function PaymentForm({
         );
         return;
       }
+      if (!codGuaranteeRequired) {
+        submitCODOrder(undefined);
+        return;
+      }
+
       if (codGuaranteeAmount <= 0) {
         setPaymentError(
           t(
@@ -1039,83 +1132,105 @@ export function PaymentForm({
             </p>
           </div>
         )}
-        {stripeEnabled && selectedPaymentMethod === "cash_on_delivery" && (
-          <div className="my-4 space-y-3 rounded-2xl border border-sky-300 bg-sky-50 p-4 shadow-sm">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-semibold text-sky-950">
-                2.{" "}
-                {t(
-                  "codGuaranteeTitle",
-                  "Garanție COD (pre-autorizare card pentru cost logistic)"
-                )}
-              </p>
-              <p className="text-xs leading-relaxed text-sky-900">
-                {t(
-                  "codGuaranteeDescription",
-                  "La plasarea comenzii se autorizează pe card o garanție egală cu costul logistic estimat tur + retur. Suma nu este încasată acum. Este capturată doar dacă refuzi coletul / nu îl ridici (RTO), conform termenilor."
-                )}
-              </p>
-              <p className="text-xs leading-relaxed text-sky-900/90">
-                {t(
-                  "codGuaranteePostRefusalNotice",
-                  "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale/contabile aplicabile în România, nu prin debit automat separat post-refuz."
-                )}
-              </p>
-              <p className="text-xs font-medium text-sky-900">
-                {t("codGuaranteeAmount", "Valoare garanție autorizată:")}{" "}
-                {formatPrice(codGuaranteeAmount)}
-              </p>
-              {codGuaranteeAuthorized && codGuaranteePaymentIntentId && (
-                <p className="text-xs font-medium text-emerald-700">
-                  {t(
-                    "codGuaranteeAuthorized",
-                    "Garanție autorizată. Poți continua la pasul următor."
-                  )}
-                </p>
+        {selectedPaymentMethod === "cash_on_delivery" &&
+          isResolvingCodGuaranteePolicy && (
+            <div className="my-4 flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {t(
+                "codGuaranteePolicyResolving",
+                "Verificăm dacă pentru această comandă este necesară garanția COD..."
               )}
             </div>
-
-            {codGuaranteeIntentError && (
-              <div className="p-3 rounded-md bg-red-50 text-red-700 text-sm">
-                {codGuaranteeIntentError}
-              </div>
-            )}
-
-            {isCreatingCodGuaranteeIntent && !codGuaranteeClientSecret && (
-              <div className="flex justify-center items-center gap-2 text-sm text-muted-foreground border rounded-md py-3 bg-white">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {t(
-                  "initializingCodGuarantee",
-                  "Pregătim autorizarea garanției COD..."
+          )}
+        {stripeEnabled &&
+          selectedPaymentMethod === "cash_on_delivery" &&
+          codGuaranteeRequired && (
+            <div className="my-4 space-y-3 rounded-2xl border border-sky-300 bg-sky-50 p-4 shadow-sm">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-semibold text-sky-950">
+                  2.{" "}
+                  {t(
+                    "codGuaranteeTitle",
+                    "Garanție COD (pre-autorizare card pentru cost logistic)"
+                  )}
+                </p>
+                <p className="text-xs leading-relaxed text-sky-900">
+                  {t(
+                    "codGuaranteeDescription",
+                    "La plasarea comenzii se autorizează pe card o garanție egală cu costul logistic estimat tur + retur. Suma nu este încasată acum. Este capturată doar dacă refuzi coletul / nu îl ridici (RTO), conform termenilor."
+                  )}
+                </p>
+                <p className="text-xs leading-relaxed text-sky-900/90">
+                  {t(
+                    "codGuaranteePostRefusalNotice",
+                    "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale/contabile aplicabile în România, nu prin debit automat separat post-refuz."
+                  )}
+                </p>
+                <p className="text-xs font-medium text-sky-900">
+                  {t("codGuaranteeAmount", "Valoare garanție autorizată:")}{" "}
+                  {formatPrice(codGuaranteeAmount)}
+                </p>
+                {codGuaranteeAuthorized && codGuaranteePaymentIntentId && (
+                  <p className="text-xs font-medium text-emerald-700">
+                    {t(
+                      "codGuaranteeAuthorized",
+                      "Garanție autorizată. Poți continua la pasul următor."
+                    )}
+                  </p>
                 )}
               </div>
-            )}
 
-            {codGuaranteeClientSecret && !codGuaranteeAuthorized && (
-              <StripeProvider
-                options={{
-                  clientSecret: codGuaranteeClientSecret,
-                  appearance: { theme: "stripe" },
-                }}
-              >
-                <StripePaymentForm
-                  clientSecret={codGuaranteeClientSecret}
-                  paymentIntentId={codGuaranteePaymentIntentId}
-                  onSuccess={handleCODGuaranteeSuccess}
-                  onError={handleCODGuaranteeError}
-                  billingDetails={getBillingDetails()}
-                  amount={Math.round(codGuaranteeAmount * 100)}
-                  isCalculatingTotal={isCalculatingTotal}
-                  submitButtonClassName="cod-guarantee-submit-button"
-                  submitLabel={t(
-                    "authorizeCodGuarantee",
-                    `Autorizează ${formatPrice(codGuaranteeAmount)}`
+              {codGuaranteeIntentError && (
+                <div className="p-3 rounded-md bg-red-50 text-red-700 text-sm">
+                  {codGuaranteeIntentError}
+                </div>
+              )}
+
+              {isCreatingCodGuaranteeIntent && !codGuaranteeClientSecret && (
+                <div className="flex justify-center items-center gap-2 text-sm text-muted-foreground border rounded-md py-3 bg-white">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t(
+                    "initializingCodGuarantee",
+                    "Pregătim autorizarea garanției COD..."
                   )}
-                />
-              </StripeProvider>
-            )}
-          </div>
-        )}
+                </div>
+              )}
+
+              {codGuaranteeClientSecret && !codGuaranteeAuthorized && (
+                <StripeProvider
+                  options={{
+                    clientSecret: codGuaranteeClientSecret,
+                    appearance: { theme: "stripe" },
+                  }}
+                >
+                  <StripePaymentForm
+                    clientSecret={codGuaranteeClientSecret}
+                    paymentIntentId={codGuaranteePaymentIntentId}
+                    onSuccess={handleCODGuaranteeSuccess}
+                    onError={handleCODGuaranteeError}
+                    billingDetails={getBillingDetails()}
+                    amount={Math.round(codGuaranteeAmount * 100)}
+                    isCalculatingTotal={isCalculatingTotal}
+                    submitButtonClassName="cod-guarantee-submit-button"
+                    submitLabel={t(
+                      "authorizeCodGuarantee",
+                      `Autorizează ${formatPrice(codGuaranteeAmount)}`
+                    )}
+                  />
+                </StripeProvider>
+              )}
+            </div>
+          )}
+        {selectedPaymentMethod === "cash_on_delivery" &&
+          !isResolvingCodGuaranteePolicy &&
+          !codGuaranteeRequired && (
+            <div className="my-4 rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">
+              {t(
+                "codGuaranteeNotRequired",
+                "Pentru această comandă nu este necesară garanția COD pe card. Plătești doar la livrare."
+              )}
+            </div>
+          )}
 
         {stripeEnabled && selectedPaymentMethod === "stripe_new" && (
           <div className="my-6 space-y-4">
@@ -1200,6 +1315,8 @@ export function PaymentForm({
             disabled={
               !selectedPaymentMethod ||
               isCodLimitExceeded ||
+              (selectedPaymentMethod === "cash_on_delivery" &&
+                isResolvingCodGuaranteePolicy) ||
               isCheckoutRestricted
             }
           >
