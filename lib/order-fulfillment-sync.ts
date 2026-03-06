@@ -1,6 +1,7 @@
 import type { OrderStatus } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { notifyDeliveredOrder } from "@/lib/orders/order-delivery-notifications";
 import { deriveOrderFulfillmentSummary } from "@/lib/utils/supplier-fulfillment";
 import { releaseCodGuaranteeHoldIfNeeded } from "@/lib/utils/order-status-management";
 
@@ -96,6 +97,19 @@ export async function applyDerivedOrderUpdate(params: {
       await releaseCodGuaranteeHoldIfNeeded({
         orderId: order.id,
         notes: order.notes,
+      });
+    }
+
+    if (nextStatus === "DELIVERED") {
+      await notifyDeliveredOrder({
+        orderId: order.id,
+        source:
+          source === "courier-status-sync" || source === "courier-status-sync-direct"
+            ? "courier-sync"
+            : "unknown",
+        carrier,
+        trackingNumber,
+        deliveredAt: updateData.deliveredAt,
       });
     }
   }
