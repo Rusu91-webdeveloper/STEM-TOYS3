@@ -4,6 +4,12 @@ import { render, screen } from "@testing-library/react";
 import { PaymentMethodSelector } from "@/features/checkout/components/PaymentMethodSelector";
 import { I18nProvider } from "@/lib/i18n";
 
+jest.mock("@/features/cart", () => ({
+  useCart: () => ({
+    items: [],
+  }),
+}));
+
 function renderPaymentMethodSelector(
   props: Partial<React.ComponentProps<typeof PaymentMethodSelector>> = {}
 ) {
@@ -47,9 +53,7 @@ describe("PaymentMethodSelector (COD visibility)", () => {
       billingCountry: "",
     });
 
-    expect(
-      screen.getByText("Plată la livrare (Ramburs)")
-    ).toBeInTheDocument();
+    expect(screen.getAllByText("Ramburs la livrare").length).toBeGreaterThan(0);
   });
 
   it("shows COD when locale is ro-RO (even if shipping is not RO)", () => {
@@ -59,9 +63,7 @@ describe("PaymentMethodSelector (COD visibility)", () => {
       billingCountry: "United States",
     });
 
-    expect(
-      screen.getByText("Plată la livrare (Ramburs)")
-    ).toBeInTheDocument();
+    expect(screen.getAllByText("Ramburs la livrare").length).toBeGreaterThan(0);
   });
 
   it("does not show COD when there is no Romanian signal", () => {
@@ -77,5 +79,3 @@ describe("PaymentMethodSelector (COD visibility)", () => {
     ).not.toBeInTheDocument();
   });
 });
-
-

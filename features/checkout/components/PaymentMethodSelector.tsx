@@ -77,7 +77,6 @@ const isLockerDeliveryMethod = (method?: ShippingMethod): boolean => {
 const PaymentMethodSelectorComponent = ({
   selectedPaymentMethod,
   onPaymentMethodChange,
-  savedCards,
   isLoadingCards,
   userLocation,
   userLocale,
@@ -111,37 +110,6 @@ const PaymentMethodSelectorComponent = ({
   const isDigitalOnlyCart =
     cartItems.length > 0 && cartItems.every(item => item.isBook);
 
-  // Get card logo or icon based on card type
-  const getCardIcon = (cardType: string) => {
-    switch (cardType.toLowerCase()) {
-      case "visa":
-        return (
-          <div className="flex h-6 items-center justify-center rounded bg-[#1A1F71] px-1.5">
-            <span className="text-[10px] font-bold italic text-white tracking-tight">
-              VISA
-            </span>
-          </div>
-        );
-      case "mastercard":
-        return (
-          <div className="flex h-6 w-8 items-center justify-center">
-            <div className="relative flex">
-              <div className="h-4 w-4 rounded-full bg-[#EB001B]" />
-              <div className="h-4 w-4 -ml-2 rounded-full bg-[#F79E1B] opacity-80" />
-            </div>
-          </div>
-        );
-      case "amex":
-        return (
-          <div className="flex h-6 items-center justify-center rounded bg-[#006FCF] px-1">
-            <span className="text-[9px] font-bold text-white">AMEX</span>
-          </div>
-        );
-      default:
-        return <CreditCard className="h-5 w-5 text-slate-600" />;
-    }
-  };
-
   // Determine if user should see Netopia options
   const isRomanianUser = useMemo(
     () =>
@@ -161,28 +129,6 @@ const PaymentMethodSelectorComponent = ({
     const methods: PaymentMethodItem[] = [];
 
     if (stripeEnabled) {
-      if (savedCards.length > 0) {
-        savedCards.forEach(card => {
-          methods.push({
-            id: card.id,
-            type: "saved_card",
-            name: `${card.cardType.toUpperCase()} •••• ${card.lastFourDigits}`,
-            icon: getCardIcon(card.cardType),
-            provider: "stripe",
-            fee: t("stripeSavedCardFee", "Fără taxe"),
-            description: t(
-              "stripeSavedCardDescription",
-              "Plată instant cu cardul salvat"
-            ),
-            badge: t("stripeOnFile", "Salvat"),
-            badgeVariant: "saved",
-            color: "violet",
-            borderColor: "border-violet-200",
-            bgColor: "bg-violet-50",
-          });
-        });
-      }
-
       methods.push({
         id: "stripe_new",
         type: "new_card",
@@ -270,7 +216,6 @@ const PaymentMethodSelectorComponent = ({
     codBlockedByMixedSupplier,
     netopiaEnabled,
     codEnabled,
-    savedCards,
     stripeEnabled,
     t,
   ]);
@@ -433,33 +378,50 @@ const PaymentMethodSelectorComponent = ({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5">
-        <Label className="block text-base font-semibold text-slate-900 sm:text-lg">
+      <div className="rounded-3xl border border-slate-200 bg-[linear-gradient(135deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-4 py-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+            {t("secureCheckoutLabel", "Checkout securizat")}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600">
+            <ShieldCheck className="h-3.5 w-3.5 text-slate-500" />
+            {t("paymentPartnersLabel", "Stripe și Netopia")}
+          </span>
+        </div>
+        <Label className="mt-3 block text-base font-semibold text-slate-900 sm:text-lg">
           {t("selectPaymentMethod", "Metodă de plată")}
         </Label>
-        <p className="mt-1 text-sm text-slate-600">
-          {t("paymentMethodSubtitle", "Alege cum dorești să plătești")}
+        <p className="mt-1 text-sm leading-relaxed text-slate-600">
+          {t(
+            "paymentMethodSubtitle",
+            "Alege varianta potrivită. Dacă selectezi ramburs, condițiile și eventuala garanție logistică temporară sunt prezentate clar în pasul următor."
+          )}
         </p>
       </div>
 
       {/* Payment Methods Grid */}
       {codBlockedByFanbox && (
-        <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3.5">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
               <Info className="h-4 w-4" />
             </div>
-            <p className="text-sm leading-relaxed text-amber-900">
-              {t(
-                "codUnavailableLocker",
-                "Pentru livrarea la FANbox, plata ramburs nu este disponibilă."
-              )}
-            </p>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-amber-950">
+                {t("codUnavailableLockerTitle", "Ramburs indisponibil pentru FANbox")}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-amber-900">
+                {t(
+                  "codUnavailableLocker",
+                  "Pentru livrarea la FANbox, plata ramburs nu este disponibilă."
+                )}
+              </p>
+            </div>
           </div>
         </div>
       )}
       {codBlockedByMixedSupplier && (
-        <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3.5">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
               <Info className="h-4 w-4" />
@@ -484,19 +446,19 @@ const PaymentMethodSelectorComponent = ({
         </div>
       )}
       {hasCodOption && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3">
+        <div className="rounded-2xl border border-amber-200 bg-[linear-gradient(135deg,rgba(255,251,235,0.95),rgba(255,255,255,1))] px-4 py-4 shadow-sm">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
               <Info className="h-4 w-4" />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-amber-900">
-                {t("codInfoTitle", "Informare COD (ramburs)")}
+                {t("codInfoTitle", "Ramburs disponibil pentru livrare la adresă")}
               </p>
               <p className="mt-1 text-sm leading-relaxed text-amber-800">
                 {t(
                   "codInfoBody",
-                  "Refuzul la livrare sau nepreluarea coletului sunt tratate ca RTO (retur la expeditor). În acest caz se pot aplica costurile logistice efective tur + retur, conform politicilor afișate înainte de comandă."
+                  "În pasul următor confirmi condițiile COD. Pentru anumite comenzi, putem solicita o pre-autorizare temporară pe card pentru costul logistic estimat, fără încasare imediată."
                 )}
               </p>
               <p className="mt-1.5 text-xs text-amber-900">

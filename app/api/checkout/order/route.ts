@@ -263,6 +263,112 @@ const normalizeCheckoutAddress = (input: CheckoutAddressInput) => {
   };
 };
 
+const roundMoney = (value: number) => Math.round(value * 100) / 100;
+
+const appendOrderNote = (
+  currentNotes: string | null | undefined,
+  nextNote: string
+) => [currentNotes, nextNote].filter(Boolean).join(" | ");
+
+async function compensateFailedStripeOrder(input: {
+  orderId: string;
+  paymentIntentId: string;
+  reason: string;
+}) {
+  const failureTimestamp = new Date().toISOString();
+  const financeReviewReason =
+    "Stripe capture failed after order creation. Manual finance review required.";
+  const failureNote = `Stripe capture failed at ${failureTimestamp} - PI: ${input.paymentIntentId} - ${input.reason}`;
+
+  await db.$transaction(async tx => {
+    const order = await tx.order.findUnique({
+      where: { id: input.orderId },
+      include: {
+        items: {
+          select: {
+            productId: true,
+            quantity: true,
+            isDigital: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      return;
+    }
+
+    if (
+      order.paymentStatus === "FAILED" &&
+      order.status === "CANCELLED" &&
+      order.notes?.includes(failureNote)
+    ) {
+      return;
+    }
+
+    for (const item of order.items) {
+      if (!item.productId || item.isDigital === true) {
+        continue;
+      }
+
+      await tx.product.update({
+        where: { id: item.productId },
+        data: {
+          stockQuantity: {
+            increment: item.quantity,
+          },
+          reservedQuantity: {
+            decrement: item.quantity,
+          },
+        },
+      });
+    }
+
+    const couponUsages = await tx.couponUsage.findMany({
+      where: { orderId: input.orderId },
+      select: {
+        couponId: true,
+      },
+    });
+
+    if (couponUsages.length > 0) {
+      await tx.couponUsage.deleteMany({
+        where: { orderId: input.orderId },
+      });
+
+      const usageCounts = couponUsages.reduce<Map<string, number>>(
+        (acc, usage) => {
+          acc.set(usage.couponId, (acc.get(usage.couponId) || 0) + 1);
+          return acc;
+        },
+        new Map()
+      );
+
+      for (const [couponId, count] of usageCounts.entries()) {
+        await tx.coupon.update({
+          where: { id: couponId },
+          data: {
+            currentUses: {
+              decrement: count,
+            },
+          },
+        });
+      }
+    }
+
+    await tx.order.update({
+      where: { id: input.orderId },
+      data: {
+        paymentStatus: "FAILED",
+        status: "CANCELLED",
+        manualShippingReviewRequired: true,
+        shippingReviewReason: financeReviewReason,
+        notes: appendOrderNote(order.notes, failureNote),
+      },
+    });
+  });
+}
+
 // POST /api/checkout/order - Create a new order
 export async function POST(request: Request) {
   try {
@@ -377,18 +483,31 @@ export async function POST(request: Request) {
       );
     }
 
-    // Determine payment provider from order data
-    const paymentProvider = orderData.paymentProvider || "netopia";
+    // Determine payment provider from order data without trusting a broad client default.
+    const requestedPaymentMethod =
+      normalizeOptionalString(orderData.paymentMethod) || "";
+    const requestedPaymentProvider =
+      normalizeOptionalString(orderData.paymentProvider) || null;
     const isCODPayment =
-      orderData.paymentMethod === "cash_on_delivery" ||
-      paymentProvider === "cod";
-    const isStripePayment =
-      paymentProvider === "stripe" ||
-      (!isCODPayment && Boolean(orderData.stripePaymentIntentId));
+      requestedPaymentMethod === "cash_on_delivery" ||
+      requestedPaymentProvider === "cod";
     const isNetopiaPayment =
-      paymentProvider === "netopia" &&
-      typeof orderData.paymentMethod === "string" &&
-      orderData.paymentMethod.startsWith("netopia_");
+      requestedPaymentMethod.startsWith("netopia_") ||
+      (requestedPaymentProvider === "netopia" &&
+        requestedPaymentMethod.startsWith("netopia_"));
+    const isStripePayment =
+      requestedPaymentMethod === "stripe_new" ||
+      requestedPaymentProvider === "stripe" ||
+      (!isCODPayment &&
+        !isNetopiaPayment &&
+        Boolean(orderData.stripePaymentIntentId));
+    const paymentProvider = isCODPayment
+      ? "cod"
+      : isNetopiaPayment
+        ? "netopia"
+        : isStripePayment
+          ? "stripe"
+          : null;
     const codGuaranteeUserStats = isCODPayment
       ? await getCodGuaranteeUserStats(user.id)
       : { priorOrderCount: 0, priorCodRtoCount: 0 };
@@ -509,46 +628,27 @@ export async function POST(request: Request) {
       }
     }
 
-    // Use the items provided in the order data if available, otherwise fetch from database
-    let items: CartItem[];
-
-    if (orderData.items && orderData.items.length > 0) {
-      // Use the items from the request
-      items = orderData.items as CartItem[];
-    } else {
-      // Fetch products from the database as fallback
-      const products = await db.product.findMany({
-        where: {
-          isActive: true,
+    if (!orderData.items || orderData.items.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Your cart is empty. Refresh checkout and try again.",
+          error: "EMPTY_CART",
         },
-        take: 3,
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-
-      // Map database products to cart items
-      items = products.map(product => ({
-        id: product.id,
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        quantity: 1, // Default quantity
-        image:
-          product.images && product.images.length > 0
-            ? product.images[0]
-            : undefined,
-      }));
+        { status: 400 }
+      );
     }
+
+    const items = orderData.items as CartItem[];
 
     // Generate order information
     const orderId = Math.random().toString(36).substring(2, 12).toUpperCase();
     const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     // Calculate subtotal from cart items if not provided
-    const subtotal =
-      orderData.subtotal ||
-      items.reduce((total, item) => total + item.price * item.quantity, 0);
+    const subtotal = roundMoney(
+      items.reduce((total, item) => total + item.price * item.quantity, 0)
+    );
 
     // Default shipping fallback values
     let finalShippingCost = 0;
@@ -644,17 +744,27 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get initial shipping method cost (default to 0 if not provided)
-    const baseShippingCost = isDigitalOnlyOrder
-      ? 0
-      : orderData.shippingCost ||
-        (orderData.shippingMethod?.price
-          ? parseFloat(orderData.shippingMethod.price.toString())
-          : 0);
+    if (!isDigitalOnlyOrder && !orderData.shippingMethod?.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "A valid shipping method is required for physical products.",
+          error: "SHIPPING_METHOD_REQUIRED",
+        },
+        { status: 400 }
+      );
+    }
 
-    shippingBasePrice = baseShippingCost;
-    shippingTotalEstimate = baseShippingCost;
-    finalShippingCost = baseShippingCost;
+    const requestedShippingCost = isDigitalOnlyOrder
+      ? 0
+      : typeof orderData.shippingMethod?.price === "number"
+        ? orderData.shippingMethod.price
+        : Number(orderData.shippingMethod?.price || 0);
+
+    shippingBasePrice = roundMoney(Math.max(0, requestedShippingCost));
+    shippingTotalEstimate = shippingBasePrice;
+    finalShippingCost = shippingBasePrice;
 
     // Keep checkout/order API in sync with /api/checkout/shipping-quote:
     // if a courier service has priceOverride configured, it must win.
@@ -733,6 +843,18 @@ export async function POST(request: Request) {
         }>;
 
         const service = resolveShippingService(orderData.shippingMethod?.id);
+        if (!service) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "Selected shipping method is invalid. Refresh checkout and choose a delivery option again.",
+              error: "INVALID_SHIPPING_METHOD",
+            },
+            { status: 400 }
+          );
+        }
+
         if (service && shippingItems.length > 0) {
           const quote = calculateShippingQuote(service, shippingItems);
           shippingBasePrice = quote.basePrice;
@@ -747,8 +869,6 @@ export async function POST(request: Request) {
           // order/email stores a different server-recalculated value.
           if (selectedServicePriceOverride !== null) {
             finalShippingCost = selectedServicePriceOverride;
-          } else if (baseShippingCost > 0) {
-            finalShippingCost = baseShippingCost;
           } else {
             finalShippingCost = quote.totalPrice;
           }
@@ -781,9 +901,9 @@ export async function POST(request: Request) {
 
       const shippingRuleResult = applyMixedSupplierShippingRules({
         singleShipmentPrice:
-          typeof orderData.shippingMethod?.singleShipmentPrice === "number"
-            ? orderData.shippingMethod.singleShipmentPrice
-            : finalShippingCost,
+          selectedServicePriceOverride !== null
+            ? selectedServicePriceOverride
+            : shippingTotalEstimate,
         freeShippingEligible,
         analysis: supplierCartAnalysis,
       });
@@ -881,16 +1001,11 @@ export async function POST(request: Request) {
       );
       if (selected) {
         appliedCoupon = selected.selectedCoupon;
-        discountAmount = selected.discountAmount;
+        discountAmount = roundMoney(selected.discountAmount);
       }
     } catch (couponError) {
       console.error("Error selecting discounts:", couponError);
       // Continue without discount if there's an error
-    }
-
-    // Use provided discount amount if available (from frontend validation)
-    if (orderData.discountAmount !== undefined) {
-      discountAmount = orderData.discountAmount;
     }
 
     // Calculate COD fee if COD payment method
@@ -930,13 +1045,44 @@ export async function POST(request: Request) {
     }
 
     // Calculate total including shipping, tax, discount, and COD fee
-    const orderTotal =
-      orderData.total ||
-      Math.max(0, subtotal + tax + finalShippingCost - discountAmount + codFee);
+    const orderTotal = roundMoney(
+      Math.max(0, subtotal + tax + finalShippingCost - discountAmount + codFee)
+    );
 
     // Store COD amount (total to collect on delivery)
     if (isCODPayment) {
       codAmount = orderTotal;
+    }
+
+    const requiresOnlineAuthorization =
+      !isCODPayment && !isNetopiaPayment && orderTotal > 0;
+
+    if (
+      requiresOnlineAuthorization &&
+      requestedPaymentMethod !== "stripe_new" &&
+      !orderData.stripePaymentIntentId
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Unsupported checkout payment method. Please reselect card payment and try again.",
+          error: "UNSUPPORTED_PAYMENT_METHOD",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (requiresOnlineAuthorization && !orderData.stripePaymentIntentId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Card payment authorization is required before placing this order.",
+          error: "STRIPE_INTENT_REQUIRED",
+        },
+        { status: 400 }
+      );
     }
 
     const recipientType = getRecipientType([
@@ -1238,6 +1384,39 @@ export async function POST(request: Request) {
             { status: 400 }
           );
         }
+
+        if (
+          stripePaymentIntent.metadata.userId &&
+          stripePaymentIntent.metadata.userId !== user.id
+        ) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "This payment authorization does not belong to the current user.",
+              error: "PAYMENT_INTENT_USER_MISMATCH",
+            },
+            { status: 403 }
+          );
+        }
+
+        if (
+          stripePaymentIntent.status !== "requires_capture" &&
+          stripePaymentIntent.status !== "succeeded"
+        ) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "Card payment has not been authorized yet. Complete payment and try again.",
+              error: "PAYMENT_NOT_AUTHORIZED",
+              details: {
+                paymentIntentStatus: stripePaymentIntent.status,
+              },
+            },
+            { status: 400 }
+          );
+        }
       } catch (err) {
         console.error(
           `Failed to validate Stripe payment intent ${orderData.stripePaymentIntentId}:`,
@@ -1425,7 +1604,7 @@ export async function POST(request: Request) {
             discountAmount,
             couponCode: appliedCoupon?.code || null,
             couponId: appliedCoupon?.id || null,
-            paymentMethod: orderData.paymentMethod || "card",
+            paymentMethod: requestedPaymentMethod || "card",
             shippingMethod: orderData.shippingMethod?.id || null,
             lockerId: orderData.lockerId || null,
             lockerAddressSnapshot:
@@ -1442,7 +1621,7 @@ export async function POST(request: Request) {
             status: isNetopiaPayment ? "PENDING_REVIEW" : "PROCESSING",
             paymentStatus:
               (orderData.paymentStatus as any) ??
-              (isCODPayment || isStripePayment || isNetopiaPayment
+              ((isCODPayment || isNetopiaPayment || requiresOnlineAuthorization)
                 ? "PENDING"
                 : "PAID"),
             shippingAddressId,
@@ -1731,12 +1910,22 @@ export async function POST(request: Request) {
             }
           }
         } catch (stripeError) {
+          const captureFailureMessage =
+            stripeError instanceof Error
+              ? stripeError.message
+              : "Unknown Stripe capture error";
           console.error(
             `Failed to update/capture payment intent ${orderData.stripePaymentIntentId}:`,
             stripeError
           );
-          // If capture fails, we should probably handle this more gracefully
-          // For now, log the error but don't fail the order since the payment is authorized
+          await compensateFailedStripeOrder({
+            orderId: dbOrder.id,
+            paymentIntentId: orderData.stripePaymentIntentId,
+            reason: captureFailureMessage,
+          });
+          throw new Error(
+            "Card payment capture failed after order creation. The order was cancelled and inventory was restored."
+          );
         }
       }
 
@@ -2088,12 +2277,12 @@ export async function POST(request: Request) {
     // Stripe: send only if payment intent already succeeded
     // COD: send immediately (order is confirmed, payment collected on delivery)
     try {
-      const paymentProvider = orderData.paymentProvider || "netopia";
-      const isNetopia = paymentProvider === "netopia";
-      const isStripe = paymentProvider === "stripe";
+      const emailPaymentProvider = paymentProvider || "manual";
+      const isNetopia = emailPaymentProvider === "netopia";
+      const isStripe = emailPaymentProvider === "stripe";
       const isCOD =
-        orderData.paymentMethod === "cash_on_delivery" ||
-        paymentProvider === "cod";
+        requestedPaymentMethod === "cash_on_delivery" ||
+        emailPaymentProvider === "cod";
       const stripeSucceeded = stripePaymentIntent?.status === "succeeded";
       const paymentPending =
         orderData.paymentStatus === "PENDING" ||
@@ -2104,7 +2293,7 @@ export async function POST(request: Request) {
       // COD orders are confirmed - we just collect payment on delivery
       if (paymentPending && !isCOD) {
         console.log(
-          `ℹ️ Order ${dbOrder?.id || orderId}: payment pending (${paymentProvider}); deferring confirmation email`
+          `ℹ️ Order ${dbOrder?.id || orderId}: payment pending (${emailPaymentProvider}); deferring confirmation email`
         );
       } else {
         if (isCOD) {

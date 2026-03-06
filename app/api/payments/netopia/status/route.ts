@@ -151,11 +151,24 @@ export async function GET(request: Request) {
 
       return NextResponse.json({
         transactionId: statusResult.transactionId,
-        status: statusResult.status,
+        status:
+          statusResult.status === "paid" || statusResult.status === "refunded"
+            ? "pending"
+            : statusResult.status,
         amount: statusResult.amount,
         currency: statusResult.currency,
         timestamp: new Date().toISOString(),
-        source: "netopia_api",
+        source:
+          statusResult.status === "paid" || statusResult.status === "refunded"
+            ? "netopia_api_pending_webhook"
+            : "netopia_api",
+        ...(statusResult.status === "paid" || statusResult.status === "refunded"
+          ? {
+              providerStatus: statusResult.status,
+              message:
+                "Payment is confirmed by Netopia but the order is still being finalized on our side. Waiting for webhook reconciliation.",
+            }
+          : {}),
       });
     } catch (netopiaError) {
       console.warn(

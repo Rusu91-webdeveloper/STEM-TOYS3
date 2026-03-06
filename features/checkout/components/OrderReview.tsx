@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit } from "lucide-react";
+import { Banknote, Edit, ShieldCheck } from "lucide-react";
 import React, { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -242,69 +242,101 @@ export function OrderReview({
           </div>
 
           {checkoutData.paymentMethod?.startsWith("netopia_") ? (
-            <div className="text-xs sm:text-sm space-y-1">
-              <p className="font-medium break-words">{paymentMethodLabel}</p>
-              <p className="text-gray-600">
-                {t(
-                  "netopiaReviewNotice",
-                  "Veți fi redirecționat către Netopia pentru a finaliza plata după ce confirmați comanda."
-                )}
-              </p>
+            <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4 text-xs sm:text-sm">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
+                  <ShieldCheck className="h-4 w-4" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium break-words text-blue-950">
+                    {paymentMethodLabel}
+                  </p>
+                  <p className="text-blue-800">
+                    {t(
+                      "netopiaReviewNotice",
+                      "Veți fi redirecționat către Netopia pentru a finaliza plata după ce confirmați comanda."
+                    )}
+                  </p>
+                </div>
+              </div>
             </div>
           ) : checkoutData.paymentMethod === "cash_on_delivery" ? (
-            <div className="text-xs sm:text-sm space-y-1">
-              <p className="font-medium break-words">{paymentMethodLabel}</p>
-              <p className="text-gray-600">
-                {isLockerShippingForOrder
-                  ? t(
-                      "codLockerReviewNotice",
-                      "Plătești la ridicare, cu cardul la terminalul FANbox. Nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă."
-                    )
-                  : t(
-                      "codReviewNotice",
-                      "Plătești la primirea coletului. Refuzul la livrare sau nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă."
+            <div className="rounded-2xl border border-amber-200 bg-[linear-gradient(135deg,rgba(255,251,235,0.95),rgba(255,255,255,1))] p-4 text-xs sm:text-sm">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                  <Banknote className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1 space-y-3">
+                  <div>
+                    <p className="font-medium break-words text-amber-950">
+                      {paymentMethodLabel}
+                    </p>
+                    <p className="mt-1 text-amber-800">
+                      {isLockerShippingForOrder
+                        ? t(
+                            "codLockerReviewNotice",
+                            "Plătești la ridicare, cu cardul la terminalul FANbox. Nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă."
+                          )
+                        : t(
+                            "codReviewNotice",
+                            "Plătești la primirea coletului. Refuzul la livrare sau nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă."
+                          )}
+                    </p>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div
+                      className={
+                        checkoutData.codConsentAccepted
+                          ? "rounded-xl border border-emerald-200 bg-white px-3 py-2 text-emerald-700"
+                          : "rounded-xl border border-rose-200 bg-white px-3 py-2 text-rose-700"
+                      }
+                    >
+                      <p className="text-[11px] font-semibold uppercase tracking-wide">
+                        {t("codConsentReviewLabel", "Condiții COD")}
+                      </p>
+                      <p className="mt-1 font-medium">
+                        {checkoutData.codConsentAccepted
+                          ? t(
+                              "codConsentConfirmed",
+                              "Condițiile COD au fost confirmate."
+                            )
+                          : t(
+                              "codConsentMissingReview",
+                              "Condițiile COD trebuie acceptate în pasul anterior."
+                            )}
+                      </p>
+                    </div>
+                    <div
+                      className={
+                        checkoutData.codGuaranteePaymentIntentId
+                          ? "rounded-xl border border-emerald-200 bg-white px-3 py-2 text-emerald-700"
+                          : "rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700"
+                      }
+                    >
+                      <p className="text-[11px] font-semibold uppercase tracking-wide">
+                        {t("codGuaranteeReviewLabel", "Garanție logistică")}
+                      </p>
+                      <p className="mt-1 font-medium">
+                        {checkoutData.codGuaranteePaymentIntentId
+                          ? t(
+                              "codGuaranteeConfirmed",
+                              "Garanția logistică COD este autorizată pe card."
+                            )
+                          : t(
+                              "codGuaranteeNotRequiredReview",
+                              "Pentru această comandă nu este necesară garanția logistică COD."
+                            )}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-amber-900/85">
+                    {t(
+                      "codReviewPostRefusal",
+                      "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale/contabile aplicabile în România."
                     )}
-              </p>
-              <p className="text-gray-600">
-                {t(
-                  "codReviewPostRefusal",
-                  "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale/contabile aplicabile în România."
-                )}
-              </p>
-              <p
-                className={
-                  checkoutData.codConsentAccepted
-                    ? "text-emerald-600"
-                    : "text-red-600"
-                }
-              >
-                {checkoutData.codConsentAccepted
-                  ? t(
-                      "codConsentConfirmed",
-                      "Condițiile COD au fost confirmate."
-                    )
-                  : t(
-                      "codConsentMissingReview",
-                      "Condițiile COD trebuie acceptate în pasul anterior."
-                    )}
-              </p>
-              <p
-                className={
-                  checkoutData.codGuaranteePaymentIntentId
-                    ? "text-emerald-600"
-                    : "text-slate-600"
-                }
-              >
-                {checkoutData.codGuaranteePaymentIntentId
-                  ? t(
-                      "codGuaranteeConfirmed",
-                      "Garanția logistică COD este autorizată pe card."
-                    )
-                  : t(
-                      "codGuaranteeNotRequiredReview",
-                      "Pentru această comandă nu este necesară garanția logistică COD."
-                    )}
-              </p>
+                  </p>
+                </div>
+              </div>
             </div>
           ) : checkoutData.paymentDetails ? (
             <div className="text-xs sm:text-sm">

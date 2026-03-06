@@ -660,8 +660,14 @@ export function CheckoutFlow() {
         checkoutData.stripePaymentIntentId ||
         checkoutData.paymentDetails?.stripePaymentIntentId;
       const isStripePayment =
-        checkoutData.paymentMethod?.startsWith("stripe") ||
+        checkoutData.paymentMethod === "stripe_new" ||
         Boolean(stripePaymentIntentId);
+
+      if (!isStripePayment && total > 0) {
+        throw new Error(
+          "Unsupported checkout payment method. Please reselect card payment and try again."
+        );
+      }
 
       const orderData = {
         items: cartItems,
