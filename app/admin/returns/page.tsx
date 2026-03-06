@@ -76,6 +76,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { AnalyticsChart } from "@/components/ui/analytics-chart";
 import { useToast } from "@/components/ui/use-toast";
+import { RETURN_REASON_LABELS_RO } from "@/lib/returns/policy";
 
 type ReturnReason =
   | "DOES_NOT_MEET_EXPECTATIONS"
@@ -202,14 +203,7 @@ const statusBadges: Record<ReturnStatus, { label: string; color: string }> = {
   REFUNDED: { label: "Refunded", color: "bg-green-100 text-green-800" },
 };
 
-const reasonLabels: Record<ReturnReason, string> = {
-  DOES_NOT_MEET_EXPECTATIONS: "Does not meet expectations",
-  DAMAGED_OR_DEFECTIVE: "Damaged or defective",
-  WRONG_ITEM_SHIPPED: "Wrong item shipped",
-  CHANGED_MIND: "Changed mind",
-  ORDERED_WRONG_PRODUCT: "Ordered wrong product",
-  OTHER: "Other reason",
-};
+const reasonLabels: Record<ReturnReason, string> = RETURN_REASON_LABELS_RO;
 
 export default function AdminReturnsPage() {
   const router = useRouter();

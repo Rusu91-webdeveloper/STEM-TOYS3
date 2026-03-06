@@ -129,7 +129,7 @@ export const ro = {
   sslProtected: "Protejat prin SSL",
   notAvailable: "Indisponibil",
   easyReturns: "Retur simplu",
-  dayPolicy: "Politică de 30 de zile",
+  dayPolicy: "Retur în 14 zile calendaristice",
   learnMore: "Află mai multe",
   usefulGuides: "Ghiduri utile pentru a alege și folosi jucăriile STEM:",
   guide2025: "Ghid 2025",
@@ -1443,7 +1443,7 @@ export const ro = {
   faqReturnPolicy:
     "Ce se întâmplă dacă nu sunt mulțumit? Care este garanția voastră?",
   faqReturnPolicyAnswer:
-    "Susținem calitatea jucăriilor noastre STEM. Dacă nu ești complet mulțumit de achiziția ta, te rugăm să contactezi echipa noastră de servicii pentru clienți și vom lucra cu tine pentru a găsi o soluție. Satisfacția ta este importantă pentru noi.",
+    "Ai drept de retragere în 14 zile calendaristice de la livrare. Costul direct al returului este suportat de client pentru returul standard, iar pentru produse defecte, neconforme sau expediate greșit costurile sunt suportate de vânzător.",
   faqSafety:
     "Sunt aceste jucării sigure? Nu vreau să risc siguranța copilului meu.",
   faqSafetyAnswer:
@@ -1501,7 +1501,8 @@ export const ro = {
   // Trust signals
   freeShippingOver50: "Transport GRATUIT la comenzi peste {threshold}",
   thirtyDayReturns: "Returnări fără probleme în 14 zile",
-  freeReturnsOver50: "Returnări gratuite la comenzi peste {threshold}",
+  freeReturnsOver50:
+    "Retur în 14 zile calendaristice. Costul transportului de retur este suportat de client.",
   bankLevelSecurity: "Securitate și criptare la nivel bancar",
   trustedEducators: "De încredere pentru 50.000+ educatori din întreaga lume",
 

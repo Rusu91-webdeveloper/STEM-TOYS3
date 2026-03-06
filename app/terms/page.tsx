@@ -10,6 +10,11 @@ import { LegalPageShell } from "@/components/legal/LegalPageShell";
 import { Icon, StatusIcons } from "@/components/ui/icon-system";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n";
+import {
+  RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_SELLER_PAYS_RO,
+  RETURN_WINDOW_LABEL_RO,
+} from "@/lib/returns/policy";
 
 const toc = [
   { id: "intro", label: "1. Introducere" },
@@ -194,16 +199,14 @@ export default function TermsPage() {
               <ul>
                 <li>
                   După recepția produsului, consumatorul are drept de retragere
-                  în 14 zile, conform legislației aplicabile.
+                  în <strong>{RETURN_WINDOW_LABEL_RO}</strong>, conform
+                  legislației aplicabile.
                 </li>
                 <li>
-                  Costul direct al returului poate fi suportat de client doar
-                  dacă această informație a fost prezentată clar înainte de
-                  comandă.
+                  {RETURN_POLICY_CUSTOMER_PAYS_RO}
                 </li>
                 <li>
-                  Pentru produse neconforme sau defecte, costurile de transport
-                  aferente remedierii sunt suportate de vânzător.
+                  {RETURN_POLICY_SELLER_PAYS_RO}
                 </li>
                 <li>
                   Detalii complete:{" "}

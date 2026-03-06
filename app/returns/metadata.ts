@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Politica de Returnare | TechTots Educational Solutions",
   description:
-    "Politica de returnare pentru produsele STEM educaționale. Returnări gratuite în 14 zile, conformă cu legislația UE din 2025. Garanție legală de 2 ani.",
+    "Politica de returnare pentru produsele STEM educaționale. 14 zile calendaristice pentru retragere, costul returului suportat de client și garanție legală de 2 ani.",
   keywords: [
     "politica returnare",
     "returnare produse",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Politica de Returnare | TechTots",
     description:
-      "Returnări simple și sigure în 14 zile. Garanție legală de 2 ani pentru toate produsele STEM educaționale.",
+      "14 zile calendaristice pentru retur, cu informații clare despre costul transportului și excepțiile pentru produse defecte.",
     type: "website",
     url: "https://www.techtots.ro/returns",
   },
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Politica de Returnare | TechTots",
     description:
-      "Returnări simple și sigure în 14 zile. Garanție legală de 2 ani pentru toate produsele STEM educaționale.",
+      "14 zile calendaristice pentru retur, cu informații clare despre costul transportului și excepțiile pentru produse defecte.",
   },
   robots: {
     index: true,

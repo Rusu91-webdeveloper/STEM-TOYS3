@@ -16,6 +16,12 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
+import {
+  RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_EVIDENCE_RO,
+  RETURN_POLICY_SELLER_PAYS_RO,
+  RETURN_WINDOW_LABEL_RO,
+} from "@/lib/returns/policy";
 
 // Define return types
 type ReturnReason =
@@ -39,6 +45,7 @@ interface ReturnItem {
   details: string | null;
   status: ReturnStatus;
   createdAt: string;
+  photos: string[];
   order: {
     orderNumber: string;
     createdAt: string;
@@ -172,6 +179,14 @@ export default function ReturnsPage() {
         <p className="text-sm text-slate-300">
           Urmărește statusul fiecărui produs pe care l-ai solicitat pentru returnare.
         </p>
+        <div className="mt-3 rounded-2xl border border-sky-400/20 bg-sky-500/10 px-4 py-3 text-xs text-sky-100">
+          <p>
+            Dreptul de retur se aplică în primele <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la livrare.
+          </p>
+          <p className="mt-1">{RETURN_POLICY_CUSTOMER_PAYS_RO}</p>
+          <p className="mt-1">{RETURN_POLICY_SELLER_PAYS_RO}</p>
+          <p className="mt-1">{RETURN_POLICY_EVIDENCE_RO}</p>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -204,7 +219,7 @@ export default function ReturnsPage() {
                       {returnItem.orderItem.name}
                     </h3>
                     <div className="text-sm text-slate-300">
-                      Order #{returnItem.order.orderNumber} •
+                      Comanda #{returnItem.order.orderNumber} •
                       {" "}
                       {formatDistance(
                         new Date(returnItem.createdAt),
@@ -236,6 +251,35 @@ export default function ReturnsPage() {
                 </Badge>
               </div>
 
+              {returnItem.photos?.length > 0 && (
+                <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-300">
+                    Dovezi încărcate
+                  </p>
+                  <p className="mt-1 text-sm text-slate-300">
+                    {returnItem.photos.length} fotografii salvate împreună cu această cerere.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {returnItem.photos.map((photo, index) => (
+                      <a
+                        key={`${returnItem.id}-${index}`}
+                        href={photo}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="relative block h-20 w-20 overflow-hidden rounded-xl border border-white/10 bg-white/10"
+                      >
+                        <Image
+                          src={photo}
+                          alt={`Dovadă retur ${index + 1}`}
+                          fill
+                          className="object-cover"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {returnItem.status === "PENDING" && (
                 <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-500/15 p-4 text-sm text-amber-100">
                   Cererea ta de returnare este în așteptare. Vei primi un email când va fi procesată.
@@ -244,7 +288,7 @@ export default function ReturnsPage() {
               
               {returnItem.status === "APPROVED" && (
                 <div className="mt-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/15 p-4 text-sm text-emerald-100">
-                  Returnarea ta a fost aprobată. Verifică emailul pentru eticheta de retur.
+                  Returnarea ta a fost aprobată. Verifică emailul pentru instrucțiunile de retur.
                 </div>
               )}
               

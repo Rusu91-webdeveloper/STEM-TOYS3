@@ -75,29 +75,12 @@ export default function Footer({
 
   const resolvedEmail = storeSettings?.contactEmail ?? "support@techtots.ro";
   const resolvedPhone = storeSettings?.contactPhone ?? "+40 746 000 000";
-  // Format the return threshold for display
-  const formatReturnThreshold = (threshold: string) => {
-    const amount = parseFloat(threshold);
-    if (isNaN(amount)) return "199 lei";
 
-    // The database value is in lei, convert to euros for display (assuming 1 EUR = 5 RON)
-    const leiAmount = amount; // This is already in lei from the database
-    const eurAmount = Math.round(leiAmount / 5); // Convert lei to euros
-
-    return `€${eurAmount} / ${leiAmount} lei`;
-  };
-
-  const returnThreshold = storeSettings?.returnThreshold
-    ? formatReturnThreshold(storeSettings.returnThreshold)
-    : "199 lei";
-
-  // Helper function to interpolate threshold into translation
   const getReturnPolicyText = () => {
-    const baseText = t(
+    return t(
       "freeReturnsOver50",
-      "Free returns on orders over {threshold}"
+      "14 calendar days for returns. Return shipping is paid by the customer."
     );
-    return baseText.replace("{threshold}", returnThreshold);
   };
 
   const companyAddressParts = [

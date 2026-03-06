@@ -22,6 +22,12 @@ import {
 } from "@/features/home/components/homeTheme";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
+import {
+  RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_SELLER_PAYS_RO,
+  RETURN_WINDOW_LABEL_RO,
+  isWithinReturnWindowForOrder,
+} from "@/lib/returns/policy";
 import { cn, formatDate } from "@/lib/utils";
 
 // Define order status type
@@ -80,21 +86,12 @@ const getStatusBadgeClasses = (status: OrderStatus) => {
   }
 };
 
-// Helper function to check if order is within 14-day return window
-const isWithinReturnWindow = (order: Order) => {
-  if (order.status !== "delivered") {
-    return false;
-  }
-
-  const referenceDate = order.deliveredAt
-    ? new Date(order.deliveredAt)
-    : new Date(order.date);
-
-  const diffTime = Date.now() - referenceDate.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  return diffDays <= 14;
-};
+const isWithinReturnWindow = (order: Order) =>
+  order.status === "delivered" &&
+  isWithinReturnWindowForOrder({
+    createdAt: order.date,
+    deliveredAt: order.deliveredAt,
+  });
 
 // Helper function to check if order has returnable items 
 // (non-digital items that haven't already been returned/requested)
@@ -285,6 +282,16 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                         </span>
                       </div>
                     </div>
+
+                    {order.status === "delivered" && order.items.some(item => !item.isDigital) && (
+                      <div className="mt-4 rounded-2xl border border-sky-400/20 bg-sky-500/10 p-3 text-xs text-sky-100">
+                        <p>
+                          Retur disponibil în <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la livrare.
+                        </p>
+                        <p className="mt-1">{RETURN_POLICY_CUSTOMER_PAYS_RO}</p>
+                        <p className="mt-1">{RETURN_POLICY_SELLER_PAYS_RO}</p>
+                      </div>
+                    )}
                   </CardContent>
 
                   <CardFooter className="flex flex-col gap-2 px-4 pb-4 sm:flex-row sm:justify-between sm:px-6 sm:pb-6">

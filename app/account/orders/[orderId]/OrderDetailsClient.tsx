@@ -11,6 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
+import {
+  RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_SELLER_PAYS_RO,
+  RETURN_WINDOW_LABEL_RO,
+  isWithinReturnWindowForOrder,
+} from "@/lib/returns/policy";
 import { formatDate } from "@/lib/utils";
 
 interface OrderItem {
@@ -120,24 +126,12 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
   const estimatedDelivery = new Date(orderDate);
   estimatedDelivery.setDate(orderDate.getDate() + 7); // 7 days for delivery estimate
 
-  // Helper function to check if order is within 14-day return window
-  const isWithinReturnWindow = () => {
-    if (order.status !== "DELIVERED") {
-      return false;
-    }
-
-    // Use deliveredAt if available, otherwise fall back to order creation date
-    const referenceDate = order.deliveredAt
-      ? new Date(order.deliveredAt)
-      : new Date(order.createdAt);
-
-    const today = new Date();
-    const diffTime = today.getTime() - referenceDate.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    // Allow returns within 14 days of delivery (or order creation if deliveredAt is not set)
-    return diffDays <= 14;
-  };
+  const isWithinReturnWindow = () =>
+    order.status === "DELIVERED" &&
+    isWithinReturnWindowForOrder({
+      createdAt: order.createdAt,
+      deliveredAt: order.deliveredAt,
+    });
 
   // Safe translation function that handles dynamic keys
   const safeT = (key: string, defaultValue?: string) => t(key, defaultValue);
@@ -239,6 +233,17 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Order items */}
         <div className="md:col-span-2 space-y-4">
+          {order.status === "DELIVERED" &&
+            order.items.some(item => !item.isDigital) && (
+              <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+                <p>
+                  Returul este disponibil în primele <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la livrare.
+                </p>
+                <p className="mt-1">{RETURN_POLICY_CUSTOMER_PAYS_RO}</p>
+                <p className="mt-1">{RETURN_POLICY_SELLER_PAYS_RO}</p>
+              </div>
+            )}
+
           <h3 className="text-lg font-medium">{t("items")}</h3>
           <div className="border rounded-lg divide-y">
             {order.items.map(item => {
@@ -301,7 +306,7 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                             {/* Return status badge */}
                             {item.returnStatus && item.returnStatus !== "NONE" && (
                               <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mt-2 mr-2">
-                                Return {item.returnStatus.toLowerCase()}
+                                Retur {item.returnStatus.toLowerCase()}
                               </div>
                             )}
 
@@ -319,7 +324,7 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                                   href={`/account/orders/${order.id}/return?itemId=${item.id}`}
                                 >
                                   <Package className="h-4 w-4 mr-1" />
-                                  {t("returnItem")}
+                                  {t("returnItem", "Returnează produsul")}
                                 </Link>
                               </Button>
                             )}
@@ -328,14 +333,14 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                             {!isWithinReturnWindow() && !item.isDigital && (!item.returnStatus || item.returnStatus === "NONE") && (
                               <div className="flex items-center text-sm text-muted-foreground mt-2">
                                 <Package className="h-4 w-4 mr-1" />
-                                Return window expired (14 days)
+                                Fereastra de retur a expirat ({RETURN_WINDOW_LABEL_RO})
                               </div>
                             )}
                             {/* Info message for digital items */}
                             {item.isDigital && (
                               <div className="flex items-center text-sm text-muted-foreground mt-2">
                                 <FileText className="h-4 w-4 mr-1" />
-                                Digital item - non-returnable
+                                Produs digital - nu poate fi returnat
                               </div>
                             )}
                           </>

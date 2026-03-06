@@ -1,9 +1,18 @@
-import { differenceInDays } from "date-fns";
 import { NextResponse } from "next/server";
 
 import { appConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import {
+  RETURN_PHOTO_LIMIT,
+  RETURN_REASON_LABELS_RO,
+  RETURN_WINDOW_DAYS,
+  getReturnReferenceDate,
+  isReturnReason,
+  isWithinReturnWindowForOrder,
+  normalizeReturnDetails,
+  normalizeReturnPhotos,
+} from "@/lib/returns/policy";
 
 export async function POST(request: Request) {
   try {
@@ -11,12 +20,14 @@ export async function POST(request: Request) {
 
     if (!session?.user) {
       return NextResponse.json(
-        { error: "You must be logged in to initiate a return" },
+        { error: "Trebuie să fii autentificat pentru a iniția un retur." },
         { status: 401 }
       );
     }
 
     const { orderItemIds, reason, details, photos } = await request.json();
+    const normalizedDetails = normalizeReturnDetails(details);
+    const normalizedPhotos = normalizeReturnPhotos(photos);
 
     if (
       !orderItemIds ||
@@ -24,7 +35,25 @@ export async function POST(request: Request) {
       orderItemIds.length === 0
     ) {
       return NextResponse.json(
-        { error: "Please select at least one item to return" },
+        { error: "Selectează cel puțin un produs pentru retur." },
+        { status: 400 }
+      );
+    }
+
+    if (!isReturnReason(reason)) {
+      return NextResponse.json(
+        { error: "Te rugăm să selectezi un motiv valid de retur." },
+        { status: 400 }
+      );
+    }
+    const returnReason = reason;
+
+    if (normalizedPhotos.length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Te rugăm să încarci cel puțin o fotografie. Pozele se salvează împreună cu cererea de retur pentru analiză și pentru relația cu furnizorul.",
+        },
         { status: 400 }
       );
     }
@@ -50,7 +79,7 @@ export async function POST(request: Request) {
 
     if (orderItems.length === 0) {
       return NextResponse.json(
-        { error: "No valid order items found for return" },
+        { error: "Nu am găsit produse valide pentru retur." },
         { status: 404 }
       );
     }
@@ -59,7 +88,7 @@ export async function POST(request: Request) {
     const orderIds = [...new Set(orderItems.map(item => item.orderId))];
     if (orderIds.length > 1) {
       return NextResponse.json(
-        { error: "All items must belong to the same order" },
+        { error: "Toate produsele selectate trebuie să aparțină aceleiași comenzi." },
         { status: 400 }
       );
     }
@@ -69,17 +98,15 @@ export async function POST(request: Request) {
 
     // Use deliveredAt if available, otherwise fall back to order creation date
     // This matches the frontend logic for return eligibility
-    const referenceDate = (order as any).deliveredAt
-      ? (order as any).deliveredAt
-      : order.createdAt;
-
-    const daysSinceReference = differenceInDays(new Date(), referenceDate);
-    if (daysSinceReference > 14) {
+    const referenceDate = getReturnReferenceDate(order as any);
+    if (!isWithinReturnWindowForOrder(order as any)) {
       const dateType = (order as any).deliveredAt
-        ? "delivery"
-        : "order placement";
+        ? "livrare"
+        : "plasarea comenzii";
       return NextResponse.json(
-        { error: `Returns are only allowed within 14 days of ${dateType}` },
+        {
+          error: `Returul poate fi solicitat doar în primele ${RETURN_WINDOW_DAYS} zile calendaristice de la ${dateType}.`,
+        },
         { status: 400 }
       );
     }
@@ -93,7 +120,7 @@ export async function POST(request: Request) {
       const returnedNames = alreadyReturnedItems.map(item => item.name);
       return NextResponse.json(
         {
-          error: `Some items have already been returned: ${returnedNames.join(
+          error: `Unele produse au deja retur înregistrat: ${returnedNames.join(
             ", "
           )}`,
         },
@@ -122,9 +149,9 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          error: `Some items already have pending or active returns: ${affectedNames.join(
+          error: `Unele produse au deja retururi active sau în așteptare: ${affectedNames.join(
             ", "
-          )}. Please check your returns page.`,
+          )}. Verifică pagina de retururi.`,
         },
         { status: 400 }
       );
@@ -136,10 +163,10 @@ export async function POST(request: Request) {
       orderItemId: item.id,
       orderId: item.orderId,
       userId: session.user.id,
-      reason: reason as any,
+      reason: returnReason as any,
       status: "PENDING" as const,
-      details: details || null,
-      photos: Array.isArray(photos) ? photos : [],
+      details: normalizedDetails,
+      photos: normalizedPhotos,
     }));
 
     // Use transaction to ensure data consistency
@@ -184,15 +211,6 @@ export async function POST(request: Request) {
     const adminEmail = appConfig.adminEmail;
 
     // Map reason code to human-readable text
-    const reasonLabels = {
-      DOES_NOT_MEET_EXPECTATIONS: "Does not meet expectations",
-      DAMAGED_OR_DEFECTIVE: "Damaged or defective",
-      WRONG_ITEM_SHIPPED: "Wrong item shipped",
-      CHANGED_MIND: "Changed my mind",
-      ORDERED_WRONG_PRODUCT: "Ordered wrong product",
-      OTHER: "Other reason",
-    };
-
     // Send consolidated emails asynchronously (don't await - fire and forget)
     // This prevents email sending from blocking the API response
     const sendEmailsAsync = async () => {
@@ -216,8 +234,8 @@ export async function POST(request: Request) {
             quantity: item.quantity,
             sku: item.product?.sku || undefined,
           })),
-          reason,
-          details,
+          reason: RETURN_REASON_LABELS_RO[returnReason],
+          details: normalizedDetails || undefined,
           returnIds: createdReturns.map(r => r.id),
         });
 
@@ -241,8 +259,8 @@ export async function POST(request: Request) {
               quantity: item.quantity,
               sku: item.product?.sku || undefined,
             })),
-            reason,
-            details,
+            reason: RETURN_REASON_LABELS_RO[returnReason],
+            details: normalizedDetails || undefined,
             returnIds: createdReturns.map(r => r.id),
           });
         } else {
@@ -263,17 +281,20 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully initiated return for ${orderItems.length} item(s)`,
+      message: `Cerere de retur trimisă pentru ${orderItems.length} produs(e).`,
       data: {
         returnIds: createdReturns.map(r => r.id),
         orderNumber: order.orderNumber,
         itemCount: orderItems.length,
+        savedPhotos: normalizedPhotos.length,
+        maxPhotos: RETURN_PHOTO_LIMIT,
+        referenceDate: referenceDate.toISOString(),
       },
     });
   } catch (error) {
     console.error("Error initiating bulk return:", error);
     return NextResponse.json(
-      { error: "Failed to initiate return" },
+      { error: "Nu am putut iniția returul." },
       { status: 500 }
     );
   }

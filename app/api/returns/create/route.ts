@@ -1,9 +1,15 @@
-import { differenceInDays } from "date-fns";
 import { NextResponse } from "next/server";
 
 import { appConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import {
+  RETURN_REASON_LABELS_RO,
+  RETURN_WINDOW_DAYS,
+  isReturnReason,
+  isWithinReturnWindowForOrder,
+  normalizeReturnDetails,
+} from "@/lib/returns/policy";
 
 export async function POST(request: Request) {
   try {
@@ -11,12 +17,13 @@ export async function POST(request: Request) {
 
     if (!session?.user) {
       return NextResponse.json(
-        { error: "You must be logged in to initiate a return" },
+        { error: "Trebuie să fii autentificat pentru a iniția un retur." },
         { status: 401 }
       );
     }
 
     const { orderItemId, reason, details } = await request.json();
+    const normalizedDetails = normalizeReturnDetails(details);
 
     // Find the order item
     const orderItem = await db.orderItem.findUnique({
@@ -35,17 +42,24 @@ export async function POST(request: Request) {
 
     if (!orderItem) {
       return NextResponse.json(
-        { error: "Order item not found" },
+        { error: "Produsul nu a fost găsit." },
         { status: 404 }
       );
     }
+
+    if (!isReturnReason(reason)) {
+      return NextResponse.json(
+        { error: "Te rugăm să selectezi un motiv valid de retur." },
+        { status: 400 }
+      );
+    }
+    const returnReason = reason;
 
     // Check if item is a digital book (not returnable)
     if ((orderItem as any).isDigital) {
       return NextResponse.json(
         {
-          error:
-            "Digital books cannot be returned as they are instantly delivered products",
+          error: "Produsele digitale nu pot fi returnate.",
         },
         { status: 400 }
       );
@@ -57,7 +71,7 @@ export async function POST(request: Request) {
       session.user.role !== "ADMIN"
     ) {
       return NextResponse.json(
-        { error: "Unauthorized to initiate this return" },
+        { error: "Nu ai permisiunea să inițiezi acest retur." },
         { status: 403 }
       );
     }
@@ -71,7 +85,7 @@ export async function POST(request: Request) {
     });
     if (existingReturn) {
       return NextResponse.json(
-        { error: "You have already requested a return for this item." },
+        { error: "Ai trimis deja o cerere de retur pentru acest produs." },
         { status: 400 }
       );
     }
@@ -79,20 +93,16 @@ export async function POST(request: Request) {
     // Only allow returns for delivered items
     if (orderItem.order.status !== "DELIVERED") {
       return NextResponse.json(
-        { error: "You can only return items from delivered orders." },
+        { error: "Poți returna doar produse din comenzi livrate." },
         { status: 400 }
       );
     }
 
-    // Check if the return is within 30 days
-    const daysSinceOrder = differenceInDays(
-      new Date(),
-      orderItem.order.createdAt
-    );
-
-    if (daysSinceOrder > 30) {
+    if (!isWithinReturnWindowForOrder(orderItem.order as any)) {
       return NextResponse.json(
-        { error: "Returns are only allowed within 30 days of purchase" },
+        {
+          error: `Returul poate fi solicitat doar în primele ${RETURN_WINDOW_DAYS} zile calendaristice de la livrare.`,
+        },
         { status: 400 }
       );
     }
@@ -103,8 +113,8 @@ export async function POST(request: Request) {
         userId: session.user.id,
         orderId: orderItem.orderId,
         orderItemId: orderItem.id,
-        reason,
-        details: reason === "OTHER" ? details : null,
+        reason: returnReason,
+        details: returnReason === "OTHER" ? normalizedDetails : null,
         status: "PENDING",
       },
       include: {
@@ -130,15 +140,6 @@ export async function POST(request: Request) {
     // Email configuration verified
 
     // Map reason code to human-readable text
-    const reasonLabels = {
-      DOES_NOT_MEET_EXPECTATIONS: "Does not meet expectations",
-      DAMAGED_OR_DEFECTIVE: "Damaged or defective",
-      WRONG_ITEM_SHIPPED: "Wrong item shipped",
-      CHANGED_MIND: "Changed my mind",
-      ORDERED_WRONG_PRODUCT: "Ordered wrong product",
-      OTHER: "Other reason",
-    };
-
     // Send emails
     try {
       // Send admin notification using new unified system
@@ -152,8 +153,8 @@ export async function POST(request: Request) {
         productSku: orderItem.product?.sku || undefined,
         customerName: returnRecord.user.name || returnRecord.user.email,
         customerEmail: returnRecord.user.email,
-        reason: reasonLabels[reason as keyof typeof reasonLabels] || reason,
-        details: details || undefined,
+        reason: RETURN_REASON_LABELS_RO[returnReason],
+        details: normalizedDetails || undefined,
         returnId: returnRecord.id,
       });
 
@@ -182,13 +183,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Return initiated successfully",
+      message: "Cererea de retur a fost înregistrată.",
       data: returnRecord,
     });
   } catch (error) {
     console.error("Error initiating return:", error);
     return NextResponse.json(
-      { error: "Failed to initiate return" },
+      { error: "Nu am putut iniția returul." },
       { status: 500 }
     );
   }

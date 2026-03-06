@@ -12,6 +12,11 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
+import {
+  RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_SELLER_PAYS_RO,
+  RETURN_WINDOW_LABEL_RO,
+} from "@/lib/returns/policy";
 import { COD_MAX_B2B, COD_MAX_B2C } from "@/lib/shipping/cod-thresholds";
 import { getShippingSettings } from "@/lib/utils/store-settings";
 
@@ -327,23 +332,24 @@ export default async function ShippingPage() {
           <div className="bg-white rounded-xl p-6 shadow-md border border-slate-200">
             <p className="text-slate-700 mb-4">
               Conform <strong>Directivei UE 2011/83/EU</strong>, aveți dreptul
-              de retragere în termen de 14 zile de la primirea produselor.
+              de retragere în termen de <strong>{RETURN_WINDOW_LABEL_RO}</strong>{" "}
+              de la primirea produselor.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                <p className="font-semibold text-green-800">
-                  Comenzi peste {formatPrice(freeThreshold)} RON
-                </p>
-                <p className="text-green-700 text-sm">
-                  Returnare gratuită cu etichetă preplătită
-                </p>
-              </div>
               <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
                 <p className="font-semibold text-slate-800">
-                  Comenzi sub {formatPrice(freeThreshold)} RON
+                  Retur în perioada de retragere
                 </p>
                 <p className="text-slate-600 text-sm">
-                  Costul returului suportat de client
+                  {RETURN_POLICY_CUSTOMER_PAYS_RO}
+                </p>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <p className="font-semibold text-green-800">
+                  Produse defecte, neconforme sau expediate greșit
+                </p>
+                <p className="text-green-700 text-sm">
+                  {RETURN_POLICY_SELLER_PAYS_RO}
                 </p>
               </div>
             </div>

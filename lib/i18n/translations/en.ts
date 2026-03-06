@@ -1285,7 +1285,7 @@ export const en = {
     "Don't worry - we've got you covered! Every toy comes with detailed age recommendations and skill level indicators. Plus, we offer hassle-free returns and we're always here to help you find the perfect toy for your child.",
   faqReturnPolicy: "What if I'm not satisfied? What's your return policy?",
   faqReturnPolicyAnswer:
-    "We stand behind the quality of our STEM toys. If you're not completely satisfied with your purchase, please contact our customer service team and we'll work with you to find a solution. Your satisfaction is important to us.",
+    "You have a 14 calendar day withdrawal period from delivery. The direct return shipping cost is paid by the customer for standard returns, while defective, non-conforming, or incorrectly shipped products are returned at the seller's expense.",
   faqSafety: "Are these toys safe? I don't want to risk my child's safety.",
   faqSafetyAnswer:
     "Absolutely! Every toy in our collection meets or exceeds international safety standards (CE, ASTM, EN71). We personally test every product for safety and quality. Your child's safety is our #1 priority. We've sold over 50,000 toys with zero safety incidents. You can shop with complete confidence.",
@@ -1342,7 +1342,8 @@ export const en = {
   freeShippingOver50: "FREE shipping on orders over {threshold}",
   // thirtyDayReturns: "30-day hassle-free returns", // Removed - risky advertisement
   hassleFreeReturns: "Hassle-free returns",
-  freeReturnsOver50: "Free returns on orders over {threshold}",
+  freeReturnsOver50:
+    "14 calendar days for returns. Return shipping is paid by the customer.",
   bankLevelSecurity: "Bank-level security & encryption",
   trustedEducators: "Trusted by 50,000+ educators worldwide",
 

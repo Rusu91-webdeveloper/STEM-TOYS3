@@ -14,6 +14,11 @@ import {
 } from "lucide-react";
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { useTranslation } from "@/lib/i18n";
+import {
+  RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_SELLER_PAYS_RO,
+  RETURN_WINDOW_LABEL_RO,
+} from "@/lib/returns/policy";
 
 const socialProofBadges = [
   { icon: Users, label: "Families Worldwide" },
@@ -73,10 +78,10 @@ const faqCards = [
     titleKey: "faqPurchaseH2",
     bodyKey: "faqReturnPolicyAnswer",
     commitments: [
-      "Easy returns process",
-      "Friendly customer support team",
-      "Personal consultation to find perfect fit",
-      "No questions asked policy",
+      `${RETURN_WINDOW_LABEL_RO} pentru retur`,
+      "Costul returului standard este suportat de client",
+      "Produsele defecte au retur suportat de vânzător",
+      "Asistență rapidă din partea echipei noastre",
     ],
   },
 ];
@@ -84,8 +89,9 @@ const faqCards = [
 const codTransparencyHighlights = [
   "Refuzul la livrare sau nepreluarea coletului este tratat ca retur la expeditor (RTO).",
   "Pentru RTO se pot aplica doar costurile logistice efective (transport tur + retur), dacă acestea sunt comunicate înainte de comandă.",
-  "Dreptul de retragere în 14 zile se aplică după recepția produsului, nu la refuzul livrării.",
-  "Pentru produse neconforme/defecte, costurile de transport pentru remediere sunt suportate de vânzător.",
+  `Dreptul de retragere în ${RETURN_WINDOW_LABEL_RO} se aplică după recepția produsului, nu la refuzul livrării.`,
+  RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_SELLER_PAYS_RO,
   "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale/contabile aplicabile în România.",
 ];
 
@@ -141,7 +147,7 @@ export default function FAQPage() {
         name: "Ce se întâmplă dacă refuz o comandă ramburs la livrare?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Refuzul la livrare sau nepreluarea coletului este tratat ca retur la expeditor (RTO). În acest caz se pot aplica doar costurile logistice efective tur + retur, dacă au fost comunicate înainte de finalizarea comenzii. Dreptul de retragere în 14 zile se aplică după recepția produsului. Pentru diferențe peste garanția COD autorizată se aplică procedurile legale și contabile din România.",
+          text: `Refuzul la livrare sau nepreluarea coletului este tratat ca retur la expeditor (RTO). În acest caz se pot aplica doar costurile logistice efective tur + retur, dacă au fost comunicate înainte de finalizarea comenzii. Dreptul de retragere în ${RETURN_WINDOW_LABEL_RO} se aplică după recepția produsului. ${RETURN_POLICY_CUSTOMER_PAYS_RO} ${RETURN_POLICY_SELLER_PAYS_RO} Pentru diferențe peste garanția COD autorizată se aplică procedurile legale și contabile din România.`,
         },
       },
     ],

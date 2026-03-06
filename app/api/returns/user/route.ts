@@ -40,6 +40,7 @@ export async function GET(request: Request) {
             },
           },
         },
+        photos: true,
       },
       orderBy: {
         createdAt: "desc",

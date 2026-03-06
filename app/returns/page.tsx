@@ -2,11 +2,14 @@ import Link from "next/link";
 import { Metadata } from "next";
 
 import { appConfig } from "@/lib/config/app-config";
-import { auth } from "@/lib/server/auth";
 import {
-  getStoreSettings,
-  getShippingSettings,
-} from "@/lib/utils/store-settings";
+  RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_EVIDENCE_RO,
+  RETURN_POLICY_SELLER_PAYS_RO,
+  RETURN_WINDOW_LABEL_RO,
+} from "@/lib/returns/policy";
+import { auth } from "@/lib/server/auth";
+import { getStoreSettings } from "@/lib/utils/store-settings";
 
 const lastUpdated = new Intl.DateTimeFormat("ro-RO", {
   day: "numeric",
@@ -14,17 +17,16 @@ const lastUpdated = new Intl.DateTimeFormat("ro-RO", {
   year: "numeric",
 }).format(new Date());
 
-// These will be populated with dynamic threshold
-const getQuickSummaryLeft = (threshold: string) => [
-  "14 zile pentru returnare fără justificare",
+const quickSummaryLeft = [
+  `${RETURN_WINDOW_LABEL_RO} pentru returnare fără justificare`,
   "2 ani garanție legală pentru produse defecte",
-  `Returnare gratuită pentru comenzi peste ${threshold} lei`,
+  "Returul din dreptul de retragere are costul de transport suportat de client",
 ];
 
 const quickSummaryRight = [
   "Rambursare completă în 14 zile",
-  "Proces sustenabil și eco-friendly",
-  "Refuzul la livrare (RTO) poate genera cost logistic tur + retur",
+  "Produsele defecte sau expediate greșit au retur suportat de vânzător",
+  "Fotografiile de retur se păstrează împreună cu cererea",
 ];
 
 const getProcessSteps = (ordersHref: string) => [
@@ -40,8 +42,8 @@ const getProcessSteps = (ordersHref: string) => [
   },
   {
     icon: "📧",
-    title: "3. Primește Eticheta",
-    description: "Vei primi automat un email cu eticheta de returnare",
+    title: "3. Primește Instrucțiunile",
+    description: "Primești email cu confirmarea cererii și pașii următori",
   },
   {
     icon: "💰",
@@ -105,7 +107,7 @@ const legalItems = [
 export const metadata: Metadata = {
   title: "Politica de Returnare | TechTots Educational Solutions",
   description:
-    "Politica de returnare pentru produsele STEM educaționale. Informații clare despre retragere în 14 zile, RTO (refuz/nepreluare) și costuri logistice.",
+    "Politica de returnare pentru produsele STEM educaționale. Informații clare despre retragere în 14 zile calendaristice, costul returului suportat de client și excepțiile pentru produse defecte.",
   keywords:
     "politica returnare, returnare produse, garanție, drepturile consumatorului, UE, România",
 };
@@ -113,14 +115,6 @@ export const metadata: Metadata = {
 export default async function ReturnsPage() {
   const session = await auth();
   const storeSettings = await getStoreSettings();
-  const shippingSettings = await getShippingSettings();
-
-  // Get free shipping threshold from database (synced with /shipping page)
-  const freeThreshold = shippingSettings?.freeThreshold?.price || "199";
-  const formattedThreshold = new Intl.NumberFormat("ro-RO", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(parseFloat(freeThreshold));
 
   const contactEmail = storeSettings?.contactEmail ?? appConfig.contactEmail;
   const contactPhone =
@@ -134,9 +128,6 @@ export default async function ReturnsPage() {
   const ordersLinkInlineLabel = isAuthenticated
     ? "Comenzile Mele (/account/orders)"
     : "Autentifică-te pentru a accesa Comenzile Mele";
-
-  // Generate dynamic quick summary with threshold
-  const quickSummaryLeft = getQuickSummaryLeft(formattedThreshold);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/70 text-slate-900">
@@ -279,7 +270,7 @@ export default async function ReturnsPage() {
                     Directiva UE privind Drepturile Consumatorilor
                   </strong>
                   , ai dreptul să returnezi orice produs comandat online în
-                  termen de <strong>14 zile calendaristice</strong> de la
+                  termen de <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la
                   primirea produsului, fără a fi necesar să oferi o justificare.
                 </p>
               </div>
@@ -330,10 +321,8 @@ export default async function ReturnsPage() {
                       fotografiile/videoclipurile solicitate (obligatoriu)
                     </li>
                     <li>
-                      <strong>
-                        Vei primi automat un email cu eticheta de returnare
-                      </strong>{" "}
-                      și instrucțiuni detaliate
+                      Vei primi prin email confirmarea cererii și instrucțiunile
+                      de expediere a returului
                     </li>
                     <li>
                       <strong>Notă:</strong> Pentru anumiți furnizori,
@@ -378,8 +367,8 @@ export default async function ReturnsPage() {
                     pentru perioada de răgândire)
                   </li>
                   <li>
-                    Vei primi un email cu eticheta de returnare și instrucțiuni
-                    detaliate
+                    Vei primi un email cu confirmarea cererii și instrucțiunile
+                    detaliate pentru expedierea returului
                   </li>
                   <li>
                     Împachetează produsul în ambalajul original (dacă este
@@ -421,25 +410,18 @@ export default async function ReturnsPage() {
                 </h3>
                 <ul className="mt-3 space-y-2 text-amber-900/90">
                   <li>
-                    •{" "}
-                    <strong>
-                      Returnări în perioada de răgândire (14 zile):
-                    </strong>{" "}
-                    Returnare gratuită pentru comenzi ≥{" "}
-                    <strong>{formattedThreshold} lei</strong>, altfel costurile
-                    sunt suportate de client
+                    • <strong>Drept de retragere:</strong> {RETURN_POLICY_CUSTOMER_PAYS_RO}
                   </li>
                   <li>
-                    • <strong>Produse defecte sau neconforme:</strong> Suportăm
-                    noi toate costurile de returnare
+                    • <strong>Produse defecte sau neconforme:</strong>{" "}
+                    {RETURN_POLICY_SELLER_PAYS_RO}
                   </li>
                   <li>
-                    • <strong>Eroare din partea noastră:</strong> Transport
-                    gratuit și rambursare completă
+                    • <strong>Dovezi foto:</strong> {RETURN_POLICY_EVIDENCE_RO}
                   </li>
                   <li>
-                    • <strong>Eticheta de returnare:</strong> Vei primi automat
-                    prin email - nu este nevoie să printezi nimic în avans
+                    • <strong>Rambursare:</strong> După recepția și verificarea
+                    returului, rambursarea se procesează conform legii.
                   </li>
                 </ul>
               </div>

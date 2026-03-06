@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, ArrowLeft, ShoppingBag, Check, Upload, X } from "lucide-react";
+import { Loader2, ArrowLeft, ShoppingBag, Check, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -37,6 +37,16 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from "@/lib/currency";
+import {
+  RETURN_PHOTO_LIMIT,
+  RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_EVIDENCE_RO,
+  RETURN_POLICY_SELLER_PAYS_RO,
+  RETURN_REASON_LABELS_RO,
+  RETURN_REASON_VALUES,
+  RETURN_WINDOW_LABEL_RO,
+  isWithinReturnWindowForOrder,
+} from "@/lib/returns/policy";
 
 // Define return types
 interface OrderItem {
@@ -67,22 +77,15 @@ interface Order {
 const returnSchema = z.object({
   orderItemIds: z
     .array(z.string())
-    .min(1, "Please select at least one item to return"),
+    .min(1, "Selectează cel puțin un produs pentru retur"),
   reason: z.enum(
-    [
-      "DOES_NOT_MEET_EXPECTATIONS",
-      "DAMAGED_OR_DEFECTIVE",
-      "WRONG_ITEM_SHIPPED",
-      "CHANGED_MIND",
-      "ORDERED_WRONG_PRODUCT",
-      "OTHER",
-    ],
+    RETURN_REASON_VALUES,
     {
-      required_error: "Please select a reason for your return",
+      required_error: "Te rugăm să selectezi motivul returului",
     }
   ),
   details: z.string().optional(),
-  photos: z.array(z.string()).min(1, "At least one photo is required for claims"),
+  photos: z.array(z.string()).min(1, "Încarcă cel puțin o fotografie"),
 }).refine(
   (data) => {
     // Photos are ALWAYS required for claims (missing parts, defects, damage-in-transit)
@@ -93,7 +96,8 @@ const returnSchema = z.object({
     return true;
   },
   {
-    message: "Photos/videos are required for all return claims. Please upload at least one photo showing the issue.",
+    message:
+      "Fotografiile sunt obligatorii pentru această cerere. Încarcă cel puțin o fotografie clară.",
     path: ["photos"],
   }
 );
@@ -101,14 +105,10 @@ const returnSchema = z.object({
 type ReturnFormValues = z.infer<typeof returnSchema>;
 
 // Define reason display labels
-const reasonLabels = {
-  DOES_NOT_MEET_EXPECTATIONS: "Does not meet expectations",
-  DAMAGED_OR_DEFECTIVE: "Damaged or defective",
-  WRONG_ITEM_SHIPPED: "Wrong item shipped",
-  CHANGED_MIND: "Changed my mind",
-  ORDERED_WRONG_PRODUCT: "Ordered wrong product",
-  OTHER: "Other reason",
-};
+const supplierIssueReasons = new Set([
+  "DAMAGED_OR_DEFECTIVE",
+  "WRONG_ITEM_SHIPPED",
+] as const);
 
 interface ReturnPageProps {
   params: Promise<{ orderId: string }>;
@@ -143,27 +143,15 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
   const photos = form.watch("photos") || [];
   const selectedReason = form.watch("reason");
   
-  // Photos are ALWAYS required for claims (per plan requirement)
+  // Photos are required for every return request to keep supplier evidence together.
   const photosRequired = true;
 
-  // Calculate if order is within 14-day return window (changed from 30 days)
-  const isWithin14Days = (order: Order) => {
-    if (order.status !== "DELIVERED") {
-      return false;
-    }
-
-    // Use deliveredAt if available, otherwise fall back to order creation date
-    const referenceDate = order.deliveredAt
-      ? new Date(order.deliveredAt)
-      : new Date(order.createdAt);
-
-    const today = new Date();
-    const diffTime = today.getTime() - referenceDate.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    // Allow returns within 14 days of delivery (or order creation if deliveredAt is not set)
-    return diffDays <= 14;
-  };
+  const isWithin14Days = (currentOrder: Order) =>
+    currentOrder.status === "DELIVERED" &&
+    isWithinReturnWindowForOrder({
+      createdAt: currentOrder.createdAt,
+      deliveredAt: currentOrder.deliveredAt,
+    });
 
   // Fetch order details
   useEffect(() => {
@@ -183,9 +171,9 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
         // Check if order is within return window
         if (data.order && !isWithin14Days(data.order)) {
           toast({
-            title: "Return period expired",
+            title: "Perioada de retur a expirat",
             description:
-              "Items can only be returned within 14 days of delivery.",
+              `Produsele pot fi returnate doar în primele ${RETURN_WINDOW_LABEL_RO} de la livrare.`,
             variant: "destructive",
           });
           router.push(`/account/orders/${orderId}`);
@@ -193,8 +181,9 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
       } catch (error) {
         console.error("Error fetching order:", error);
         toast({
-          title: "Error",
-          description: "Failed to load order details. Please try again later.",
+          title: "Eroare",
+          description:
+            "Nu am putut încărca detaliile comenzii. Încearcă din nou puțin mai târziu.",
           variant: "destructive",
         });
       } finally {
@@ -227,13 +216,13 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to initiate return");
+        throw new Error(data.error || "Nu am putut trimite cererea de retur.");
       }
 
       setSubmitted(true);
       toast({
-        title: "Returns initiated",
-        description: `Successfully submitted return request for ${values.orderItemIds.length} item(s). You will receive one confirmation email for all items.`,
+        title: "Cererea de retur a fost trimisă",
+        description: `Am salvat cererea pentru ${values.orderItemIds.length} produs(e), împreună cu fotografiile încărcate.`,
       });
 
       // Redirect after a short delay
@@ -243,11 +232,11 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
     } catch (error) {
       console.error("Error submitting returns:", error);
       toast({
-        title: "Error",
+        title: "Eroare",
         description:
           error instanceof Error
             ? error.message
-            : "Failed to submit return request.",
+            : "Nu am putut trimite cererea de retur.",
         variant: "destructive",
       });
     } finally {
@@ -267,12 +256,12 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
     return (
       <div className="mt-6">
         <div className="bg-white p-8 rounded-xl shadow-sm text-center">
-          <h3 className="text-lg font-medium mb-2">Order not found</h3>
+          <h3 className="text-lg font-medium mb-2">Comandă indisponibilă</h3>
           <p className="text-gray-500 mb-4">
-            We couldn&apos;t find the order you&apos;re looking for.
+            Nu am găsit comanda pe care încerci să o returnezi.
           </p>
           <Link href="/account/orders" className="text-primary hover:underline">
-            View all orders
+            Vezi toate comenzile
           </Link>
         </div>
       </div>
@@ -287,16 +276,15 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="h-6 w-6 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Return Initiated</h2>
+            <h2 className="text-2xl font-bold mb-2">Retur înregistrat</h2>
             <p className="text-gray-500 mb-4">
-              Your return request has been submitted successfully for all
-              selected items. Please note that items must be returned within 14
-              days of delivery. You&apos;ll receive one confirmation email with
-              details for all items in this return request.
+              Cererea ta de retur a fost înregistrată pentru toate produsele
+              selectate. Ai la dispoziție {RETURN_WINDOW_LABEL_RO} de la
+              livrare, iar fotografiile au fost salvate împreună cu cererea.
             </p>
             <div className="mt-6">
               <Link href="/account/returns">
-                <Button>View Your Returns</Button>
+                <Button>Vezi retururile tale</Button>
               </Link>
             </div>
           </CardContent>
@@ -314,25 +302,37 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">Return Items</h1>
+          <h1 className="text-2xl font-bold">Returnare produse</h1>
         </div>
 
         <div className="text-sm text-gray-500 flex items-center space-x-1">
           <ShoppingBag className="h-4 w-4" />
-          <span>Order #{order.orderNumber}</span>
+          <span>Comanda #{order.orderNumber}</span>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Select Items to Return</CardTitle>
+          <CardTitle>Selectează produsele pentru retur</CardTitle>
         </CardHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
+              <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+                <p>
+                  Returul se poate solicita în primele <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la livrare.
+                </p>
+                <p className="mt-1">
+                  {selectedReason && supplierIssueReasons.has(selectedReason)
+                    ? RETURN_POLICY_SELLER_PAYS_RO
+                    : RETURN_POLICY_CUSTOMER_PAYS_RO}
+                </p>
+                <p className="mt-1">{RETURN_POLICY_EVIDENCE_RO}</p>
+              </div>
+
               <div>
-                <h3 className="text-sm font-medium mb-3">Order Items</h3>
+                <h3 className="text-sm font-medium mb-3">Produse din comandă</h3>
 
                 {order.items.filter(
                   item =>
@@ -341,7 +341,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                     !item.isDigital
                 ).length === 0 ? (
                   <div className="text-sm text-muted-foreground">
-                    No items eligible for return.
+                    Nu există produse eligibile pentru retur.
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -427,13 +427,13 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                                           {item.name}
                                         </h4>
                                         <div className="text-sm text-gray-500 mt-1">
-                                          Quantity: {item.quantity} ·{" "}
+                                          Cantitate: {item.quantity} ·{" "}
                                           {formatPrice(item.price)}
                                         </div>
                                         {item.returnStatus !== "NONE" && (
                                           <div className="mt-2">
                                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                              Return {item.returnStatus.toLowerCase()}
+                                              Retur {item.returnStatus.toLowerCase()}
                                             </span>
                                           </div>
                                         )}
@@ -464,18 +464,18 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Reason for return</FormLabel>
+                    <FormLabel>Motivul returului</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a reason" />
+                          <SelectValue placeholder="Selectează un motiv" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.entries(reasonLabels).map(([key, label]) => (
+                        {Object.entries(RETURN_REASON_LABELS_RO).map(([key, label]) => (
                           <SelectItem key={key} value={key}>
                             {label}
                           </SelectItem>
@@ -493,12 +493,10 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                   name="details"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Please explain the reason for your return
-                      </FormLabel>
+                      <FormLabel>Detalii suplimentare</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Tell us more about why you're returning this item..."
+                          placeholder="Descrie pe scurt motivul returului și starea produsului."
                           {...field}
                         />
                       </FormControl>
@@ -516,17 +514,17 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Photos <span className="text-red-500">*</span>
+                        Fotografii <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <div className="space-y-4">
                           <div className="text-sm text-gray-600">
-                            Please upload photos/videos showing the issue (missing parts, defects, or damage-in-transit). At least one photo is required. 
-                            This helps us process your return quickly.
+                            Încarcă fotografii clare cu produsul, ambalajul și problema semnalată. Cel puțin o fotografie este obligatorie.
+                            Pozele se salvează cu cererea și ne ajută să documentăm cazul în relația cu furnizorul.
                           </div>
                           
                           {/* Upload Button */}
-                          {photos.length < 5 && (
+                          {photos.length < RETURN_PHOTO_LIMIT && (
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                               <UploadButton<OurFileRouter, "returnPhoto">
                                 endpoint="returnPhoto"
@@ -541,7 +539,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                                   console.error("Upload error:", error);
                                   setUploadingPhotos(false);
                                   toast({
-                                    title: "Upload failed",
+                                    title: "Încărcarea a eșuat",
                                     description: error.message,
                                     variant: "destructive",
                                   });
@@ -585,9 +583,13 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                           {uploadingPhotos && (
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Loader2 className="h-4 w-4 animate-spin" />
-                              Uploading photos...
+                              Se încarcă fotografiile...
                             </div>
                           )}
+
+                          <p className="text-xs text-gray-500">
+                            Imagini de până la 5MB, maximum {RETURN_PHOTO_LIMIT}.
+                          </p>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -603,16 +605,16 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                 type="button"
                 onClick={() => router.back()}
               >
-                Cancel
+                Anulează
               </Button>
               <Button type="submit" disabled={submitting}>
                 {submitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
+                    Se procesează...
                   </>
                 ) : (
-                  "Submit Return Request"
+                  "Trimite cererea de retur"
                 )}
               </Button>
             </CardFooter>
