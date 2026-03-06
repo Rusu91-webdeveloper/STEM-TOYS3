@@ -447,18 +447,34 @@ export function CheckoutFlow() {
 
   const handleCODPayment = async () => {
     try {
+      const hasCodGuaranteeIntent = Boolean(
+        checkoutData.codGuaranteePaymentIntentId
+      );
+      const hasCodGuaranteeAmount =
+        typeof checkoutData.codGuaranteeAmount === "number" &&
+        checkoutData.codGuaranteeAmount > 0;
+      const hasIncompleteCodGuarantee =
+        hasCodGuaranteeIntent !== hasCodGuaranteeAmount;
+
       if (
         checkoutData.codConsentAccepted !== true ||
         !checkoutData.codConsentAcceptedAt ||
         !checkoutData.codConsentVersion ||
-        !checkoutData.codConsentText ||
-        !checkoutData.codGuaranteePaymentIntentId ||
-        !checkoutData.codGuaranteeAmount
+        !checkoutData.codConsentText
       ) {
         throw new Error(
           t(
             "codConsentMissing",
-            "Pentru plata ramburs trebuie să accepți condițiile COD și să autorizezi garanția logistică înainte de finalizarea comenzii."
+            "Pentru plata ramburs trebuie să accepți condițiile COD înainte de finalizarea comenzii."
+          )
+        );
+      }
+
+      if (hasIncompleteCodGuarantee) {
+        throw new Error(
+          t(
+            "codGuaranteeIncomplete",
+            "Autorizarea garanției COD nu este completă. Reia pasul de plată și încearcă din nou."
           )
         );
       }
