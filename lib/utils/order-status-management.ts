@@ -28,7 +28,7 @@ export interface OrderStatusUpdate {
 const isCodPaymentMethod = (paymentMethod?: string | null) =>
   paymentMethod === "cash_on_delivery" || paymentMethod === "cod";
 
-async function releaseCodGuaranteeHoldIfNeeded(params: {
+export async function releaseCodGuaranteeHoldIfNeeded(params: {
   orderId: string;
   notes?: string | null;
 }): Promise<void> {

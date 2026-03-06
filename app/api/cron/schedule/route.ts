@@ -36,6 +36,13 @@ export async function GET(req: NextRequest) {
         frequency: "Every hour",
         lastRun: new Date().toISOString(),
       },
+      {
+        name: "courier-status-sync",
+        endpoint: "/api/cron/courier-status-sync",
+        description: "Sync FAN Courier / courier tracking states into order fulfillment",
+        frequency: "Every hour",
+        lastRun: new Date().toISOString(),
+      },
     ];
 
     return NextResponse.json({
@@ -98,6 +105,9 @@ export async function POST(req: NextRequest) {
         break;
       case "oos-reminders":
         endpoint = "/api/cron/oos-reminders";
+        break;
+      case "courier-status-sync":
+        endpoint = "/api/cron/courier-status-sync";
         break;
       default:
         return NextResponse.json(

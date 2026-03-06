@@ -47,7 +47,7 @@ const getBaseUrl = (): string => {
 const useOccasionalFanCourierAccount = (): boolean =>
     process.env.FANCOURIER_USE_OCCASIONAL_ACCOUNT === "true";
 
-const getClientId = (): number => {
+export const getFanCourierClientId = (): number => {
     const clientId = useOccasionalFanCourierAccount()
         ? process.env.FANCOURIER_OCCASIONAL_CLIENT_ID || process.env.FANCOURIER_CLIENT_ID
         : process.env.FANCOURIER_CLIENT_ID;
@@ -233,7 +233,7 @@ export const getFanCourierAwbLabel = async (input: {
     awbNumber: string;
     dpi?: number;
 }): Promise<{ buffer: ArrayBuffer; contentType: string | null }> => {
-    const clientId = getClientId();
+    const clientId = getFanCourierClientId();
     const dpi = input.dpi ?? 300;
     const query = new URLSearchParams();
     query.set("clientId", String(clientId));
@@ -242,6 +242,28 @@ export const getFanCourierAwbLabel = async (input: {
     query.set("dpi", String(dpi));
 
     return fanCourierRequestBinary(`/awb/label?${query.toString()}`, {
+        method: "GET",
+    });
+};
+
+/**
+ * Fetch AWB tracking details from FAN Courier SelfAWB.
+ * Official SelfAWB docs use /reports/awb/tracking with clientId and awb[] params.
+ */
+export const getFanCourierAwbTracking = async (input: {
+    awbNumber: string;
+    language?: "ro" | "en";
+}): Promise<Record<string, unknown>> => {
+    const clientId = getFanCourierClientId();
+    const query = new URLSearchParams();
+    query.set("clientId", String(clientId));
+    query.append("awb[]", input.awbNumber);
+
+    if (input.language) {
+        query.set("language", input.language);
+    }
+
+    return fanCourierRequest(`/reports/awb/tracking?${query.toString()}`, {
         method: "GET",
     });
 };
@@ -326,13 +348,6 @@ export const isFanCourierConfigured = (): boolean => {
         hasUsername &&
         hasPassword
     );
-};
-
-/**
- * Get FAN Courier client ID from environment.
- */
-export const getFanCourierClientId = (): number => {
-    return getClientId();
 };
 
 /**
