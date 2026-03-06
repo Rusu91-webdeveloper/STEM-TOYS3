@@ -78,4 +78,24 @@ describe("PaymentMethodSelector (COD visibility)", () => {
       screen.queryByText("Plată la livrare (Ramburs)")
     ).not.toBeInTheDocument();
   });
+
+  it("shows a banner and disables COD when order total exceeds 500 RON", () => {
+    process.env.NEXT_PUBLIC_STRIPE_ENABLED = "true";
+
+    renderPaymentMethodSelector({
+      userLocale: "ro-RO",
+      shippingCountry: "RO",
+      billingCountry: "RO",
+      orderTotal: 650,
+      codThreshold: 500,
+    });
+
+    expect(
+      screen.getByText("Ramburs indisponibil pentru această comandă")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Comenzile peste 500 RON se finalizează doar cu plată online/i)
+    ).toBeInTheDocument();
+    expect(screen.getByText("Doar card online")).toBeInTheDocument();
+  });
 });

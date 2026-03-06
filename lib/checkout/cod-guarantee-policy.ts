@@ -43,7 +43,8 @@ const normalizeMode = (value: string | undefined): CodGuaranteeMode => {
   const normalized = value?.trim().toLowerCase();
   if (normalized === "off") return "off";
   if (normalized === "always") return "always";
-  return "risk_based";
+  if (normalized === "risk_based") return "risk_based";
+  return "always";
 };
 
 const getMode = (): CodGuaranteeMode =>

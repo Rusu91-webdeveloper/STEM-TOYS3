@@ -216,8 +216,7 @@ export function PaymentForm({
   }, [selectedPaymentMethod, totalAmount, codConfig, isLockerShippingMethod]);
   const isCodLimitExceeded =
     selectedPaymentMethod === "cash_on_delivery" &&
-    codTotals !== null &&
-    codTotals.total > codThreshold;
+    totalAmount > codThreshold;
   const codGuaranteeAmount = useMemo(() => {
     if (selectedPaymentMethod !== "cash_on_delivery") {
       return 0;
@@ -776,14 +775,7 @@ export function PaymentForm({
       setPaymentError(
         t(
           "codLimitExceeded",
-          "Plata ramburs este disponibilă până la {threshold} RON pentru {recipientType}. Redu valoarea coșului sau alege altă metodă de plată.",
-          {
-            threshold: codThreshold.toFixed(2),
-            recipientType:
-              recipientType === "B2B"
-                ? t("recipientCompany", "companie")
-                : t("recipientIndividual", "persoană fizică"),
-          }
+          `Plata ramburs este disponibilă doar pentru comenzi de până la ${codThreshold.toFixed(2)} RON. Redu valoarea coșului sau alege altă metodă de plată.`
         )
       );
       return;
@@ -988,6 +980,8 @@ export function PaymentForm({
           onPaymentMethodChange={handlePaymentMethodChange}
           savedCards={savedCards}
           isLoadingCards={isLoadingCards}
+          orderTotal={totalAmount}
+          codThreshold={codThreshold}
           userLocation={userLocation}
           userLocale={userLocale}
           billingCountry={
@@ -1027,14 +1021,7 @@ export function PaymentForm({
                 <p className="mt-1 text-sm leading-relaxed text-rose-800">
                   {t(
                     "codLimitExceededInline",
-                    "Plata ramburs depășește limita de {threshold} RON pentru {recipientType}. Alege altă metodă de plată sau ajustează coșul.",
-                    {
-                      threshold: codThreshold.toFixed(2),
-                      recipientType:
-                        recipientType === "B2B"
-                          ? t("recipientCompany", "companie")
-                          : t("recipientIndividual", "persoană fizică"),
-                    }
+                    `Plata ramburs este disponibilă doar pentru comenzi de până la ${codThreshold.toFixed(2)} RON. Alege altă metodă de plată sau ajustează coșul.`
                   )}
                 </p>
               </div>

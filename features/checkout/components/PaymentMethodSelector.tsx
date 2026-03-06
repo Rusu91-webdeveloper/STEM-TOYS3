@@ -36,6 +36,8 @@ interface PaymentMethodSelectorProps {
   onPaymentMethodChange: (value: string) => void;
   savedCards: PaymentCard[];
   isLoadingCards: boolean;
+  orderTotal?: number;
+  codThreshold?: number;
   userLocation?: string;
   userLocale?: string;
   billingCountry?: string;
@@ -73,6 +75,8 @@ const PaymentMethodSelectorComponent = ({
   selectedPaymentMethod,
   onPaymentMethodChange,
   isLoadingCards,
+  orderTotal = 0,
+  codThreshold = 500,
   userLocation,
   userLocale,
   billingCountry,
@@ -100,6 +104,10 @@ const PaymentMethodSelectorComponent = ({
         shippingMethod?.isMixedSupplierCart || shippingMethod?.requiresPrepaid
       ),
     [shippingMethod]
+  );
+  const codBlockedByLimit = useMemo(
+    () => orderTotal > codThreshold,
+    [codThreshold, orderTotal]
   );
 
   const isDigitalOnlyCart =
@@ -159,6 +167,11 @@ const PaymentMethodSelectorComponent = ({
           "codUnavailableLocker",
           "Pentru livrarea la FANbox, plata ramburs nu este disponibilă."
         )
+      : codBlockedByLimit
+        ? t(
+            "codUnavailableThreshold",
+            `Plata ramburs este disponibilă doar pentru comenzi de până la ${codThreshold.toFixed(0)} RON. Pentru această comandă trebuie să alegi plata online cu cardul.`
+          )
       : !stripeEnabled
         ? t(
             "codUnavailableGuarantee",
@@ -196,8 +209,10 @@ const PaymentMethodSelectorComponent = ({
     return methods;
   }, [
     codBlockedByFanbox,
+    codBlockedByLimit,
     codBlockedByMixedSupplier,
     codEnabled,
+    codThreshold,
     isDigitalOnlyCart,
     isRomanianUser,
     netopiaEnabled,
@@ -240,6 +255,7 @@ const PaymentMethodSelectorComponent = ({
     }
   }, [
     codBlockedByFanbox,
+    codBlockedByLimit,
     codBlockedByMixedSupplier,
     isDigitalOnlyCart,
     onPaymentMethodChange,
@@ -417,6 +433,27 @@ const PaymentMethodSelectorComponent = ({
                 {t(
                   "codUnavailableMixedSupplier",
                   "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul."
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {codBlockedByLimit && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50/80 px-4 py-3.5">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-700">
+              <Info className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-rose-950">
+                {t("codThresholdBannerTitle", "Ramburs indisponibil pentru această comandă")}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-rose-800">
+                {t(
+                  "codThresholdBannerBody",
+                  `Comenzile peste ${codThreshold.toFixed(0)} RON se finalizează doar cu plată online. Totalul curent este ${orderTotal.toFixed(2)} RON.`
                 )}
               </p>
             </div>

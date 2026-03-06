@@ -1,7 +1,8 @@
 export type RecipientType = "B2B" | "B2C";
 
-const DEFAULT_COD_MAX_B2C = 10000;
-const DEFAULT_COD_MAX_B2B = 5000;
+const HARD_COD_MAX_LIMIT = 500;
+const DEFAULT_COD_MAX_B2C = HARD_COD_MAX_LIMIT;
+const DEFAULT_COD_MAX_B2B = HARD_COD_MAX_LIMIT;
 
 const parseNumber = (value: string | undefined, fallback: number) => {
   if (!value) return fallback;
@@ -39,7 +40,9 @@ export function getRecipientType(
 }
 
 export function getCodThreshold(recipientType: RecipientType): number {
-  return recipientType === "B2B" ? COD_MAX_B2B : COD_MAX_B2C;
+  const configuredThreshold =
+    recipientType === "B2B" ? COD_MAX_B2B : COD_MAX_B2C;
+  return Math.min(configuredThreshold, HARD_COD_MAX_LIMIT);
 }
 
 export function isCodAllowed(
