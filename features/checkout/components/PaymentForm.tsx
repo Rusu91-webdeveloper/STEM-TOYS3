@@ -959,8 +959,8 @@ export function PaymentForm({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-        <div className="mb-5 flex flex-col gap-3">
+      <div className="rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm sm:p-6">
+        <div className="mb-5 flex flex-col gap-3 border-b border-slate-100 pb-5">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
               {t("paymentStepLabel", "Pasul 3 din 4")}
@@ -977,7 +977,7 @@ export function PaymentForm({
             <p className="mt-1 text-sm leading-relaxed text-slate-600">
               {t(
                 "paymentStepSubtitle",
-                "Selectează metoda de plată și confirmă detaliile finale înainte de verificarea comenzii."
+                "Alege cum plătești. Dacă selectezi ramburs, confirmi separat condițiile înainte de verificarea finală."
               )}
             </p>
           </div>
@@ -1042,7 +1042,7 @@ export function PaymentForm({
           </div>
         )}
         {selectedPaymentMethod === "cash_on_delivery" && (
-          <div className="my-4 space-y-4 rounded-3xl border border-amber-200 bg-[linear-gradient(135deg,rgba(255,251,235,0.95),rgba(255,255,255,1))] p-4 shadow-sm">
+          <div className="my-4 rounded-3xl border border-amber-200 bg-white/95 p-5 shadow-sm">
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
                 <Banknote className="h-5 w-5" />
@@ -1062,66 +1062,93 @@ export function PaymentForm({
                 <p className="mt-1 text-sm leading-relaxed text-amber-900">
                   {t(
                     "codConsentCardBody",
-                    "Rambursul rămâne disponibil, dar trebuie să confirmi că ai înțeles costurile logistice aplicabile dacă pachetul este refuzat sau nu este ridicat."
+                    "Plătești la livrare, dar avem nevoie de confirmarea ta că ai înțeles regulile logistice aplicabile dacă pachetul este refuzat sau nu este ridicat."
                   )}
                 </p>
               </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-amber-200 bg-white px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
-                  {t("codMiniCardOneTitle", "Plată")}
+            <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.95fr)]">
+              <div className="rounded-3xl border border-amber-100 bg-amber-50/60 p-4">
+                <p className="text-sm font-semibold text-amber-950">
+                  {t("codHowItWorksTitle", "Cum funcționează")}
                 </p>
-                <p className="mt-1 text-sm text-amber-950">
-                  {t("codMiniCardOneBody", "Achiziți la livrare, nu la plasarea comenzii.")}
-                </p>
+                <div className="mt-3 space-y-3 text-sm text-amber-900">
+                  <div className="flex gap-3">
+                    <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500" />
+                    <p>
+                      {t(
+                        "codMiniCardOneBody",
+                        "Achiziți la livrare, nu la plasarea comenzii."
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500" />
+                    <p>
+                      {t(
+                        "codMiniCardTwoBody",
+                        "Refuzul sau nepreluarea este tratată ca retur la expeditor (RTO)."
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500" />
+                    <p>
+                      {t(
+                        "codMiniCardThreeBody",
+                        "Se poate aplica costul real tur + retur conform politicilor."
+                      )}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="rounded-2xl border border-amber-200 bg-white px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
-                  {t("codMiniCardTwoTitle", "Refuz / nepreluare")}
+
+              <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4">
+                <p className="text-sm font-semibold text-slate-950">
+                  {t("codConfirmationTitle", "Confirmarea ta")}
                 </p>
-                <p className="mt-1 text-sm text-amber-950">
-                  {t("codMiniCardTwoBody", "Este tratată ca retur la expeditor (RTO).")}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-amber-200 bg-white px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
-                  {t("codMiniCardThreeTitle", "Cost logistic")}
-                </p>
-                <p className="mt-1 text-sm text-amber-950">
-                  {t("codMiniCardThreeBody", "Se poate aplica costul real tur + retur conform politicilor.")}
-                </p>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-amber-200 bg-white px-3 py-3">
-              <label
-                htmlFor="cod-consent"
-                className="flex cursor-pointer items-start gap-3"
-              >
-                <Checkbox
-                  id="cod-consent"
-                  checked={codConsentAccepted}
-                  onCheckedChange={checked => {
-                    const isAccepted = checked === true;
-                    setCodConsentAccepted(isAccepted);
-                    if (isAccepted) {
-                      setPaymentError(null);
-                    }
-                  }}
-                  className="mt-0.5 h-7 w-7 rounded-md border-2 border-amber-600 data-[state=checked]:border-emerald-700 data-[state=checked]:bg-emerald-700 data-[state=checked]:text-white"
-                />
-                <span className="text-sm font-semibold leading-6 text-amber-950">
+                <label
+                  htmlFor="cod-consent"
+                  className="mt-3 flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-3"
+                >
+                  <Checkbox
+                    id="cod-consent"
+                    checked={codConsentAccepted}
+                    onCheckedChange={checked => {
+                      const isAccepted = checked === true;
+                      setCodConsentAccepted(isAccepted);
+                      if (isAccepted) {
+                        setPaymentError(null);
+                      }
+                    }}
+                    className="mt-0.5 h-6 w-6 rounded-md border-2 border-amber-500 data-[state=checked]:border-emerald-700 data-[state=checked]:bg-emerald-700 data-[state=checked]:text-white"
+                  />
+                  <span className="text-sm font-medium leading-6 text-slate-900">
+                    {t(
+                      "codConsentLabel",
+                      "Confirm că am citit condițiile COD și accept costurile logistice reale de tur + retur în caz de refuz sau nepreluare."
+                    )}
+                  </span>
+                </label>
+                <p className="mt-3 text-xs leading-5 text-slate-600">
                   {t(
-                    "codConsentLabel",
-                    "Confirm că am citit condițiile COD și accept costurile logistice reale de tur + retur în caz de refuz sau nepreluare."
+                    "codConsentShortNote",
+                    "Pe scurt: la livrare plătești produsele și taxa COD. Dacă refuzi coletul sau nu îl ridici, pot apărea costurile logistice reale tur + retur."
                   )}
-                </span>
-              </label>
+                </p>
+              </div>
             </div>
-            <p className="text-xs leading-5 text-amber-900/90">
-              {t("codConsentBody", COD_CONSENT_TEXT)}
-            </p>
-            <p className="text-xs text-amber-900/95">
+
+            <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-700">
+              <summary className="cursor-pointer font-medium text-slate-900">
+                {t("codConsentFullTextToggle", "Vezi textul complet al acordului COD")}
+              </summary>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                {t("codConsentBody", COD_CONSENT_TEXT)}
+              </p>
+            </details>
+
+            <p className="mt-3 text-xs text-slate-500">
               {t("codConsentLinksPrefix", "Detalii complete:")}{" "}
               <Link className="underline underline-offset-2" href="/shipping">
                 {t("shippingPolicy", "Politica de livrare")}
@@ -1140,7 +1167,7 @@ export function PaymentForm({
         )}
         {selectedPaymentMethod === "cash_on_delivery" &&
           isResolvingCodGuaranteePolicy && (
-            <div className="my-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-700">
+            <div className="my-4 rounded-3xl border border-slate-200 bg-white/95 p-4 text-sm text-slate-700 shadow-sm">
               <div className="flex items-center gap-2 font-medium text-slate-900">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {t(
@@ -1159,77 +1186,102 @@ export function PaymentForm({
         {stripeEnabled &&
           selectedPaymentMethod === "cash_on_delivery" &&
           codGuaranteeRequired && (
-            <div className="my-4 space-y-4 rounded-3xl border border-sky-200 bg-[linear-gradient(135deg,rgba(240,249,255,0.95),rgba(255,255,255,1))] p-4 shadow-sm">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center rounded-full border border-sky-200 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-sky-700">
-                      {t("codStepTwo", "Pasul 2")}
-                    </span>
-                    <span className="inline-flex items-center rounded-full border border-sky-200 bg-white px-2.5 py-1 text-[11px] font-medium text-sky-700">
-                      {t("temporaryAuthorizationLabel", "Autorizare temporară")}
-                    </span>
+            <div className="my-4 rounded-3xl border border-sky-200 bg-white/95 p-5 shadow-sm">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+                <div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
+                      <ShieldCheck className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-sky-700">
+                          {t("codStepTwo", "Pasul 2")}
+                        </span>
+                        <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-700">
+                          {t("temporaryAuthorizationLabel", "Autorizare temporară")}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-base font-semibold text-slate-950">
+                        {t(
+                          "codGuaranteeTitle",
+                          "Autorizare temporară pentru costul logistic"
+                        )}
+                      </p>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                        {t(
+                          "codGuaranteeDescription",
+                          "Pentru această comandă este necesară o pre-autorizare pe card. Suma nu este încasată acum și servește doar ca garanție operațională pentru costul logistic estimat."
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <p className="mt-2 text-base font-semibold text-sky-950">
-                    {t(
-                      "codGuaranteeTitle",
-                      "Garanție logistică pentru comanda cu ramburs"
-                    )}
-                  </p>
-                  <p className="mt-1 text-sm leading-relaxed text-sky-900">
-                    {t(
-                      "codGuaranteeDescription",
-                      "Autorizăm temporar pe card costul logistic estimat tur + retur. Suma nu este încasată acum și este reținută doar ca garanție operațională."
-                    )}
-                  </p>
-                </div>
-              </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-sky-200 bg-white px-3 py-3">
+                  <div className="mt-4 space-y-2 text-sm text-slate-600">
+                    <div className="flex gap-3">
+                      <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-sky-500" />
+                      <p>
+                        {t(
+                          "codGuaranteePointOne",
+                          "Autorizarea este temporară și nu înseamnă încasare imediată."
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-sky-500" />
+                      <p>
+                        {t(
+                          "codGuaranteePointTwo",
+                          "O cerem doar când comanda are cost logistic estimat care trebuie acoperit în caz de refuz."
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-sky-500" />
+                      <p>
+                        {t(
+                          "codGuaranteePostRefusalNotice",
+                          "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale și contabile aplicabile în România."
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-sky-200 bg-sky-50/70 p-4">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-700">
                     {t("codGuaranteeAmountLabel", "Valoare autorizată")}
                   </p>
-                  <p className="mt-1 text-lg font-semibold text-sky-950">
+                  <p className="mt-1 text-2xl font-semibold text-slate-950">
                     {formatPrice(codGuaranteeAmount)}
                   </p>
-                </div>
-                <div className="rounded-2xl border border-sky-200 bg-white px-3 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-700">
-                    {t("codGuaranteeStatusLabel", "Status")}
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-sky-950">
-                    {codGuaranteeAuthorized && codGuaranteePaymentIntentId
-                      ? t(
-                          "codGuaranteeAuthorized",
-                          "Garanție autorizată. Poți continua la pasul următor."
-                        )
-                      : t(
-                          "codGuaranteePending",
-                          "Este necesară autorizarea cardului pentru a continua."
-                        )}
-                  </p>
+                  <div className="mt-4 rounded-2xl border border-white/80 bg-white px-3 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      {t("codGuaranteeStatusLabel", "Status")}
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-slate-900">
+                      {codGuaranteeAuthorized && codGuaranteePaymentIntentId
+                        ? t(
+                            "codGuaranteeAuthorized",
+                            "Garanție autorizată. Poți continua la pasul următor."
+                          )
+                        : t(
+                            "codGuaranteePending",
+                            "Este necesară autorizarea cardului pentru a continua."
+                          )}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <p className="text-xs leading-relaxed text-sky-900/90">
-                {t(
-                  "codGuaranteePostRefusalNotice",
-                  "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale și contabile aplicabile în România."
-                )}
-              </p>
-
               {codGuaranteeIntentError && (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
                   {codGuaranteeIntentError}
                 </div>
               )}
 
               {isCreatingCodGuaranteeIntent && !codGuaranteeClientSecret && (
-                <div className="flex items-center justify-center gap-2 rounded-2xl border border-sky-200 bg-white py-3 text-sm text-slate-600">
+                <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-sky-200 bg-sky-50/50 py-3 text-sm text-slate-600">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   {t(
                     "initializingCodGuarantee",
@@ -1266,16 +1318,16 @@ export function PaymentForm({
         {selectedPaymentMethod === "cash_on_delivery" &&
           !isResolvingCodGuaranteePolicy &&
           !codGuaranteeRequired && (
-            <div className="my-4 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
+            <div className="my-4 rounded-3xl border border-emerald-200 bg-white/95 p-4 shadow-sm">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                   <CheckCircle2 className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-emerald-950">
+                  <p className="text-sm font-semibold text-slate-950">
                     {t("codGuaranteeNotRequiredTitle", "Nu este necesară garanția pe card")}
                   </p>
-                  <p className="mt-1 text-sm leading-relaxed text-emerald-800">
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600">
                     {t(
                       "codGuaranteeNotRequired",
                       "Pentru această comandă nu este necesară garanția COD pe card. Plătești doar la livrare."
@@ -1289,51 +1341,90 @@ export function PaymentForm({
         {stripeEnabled && selectedPaymentMethod === "stripe_new" && (
           <div className="my-6 space-y-4">
             {stripeIntentError && (
-              <div className="p-3 bg-red-50 text-red-600 rounded-md flex items-center justify-between gap-3">
-                <p className="text-sm">{stripeIntentError}</p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setStripeClientSecret(null);
-                    setStripePaymentIntentId(undefined);
-                    setStripeIntentAmount(null);
-                    setStripeIntentError(null);
-                  }}
-                >
-                  {t("retry", "Reîncearcă")}
-                </Button>
+              <div className="rounded-3xl border border-rose-200 bg-rose-50/80 p-4 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-rose-950">
+                      {t("stripeLoadErrorTitle", "Nu am putut pregăti plata cu cardul")}
+                    </p>
+                    <p className="mt-1 text-sm text-rose-700">
+                      {stripeIntentError}
+                    </p>
+                  </div>
+                  <div className="shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full border-rose-200 bg-white text-rose-700 hover:bg-rose-50 sm:w-auto"
+                      onClick={() => {
+                        setStripeClientSecret(null);
+                        setStripePaymentIntentId(undefined);
+                        setStripeIntentAmount(null);
+                        setStripeIntentError(null);
+                      }}
+                    >
+                      {t("retry", "Reîncearcă")}
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
 
             {isCreatingStripeIntent && !stripeClientSecret && (
-              <div className="flex justify-center items-center gap-2 text-sm text-muted-foreground border rounded-md py-3">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {t("initializingStripe", "Pregătim plata securizată Stripe...")}
+              <div className="rounded-3xl border border-violet-200 bg-white/95 p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-700">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-950">
+                      {t("initializingStripeTitle", "Pregătim plata securizată")}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {t(
+                        "initializingStripe",
+                        "Pregătim plata securizată Stripe..."
+                      )}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
             {stripeClientSecret && (
-              <StripeProvider
-                options={{
-                  clientSecret: stripeClientSecret,
-                  appearance: { theme: "stripe" },
-                }}
-              >
-                <StripePaymentForm
-                  clientSecret={stripeClientSecret}
-                  paymentIntentId={stripePaymentIntentId}
-                  onSuccess={handlePaymentSuccess}
-                  onError={handlePaymentError}
-                  billingDetails={getBillingDetails()}
-                  amount={
-                    isCalculatingTotal
-                      ? getCartTotal() * 100
-                      : totalAmount * 100
-                  }
-                  isCalculatingTotal={isCalculatingTotal}
-                />
-              </StripeProvider>
+              <div className="rounded-3xl border border-violet-200 bg-white/95 p-4 shadow-sm sm:p-5">
+                <div className="mb-4">
+                  <p className="text-sm font-semibold text-slate-950">
+                    {t("cardDetailsTitle", "Detalii card")}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {t(
+                      "cardDetailsHint",
+                      "Completează datele cardului pentru a continua la verificarea finală."
+                    )}
+                  </p>
+                </div>
+                <StripeProvider
+                  options={{
+                    clientSecret: stripeClientSecret,
+                    appearance: { theme: "stripe" },
+                  }}
+                >
+                  <StripePaymentForm
+                    clientSecret={stripeClientSecret}
+                    paymentIntentId={stripePaymentIntentId}
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                    billingDetails={getBillingDetails()}
+                    amount={
+                      isCalculatingTotal
+                        ? getCartTotal() * 100
+                        : totalAmount * 100
+                    }
+                    isCalculatingTotal={isCalculatingTotal}
+                  />
+                </StripeProvider>
+              </div>
             )}
           </div>
         )}
@@ -1350,32 +1441,47 @@ export function PaymentForm({
         />
 
         {paymentError && (
-          <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-md">
+          <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-sm text-rose-700 shadow-sm">
             {paymentError}
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6">
-          <Button
-            variant="outline"
-            onClick={onBack}
-            className="text-sm sm:text-base"
-          >
-            {t("backToShippingMethod", "Înapoi la metoda de livrare")}
-          </Button>
-          <Button
-            onClick={handleContinue}
-            className="text-sm sm:text-base"
-            disabled={
-              !selectedPaymentMethod ||
-              isCodLimitExceeded ||
-              (selectedPaymentMethod === "cash_on_delivery" &&
-                isResolvingCodGuaranteePolicy) ||
-              isCheckoutRestricted
-            }
-          >
-            {t("continueToReview", "Continuă la verificare")}
-          </Button>
+        <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-950">
+                {t("paymentNextStepTitle", "Urmează verificarea finală")}
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                {t(
+                  "paymentNextStepBody",
+                  "Revizuiești comanda, adresele și metoda de plată înainte de plasare."
+                )}
+              </p>
+            </div>
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+              <Button
+                variant="outline"
+                onClick={onBack}
+                className="w-full border-slate-300 bg-white text-sm text-slate-700 hover:bg-slate-100 sm:w-auto sm:text-base"
+              >
+                {t("backToShippingMethod", "Înapoi la metoda de livrare")}
+              </Button>
+              <Button
+                onClick={handleContinue}
+                className="w-full bg-slate-950 text-sm text-white hover:bg-slate-800 sm:w-auto sm:min-w-[220px] sm:text-base"
+                disabled={
+                  !selectedPaymentMethod ||
+                  isCodLimitExceeded ||
+                  (selectedPaymentMethod === "cash_on_delivery" &&
+                    isResolvingCodGuaranteePolicy) ||
+                  isCheckoutRestricted
+                }
+              >
+                {t("continueToReview", "Continuă la verificare")}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

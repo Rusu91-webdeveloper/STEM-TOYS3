@@ -1,5 +1,6 @@
 "use client";
 
+import { Banknote, CreditCard, ShieldCheck } from "lucide-react";
 import React, { useMemo } from "react";
 
 import { useTranslation } from "@/lib/i18n";
@@ -38,7 +39,6 @@ export const PaymentSummary = React.memo(function PaymentSummary({
     ? Math.round(codConfig.percentage * 10000) / 100
     : 3;
 
-  // Calculate COD fee if COD is selected
   const codFeeResult = useMemo(() => {
     if (!isCOD) return null;
     const orderTotal = getCartTotal() + shippingCost - discountAmount;
@@ -57,12 +57,12 @@ export const PaymentSummary = React.memo(function PaymentSummary({
       return null;
     }
   }, [
-    isCOD,
-    getCartTotal,
-    shippingCost,
-    discountAmount,
     codConfig,
+    discountAmount,
+    getCartTotal,
+    isCOD,
     isLockerCodFlow,
+    shippingCost,
   ]);
 
   return (
@@ -94,68 +94,88 @@ export const PaymentSummary = React.memo(function PaymentSummary({
 
       {isNetopia && (
         <div className="my-6">
-          <div className="rounded-2xl border border-blue-200 bg-blue-50/80 p-4">
-            <p className="text-sm font-semibold text-blue-950">
-              {t("netopiaSummaryTitle", "Plată online securizată")}
-            </p>
-            <p className="mt-1 text-sm text-blue-800">
-              {t(
-                "netopiaRedirectNotice",
-                "Plata va fi finalizată pe pagina securizată Netopia după ce confirmi comanda."
-              )}
-            </p>
-            <p className="mt-3 text-xs uppercase tracking-wide text-blue-700">
-              {t(
-                "netopiaMethods",
-                "Card Visa sau Mastercard"
-              )}
-            </p>
+          <div className="rounded-3xl border border-blue-200 bg-white/95 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                <CreditCard className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-slate-950">
+                    {t("netopiaSummaryTitle", "Plată online securizată")}
+                  </p>
+                  <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                    Netopia
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-slate-600">
+                  {t(
+                    "netopiaRedirectNotice",
+                    "După confirmare vei fi redirecționat pe pagina securizată Netopia pentru finalizarea plății."
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {isStripeNewCard && (
         <div className="my-6">
-          <div className="rounded-2xl border border-violet-200 bg-violet-50/80 p-4">
-            <p className="text-sm font-semibold text-violet-950">
-              {t("stripeSummaryTitle", "Card securizat prin Stripe")}
-            </p>
-            <p className="mt-1 text-sm text-violet-800">
-              {t(
-                "paymentProcessing",
-                "Procesarea plății se va face în siguranță prin Stripe."
-              )}
-            </p>
-            {isCalculatingTotal && (
-              <p className="mt-2 text-xs text-violet-700">
-                {t("calculatingTotal", "Se calculează totalul...")}
-              </p>
-            )}
-            {!isCalculatingTotal && totalAmount > 0 && (
-              <div className="mt-3 flex items-center justify-between rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm">
-                <span className="text-violet-900">
-                  {t("amountToAuthorize", "Total de autorizat")}
-                </span>
-                <span className="font-semibold text-violet-950">
-                  {totalAmount.toFixed(2)} RON
-                </span>
+          <div className="rounded-3xl border border-violet-200 bg-white/95 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-700">
+                <ShieldCheck className="h-5 w-5" />
               </div>
-            )}
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-slate-950">
+                    {t("stripeSummaryTitle", "Card securizat prin Stripe")}
+                  </p>
+                  {!isCalculatingTotal && totalAmount > 0 && (
+                    <span className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700">
+                      {totalAmount.toFixed(2)} RON
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-sm text-slate-600">
+                  {t(
+                    "paymentProcessing",
+                    "Introduci cardul o singură dată, iar procesarea plății se face în siguranță prin Stripe."
+                  )}
+                </p>
+                {isCalculatingTotal && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    {t("calculatingTotal", "Se calculează totalul...")}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {isCOD && codFeeResult && (
         <div className="my-6">
-          <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-amber-950">
-                  {isLockerCodFlow
-                    ? t("codLockerSummaryTitle", "Plată la ridicare")
-                    : t("codSummaryTitle", "Plată ramburs")}
-                </p>
-                <p className="mt-1 text-sm text-amber-800">
+          <div className="rounded-3xl border border-amber-200 bg-white/95 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700">
+                <Banknote className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-slate-950">
+                    {isLockerCodFlow
+                      ? t("codLockerSummaryTitle", "Plată la ridicare")
+                      : t("codSummaryTitle", "Estimare pentru plata ramburs")}
+                  </p>
+                  <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                    {isLockerCodFlow
+                      ? t("codLockerBadge", "Ridicare FANbox")
+                      : t("cashOnDelivery", "Ramburs")}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-slate-600">
                   {isLockerCodFlow
                     ? t(
                         "codLockerSummaryBody",
@@ -163,53 +183,48 @@ export const PaymentSummary = React.memo(function PaymentSummary({
                       )
                     : t(
                         "codSummaryBody",
-                        "Plătești curierului la livrare. Taxa ramburs este inclusă mai jos."
+                        "Mai jos vezi taxa ramburs și totalul estimat înainte să confirmi condițiile COD."
                       )}
                 </p>
               </div>
-              <span className="inline-flex items-center rounded-full border border-amber-200 bg-white px-2.5 py-1 text-xs font-semibold text-amber-800">
-                {isLockerCodFlow
-                  ? t("codLockerBadge", "Ridicare FANbox")
-                  : t("cashOnDelivery", "Ramburs")}
-              </span>
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-amber-200 bg-white px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                   {isLockerCodFlow
                     ? t("codLockerFee", "Taxă plată la FANbox")
                     : t("codFee", "Taxă ramburs")}
                 </p>
-                <p className="mt-1 text-lg font-semibold text-amber-950">
+                <p className="mt-1 text-lg font-semibold text-slate-950">
                   +{codFeeResult.fee.toFixed(2)} RON
                 </p>
               </div>
-              <div className="rounded-xl border border-amber-200 bg-white px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                   {t("feeBreakdown", "Structură taxă")}
                 </p>
-                <p className="mt-1 text-sm text-amber-950">
+                <p className="mt-1 text-sm text-slate-700">
                   {codPercentageLabel}% ({codFeeResult.breakdown.percentageFee.toFixed(2)} RON) +{" "}
                   {codFeeResult.breakdown.fixedFee.toFixed(2)} RON {t("fixed", "fix")}
                 </p>
               </div>
-              <div className="rounded-xl border border-amber-200 bg-white px-3 py-3">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/70 px-3 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
                   {isLockerCodFlow
                     ? t("totalWithLockerCOD", "Total cu plată la FANbox")
                     : t("totalWithCOD", "Total cu ramburs")}
                 </p>
-                <p className="mt-1 text-lg font-semibold text-amber-950">
+                <p className="mt-1 text-lg font-semibold text-slate-950">
                   {codFeeResult.orderTotalWithFee.toFixed(2)} RON
                 </p>
               </div>
             </div>
 
-            <p className="mt-3 text-xs leading-relaxed text-amber-900/90">
+            <p className="mt-3 text-xs leading-relaxed text-slate-500">
               {t(
                 "codSummaryFinePrint",
-                "În pasul următor confirmi condițiile COD, iar dacă este necesar, autorizezi o garanție logistică temporară pe card."
+                "După acest rezumat, confirmi condițiile COD și doar dacă este necesar autorizezi o garanție logistică temporară pe card."
               )}
             </p>
           </div>

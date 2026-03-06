@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  CreditCard,
-  Loader2,
-  ShieldCheck,
   Banknote,
   Check,
+  CreditCard,
   Info,
+  Loader2,
   Lock,
+  ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useMemo } from "react";
@@ -40,11 +40,8 @@ interface PaymentMethodSelectorProps {
   userLocale?: string;
   billingCountry?: string;
   shippingCountry?: string;
-  /** Whether the current user has admin role. */
   isAdmin?: boolean;
-  /** Mirrors backend `CHECKOUT_ADMIN_ONLY` gate from `/api/checkout/settings`. */
   checkoutAdminOnly?: boolean;
-  /** Currently selected shipping method (used for payment constraints). */
   shippingMethod?: ShippingMethod;
 }
 
@@ -62,8 +59,6 @@ type PaymentMethodItem = {
   disabled?: boolean;
   disabledReason?: string;
   color: string;
-  borderColor: string;
-  bgColor: string;
 };
 
 const isLockerDeliveryMethod = (method?: ShippingMethod): boolean => {
@@ -94,6 +89,7 @@ const PaymentMethodSelectorComponent = ({
   const netopiaEnabled =
     !isCheckoutRestricted && process.env.NEXT_PUBLIC_NETOPIA_ENABLED === "true";
   const codEnabled = !isCheckoutRestricted;
+
   const codBlockedByFanbox = useMemo(
     () => isLockerDeliveryMethod(shippingMethod),
     [shippingMethod]
@@ -106,11 +102,9 @@ const PaymentMethodSelectorComponent = ({
     [shippingMethod]
   );
 
-  // Check if cart contains only digital books (no physical items)
   const isDigitalOnlyCart =
     cartItems.length > 0 && cartItems.every(item => item.isBook);
 
-  // Determine if user should see Netopia options
   const isRomanianUser = useMemo(
     () =>
       userLocation === "RO" ||
@@ -124,7 +118,6 @@ const PaymentMethodSelectorComponent = ({
     [userLocation, userLocale, billingCountry, shippingCountry]
   );
 
-  // Get available payment methods based on user location
   const paymentMethods = useMemo(() => {
     const methods: PaymentMethodItem[] = [];
 
@@ -143,13 +136,10 @@ const PaymentMethodSelectorComponent = ({
         badge: t("recommended", "Recomandat"),
         badgeVariant: "recommended",
         color: "violet",
-        borderColor: "border-violet-200",
-        bgColor: "bg-violet-50",
       });
     }
 
     if (netopiaEnabled) {
-      // Netopia v2 API only supports card payments
       methods.push({
         id: "netopia_card",
         type: "netopia_card",
@@ -161,8 +151,6 @@ const PaymentMethodSelectorComponent = ({
           ? "Plată securizată cu card Visa sau Mastercard"
           : "Secure payment with Visa or Mastercard",
         color: "blue",
-        borderColor: "border-blue-200",
-        bgColor: "bg-blue-50",
       });
     }
 
@@ -183,7 +171,6 @@ const PaymentMethodSelectorComponent = ({
             )
           : undefined;
 
-    // Show COD for Romanian physical carts, but keep it disabled when business rules require prepaid.
     if (codEnabled && isRomanianUser && !isDigitalOnlyCart) {
       methods.push({
         id: "cash_on_delivery",
@@ -194,7 +181,7 @@ const PaymentMethodSelectorComponent = ({
         fee: "3% + 5 RON",
         description: t(
           "codHomeMethodDescription",
-          "Plătești la primirea coletului (RTO la refuz/nepreluare)."
+          "Plătești la primirea coletului. Vezi condițiile înainte de finalizare."
         ),
         badge: codDisabledReason
           ? t("codUnavailableBadge", "Doar card online")
@@ -203,23 +190,24 @@ const PaymentMethodSelectorComponent = ({
         disabled: Boolean(codDisabledReason),
         disabledReason: codDisabledReason,
         color: "amber",
-        borderColor: "border-amber-200",
-        bgColor: "bg-amber-50",
       });
     }
 
     return methods;
   }, [
-    isRomanianUser,
-    isDigitalOnlyCart,
     codBlockedByFanbox,
     codBlockedByMixedSupplier,
-    netopiaEnabled,
     codEnabled,
+    isDigitalOnlyCart,
+    isRomanianUser,
+    netopiaEnabled,
     stripeEnabled,
     t,
   ]);
-  const hasCodOption = paymentMethods.some(method => method.provider === "cod");
+
+  const showCodOverview =
+    paymentMethods.some(method => method.provider === "cod") &&
+    selectedPaymentMethod === "cash_on_delivery";
 
   useEffect(() => {
     if (paymentMethods.length === 0) {
@@ -251,12 +239,12 @@ const PaymentMethodSelectorComponent = ({
       onPaymentMethodChange(firstEnabledMethod?.id || paymentMethods[0].id);
     }
   }, [
-    paymentMethods,
-    selectedPaymentMethod,
-    onPaymentMethodChange,
-    isDigitalOnlyCart,
     codBlockedByFanbox,
     codBlockedByMixedSupplier,
+    isDigitalOnlyCart,
+    onPaymentMethodChange,
+    paymentMethods,
+    selectedPaymentMethod,
   ]);
 
   if (isLoadingCards) {
@@ -296,7 +284,6 @@ const PaymentMethodSelectorComponent = ({
     );
   }
 
-  // Badge styling based on variant
   const getBadgeStyles = (
     variant?: "recommended" | "popular" | "saved" | "unavailable"
   ) => {
@@ -314,7 +301,6 @@ const PaymentMethodSelectorComponent = ({
     }
   };
 
-  // Provider chip styling
   const getProviderStyles = (provider: Provider) => {
     switch (provider) {
       case "stripe":
@@ -348,29 +334,19 @@ const PaymentMethodSelectorComponent = ({
     }
   };
 
-  // Color config for each payment method type
   const getColorConfig = (color: string) => {
-    const configs: Record<
-      string,
-      { icon: string; ring: string; bg: string; border: string }
-    > = {
+    const configs: Record<string, { icon: string; bg: string }> = {
       violet: {
         icon: "text-violet-600",
-        ring: "ring-violet-300",
         bg: "bg-violet-50",
-        border: "border-violet-300",
       },
       blue: {
         icon: "text-blue-600",
-        ring: "ring-blue-300",
         bg: "bg-blue-50",
-        border: "border-blue-300",
       },
       amber: {
         icon: "text-amber-600",
-        ring: "ring-amber-300",
         bg: "bg-amber-50",
-        border: "border-amber-300",
       },
     };
     return configs[color] || configs.violet;
@@ -378,28 +354,26 @@ const PaymentMethodSelectorComponent = ({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-3xl border border-slate-200 bg-[linear-gradient(135deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-4 py-4 shadow-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-            {t("secureCheckoutLabel", "Checkout securizat")}
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600">
-            <ShieldCheck className="h-3.5 w-3.5 text-slate-500" />
-            {t("paymentPartnersLabel", "Stripe și Netopia")}
-          </span>
+      <div className="rounded-3xl border border-slate-200/80 bg-white/95 px-5 py-5 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <Label className="block text-base font-semibold text-slate-950 sm:text-lg">
+              {t("selectPaymentMethod", "Selectează metoda de plată")}
+            </Label>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-600">
+              {t(
+                "paymentMethodSubtitle",
+                "Alege varianta potrivită. Dacă selectezi ramburs, îți explicăm pașii clar înainte să continui."
+              )}
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
+            <ShieldCheck className="h-4 w-4" />
+            {t("securePayment", "Plățile tale sunt protejate și criptate")}
+          </div>
         </div>
-        <Label className="mt-3 block text-base font-semibold text-slate-900 sm:text-lg">
-          {t("selectPaymentMethod", "Metodă de plată")}
-        </Label>
-        <p className="mt-1 text-sm leading-relaxed text-slate-600">
-          {t(
-            "paymentMethodSubtitle",
-            "Alege varianta potrivită. Dacă selectezi ramburs, condițiile și eventuala garanție logistică temporară sunt prezentate clar în pasul următor."
-          )}
-        </p>
       </div>
 
-      {/* Payment Methods Grid */}
       {codBlockedByFanbox && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3.5">
           <div className="flex items-start gap-3">
@@ -408,7 +382,10 @@ const PaymentMethodSelectorComponent = ({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-amber-950">
-                {t("codUnavailableLockerTitle", "Ramburs indisponibil pentru FANbox")}
+                {t(
+                  "codUnavailableLockerTitle",
+                  "Ramburs indisponibil pentru FANbox"
+                )}
               </p>
               <p className="mt-1 text-sm leading-relaxed text-amber-900">
                 {t(
@@ -420,6 +397,7 @@ const PaymentMethodSelectorComponent = ({
           </div>
         </div>
       )}
+
       {codBlockedByMixedSupplier && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3.5">
           <div className="flex items-start gap-3">
@@ -445,23 +423,37 @@ const PaymentMethodSelectorComponent = ({
           </div>
         </div>
       )}
-      {hasCodOption && (
-        <div className="rounded-2xl border border-amber-200 bg-[linear-gradient(135deg,rgba(255,251,235,0.95),rgba(255,255,255,1))] px-4 py-4 shadow-sm">
+
+      {showCodOverview && (
+        <div className="rounded-3xl border border-amber-200 bg-amber-50/70 px-4 py-4 shadow-sm">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
               <Info className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-amber-900">
-                {t("codInfoTitle", "Ramburs disponibil pentru livrare la adresă")}
-              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold text-amber-950">
+                  {t("codInfoTitle", "Ramburs la livrare")}
+                </p>
+                <span className="inline-flex items-center rounded-full border border-amber-200 bg-white px-2 py-0.5 text-[11px] font-medium text-amber-800">
+                  {t("codInfoBadge", "Confirmare înainte de finalizare")}
+                </span>
+              </div>
               <p className="mt-1 text-sm leading-relaxed text-amber-800">
                 {t(
                   "codInfoBody",
-                  "În pasul următor confirmi condițiile COD. Pentru anumite comenzi, putem solicita o pre-autorizare temporară pe card pentru costul logistic estimat, fără încasare imediată."
+                  "Plătești la livrare. Dacă această comandă are risc logistic mai mare, îți vom cere și o autorizare temporară pe card, explicată clar mai jos."
                 )}
               </p>
-              <p className="mt-1.5 text-xs text-amber-900">
+              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                <span className="rounded-full bg-white px-2.5 py-1 font-medium text-amber-900">
+                  {t("codInfoPointOne", "Nu plătești acum produsele")}
+                </span>
+                <span className="rounded-full bg-white px-2.5 py-1 font-medium text-amber-900">
+                  {t("codInfoPointTwo", "Refuzul poate genera cost logistic")}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-amber-900">
                 Vezi{" "}
                 <Link
                   href="/shipping"
@@ -482,6 +474,7 @@ const PaymentMethodSelectorComponent = ({
           </div>
         </div>
       )}
+
       <RadioGroup
         value={selectedPaymentMethod}
         onValueChange={value => {
@@ -491,9 +484,9 @@ const PaymentMethodSelectorComponent = ({
           if (selectedMethod?.disabled) return;
           onPaymentMethodChange(value);
         }}
-        className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+        className="grid gap-3"
       >
-        {paymentMethods.map((method, index) => {
+        {paymentMethods.map(method => {
           const isSelected = selectedPaymentMethod === method.id;
           const isDisabled = method.disabled === true;
           const colorConfig = getColorConfig(method.color);
@@ -504,17 +497,16 @@ const PaymentMethodSelectorComponent = ({
               key={method.id}
               htmlFor={`payment-${method.id}`}
               className={cn(
-                "group relative flex gap-3 px-4 py-4 transition-colors",
-                index !== paymentMethods.length - 1 &&
-                  "border-b border-slate-200",
+                "group relative flex gap-3 rounded-3xl border px-4 py-4 shadow-sm transition-all",
                 isDisabled
-                  ? "cursor-not-allowed bg-slate-50/80 opacity-85"
-                  : "cursor-pointer bg-white",
+                  ? "cursor-not-allowed border-slate-200 bg-slate-50/90 opacity-85"
+                  : "cursor-pointer bg-white/95",
                 !isDisabled &&
-                  (isSelected ? "bg-emerald-50/50" : "hover:bg-slate-50")
+                  (isSelected
+                    ? "border-emerald-300 ring-2 ring-emerald-100"
+                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/70")
               )}
             >
-              {/* Selection indicator - high contrast for visibility */}
               <div
                 className={cn(
                   "mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all",
@@ -534,7 +526,6 @@ const PaymentMethodSelectorComponent = ({
                 )}
               </div>
 
-              {/* Hidden radio input */}
               <RadioGroupItem
                 value={method.id}
                 id={`payment-${method.id}`}
@@ -545,7 +536,7 @@ const PaymentMethodSelectorComponent = ({
               <div className="flex flex-1 items-start gap-3.5">
                 <div
                   className={cn(
-                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors",
+                    "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-colors",
                     isDisabled
                       ? "bg-slate-100"
                       : isSelected
@@ -585,7 +576,7 @@ const PaymentMethodSelectorComponent = ({
                       )}
                     </div>
                     {method.fee && !isDisabled && (
-                      <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                      <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
                         {method.fee}
                       </span>
                     )}
@@ -614,15 +605,6 @@ const PaymentMethodSelectorComponent = ({
                       {providerStyles.label}
                     </span>
                   </div>
-
-                  {method.type === "saved_card" && (
-                    <p className="mt-1.5 text-xs font-medium text-slate-500">
-                      {
-                        savedCards.find(card => card.id === method.id)
-                          ?.cardholderName
-                      }
-                    </p>
-                  )}
                 </div>
               </div>
             </label>
@@ -630,15 +612,12 @@ const PaymentMethodSelectorComponent = ({
         })}
       </RadioGroup>
 
-      <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5">
-        <ShieldCheck className="h-4 w-4 text-emerald-600" />
-        <p className="text-xs font-medium text-emerald-800">
-          {t(
-            "securePayment",
-            "Plățile tale sunt protejate și criptate end-to-end"
-          )}
-        </p>
-      </div>
+      <p className="px-1 text-xs leading-relaxed text-slate-500">
+        {t(
+          "paymentMethodsFootnote",
+          "Metoda selectată este confirmată în pasul următor. Pentru ramburs, vezi întâi costurile și condițiile aferente."
+        )}
+      </p>
     </div>
   );
 };
