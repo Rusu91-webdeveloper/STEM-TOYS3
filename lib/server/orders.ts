@@ -47,6 +47,8 @@ export async function getOrders() {
       date: order.createdAt.toISOString(),
       deliveredAt: order.deliveredAt?.toISOString(),
       status: order.status.toLowerCase() as any,
+      paymentStatus: order.paymentStatus,
+      paymentMethod: order.paymentMethod,
       total: order.total,
       items: order.items.map(item => {
         const typedItem = item as OrderItem & {

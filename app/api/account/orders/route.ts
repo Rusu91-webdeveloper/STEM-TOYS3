@@ -119,6 +119,8 @@ export async function GET() {
         ? new Date(order.deliveredAt).toISOString()
         : undefined,
       status: order.status.toLowerCase(),
+      paymentStatus: order.paymentStatus,
+      paymentMethod: order.paymentMethod,
       total: order.total,
       items: order.items.map((item: any) => {
         // Handle both products and books

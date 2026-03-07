@@ -198,6 +198,15 @@ async function handleSuccessfulPayment(
       },
     });
 
+    if (order.paymentStatus !== "PAID") {
+      AdminNotificationService.sendNewOrderNotification(order.id).catch(err => {
+        console.error(
+          `❌ [STRIPE][WEBHOOK] Failed to send admin new order notification for order ${order.id}:`,
+          err
+        );
+      });
+    }
+
     // Verify payment status was updated before processing digital books
     // processDigitalBookOrder will also verify payment status as an additional safeguard
     if (hasDigitalItems) {

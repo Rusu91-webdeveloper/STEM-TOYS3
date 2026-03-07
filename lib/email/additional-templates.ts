@@ -7,6 +7,101 @@
 import { appConfig } from "@/lib/config/app-config";
 
 export const ADDITIONAL_EMAIL_TEMPLATES = [
+  {
+    id: "order-awaiting-payment",
+    name: "Order Awaiting Payment",
+    slug: "order-awaiting-payment",
+    subject: "Finalizează plata pentru comanda #{{order.number}} - TechTots",
+    content: `
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comandă în așteptarea plății</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 20px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">
+                ⏳ Comanda așteaptă plata
+            </h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">
+                Comanda #{{order.number}}
+            </p>
+        </div>
+
+        <div style="padding: 40px 20px;">
+            <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">
+                Salut, {{customerName}}!
+            </h2>
+
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                Am creat comanda ta, dar plata prin <strong>{{paymentMethodLabel}}</strong> nu a fost încă finalizată.
+                Dacă ai terminat deja plata, poți ignora acest email. Dacă nu, redeschide comanda și finalizează plata când dorești.
+            </p>
+
+            <div style="background-color: #fff7ed; border: 1px solid #fdba74; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <h3 style="color: #9a3412; margin: 0 0 15px 0; font-size: 18px;">
+                    📋 Rezumat comandă
+                </h3>
+                <p style="margin: 0 0 10px 0; color: #7c2d12;">
+                    <strong>Număr comandă:</strong> #{{order.number}}
+                </p>
+                <p style="margin: 0 0 10px 0; color: #7c2d12;">
+                    <strong>Total:</strong> {{order.total}}
+                </p>
+                <p style="margin: 0; color: #7c2d12;">
+                    <strong>Status:</strong> În așteptarea plății
+                </p>
+            </div>
+
+            <div style="background-color: #eff6ff; border-left: 4px solid #2563eb; padding: 18px 20px; margin: 24px 0; border-radius: 0 8px 8px 0;">
+                <p style="margin: 0; color: #1e3a8a; font-size: 15px; line-height: 1.6;">
+                    Poți relua plata în siguranță din contul tău. Nu este nevoie să refaci comanda.
+                </p>
+            </div>
+
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="{{orderUrl}}"
+                   style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">
+                    Finalizează plata
+                </a>
+            </div>
+
+            <p style="color: #6b7280; font-size: 14px; line-height: 1.6;">
+                Dacă întâmpini probleme, răspunde la acest email sau contactează-ne la
+                <a href="mailto:${appConfig.supportEmail}" style="color: #2563eb; text-decoration: none;">${appConfig.supportEmail}</a>.
+            </p>
+        </div>
+
+        <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                <strong>TechTots STEM Store</strong><br>
+                ${appConfig.fullAddress} | ${appConfig.storePhoneFormatted}
+            </p>
+        </div>
+    </div>
+</body>
+</html>`,
+    variables: [
+      "customerName",
+      "order.number",
+      "order.total",
+      "paymentMethodLabel",
+      "orderUrl",
+    ],
+    category: "orders",
+    isActive: true,
+    createdBy: "system",
+    metadata: {
+      tags: ["order", "payment", "pending"],
+      priority: 1,
+      estimatedOpenRate: 0.9,
+      description: "Notifică clientul că o comandă a fost creată dar plata nu a fost finalizată încă",
+    },
+  },
+
   // ADMIN TEMPLATES
   {
     id: "admin-new-order",

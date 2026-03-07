@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import type { CartItem } from "@/features/cart/context/CartContext";
 import { auth } from "@/lib/auth";
+import { shouldSendImmediateAdminOrderNotification } from "@/lib/checkout/admin-order-notifications";
 import { COD_CONSENT_VERSION } from "@/lib/checkout/cod-consent";
 import { formatCodGuaranteeAuthorizationNote } from "@/lib/checkout/cod-guarantee";
 import {
@@ -1966,7 +1967,16 @@ export async function POST(request: Request) {
       try {
         const notificationSettings = await getNotificationSettings();
 
-        if (dbOrder?.id) {
+        const shouldSendAdminNewOrderNotification =
+          dbOrder?.id &&
+          shouldSendImmediateAdminOrderNotification({
+            isCODPayment,
+            isNetopiaPayment,
+            requiresOnlineAuthorization,
+            stripePaymentIntentStatus: stripePaymentIntent?.status,
+          });
+
+        if (shouldSendAdminNewOrderNotification && dbOrder?.id) {
           AdminNotificationService.sendNewOrderNotification(dbOrder.id).catch(
             err => {
               console.error(
@@ -1974,6 +1984,10 @@ export async function POST(request: Request) {
                 err
               );
             }
+          );
+        } else if (dbOrder?.id) {
+          console.log(
+            `ℹ️ Order ${dbOrder.id}: deferring admin new order notification until payment is verified`
           );
         }
 

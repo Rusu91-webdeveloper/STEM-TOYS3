@@ -328,6 +328,20 @@ export async function POST(request: Request) {
             "✅ [WEBHOOK] Payment successful and verified - processing order fulfillment"
           );
 
+          if (orderBeforeUpdate.paymentStatus !== "PAID") {
+            const { AdminNotificationService } = await import(
+              "@/lib/email/admin-notification-service"
+            );
+            AdminNotificationService.sendNewOrderNotification(
+              resolvedOrderId
+            ).catch(err => {
+              console.error(
+                `❌ [WEBHOOK] Failed to send admin new order notification for ${resolvedOrderId}:`,
+                err
+              );
+            });
+          }
+
           const hasPhysicalItems = updatedOrder.items.some(
             item => item.isDigital !== true
           );

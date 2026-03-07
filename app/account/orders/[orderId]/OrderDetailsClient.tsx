@@ -1,13 +1,27 @@
 "use client";
 
-import { ArrowLeft, Package, Star, Truck, Check, FileText } from "lucide-react";
+import {
+  ArrowLeft,
+  Package,
+  Star,
+  Truck,
+  Check,
+  FileText,
+  CreditCard,
+  Loader2,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  canRetryCustomerOrderPayment,
+  getCustomerOrderStatusKey,
+} from "@/lib/orders/customer-order-display";
 import { Separator } from "@/components/ui/separator";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
@@ -73,25 +87,33 @@ interface OrderDetailsClientProps {
 export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
+  const displayStatus = getCustomerOrderStatusKey(order);
+  const canRetryPayment = canRetryCustomerOrderPayment(order);
 
   // Helper function to format payment method for display
   const formatPaymentMethod = (method: string) => {
-    switch (method) {
-      case "cash_on_delivery":
-      case "cod":
-        return t("cashOnDelivery") || "Cash on Delivery";
-      case "stripe":
-        return "Card (Stripe)";
-      case "netopia":
-        return "Card (Netopia)";
-      default:
-        return method;
+    const normalizedMethod = method.toLowerCase();
+    if (
+      normalizedMethod === "cash_on_delivery" ||
+      normalizedMethod === "cod"
+    ) {
+      return t("cashOnDelivery") || "Cash on Delivery";
     }
+    if (normalizedMethod.includes("stripe")) {
+      return "Card (Stripe)";
+    }
+    if (normalizedMethod.includes("netopia")) {
+      return "Card (Netopia)";
+    }
+    return method;
   };
 
   // Helper function to get status badge variant
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
+      case "PENDING_REVIEW":
+        return "bg-amber-100 text-amber-800 hover:bg-amber-100";
       case "PROCESSING":
         return "bg-blue-100 text-blue-800 hover:bg-blue-100";
       case "SHIPPED":
@@ -136,6 +158,43 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
   // Safe translation function that handles dynamic keys
   const safeT = (key: string, defaultValue?: string) => t(key, defaultValue);
 
+  const handleRetryPayment = async () => {
+    try {
+      setIsRetryingPayment(true);
+
+      const response = await fetch(
+        `/api/account/orders/${order.id}/retry-payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok || !payload.paymentUrl) {
+        throw new Error(
+          payload.error ||
+            "Nu am putut redeschide sesiunea de plată pentru această comandă."
+        );
+      }
+
+      window.location.href = payload.paymentUrl;
+    } catch (error) {
+      toast({
+        title: "Nu am putut relua plata",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Încearcă din nou în câteva momente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRetryingPayment(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -158,9 +217,13 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
           </div>
           <div className="space-x-2">
             <Badge
-              className={`${getStatusBadgeVariant(order.status)} capitalize`}
+              className={`${getStatusBadgeVariant(
+                displayStatus === "awaiting_payment" ? "PENDING_REVIEW" : order.status
+              )} capitalize`}
             >
-              {safeT(order.status.toLowerCase())}
+              {displayStatus === "awaiting_payment"
+                ? "Așteaptă plata"
+                : safeT(order.status.toLowerCase())}
             </Badge>
             <Badge
               className={`${getPaymentStatusBadgeVariant(
@@ -174,7 +237,35 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
       </div>
 
       {/* Order progress (for non-cancelled orders) */}
-      {order.status !== "CANCELLED" && (
+      {displayStatus === "awaiting_payment" && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-amber-900">
+              <CreditCard className="h-5 w-5" />
+              Plata nu este finalizată încă
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm text-amber-900">
+            <p>
+              Comanda a fost creată, dar plata online nu a fost confirmată. Poți relua plata fără să refaci produsele din coș.
+            </p>
+            <Button
+              onClick={handleRetryPayment}
+              disabled={isRetryingPayment || !canRetryPayment}
+              className="bg-amber-500 text-slate-950 hover:bg-amber-400"
+            >
+              {isRetryingPayment ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="mr-2 h-4 w-4" />
+              )}
+              Finalizează plata
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {order.status !== "CANCELLED" && displayStatus !== "awaiting_payment" && (
         <div className="py-4">
           <div className="flex items-center justify-between mb-2">
             <div className="text-sm font-medium">{t("orderPlaced")}</div>
@@ -439,9 +530,28 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                       : "text-amber-600"
                   }
                 >
-                  {safeT(order.paymentStatus.toLowerCase())}
+                  {displayStatus === "awaiting_payment"
+                    ? "Așteaptă plata"
+                    : safeT(order.paymentStatus.toLowerCase())}
                 </span>
               </p>
+              {canRetryPayment && (
+                <div className="pt-4">
+                  <Button
+                    onClick={handleRetryPayment}
+                    disabled={isRetryingPayment}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {isRetryingPayment ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <CreditCard className="mr-2 h-4 w-4" />
+                    )}
+                    Finalizează plata
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>

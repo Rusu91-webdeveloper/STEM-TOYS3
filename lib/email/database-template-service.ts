@@ -394,6 +394,31 @@ export class DatabaseTemplateService {
     });
   }
 
+  static async sendOrderAwaitingPaymentEmail(
+    to: string,
+    orderData: {
+      customerName: string;
+      orderNumber: string;
+      orderTotal: number;
+      paymentMethodLabel: string;
+      orderUrl: string;
+    }
+  ): Promise<{ success: boolean; error?: string; messageId?: string }> {
+    return this.sendEmailWithTemplate({
+      to,
+      templateSlug: "order-awaiting-payment",
+      data: {
+        customerName: orderData.customerName,
+        paymentMethodLabel: orderData.paymentMethodLabel,
+        orderUrl: orderData.orderUrl,
+        order: {
+          number: orderData.orderNumber,
+          total: `${orderData.orderTotal.toFixed(2)} RON`,
+        },
+      },
+    });
+  }
+
   /**
    * Send return confirmation email using database template
    */

@@ -1,11 +1,12 @@
 "use client";
 
-import { Package, Eye, ArrowRight, ShoppingBag } from "lucide-react";
+import { Package, Eye, ArrowRight, ShoppingBag, Loader2, CreditCard } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 import {
   Card,
   CardContent,
@@ -28,10 +29,18 @@ import {
   RETURN_WINDOW_LABEL_RO,
   isWithinReturnWindowForOrder,
 } from "@/lib/returns/policy";
+import {
+  canRetryCustomerOrderPayment,
+  getCustomerOrderStatusKey,
+} from "@/lib/orders/customer-order-display";
 import { cn, formatDate } from "@/lib/utils";
 
-// Define order status type
-type OrderStatus = "processing" | "shipped" | "delivered" | "cancelled";
+type OrderStatus =
+  | "awaiting_payment"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
 // Define order item type
 export interface OrderItem {
@@ -53,7 +62,9 @@ export interface Order {
   orderNumber: string;
   date: string;
   deliveredAt?: string;
-  status: OrderStatus;
+  status: string;
+  paymentStatus: string;
+  paymentMethod: string;
   total: number;
   items: OrderItem[];
   shippingAddress: {
@@ -73,6 +84,8 @@ interface OrderHistoryProps {
 // Helper to determine badge styling for statuses
 const getStatusBadgeClasses = (status: OrderStatus) => {
   switch (status) {
+    case "awaiting_payment":
+      return "border-amber-300/40 bg-amber-500/20 text-amber-50";
     case "processing":
       return "border-sky-400/40 bg-sky-500/20 text-sky-100";
     case "shipped":
@@ -83,6 +96,23 @@ const getStatusBadgeClasses = (status: OrderStatus) => {
       return "border-rose-400/40 bg-rose-500/20 text-rose-100";
     default:
       return "border-white/20 bg-white/10 text-slate-100";
+  }
+};
+
+const getStatusLabel = (status: OrderStatus) => {
+  switch (status) {
+    case "awaiting_payment":
+      return "Așteaptă plata";
+    case "processing":
+      return "În procesare";
+    case "shipped":
+      return "Expediat";
+    case "delivered":
+      return "Livrat";
+    case "cancelled":
+      return "Anulat";
+    default:
+      return status;
   }
 };
 
@@ -102,6 +132,11 @@ const hasReturnableItems = (order: Order) =>
 
 const TABS = [
   { value: "all", labelKey: "all", fallback: "Toate" },
+  {
+    value: "awaiting_payment",
+    labelKey: "awaitingPayment",
+    fallback: "Așteaptă plata",
+  },
   { value: "processing", labelKey: "processing", fallback: "În procesare" },
   { value: "shipped", labelKey: "shipped", fallback: "Expediat" },
   { value: "delivered", labelKey: "delivered", fallback: "Livrat" },
@@ -113,11 +148,52 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
   const { formatPrice } = useCurrency();
   const [orders] = useState<Order[]>(initialOrders);
   const [activeTab, setActiveTab] = useState<string>("all");
+  const [retryingOrderId, setRetryingOrderId] = useState<string | null>(null);
 
   const filteredOrders =
     activeTab === "all"
       ? orders
-      : orders.filter(order => order.status === activeTab);
+      : orders.filter(
+          order =>
+            getCustomerOrderStatusKey(order) === activeTab
+        );
+
+  const handleRetryPayment = async (orderId: string) => {
+    try {
+      setRetryingOrderId(orderId);
+
+      const response = await fetch(
+        `/api/account/orders/${orderId}/retry-payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.paymentUrl) {
+        throw new Error(
+          payload.error ||
+            "Nu am putut redeschide sesiunea de plată. Încearcă din nou."
+        );
+      }
+
+      window.location.href = payload.paymentUrl;
+    } catch (error) {
+      toast({
+        title: "Nu am putut relua plata",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Încearcă din nou peste câteva momente.",
+        variant: "destructive",
+      });
+    } finally {
+      setRetryingOrderId(null);
+    }
+  };
 
   if (orders.length === 0) {
     return (
@@ -163,7 +239,7 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
         <TabsList
           className={cn(
             glassPanelClass,
-            "mb-6 grid grid-cols-2 gap-1 border-white/10 bg-slate-900/70 p-1 sm:grid-cols-3 md:grid-cols-5"
+            "mb-6 grid grid-cols-2 gap-1 border-white/10 bg-slate-900/70 p-1 sm:grid-cols-3 md:grid-cols-6"
           )}
         >
           {TABS.map(tab => (
@@ -198,7 +274,12 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
             </div>
           ) : (
             filteredOrders.map(order => {
-              const statusClasses = getStatusBadgeClasses(order.status);
+              const displayStatus = getCustomerOrderStatusKey(
+                order
+              ) as OrderStatus;
+              const statusClasses = getStatusBadgeClasses(displayStatus);
+              const canRetryPayment = canRetryCustomerOrderPayment(order);
+              const isRetrying = retryingOrderId === order.id;
 
               return (
                 <Card
@@ -226,7 +307,9 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                           statusClasses
                         )}
                       >
-                        {t(order.status, order.status)}
+                        {displayStatus === "awaiting_payment"
+                          ? getStatusLabel(displayStatus)
+                          : t(displayStatus, getStatusLabel(displayStatus))}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -283,7 +366,13 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                       </div>
                     </div>
 
-                    {order.status === "delivered" && order.items.some(item => !item.isDigital) && (
+                    {displayStatus === "awaiting_payment" && (
+                      <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-50">
+                        Comanda a fost creată, dar plata online nu este încă finalizată. Poți relua plata fără să refaci comanda.
+                      </div>
+                    )}
+
+                    {displayStatus === "delivered" && order.items.some(item => !item.isDigital) && (
                       <div className="mt-4 rounded-2xl border border-sky-400/20 bg-sky-500/10 p-3 text-xs text-sky-100">
                         <p>
                           Retur disponibil în <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la livrare.
@@ -295,24 +384,42 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                   </CardContent>
 
                   <CardFooter className="flex flex-col gap-2 px-4 pb-4 sm:flex-row sm:justify-between sm:px-6 sm:pb-6">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      asChild
-                      className="h-9 w-full border-white/20 bg-white/10 text-xs text-slate-100 transition hover:border-white/30 hover:bg-white/15 sm:h-10 sm:w-auto sm:text-sm"
-                    >
-                      <Link href={`/account/orders/${order.id}`}>
-                        <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                        {t("viewDetails", "View Details")}
-                      </Link>
-                    </Button>
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                        className="h-9 w-full border-white/20 bg-white/10 text-xs text-slate-100 transition hover:border-white/30 hover:bg-white/15 sm:h-10 sm:w-auto sm:text-sm"
+                      >
+                        <Link href={`/account/orders/${order.id}`}>
+                          <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                          {t("viewDetails", "View Details")}
+                        </Link>
+                      </Button>
+
+                      {canRetryPayment && (
+                        <Button
+                          size="sm"
+                          disabled={isRetrying}
+                          onClick={() => handleRetryPayment(order.id)}
+                          className="h-9 w-full bg-amber-500 text-xs text-slate-950 transition hover:bg-amber-400 sm:h-10 sm:w-auto sm:text-sm"
+                        >
+                          {isRetrying ? (
+                            <Loader2 className="mr-2 h-3 w-3 animate-spin sm:h-4 sm:w-4" />
+                          ) : (
+                            <CreditCard className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                          )}
+                          Finalizează plata
+                        </Button>
+                      )}
+                    </div>
 
                     {/* Return Items Button - Active only when:
                         1. Order is delivered
                         2. Within 14-day return window
                         3. Has items that can be returned (non-digital, no existing return request)
                     */}
-                    {order.status === "delivered" &&
+                    {displayStatus === "delivered" &&
                       isWithinReturnWindow(order) &&
                       hasReturnableItems(order) && (
                         <Button
@@ -329,7 +436,7 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                       )}
 
                     {/* Disabled Return Button - When 14-day window expired */}
-                    {order.status === "delivered" &&
+                    {displayStatus === "delivered" &&
                       !isWithinReturnWindow(order) &&
                       order.items.some(item => !item.isDigital) && (
                         <Button
@@ -344,7 +451,7 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                       )}
 
                     {/* Disabled Return Button - When all items already have return requests */}
-                    {order.status === "delivered" &&
+                    {displayStatus === "delivered" &&
                       isWithinReturnWindow(order) &&
                       order.items.some(item => !item.isDigital) &&
                       !hasReturnableItems(order) && (

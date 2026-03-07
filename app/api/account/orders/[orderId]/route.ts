@@ -48,6 +48,7 @@ export async function GET(
       orderNumber: order.orderNumber,
       status: order.status,
       paymentStatus: order.paymentStatus,
+      paymentMethod: order.paymentMethod,
       createdAt: order.createdAt,
       deliveredAt: (order as any).deliveredAt || null,
       items: order.items.map(item => ({
