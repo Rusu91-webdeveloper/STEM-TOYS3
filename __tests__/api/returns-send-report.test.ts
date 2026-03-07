@@ -43,13 +43,20 @@ const buildReturnRecord = () => ({
     orderNumber: "ORD-1001",
     createdAt: new Date("2026-03-01T10:00:00.000Z"),
     deliveredAt: new Date("2026-03-04T10:00:00.000Z"),
+    trackingNumber: "AWB123456",
+    carrier: "FANCOURIER",
+    shipments: [
+      {
+        awbNumber: "AWB123456",
+        courier: "FANCOURIER",
+      },
+    ],
     shippingAddress: {
       addressLine1: "Str. Memorandumului 10",
       city: "Cluj-Napoca",
       state: "Cluj",
       postalCode: "400114",
     },
-    awbNumber: "AWB123456",
   },
   orderItem: {
     name: "Robot STEM",

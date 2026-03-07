@@ -17,6 +17,17 @@ const reasonLabelsRo: Record<string, string> = {
   OTHER: "Alt motiv",
 };
 
+function resolveOrderAwb(order: {
+  trackingNumber?: string | null;
+  shipments?: Array<{ awbNumber?: string | null }> | null;
+}) {
+  return (
+    order.trackingNumber ||
+    order.shipments?.find(shipment => shipment.awbNumber?.trim())?.awbNumber ||
+    null
+  );
+}
+
 // Generate supplier email HTML template
 function generateSupplierEmailTemplate(data: {
   returnId: string;
@@ -406,7 +417,18 @@ export async function POST(
             createdAt: true,
             deliveredAt: true,
             shippingAddress: true,
-            awbNumber: true,
+            trackingNumber: true,
+            carrier: true,
+            shipments: {
+              select: {
+                awbNumber: true,
+                courier: true,
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+              take: 5,
+            },
           },
         },
         orderItem: {
@@ -456,6 +478,7 @@ export async function POST(
     let recipientEmail: string;
     let emailSubject: string;
     let emailHtml: string;
+    const awbNumber = resolveOrderAwb(returnData.order);
 
     if (recipientType === "supplier") {
       const supplierEmail =
@@ -477,7 +500,7 @@ export async function POST(
       emailHtml = generateSupplierEmailTemplate({
         returnId: returnData.id,
         orderNumber: returnData.order.orderNumber,
-        awbNumber: (returnData.order as any).awbNumber || undefined,
+        awbNumber: awbNumber || undefined,
         productName: returnData.orderItem.name,
         productSku: returnData.orderItem.product?.sku || "",
         quantity: returnData.orderItem.quantity,
@@ -509,11 +532,11 @@ export async function POST(
         ? `${addr.addressLine1}${addr.addressLine2 ? ", " + addr.addressLine2 : ""}, ${addr.city}, ${addr.state}, ${addr.postalCode}`
         : "Adresă indisponibilă";
 
-      emailSubject = `Reclamație Colet Deteriorat - AWB: ${(returnData.order as any).awbNumber || "N/A"} - Comandă #${returnData.order.orderNumber}`;
+      emailSubject = `Reclamație Colet Deteriorat - AWB: ${awbNumber || "N/A"} - Comandă #${returnData.order.orderNumber}`;
       emailHtml = generateCourierEmailTemplate({
         returnId: returnData.id,
         orderNumber: returnData.order.orderNumber,
-        awbNumber: (returnData.order as any).awbNumber,
+        awbNumber: awbNumber || undefined,
         productName: returnData.orderItem.name,
         productSku: returnData.orderItem.product?.sku || "",
         quantity: returnData.orderItem.quantity,
