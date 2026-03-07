@@ -64,6 +64,10 @@ export async function GET(request: Request) {
         supplierAuthorizationRequestedAt: true,
         supplierAuthorizationNumber: true,
         supplierAuthorizationNotes: true,
+        sentToSupplierAt: true,
+        sentToCourierAt: true,
+        supplierMessageId: true,
+        courierMessageId: true,
         user: {
           select: {
             id: true,
@@ -130,6 +134,10 @@ export async function GET(request: Request) {
           supplierAuthorizationRequestedAt: true,
           supplierAuthorizationNumber: true,
           supplierAuthorizationNotes: true,
+          sentToSupplierAt: true,
+          sentToCourierAt: true,
+          supplierMessageId: true,
+          courierMessageId: true,
           user: {
             select: {
               id: true,

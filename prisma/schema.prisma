@@ -712,6 +712,10 @@ model Return {
   supplierAuthorizationRequestedAt DateTime?
   supplierAuthorizationNumber      String? // ARP/RMA number from supplier
   supplierAuthorizationNotes       String?
+  sentToSupplierAt                 DateTime?
+  sentToCourierAt                  DateTime?
+  supplierMessageId                String?
+  courierMessageId                 String?
   order                            Order               @relation(fields: [orderId], references: [id])
   orderItem                        OrderItem           @relation(fields: [orderItemId], references: [id])
   user                             User                @relation(fields: [userId], references: [id])

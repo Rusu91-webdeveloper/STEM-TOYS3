@@ -21,6 +21,7 @@ const reasonLabelsRo: Record<string, string> = {
 function generateSupplierEmailTemplate(data: {
   returnId: string;
   orderNumber: string;
+  awbNumber?: string;
   productName: string;
   productSku: string;
   quantity: number;
@@ -97,6 +98,10 @@ function generateSupplierEmailTemplate(data: {
                 <td style="padding: 10px 0; color: #991b1b; font-weight: 600; vertical-align: top;">Data Comandă:</td>
                 <td style="padding: 10px 0; color: #1f2937;">${data.orderDate}</td>
               </tr>
+              <tr>
+                <td style="padding: 10px 0; color: #991b1b; font-weight: 600; vertical-align: top;">Nr. AWB:</td>
+                <td style="padding: 10px 0; color: #1f2937; font-family: monospace;">${data.awbNumber || "Indisponibil"}</td>
+              </tr>
             </table>
           </div>
           
@@ -162,7 +167,7 @@ function generateSupplierEmailTemplate(data: {
               Cu respect,<br><br>
               <strong>${data.storeName}</strong><br>
               📧 ${data.storeEmail}<br>
-              📞 ${cfg.storePhoneFormatted}<br>
+              📞 ${data.storePhone}<br>
               📍 ${data.storeAddress}
             </p>
           </div>
@@ -186,7 +191,9 @@ function generateCourierEmailTemplate(data: {
   orderNumber: string;
   awbNumber?: string;
   productName: string;
+  productSku: string;
   quantity: number;
+  orderDate: string;
   deliveryDate?: string;
   reason: string;
   reasonLabel: string;
@@ -266,6 +273,10 @@ function generateCourierEmailTemplate(data: {
                 <td style="padding: 10px 0; color: #1f2937;">${data.deliveryDate || "A se verifica în sistem"}</td>
               </tr>
               <tr>
+                <td style="padding: 10px 0; color: #991b1b; font-weight: 600; vertical-align: top;">Data Comandă:</td>
+                <td style="padding: 10px 0; color: #1f2937;">${data.orderDate}</td>
+              </tr>
+              <tr>
                 <td style="padding: 10px 0; color: #991b1b; font-weight: 600; vertical-align: top;">Destinatar:</td>
                 <td style="padding: 10px 0; color: #1f2937;">${data.customerName}</td>
               </tr>
@@ -285,6 +296,10 @@ function generateCourierEmailTemplate(data: {
               <tr>
                 <td style="padding: 10px 0; color: #1e40af; font-weight: 600; width: 40%; vertical-align: top;">Produs:</td>
                 <td style="padding: 10px 0; color: #1f2937; font-weight: 600;">${data.productName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; color: #1e40af; font-weight: 600; vertical-align: top;">Cod SKU:</td>
+                <td style="padding: 10px 0; color: #1f2937; font-family: monospace;">${data.productSku || "N/A"}</td>
               </tr>
               <tr>
                 <td style="padding: 10px 0; color: #1e40af; font-weight: 600; vertical-align: top;">Cantitate:</td>
@@ -331,7 +346,7 @@ function generateCourierEmailTemplate(data: {
               <strong>${data.storeLegalName}</strong><br>
               CUI: ${data.storeCUI}<br>
               📧 ${data.storeEmail}<br>
-              📞 ${cfg.storePhoneFormatted}<br>
+              📞 ${data.storePhone}<br>
               📍 ${data.storeAddress}
             </p>
           </div>
@@ -404,6 +419,15 @@ export async function POST(
                 name: true,
                 sku: true,
                 images: true,
+                supplier: {
+                  select: {
+                    id: true,
+                    name: true,
+                    companyName: true,
+                    email: true,
+                    contactPersonEmail: true,
+                  },
+                },
               },
             },
           },
@@ -420,7 +444,7 @@ export async function POST(
 
     // Load store config from database (with env var fallbacks)
     const cfg = await getAppConfig();
-    const supplierEmail = process.env.SUPPLIER_EMAIL;
+    const fallbackSupplierEmail = process.env.SUPPLIER_EMAIL;
     const courierEmail = process.env.COURIER_CLAIMS_EMAIL;
     const storeName = cfg.storeName;
     const storeLegalName = process.env.STORE_LEGAL_NAME || cfg.legalName;
@@ -434,9 +458,17 @@ export async function POST(
     let emailHtml: string;
 
     if (recipientType === "supplier") {
+      const supplierEmail =
+        returnData.orderItem.product?.supplier?.contactPersonEmail ||
+        returnData.orderItem.product?.supplier?.email ||
+        fallbackSupplierEmail;
+
       if (!supplierEmail) {
         return NextResponse.json(
-          { error: "Email furnizor nu este configurat. Adăugați SUPPLIER_EMAIL în .env.local" },
+          {
+            error:
+              "Nu există email configurat pentru furnizorul produsului. Adăugați contactPersonEmail/email pe furnizor sau SUPPLIER_EMAIL în .env.local",
+          },
           { status: 400 }
         );
       }
@@ -445,6 +477,7 @@ export async function POST(
       emailHtml = generateSupplierEmailTemplate({
         returnId: returnData.id,
         orderNumber: returnData.order.orderNumber,
+        awbNumber: (returnData.order as any).awbNumber || undefined,
         productName: returnData.orderItem.name,
         productSku: returnData.orderItem.product?.sku || "",
         quantity: returnData.orderItem.quantity,
@@ -482,7 +515,11 @@ export async function POST(
         orderNumber: returnData.order.orderNumber,
         awbNumber: (returnData.order as any).awbNumber,
         productName: returnData.orderItem.name,
+        productSku: returnData.orderItem.product?.sku || "",
         quantity: returnData.orderItem.quantity,
+        orderDate: format(new Date(returnData.order.createdAt), "dd MMMM yyyy", {
+          locale: ro,
+        }),
         deliveryDate: returnData.order.deliveredAt 
           ? format(new Date(returnData.order.deliveredAt), "dd MMMM yyyy", { locale: ro })
           : undefined,
@@ -516,12 +553,36 @@ export async function POST(
       );
     }
 
+    const auditUpdate =
+      recipientType === "supplier"
+        ? {
+            sentToSupplierAt: new Date(),
+            supplierMessageId: result.messageId || null,
+          }
+        : {
+            sentToCourierAt: new Date(),
+            courierMessageId: result.messageId || null,
+          };
+
+    const updatedReturn = await prisma.return.update({
+      where: { id: returnId },
+      data: auditUpdate,
+      select: {
+        id: true,
+        sentToSupplierAt: true,
+        sentToCourierAt: true,
+        supplierMessageId: true,
+        courierMessageId: true,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       message: recipientType === "supplier" 
-        ? `Raport trimis cu succes către furnizor (${recipientEmail})`
+        ? `Raport trimis cu succes către ${recipientEmail}`
         : `Reclamație trimisă cu succes către curier (${recipientEmail})`,
       messageId: result.messageId,
+      audit: updatedReturn,
     });
   } catch (error) {
     console.error("Error sending return report:", error);

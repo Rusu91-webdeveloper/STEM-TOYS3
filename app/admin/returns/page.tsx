@@ -151,6 +151,10 @@ interface ReturnItem {
   supplierAuthorizationRequestedAt?: string | null;
   supplierAuthorizationNumber?: string | null;
   supplierAuthorizationNotes?: string | null;
+  sentToSupplierAt?: string | null;
+  sentToCourierAt?: string | null;
+  supplierMessageId?: string | null;
+  courierMessageId?: string | null;
   user: {
     id: string;
     name: string;
@@ -695,6 +699,14 @@ export default function AdminReturnsPage() {
 
       if (!response.ok) {
         throw new Error(data.error || "Trimiterea a eșuat");
+      }
+
+      if (data?.audit) {
+        const mergedReturn = {
+          ...selectedReturnForDetails,
+          ...data.audit,
+        };
+        applyUpdatedReturn(mergedReturn);
       }
 
       toast({
@@ -1804,6 +1816,35 @@ export default function AdminReturnsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col sm:flex-row gap-3">
+                  {(selectedReturnForDetails.sentToSupplierAt ||
+                    selectedReturnForDetails.sentToCourierAt) && (
+                    <div className="w-full rounded-md border border-blue-200 bg-white/80 p-3 text-sm text-slate-700">
+                      {selectedReturnForDetails.sentToSupplierAt && (
+                        <p>
+                          Ultimul raport la furnizor:{" "}
+                          {format(
+                            new Date(selectedReturnForDetails.sentToSupplierAt),
+                            "dd MMM yyyy, HH:mm"
+                          )}
+                          {selectedReturnForDetails.supplierMessageId
+                            ? ` | ID mesaj: ${selectedReturnForDetails.supplierMessageId}`
+                            : ""}
+                        </p>
+                      )}
+                      {selectedReturnForDetails.sentToCourierAt && (
+                        <p>
+                          Ultima reclamație la curier:{" "}
+                          {format(
+                            new Date(selectedReturnForDetails.sentToCourierAt),
+                            "dd MMM yyyy, HH:mm"
+                          )}
+                          {selectedReturnForDetails.courierMessageId
+                            ? ` | ID mesaj: ${selectedReturnForDetails.courierMessageId}`
+                            : ""}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <Button
                     variant="outline"
                     className="flex-1 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700"
