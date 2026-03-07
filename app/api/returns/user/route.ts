@@ -17,7 +17,14 @@ export async function GET(request: Request) {
       where: {
         userId,
       },
-      include: {
+      select: {
+        id: true,
+        reason: true,
+        details: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        photos: true,
         order: {
           select: {
             orderNumber: true,
@@ -40,7 +47,6 @@ export async function GET(request: Request) {
             },
           },
         },
-        photos: true,
       },
       orderBy: {
         createdAt: "desc",
