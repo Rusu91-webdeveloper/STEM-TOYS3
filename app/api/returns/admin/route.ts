@@ -68,6 +68,24 @@ export async function GET(request: Request) {
         sentToCourierAt: true,
         supplierMessageId: true,
         courierMessageId: true,
+        liability: true,
+        resolutionStatus: true,
+        externalClaimDeadline: true,
+        resolutionNotes: true,
+        reportLogs: {
+          select: {
+            id: true,
+            recipientType: true,
+            recipientEmail: true,
+            messageId: true,
+            emailSubject: true,
+            sentAt: true,
+          },
+          orderBy: {
+            sentAt: "desc",
+          },
+          take: 10,
+        },
         user: {
           select: {
             id: true,
@@ -138,6 +156,24 @@ export async function GET(request: Request) {
           sentToCourierAt: true,
           supplierMessageId: true,
           courierMessageId: true,
+          liability: true,
+          resolutionStatus: true,
+          externalClaimDeadline: true,
+          resolutionNotes: true,
+          reportLogs: {
+            select: {
+              id: true,
+              recipientType: true,
+              recipientEmail: true,
+              messageId: true,
+              emailSubject: true,
+              sentAt: true,
+            },
+            orderBy: {
+              sentAt: "desc",
+            },
+            take: 10,
+          },
           user: {
             select: {
               id: true,

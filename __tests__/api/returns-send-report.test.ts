@@ -2,9 +2,13 @@
  * @jest-environment node
  */
 
+export {};
+
 const mockAuth = jest.fn();
 const mockFindUnique = jest.fn();
 const mockUpdate = jest.fn();
+const mockCreateReportLog = jest.fn();
+const mockTransaction = jest.fn();
 const mockGetAppConfig = jest.fn();
 const mockSendEmail = jest.fn();
 
@@ -14,9 +18,13 @@ jest.mock("@/lib/auth", () => ({
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
+    $transaction: (...args: unknown[]) => mockTransaction(...args),
     return: {
       findUnique: (...args: unknown[]) => mockFindUnique(...args),
       update: (...args: unknown[]) => mockUpdate(...args),
+    },
+    returnReportLog: {
+      create: (...args: unknown[]) => mockCreateReportLog(...args),
     },
   },
 }));
@@ -34,6 +42,8 @@ const buildReturnRecord = () => ({
   reason: "DAMAGED_OR_DEFECTIVE",
   details: "Colțul cutiei este rupt și produsul zgâriat.",
   photos: ["https://utfs.io/f/example-1"],
+  liability: "UNDECIDED",
+  resolutionStatus: "OPEN",
   user: {
     name: "Ana Popescu",
     email: "ana@example.com",
@@ -113,13 +123,44 @@ describe("POST /api/returns/[returnId]/send-report", () => {
       success: true,
       messageId: "msg_123",
     });
+    mockCreateReportLog.mockResolvedValue({
+      id: "log_1",
+    });
     mockUpdate.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
       id: "ret_1",
       sentToSupplierAt: data.sentToSupplierAt || null,
       sentToCourierAt: data.sentToCourierAt || null,
       supplierMessageId: data.supplierMessageId || null,
       courierMessageId: data.courierMessageId || null,
+      liability: data.liability || "UNDECIDED",
+      resolutionStatus: data.resolutionStatus || "OPEN",
+      externalClaimDeadline: null,
+      resolutionNotes: null,
+      reportLogs: [
+        {
+          id: "log_1",
+          recipientType:
+            data.sentToSupplierAt ? "SUPPLIER" : "COURIER",
+          recipientEmail:
+            data.sentToSupplierAt
+              ? "returns@supplier-one.ro"
+              : "claims@courier.test",
+          messageId: "msg_123",
+          emailSubject: "subject",
+          sentAt: new Date("2026-03-07T12:00:00.000Z").toISOString(),
+        },
+      ],
     }));
+    mockTransaction.mockImplementation(async (callback: any) =>
+      callback({
+        return: {
+          update: mockUpdate,
+        },
+        returnReportLog: {
+          create: mockCreateReportLog,
+        },
+      })
+    );
   });
 
   afterAll(() => {
@@ -149,6 +190,9 @@ describe("POST /api/returns/[returnId]/send-report", () => {
     expect(payload.success).toBe(true);
     expect(payload.audit.supplierMessageId).toBe("msg_123");
     expect(payload.audit.sentToSupplierAt).toBeDefined();
+    expect(payload.audit.liability).toBe("SUPPLIER");
+    expect(payload.audit.resolutionStatus).toBe("WAITING_SUPPLIER");
+    expect(payload.audit.reportLogs).toHaveLength(1);
     expect(mockSendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "returns@supplier-one.ro",
@@ -162,6 +206,17 @@ describe("POST /api/returns/[returnId]/send-report", () => {
         data: expect.objectContaining({
           supplierMessageId: "msg_123",
           sentToSupplierAt: expect.any(Date),
+          liability: "SUPPLIER",
+          resolutionStatus: "WAITING_SUPPLIER",
+        }),
+      })
+    );
+    expect(mockCreateReportLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          recipientType: "SUPPLIER",
+          recipientEmail: "returns@supplier-one.ro",
+          messageId: "msg_123",
         }),
       })
     );
@@ -194,6 +249,9 @@ describe("POST /api/returns/[returnId]/send-report", () => {
     expect(payload.success).toBe(true);
     expect(payload.audit.courierMessageId).toBe("msg_123");
     expect(payload.audit.sentToCourierAt).toBeDefined();
+    expect(payload.audit.liability).toBe("COURIER");
+    expect(payload.audit.resolutionStatus).toBe("WAITING_COURIER");
+    expect(payload.audit.reportLogs).toHaveLength(1);
     expect(mockSendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "claims@courier.test",
@@ -206,6 +264,17 @@ describe("POST /api/returns/[returnId]/send-report", () => {
         data: expect.objectContaining({
           courierMessageId: "msg_123",
           sentToCourierAt: expect.any(Date),
+          liability: "COURIER",
+          resolutionStatus: "WAITING_COURIER",
+        }),
+      })
+    );
+    expect(mockCreateReportLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          recipientType: "COURIER",
+          recipientEmail: "claims@courier.test",
+          messageId: "msg_123",
         }),
       })
     );

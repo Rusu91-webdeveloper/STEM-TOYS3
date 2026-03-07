@@ -100,6 +100,22 @@ type SupplierAuthorizationStatus =
   | "REJECTED"
   | "EXPIRED";
 
+type ReturnLiability =
+  | "UNDECIDED"
+  | "SUPPLIER"
+  | "COURIER"
+  | "INTERNAL"
+  | "CUSTOMER";
+
+type ReturnResolutionStatus =
+  | "OPEN"
+  | "WAITING_SUPPLIER"
+  | "WAITING_COURIER"
+  | "READY_TO_REFUND"
+  | "REFUNDED"
+  | "REJECTED"
+  | "CLOSED";
+
 type CustomerSegment =
   | "new"
   | "returning"
@@ -155,6 +171,18 @@ interface ReturnItem {
   sentToCourierAt?: string | null;
   supplierMessageId?: string | null;
   courierMessageId?: string | null;
+  liability?: ReturnLiability | null;
+  resolutionStatus?: ReturnResolutionStatus | null;
+  externalClaimDeadline?: string | null;
+  resolutionNotes?: string | null;
+  reportLogs?: Array<{
+    id: string;
+    recipientType: "SUPPLIER" | "COURIER";
+    recipientEmail: string;
+    messageId?: string | null;
+    emailSubject?: string | null;
+    sentAt: string;
+  }>;
   user: {
     id: string;
     name: string;
@@ -190,6 +218,30 @@ const supplierAuthStatusOptions: SupplierAuthorizationStatus[] = [
   "APPROVED",
   "REJECTED",
   "EXPIRED",
+];
+
+const liabilityOptions: Array<{
+  value: ReturnLiability;
+  label: string;
+}> = [
+  { value: "UNDECIDED", label: "Undecided" },
+  { value: "SUPPLIER", label: "Supplier" },
+  { value: "COURIER", label: "Courier" },
+  { value: "INTERNAL", label: "Internal" },
+  { value: "CUSTOMER", label: "Customer" },
+];
+
+const resolutionStatusOptions: Array<{
+  value: ReturnResolutionStatus;
+  label: string;
+}> = [
+  { value: "OPEN", label: "Open" },
+  { value: "WAITING_SUPPLIER", label: "Waiting Supplier" },
+  { value: "WAITING_COURIER", label: "Waiting Courier" },
+  { value: "READY_TO_REFUND", label: "Ready to Refund" },
+  { value: "REFUNDED", label: "Refunded" },
+  { value: "REJECTED", label: "Rejected" },
+  { value: "CLOSED", label: "Closed" },
 ];
 
 interface PaginationMeta {
@@ -253,6 +305,7 @@ export default function AdminReturnsPage() {
   >(null);
   const [savingSupplierAuthorization, setSavingSupplierAuthorization] =
     useState(false);
+  const [savingCaseTracking, setSavingCaseTracking] = useState(false);
   const [supplierAuthDraft, setSupplierAuthDraft] = useState<{
     status: SupplierAuthorizationStatus;
     number: string;
@@ -263,6 +316,17 @@ export default function AdminReturnsPage() {
     number: "",
     notes: "",
     deadline: "",
+  });
+  const [caseTrackingDraft, setCaseTrackingDraft] = useState<{
+    liability: ReturnLiability;
+    resolutionStatus: ReturnResolutionStatus;
+    externalClaimDeadline: string;
+    resolutionNotes: string;
+  }>({
+    liability: "UNDECIDED",
+    resolutionStatus: "OPEN",
+    externalClaimDeadline: "",
+    resolutionNotes: "",
   });
 
   const { toast } = useToast();
@@ -606,6 +670,17 @@ export default function AdminReturnsPage() {
             .slice(0, 10)
         : "",
     });
+    setCaseTrackingDraft({
+      liability: (returnItem.liability as ReturnLiability) || "UNDECIDED",
+      resolutionStatus:
+        (returnItem.resolutionStatus as ReturnResolutionStatus) || "OPEN",
+      externalClaimDeadline: returnItem.externalClaimDeadline
+        ? new Date(returnItem.externalClaimDeadline)
+            .toISOString()
+            .slice(0, 10)
+        : "",
+      resolutionNotes: returnItem.resolutionNotes || "",
+    });
     setSelectedReturnForDetails(returnItem);
     setDetailsModalOpen(true);
   };
@@ -674,6 +749,65 @@ export default function AdminReturnsPage() {
       });
     } finally {
       setSavingSupplierAuthorization(false);
+    }
+  };
+
+  const handleSaveCaseTracking = async () => {
+    if (!selectedReturnForDetails) return;
+
+    try {
+      setSavingCaseTracking(true);
+
+      const response = await fetch(
+        `/api/returns/${selectedReturnForDetails.id}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            liability: caseTrackingDraft.liability,
+            resolutionStatus: caseTrackingDraft.resolutionStatus,
+            externalClaimDeadline:
+              caseTrackingDraft.externalClaimDeadline || null,
+            resolutionNotes: caseTrackingDraft.resolutionNotes,
+          }),
+        }
+      );
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.error || "Failed to update case tracking");
+      }
+
+      if (data?.return) {
+        applyUpdatedReturn(data.return);
+      } else {
+        fetchReturns(
+          pagination.page,
+          filterStatus,
+          filterReason,
+          filterCustomerSegment,
+          dateRange
+        );
+      }
+
+      toast({
+        title: "Case Tracking Updated",
+        description: "Liability and recovery workflow were saved.",
+      });
+    } catch (error) {
+      console.error("Error updating case tracking:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update case tracking.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingCaseTracking(false);
     }
   };
 
@@ -1618,6 +1752,118 @@ export default function AdminReturnsPage() {
                 </CardContent>
               </Card>
 
+              {/* Case Decision & Recovery */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">
+                    Case Decision & Recovery
+                  </CardTitle>
+                  <CardDescription>
+                    Decide who owns the loss and track the next step needed to
+                    recover the money before refunding.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Liability</label>
+                      <Select
+                        value={caseTrackingDraft.liability}
+                        onValueChange={value =>
+                          setCaseTrackingDraft(prev => ({
+                            ...prev,
+                            liability: value as ReturnLiability,
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {liabilityOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Resolution Status
+                      </label>
+                      <Select
+                        value={caseTrackingDraft.resolutionStatus}
+                        onValueChange={value =>
+                          setCaseTrackingDraft(prev => ({
+                            ...prev,
+                            resolutionStatus: value as ReturnResolutionStatus,
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {resolutionStatusOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        External Claim Deadline
+                      </label>
+                      <Input
+                        type="date"
+                        value={caseTrackingDraft.externalClaimDeadline}
+                        onChange={e =>
+                          setCaseTrackingDraft(prev => ({
+                            ...prev,
+                            externalClaimDeadline: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Resolution Notes
+                    </label>
+                    <Textarea
+                      value={caseTrackingDraft.resolutionNotes}
+                      onChange={e =>
+                        setCaseTrackingDraft(prev => ({
+                          ...prev,
+                          resolutionNotes: e.target.value,
+                        }))
+                      }
+                      placeholder="What happened, who should reimburse, what proof is still missing, and when to refund."
+                      className="min-h-[90px]"
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleSaveCaseTracking}
+                      disabled={savingCaseTracking}
+                      variant="outline"
+                    >
+                      {savingCaseTracking && (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      )}
+                      Save Case Tracking
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Supplier Routing & Authorization */}
               <Card>
                 <CardHeader className="pb-3">
@@ -1815,7 +2061,7 @@ export default function AdminReturnsPage() {
                     sau curier
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-col sm:flex-row gap-3">
+                <CardContent className="flex flex-col gap-3">
                   {(selectedReturnForDetails.sentToSupplierAt ||
                     selectedReturnForDetails.sentToCourierAt) && (
                     <div className="w-full rounded-md border border-blue-200 bg-white/80 p-3 text-sm text-slate-700">
@@ -1845,6 +2091,37 @@ export default function AdminReturnsPage() {
                       )}
                     </div>
                   )}
+                  {selectedReturnForDetails.reportLogs &&
+                    selectedReturnForDetails.reportLogs.length > 0 && (
+                      <div className="w-full rounded-md border border-blue-200 bg-white/80 p-3 text-sm text-slate-700">
+                        <p className="mb-2 font-medium">Report History</p>
+                        <div className="space-y-2">
+                          {selectedReturnForDetails.reportLogs.map(log => (
+                            <div
+                              key={log.id}
+                              className="rounded border border-slate-200 bg-slate-50 px-3 py-2"
+                            >
+                              <p>
+                                {log.recipientType === "SUPPLIER"
+                                  ? "Supplier"
+                                  : "Courier"}{" "}
+                                | {format(new Date(log.sentAt), "dd MMM yyyy, HH:mm")}
+                              </p>
+                              <p className="text-slate-500">
+                                {log.recipientEmail}
+                                {log.messageId ? ` | ${log.messageId}` : ""}
+                              </p>
+                              {log.emailSubject && (
+                                <p className="text-slate-500">
+                                  {log.emailSubject}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     variant="outline"
                     className="flex-1 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700"
@@ -1871,6 +2148,7 @@ export default function AdminReturnsPage() {
                     )}
                     Trimite la Curier (Reclamație)
                   </Button>
+                  </div>
                 </CardContent>
               </Card>
 

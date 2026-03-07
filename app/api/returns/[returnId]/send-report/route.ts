@@ -581,22 +581,64 @@ export async function POST(
         ? {
             sentToSupplierAt: new Date(),
             supplierMessageId: result.messageId || null,
+            liability:
+              returnData.liability === "UNDECIDED" ? "SUPPLIER" : undefined,
+            resolutionStatus:
+              returnData.resolutionStatus === "OPEN"
+                ? "WAITING_SUPPLIER"
+                : undefined,
           }
         : {
             sentToCourierAt: new Date(),
             courierMessageId: result.messageId || null,
+            liability:
+              returnData.liability === "UNDECIDED" ? "COURIER" : undefined,
+            resolutionStatus:
+              returnData.resolutionStatus === "OPEN"
+                ? "WAITING_COURIER"
+                : undefined,
           };
 
-    const updatedReturn = await prisma.return.update({
-      where: { id: returnId },
-      data: auditUpdate,
-      select: {
-        id: true,
-        sentToSupplierAt: true,
-        sentToCourierAt: true,
-        supplierMessageId: true,
-        courierMessageId: true,
-      },
+    const updatedReturn = await prisma.$transaction(async tx => {
+      await tx.returnReportLog.create({
+        data: {
+          returnId,
+          recipientType: recipientType === "supplier" ? "SUPPLIER" : "COURIER",
+          recipientEmail,
+          messageId: result.messageId || null,
+          emailSubject,
+        },
+      });
+
+      return tx.return.update({
+        where: { id: returnId },
+        data: auditUpdate,
+        select: {
+          id: true,
+          sentToSupplierAt: true,
+          sentToCourierAt: true,
+          supplierMessageId: true,
+          courierMessageId: true,
+          liability: true,
+          resolutionStatus: true,
+          externalClaimDeadline: true,
+          resolutionNotes: true,
+          reportLogs: {
+            select: {
+              id: true,
+              recipientType: true,
+              recipientEmail: true,
+              messageId: true,
+              emailSubject: true,
+              sentAt: true,
+            },
+            orderBy: {
+              sentAt: "desc",
+            },
+            take: 10,
+          },
+        },
+      });
     });
 
     return NextResponse.json({

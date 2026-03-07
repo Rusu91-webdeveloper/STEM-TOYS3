@@ -716,8 +716,13 @@ model Return {
   sentToCourierAt                  DateTime?
   supplierMessageId                String?
   courierMessageId                 String?
+  liability                        ReturnLiability     @default(UNDECIDED)
+  resolutionStatus                 ReturnResolutionStatus @default(OPEN)
+  externalClaimDeadline            DateTime?
+  resolutionNotes                  String?
   order                            Order               @relation(fields: [orderId], references: [id])
   orderItem                        OrderItem           @relation(fields: [orderItemId], references: [id])
+  reportLogs                       ReturnReportLog[]
   user                             User                @relation(fields: [userId], references: [id])
 
   @@index([userId])
@@ -725,6 +730,24 @@ model Return {
   @@index([orderItemId])
   @@index([supplierAuthorizationStatus])
   @@index([supplierAuthorizationDeadline])
+  @@index([liability])
+  @@index([resolutionStatus])
+  @@index([externalClaimDeadline])
+}
+
+model ReturnReportLog {
+  id            String                    @id @default(cuid())
+  returnId      String
+  recipientType ReturnReportRecipientType
+  recipientEmail String
+  messageId     String?
+  emailSubject  String?
+  sentAt        DateTime                  @default(now())
+  return        Return                    @relation(fields: [returnId], references: [id], onDelete: Cascade)
+
+  @@index([returnId])
+  @@index([recipientType])
+  @@index([sentAt])
 }
 
 model Review {
@@ -2032,6 +2055,29 @@ enum SupplierAuthStatus {
   APPROVED
   REJECTED
   EXPIRED
+}
+
+enum ReturnLiability {
+  UNDECIDED
+  SUPPLIER
+  COURIER
+  INTERNAL
+  CUSTOMER
+}
+
+enum ReturnResolutionStatus {
+  OPEN
+  WAITING_SUPPLIER
+  WAITING_COURIER
+  READY_TO_REFUND
+  REFUNDED
+  REJECTED
+  CLOSED
+}
+
+enum ReturnReportRecipientType {
+  SUPPLIER
+  COURIER
 }
 
 enum CouponType {

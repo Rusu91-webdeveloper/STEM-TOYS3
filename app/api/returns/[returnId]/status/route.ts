@@ -41,6 +41,10 @@ export async function PATCH(
       supplierAuthorizationNumber,
       supplierAuthorizationNotes,
       supplierAuthorizationDeadline,
+      liability,
+      resolutionStatus,
+      externalClaimDeadline,
+      resolutionNotes,
     } = body ?? {};
 
     const hasStatusUpdate = typeof status === "string";
@@ -49,8 +53,13 @@ export async function PATCH(
       "supplierAuthorizationNumber" in (body ?? {}) ||
       "supplierAuthorizationNotes" in (body ?? {}) ||
       "supplierAuthorizationDeadline" in (body ?? {});
+    const hasCaseTrackingUpdate =
+      "liability" in (body ?? {}) ||
+      "resolutionStatus" in (body ?? {}) ||
+      "externalClaimDeadline" in (body ?? {}) ||
+      "resolutionNotes" in (body ?? {});
 
-    if (!hasStatusUpdate && !hasSupplierAuthUpdate) {
+    if (!hasStatusUpdate && !hasSupplierAuthUpdate && !hasCaseTrackingUpdate) {
       return NextResponse.json(
         { error: "No valid update fields provided" },
         { status: 400 }
@@ -97,6 +106,39 @@ export async function PATCH(
       );
     }
 
+    const validLiabilityValues = [
+      "UNDECIDED",
+      "SUPPLIER",
+      "COURIER",
+      "INTERNAL",
+      "CUSTOMER",
+    ];
+    if (liability != null && !validLiabilityValues.includes(liability)) {
+      return NextResponse.json(
+        { error: "Invalid liability value" },
+        { status: 400 }
+      );
+    }
+
+    const validResolutionStatuses = [
+      "OPEN",
+      "WAITING_SUPPLIER",
+      "WAITING_COURIER",
+      "READY_TO_REFUND",
+      "REFUNDED",
+      "REJECTED",
+      "CLOSED",
+    ];
+    if (
+      resolutionStatus != null &&
+      !validResolutionStatuses.includes(resolutionStatus)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid resolution status value" },
+        { status: 400 }
+      );
+    }
+
     let parsedSupplierAuthorizationDeadline: Date | null | undefined;
     if ("supplierAuthorizationDeadline" in (body ?? {})) {
       if (
@@ -113,6 +155,22 @@ export async function PATCH(
           );
         }
         parsedSupplierAuthorizationDeadline = parsedDate;
+      }
+    }
+
+    let parsedExternalClaimDeadline: Date | null | undefined;
+    if ("externalClaimDeadline" in (body ?? {})) {
+      if (externalClaimDeadline == null || externalClaimDeadline === "") {
+        parsedExternalClaimDeadline = null;
+      } else {
+        const parsedDate = new Date(externalClaimDeadline);
+        if (Number.isNaN(parsedDate.getTime())) {
+          return NextResponse.json(
+            { error: "Invalid external claim deadline" },
+            { status: 400 }
+          );
+        }
+        parsedExternalClaimDeadline = parsedDate;
       }
     }
 
@@ -198,6 +256,25 @@ export async function PATCH(
         parsedSupplierAuthorizationDeadline;
     }
 
+    if ("liability" in (body ?? {})) {
+      updateData.liability = liability;
+    }
+
+    if ("resolutionStatus" in (body ?? {})) {
+      updateData.resolutionStatus = resolutionStatus;
+    }
+
+    if ("externalClaimDeadline" in (body ?? {})) {
+      updateData.externalClaimDeadline = parsedExternalClaimDeadline;
+    }
+
+    if ("resolutionNotes" in (body ?? {})) {
+      updateData.resolutionNotes =
+        typeof resolutionNotes === "string" && resolutionNotes.trim().length > 0
+          ? resolutionNotes.trim()
+          : null;
+    }
+
     const updatedReturn = await db.return.update({
       where: { id: returnId },
       data: updateData,
@@ -237,6 +314,12 @@ export async function PATCH(
               },
             },
           },
+        },
+        reportLogs: {
+          orderBy: {
+            sentAt: "desc",
+          },
+          take: 10,
         },
       },
     });
@@ -419,6 +502,12 @@ export async function PATCH(
               },
             },
           },
+        },
+        reportLogs: {
+          orderBy: {
+            sentAt: "desc",
+          },
+          take: 10,
         },
       },
     });
