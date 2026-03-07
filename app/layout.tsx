@@ -3,20 +3,16 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
-import AnalyticsWrapper from "@/components/analytics/AnalyticsWrapper";
-import PerformanceMonitor from "@/components/analytics/PerformanceMonitor";
 import { SafeSessionProvider } from "@/components/auth/SafeSessionProvider";
-import ConversionTrackingProvider from "@/components/conversion-tracking/ConversionTrackingProvider";
 import { CriticalCSS } from "@/components/CriticalCSS";
+import DeferredClientFeatures from "@/components/DeferredClientFeatures";
 import ClientLayout from "@/components/layout/ClientLayout";
 import StructuredDataInjector from "@/components/seo/StructuredDataInjector";
-import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { Toaster } from "@/components/ui/toaster";
 import CartProviderWrapper from "@/features/cart/components/CartProviderWrapper.client";
 import { CentralizedSessionProvider } from "@/lib/auth/SessionContext";
 import { CurrencyProvider } from "@/lib/currency";
 import { I18nProvider } from "@/lib/i18n";
-import { getStoreSettings } from "@/lib/utils/store-settings";
 
 import "./globals.css";
 import { metadata as appMetadata } from "./metadata";
@@ -30,22 +26,13 @@ const inter = Inter({
 export const metadata: Metadata = appMetadata;
 export const revalidate = 3600;
 
-const STORE_SETTINGS_TIMEOUT_MS = 150;
-
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const initialLanguage = "ro";
-
-  // Don't let slow DB/cache calls block initial document response.
-  const initialStoreSettings = await Promise.race([
-    getStoreSettings(),
-    new Promise<null>(resolve =>
-      setTimeout(() => resolve(null), STORE_SETTINGS_TIMEOUT_MS)
-    ),
-  ]);
+  const initialStoreSettings = null;
 
   return (
     <html
@@ -73,10 +60,6 @@ export default async function RootLayout({
           fetchPriority="high"
         />
 
-        {/* Analytics Components (Client-only to avoid SSR issues) */}
-        <AnalyticsWrapper />
-        {/* Performance Monitoring */}
-        <PerformanceMonitor />
         {/* Organization Schema for Site-wide SEO */}
         <script
           type="application/ld+json"
@@ -92,15 +75,17 @@ export default async function RootLayout({
               foundingDate: "2024",
               address: {
                 "@type": "PostalAddress",
-                streetAddress: (initialStoreSettings as any)?.businessAddress || "Strada Mehedinți 54-56",
-                addressLocality: (initialStoreSettings as any)?.businessCity || "Cluj-Napoca",
-                addressRegion: (initialStoreSettings as any)?.businessState || "Cluj",
-                postalCode: (initialStoreSettings as any)?.businessPostalCode || "400000",
+                streetAddress:
+                  process.env.STORE_STREET_ADDRESS || "Strada Mehedinți 54-56",
+                addressLocality: process.env.STORE_CITY || "Cluj-Napoca",
+                addressRegion: process.env.STORE_STATE || "Cluj",
+                postalCode: process.env.STORE_POSTAL_CODE || "400000",
                 addressCountry: "RO",
               },
               contactPoint: {
                 "@type": "ContactPoint",
-                telephone: initialStoreSettings?.contactPhone || process.env.FANCOURIER_SENDER_PHONE || "+40771248029",
+                telephone:
+                  process.env.FANCOURIER_SENDER_PHONE || "+40771248029",
                 contactType: "customer service",
                 availableLanguage: "Romanian",
               },
@@ -129,8 +114,7 @@ export default async function RootLayout({
                     <Analytics />
                   </ClientLayout>
                   <Toaster />
-                  <ServiceWorkerRegistration />
-                  <ConversionTrackingProvider />
+                  <DeferredClientFeatures />
                 </CartProviderWrapper>
               </CurrencyProvider>
             </I18nProvider>

@@ -1,14 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 
 import { AccountLinkingNotice } from "@/components/auth/AccountLinkingNotice";
 import { DatabaseConfigNotice } from "@/components/auth/DatabaseConfigNotice";
 // import { SessionValidator } from "@/components/auth/SessionValidator";
-import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
-import PromotionalPopup from "@/components/PromotionalPopup";
+
+const Footer = dynamic(() => import("@/components/layout/Footer"), {
+  ssr: false,
+});
 
 export default function ClientLayout({
   children,
@@ -21,7 +24,8 @@ export default function ClientLayout({
   const isAdminPage = pathname?.startsWith("/admin");
   const isSupplierPage = pathname?.startsWith("/supplier");
   const isCheckoutPage = pathname?.startsWith("/checkout");
-  const isStorefrontSurface = !isAdminPage && !isSupplierPage && !isCheckoutPage;
+  const isStorefrontSurface =
+    !isAdminPage && !isSupplierPage && !isCheckoutPage;
 
   return (
     <>
@@ -57,7 +61,6 @@ export default function ClientLayout({
       {!isAdminPage && !isSupplierPage && !isCheckoutPage && (
         <Footer initialStoreSettings={initialStoreSettings} />
       )}
-      <PromotionalPopup />
     </>
   );
 }

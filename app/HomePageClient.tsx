@@ -50,28 +50,28 @@ const categories = [
     name: "Coding & Robotics",
     description: "Coding games, robots, and programmable toys",
     slug: "coding-robotics",
-    image: "/coding-robotic.png",
+    image: "/images/home/category-coding-kits.svg",
     productFilterCategory: "technology",
   },
   {
     name: "Science Kits",
     description: "Experiments and science sets that spark curiosity",
     slug: "science-experiments",
-    image: "/Science.png",
+    image: "/images/home/category-science-kits.svg",
     productFilterCategory: "science",
   },
   {
     name: "Engineering",
     description: "Build-and-create toys for future inventors",
     slug: "magnetic-building",
-    image: "/Engineering.png",
+    image: "/images/home/category-engineering.svg",
     productFilterCategory: "engineering",
   },
   {
     name: "Technology",
     description: "Tech-focused toys and smart learning tools",
     slug: "technology",
-    image: "/Technology.png",
+    image: "/images/home/category-robotics.svg",
     productFilterCategory: "technology",
   },
   {
@@ -194,7 +194,9 @@ export default function HomePageClient({
       email: publicConfig.contactEmail,
       address: {
         "@type": "PostalAddress",
-        streetAddress: process.env.NEXT_PUBLIC_STORE_STREET_ADDRESS || "Str. Mehedinți 54-56",
+        streetAddress:
+          process.env.NEXT_PUBLIC_STORE_STREET_ADDRESS ||
+          "Str. Mehedinți 54-56",
         addressLocality: process.env.NEXT_PUBLIC_STORE_CITY || "Cluj-Napoca",
         postalCode: process.env.NEXT_PUBLIC_STORE_POSTAL_CODE || "400000",
         addressRegion: process.env.NEXT_PUBLIC_STORE_STATE || "Cluj",
@@ -352,7 +354,8 @@ export default function HomePageClient({
                     Save 10% on STEM Bundles
                   </h2>
                   <p className="mt-1 text-sm text-blue-100/95 sm:text-base">
-                    Build a real toy-store experience with ready-made bundles instead of shopping items one by one.
+                    Build a real toy-store experience with ready-made bundles
+                    instead of shopping items one by one.
                   </p>
                 </div>
                 <Link

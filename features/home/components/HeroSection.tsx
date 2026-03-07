@@ -1,12 +1,9 @@
 "use client";
 
-import {
-  ArrowRight,
-  ChevronDown,
-} from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { gradientButtonClass } from "@/features/home/components/homeTheme";
 import { useABTest } from "@/hooks/useABTest";
@@ -24,22 +21,48 @@ interface HeroSectionProps {
 }
 
 const HeroSectionComponent = ({ t }: HeroSectionProps) => {
+  const [enableExperiments, setEnableExperiments] = useState(false);
   const {
     variant: headlineVariant,
     isLoading: headlineVariantLoading,
     track: trackHeadlineAB,
-  } = useABTest(
-    HERO_HEADLINE_TEST_NAME
-  );
+  } = useABTest(HERO_HEADLINE_TEST_NAME, true, enableExperiments);
   const {
     variant: ctaVariant,
     isLoading: ctaVariantLoading,
     track: trackCTAAB,
-  } = useABTest(HERO_CTA_TEST_NAME);
+  } = useABTest(HERO_CTA_TEST_NAME, true, enableExperiments);
   const hasTrackedHeroImpressionRef = useRef(false);
 
-  const headlineVariantKey =
-    (headlineVariant?.name ?? headlineVariant?.id ?? "control").toLowerCase();
+  useEffect(() => {
+    let idleId: number | undefined;
+    let timeoutId: number | undefined;
+
+    const enable = () => setEnableExperiments(true);
+    const requestIdleCallbackRef = window.requestIdleCallback?.bind(window);
+
+    if (requestIdleCallbackRef) {
+      idleId = requestIdleCallbackRef(enable, { timeout: 3000 });
+    } else {
+      timeoutId = window.setTimeout(enable, 1500);
+    }
+
+    return () => {
+      if (typeof idleId === "number" && window.cancelIdleCallback) {
+        window.cancelIdleCallback(idleId);
+      }
+
+      if (typeof timeoutId === "number") {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, []);
+
+  const headlineVariantKey = (
+    headlineVariant?.name ??
+    headlineVariant?.id ??
+    "control"
+  ).toLowerCase();
   const trustHighlights = [
     { icon: "⭐", label: "4.9/5 Rating" },
     { icon: "🎯", label: "By Age" },
@@ -63,7 +86,8 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
     if (hasTrackedHeroImpressionRef.current) return;
 
     trackHomepageConversionEvent(HOMEPAGE_CONVERSION_EVENTS.HERO_IMPRESSION, {
-      headline_variant: headlineVariant?.name ?? headlineVariant?.id ?? "control",
+      headline_variant:
+        headlineVariant?.name ?? headlineVariant?.id ?? "control",
       cta_variant: ctaVariant?.name ?? ctaVariant?.id ?? "control",
       section: "hero",
     });
@@ -86,10 +110,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
       return "Alege rapid după vârstă.";
     }
 
-    return t(
-      "homepageH1",
-      "Jucării STEM alese pe vârste"
-    );
+    return t("homepageH1", "Jucării STEM alese pe vârste");
   };
 
   const primaryCtaText = "Shop Now";
@@ -160,7 +181,8 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
                     cta_label: primaryCtaText,
                     headline_variant:
                       headlineVariant?.name ?? headlineVariant?.id ?? "control",
-                    cta_variant: ctaVariant?.name ?? ctaVariant?.id ?? "control",
+                    cta_variant:
+                      ctaVariant?.name ?? ctaVariant?.id ?? "control",
                   }
                 );
               }}
@@ -197,7 +219,8 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
                     cta_label: secondaryCtaText,
                     headline_variant:
                       headlineVariant?.name ?? headlineVariant?.id ?? "control",
-                    cta_variant: ctaVariant?.name ?? ctaVariant?.id ?? "control",
+                    cta_variant:
+                      ctaVariant?.name ?? ctaVariant?.id ?? "control",
                   }
                 );
               }}

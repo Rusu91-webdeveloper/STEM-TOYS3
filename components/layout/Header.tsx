@@ -140,16 +140,6 @@ export default function Header() {
     }
   }, [isAuthenticated]);
 
-  // Preload categories for performance optimization
-  useEffect(() => {
-    // Preload categories with a slight delay to not block page rendering
-    const preloadTimer = setTimeout(() => {
-      loadCategories();
-    }, 1000);
-
-    return () => clearTimeout(preloadTimer);
-  }, []);
-
   // Initialize animation states when accordions open/close
   useEffect(() => {
     setAccordionAnimation(prev => ({ ...prev, products: productsMenuOpen }));
@@ -357,7 +347,10 @@ export default function Header() {
                 onClick={handleWishlistClick}
                 aria-label="Wishlist"
               >
-                <Heart className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]" aria-hidden="true" />
+                <Heart
+                  className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]"
+                  aria-hidden="true"
+                />
                 {wishlistCount > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border border-white/20 bg-rose-500 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.6)] sm:h-5 sm:w-5">
                     {wishlistCount > 9 ? "9+" : wishlistCount}
@@ -370,7 +363,10 @@ export default function Header() {
                 aria-label={t("products")}
                 className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition-colors duration-200 hover:border-indigo-400/40 hover:bg-indigo-500/20 hover:text-indigo-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 cursor-pointer shadow-[0_12px_28px_rgba(79,70,229,0.3)] max-[400px]:h-9 max-[400px]:w-9"
               >
-                <Boxes className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]" aria-hidden="true" />
+                <Boxes
+                  className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]"
+                  aria-hidden="true"
+                />
               </Link>
 
               <CartButton
@@ -384,7 +380,10 @@ export default function Header() {
                   aria-label={t("account")}
                   className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition-colors duration-200 hover:border-white/20 hover:bg-white/20 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 cursor-pointer shadow-[0_16px_40px_rgba(59,130,246,0.32)] max-[400px]:h-9 max-[400px]:w-9"
                 >
-                  <User className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]" aria-hidden="true" />
+                  <User
+                    className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]"
+                    aria-hidden="true"
+                  />
                 </Link>
               ) : (
                 <Link
@@ -392,7 +391,10 @@ export default function Header() {
                   aria-label={t("login")}
                   className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/15 text-white transition-all duration-200 hover:border-white/35 hover:bg-white/25 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-slate-900 cursor-pointer shadow-[0_18px_48px_rgba(148,163,184,0.4)] max-[400px]:h-9 max-[400px]:w-9"
                 >
-                  <LogIn className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]" aria-hidden="true" />
+                  <LogIn
+                    className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]"
+                    aria-hidden="true"
+                  />
                 </Link>
               )}
 
@@ -402,7 +404,10 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(true)}
               >
                 <span className="sr-only">Open main menu</span>
-                <Menu className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]" aria-hidden="true" />
+                <Menu
+                  className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]"
+                  aria-hidden="true"
+                />
               </button>
             </div>
 
@@ -514,9 +519,7 @@ export default function Header() {
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/30 via-transparent to-purple-50/20 pointer-events-none" />
 
               {/* Modern header with gradient - COMPACT */}
-              <div
-                className="relative z-10 flex h-12 items-center justify-between border-b border-white/10 bg-gradient-to-r from-slate-950/95 via-indigo-950/80 to-slate-900/90 px-3 shadow-[0_12px_25px_rgba(2,6,23,0.55)]"
-              >
+              <div className="relative z-10 flex h-12 items-center justify-between border-b border-white/10 bg-gradient-to-r from-slate-950/95 via-indigo-950/80 to-slate-900/90 px-3 shadow-[0_12px_25px_rgba(2,6,23,0.55)]">
                 {/* Animated menu title - Smaller */}
                 <h2 className="flex items-center gap-2 text-sm font-bold text-white animate-fadeIn">
                   <div className="relative">

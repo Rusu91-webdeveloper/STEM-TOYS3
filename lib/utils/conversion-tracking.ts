@@ -664,39 +664,52 @@ class ConversionTracker {
   }
 }
 
-// Global conversion tracker instance
-export const conversionTracker = new ConversionTracker();
+let conversionTrackerInstance: ConversionTracker | null = null;
+
+export function getConversionTracker(): ConversionTracker | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  if (!conversionTrackerInstance) {
+    conversionTrackerInstance = new ConversionTracker();
+  }
+
+  return conversionTrackerInstance;
+}
 
 // Export convenience functions
 export const trackCTAClick = (
   element: HTMLElement,
   action: string,
   metadata?: Record<string, any>
-) => conversionTracker.trackCTAClick(element, action, metadata);
+) => getConversionTracker()?.trackCTAClick(element, action, metadata);
 
 export const trackFormSubmit = (
   form: HTMLFormElement,
   action: string,
   metadata?: Record<string, any>
-) => conversionTracker.trackFormSubmit(form, action, metadata);
+) => getConversionTracker()?.trackFormSubmit(form, action, metadata);
 
 export const trackPurchase = (
   orderId: string,
   amount: number,
   currency?: string,
   metadata?: Record<string, any>
-) => conversionTracker.trackPurchase(orderId, amount, currency, metadata);
+) => getConversionTracker()?.trackPurchase(orderId, amount, currency, metadata);
 
 export const trackSignup = (method: string, metadata?: Record<string, any>) =>
-  conversionTracker.trackSignup(method, metadata);
+  getConversionTracker()?.trackSignup(method, metadata);
 
 export const trackDownload = (
   fileName: string,
   fileType: string,
   metadata?: Record<string, any>
-) => conversionTracker.trackDownload(fileName, fileType, metadata);
+) => getConversionTracker()?.trackDownload(fileName, fileType, metadata);
 
 export const getConversionReport = () =>
-  conversionTracker.getConversionReport();
-export const clearConversions = () => conversionTracker.clearConversions();
-export const flushConversions = () => conversionTracker.flushConversions();
+  getConversionTracker()?.getConversionReport();
+export const clearConversions = () =>
+  getConversionTracker()?.clearConversions();
+export const flushConversions = () =>
+  getConversionTracker()?.flushConversions();

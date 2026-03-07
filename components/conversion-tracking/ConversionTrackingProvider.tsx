@@ -2,179 +2,133 @@
 
 import { useEffect } from "react";
 
-import { conversionTracker } from "@/lib/utils/conversion-tracking";
+function extractConversionData(element: HTMLElement) {
+  const conversion = element.getAttribute("data-conversion");
+  const type = element.getAttribute("data-conversion-type");
+  const category = element.getAttribute("data-conversion-category");
+  const action = element.getAttribute("data-conversion-action");
+  const elementId = element.getAttribute("data-conversion-element");
+  const metadataStr = element.getAttribute("data-conversion-metadata");
+
+  if (!conversion || !type || !category || !action) {
+    return null;
+  }
+
+  let metadata = {};
+  if (metadataStr) {
+    try {
+      metadata = JSON.parse(metadataStr);
+    } catch {
+      // Ignore malformed metadata to keep tracking non-blocking.
+    }
+  }
+
+  return {
+    type,
+    category,
+    action,
+    elementId,
+    metadata,
+  };
+}
 
 export default function ConversionTrackingProvider() {
   useEffect(() => {
-    // Initialize conversion tracking
-    const initConversionTracking = () => {
-      // Set up auto-tracking for elements with data-conversion attributes
-      const setupConversionTracking = () => {
-        const conversionElements =
-          document.querySelectorAll("[data-conversion]");
+    let cancelled = false;
+    let idleId: number | undefined;
+    let timeoutId: number | undefined;
+    let cleanup = () => {};
 
-        conversionElements.forEach(element => {
-          // Remove existing listeners to prevent duplicates
-          element.removeEventListener("click", handleConversionClick);
-          element.removeEventListener("submit", handleConversionSubmit);
+    const initConversionTracking = async () => {
+      const tracking = await import("@/lib/utils/conversion-tracking");
+      if (cancelled) return;
 
-          // Add click listener for click-type conversions
-          if (element.getAttribute("data-conversion-type") === "click") {
-            element.addEventListener("click", handleConversionClick);
-          }
+      const tracker = tracking.getConversionTracker();
+      if (!tracker) return;
 
-          // Add submit listener for form submissions
-          if (
-            element.tagName === "FORM" ||
-            element.getAttribute("data-conversion-type") === "form_submit"
-          ) {
-            element.addEventListener("submit", handleConversionSubmit);
-          }
-        });
-      };
+      const handleConversionClick = (event: MouseEvent) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
 
-      const handleConversionClick = (event: Event) => {
-        const element = event.currentTarget as HTMLElement;
+        const element = target.closest<HTMLElement>("[data-conversion]");
+        if (!element) return;
+
         const conversionData = extractConversionData(element);
+        if (!conversionData || conversionData.type !== "click") return;
 
-        if (conversionData) {
-          conversionTracker.trackCTAClick(element, conversionData.action, {
-            ...conversionData.metadata,
-            elementType: element.tagName.toLowerCase(),
-            elementText: element.textContent?.trim() || "",
-            elementHref: (element as HTMLAnchorElement).href || "",
-            elementId: element.id || "",
-            elementClass: element.className || "",
-          });
-        }
-      };
-
-      const handleConversionSubmit = (event: Event) => {
-        const element = event.currentTarget as HTMLFormElement;
-        const conversionData = extractConversionData(element);
-
-        if (conversionData) {
-          conversionTracker.trackFormSubmit(element, conversionData.action, {
-            ...conversionData.metadata,
-            formAction: element.action || "",
-            formMethod: element.method || "GET",
-            formId: element.id || "",
-            formClass: element.className || "",
-          });
-        }
-      };
-
-      const extractConversionData = (element: HTMLElement) => {
-        const conversion = element.getAttribute("data-conversion");
-        const type = element.getAttribute("data-conversion-type");
-        const category = element.getAttribute("data-conversion-category");
-        const action = element.getAttribute("data-conversion-action");
-        const elementId = element.getAttribute("data-conversion-element");
-        const metadataStr = element.getAttribute("data-conversion-metadata");
-
-        if (!conversion || !type || !category || !action) {
-          return null;
-        }
-
-        let metadata = {};
-        if (metadataStr) {
-          try {
-            metadata = JSON.parse(metadataStr);
-          } catch (error) {
-            if (process.env.NODE_ENV === "development") {
-              console.warn("Invalid conversion metadata JSON:", metadataStr);
-            }
-          }
-        }
-
-        return {
-          type,
-          category,
-          action,
-          elementId,
-          metadata,
-        };
-      };
-
-      // Initial setup
-      setupConversionTracking();
-
-      // Set up time on page tracking
-      const pageStartTime = Date.now();
-      const trackTimeOnPage = () => {
-        const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
-
-        // Track at 30 seconds, 1 minute, 2 minutes, and 5 minutes
-        if (timeOnPage === 30) {
-          // Note: The ConversionTracker handles time tracking internally
-          // We can add custom time tracking here if needed
-        } else if (timeOnPage === 60) {
-          // Track 1 minute milestone
-        } else if (timeOnPage === 120) {
-          // Track 2 minute milestone
-        } else if (timeOnPage === 300) {
-          // Track 5 minute milestone
-        }
-      };
-
-      // Set up event listeners
-      // Note: Scroll tracking is handled internally by ConversionTracker
-
-      // Track time on page every second
-      const timeInterval = setInterval(trackTimeOnPage, 1000);
-
-      // Set up MutationObserver to handle dynamically added elements
-      const observer = new MutationObserver(mutations => {
-        let shouldSetup = false;
-
-        mutations.forEach(mutation => {
-          if (mutation.type === "childList") {
-            mutation.addedNodes.forEach(node => {
-              if (node.nodeType === Node.ELEMENT_NODE) {
-                const element = node as Element;
-                if (
-                  element.hasAttribute("data-conversion") ||
-                  element.querySelector("[data-conversion]")
-                ) {
-                  shouldSetup = true;
-                }
-              }
-            });
-          }
+        tracker.trackCTAClick(element, conversionData.action, {
+          ...conversionData.metadata,
+          elementType: element.tagName.toLowerCase(),
+          elementText: element.textContent?.trim() || "",
+          elementHref: (element as HTMLAnchorElement).href || "",
+          elementId: element.id || "",
+          elementClass: element.className || "",
         });
+      };
 
-        if (shouldSetup) {
-          setupConversionTracking();
-        }
-      });
+      const handleConversionSubmit = (event: SubmitEvent) => {
+        const target = event.target;
+        if (!(target instanceof HTMLFormElement)) return;
 
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-      });
+        const conversionElement =
+          target.closest<HTMLElement>("[data-conversion]") || target;
+        const conversionData = extractConversionData(conversionElement);
+        if (!conversionData) return;
 
-      // Cleanup function
-      return () => {
-        clearInterval(timeInterval);
-        observer.disconnect();
-
-        // Remove all conversion event listeners
-        const conversionElements =
-          document.querySelectorAll("[data-conversion]");
-        conversionElements.forEach(element => {
-          element.removeEventListener("click", handleConversionClick);
-          element.removeEventListener("submit", handleConversionSubmit);
+        tracker.trackFormSubmit(target, conversionData.action, {
+          ...conversionData.metadata,
+          formAction: target.action || "",
+          formMethod: target.method || "GET",
+          formId: target.id || "",
+          formClass: target.className || "",
         });
+      };
+
+      document.addEventListener("click", handleConversionClick, {
+        passive: true,
+      });
+      document.addEventListener("submit", handleConversionSubmit, true);
+
+      cleanup = () => {
+        document.removeEventListener("click", handleConversionClick);
+        document.removeEventListener("submit", handleConversionSubmit, true);
       };
     };
 
-    // Initialize conversion tracking
-    const cleanup = initConversionTracking();
+    const scheduleInitialization = () => {
+      const requestIdleCallbackRef = window.requestIdleCallback?.bind(window);
 
-    // Cleanup on unmount
-    return cleanup;
+      if (requestIdleCallbackRef) {
+        idleId = requestIdleCallbackRef(
+          () => {
+            void initConversionTracking();
+          },
+          { timeout: 4000 }
+        );
+        return;
+      }
+
+      timeoutId = window.setTimeout(() => {
+        void initConversionTracking();
+      }, 2000);
+    };
+
+    scheduleInitialization();
+
+    return () => {
+      cancelled = true;
+
+      if (typeof idleId === "number" && window.cancelIdleCallback) {
+        window.cancelIdleCallback(idleId);
+      }
+
+      if (typeof timeoutId === "number") {
+        window.clearTimeout(timeoutId);
+      }
+
+      cleanup();
+    };
   }, []);
 
-  // This component doesn't render anything
   return null;
 }
