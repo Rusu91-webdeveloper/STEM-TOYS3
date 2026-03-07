@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
         name: "courier-status-sync",
         endpoint: "/api/cron/courier-status-sync",
         description: "Sync FAN Courier / courier tracking states into order fulfillment",
-        frequency: "Every hour",
+        frequency: "Daily at 16:00 UTC (~18:00 winter / ~19:00 summer Romania time)",
         lastRun: new Date().toISOString(),
       },
     ];

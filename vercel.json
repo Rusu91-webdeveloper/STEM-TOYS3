@@ -22,7 +22,7 @@
     },
     {
       "path": "/api/cron/courier-status-sync",
-      "schedule": "0 * * * *"
+      "schedule": "0 16 * * *"
     }
   ],
   "env": {
