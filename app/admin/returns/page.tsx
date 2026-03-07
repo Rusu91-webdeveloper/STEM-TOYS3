@@ -261,6 +261,66 @@ const statusBadges: Record<ReturnStatus, { label: string; color: string }> = {
 
 const reasonLabels: Record<ReturnReason, string> = RETURN_REASON_LABELS_RO;
 
+const liabilityBadges: Record<
+  ReturnLiability,
+  { label: string; color: string }
+> = {
+  UNDECIDED: { label: "Undecided", color: "bg-slate-100 text-slate-700" },
+  SUPPLIER: { label: "Supplier", color: "bg-violet-100 text-violet-800" },
+  COURIER: { label: "Courier", color: "bg-orange-100 text-orange-800" },
+  INTERNAL: { label: "Internal", color: "bg-blue-100 text-blue-800" },
+  CUSTOMER: { label: "Customer", color: "bg-amber-100 text-amber-800" },
+};
+
+const resolutionBadges: Record<
+  ReturnResolutionStatus,
+  { label: string; color: string }
+> = {
+  OPEN: { label: "Open", color: "bg-slate-100 text-slate-700" },
+  WAITING_SUPPLIER: {
+    label: "Waiting Supplier",
+    color: "bg-violet-100 text-violet-800",
+  },
+  WAITING_COURIER: {
+    label: "Waiting Courier",
+    color: "bg-orange-100 text-orange-800",
+  },
+  READY_TO_REFUND: {
+    label: "Ready to Refund",
+    color: "bg-emerald-100 text-emerald-800",
+  },
+  REFUNDED: { label: "Refunded", color: "bg-green-100 text-green-800" },
+  REJECTED: { label: "Rejected", color: "bg-red-100 text-red-800" },
+  CLOSED: { label: "Closed", color: "bg-gray-200 text-gray-800" },
+};
+
+function formatRon(value: number) {
+  return new Intl.NumberFormat("ro-RO", {
+    style: "currency",
+    currency: "RON",
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function getReturnExposure(returnItem: ReturnItem) {
+  return Number(returnItem.orderItem.price || 0) * Number(returnItem.orderItem.quantity || 0);
+}
+
+function getClaimDeadlineState(deadline?: string | null) {
+  if (!deadline) return null;
+  const date = new Date(deadline);
+  if (Number.isNaN(date.getTime())) return null;
+  const now = new Date();
+  const isOverdue = date.getTime() < now.getTime();
+  const msRemaining = date.getTime() - now.getTime();
+  const daysRemaining = Math.ceil(msRemaining / (1000 * 60 * 60 * 24));
+  return {
+    date,
+    isOverdue,
+    daysRemaining,
+  };
+}
+
 export default function AdminReturnsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1413,6 +1473,9 @@ export default function AdminReturnsPage() {
                                   <div className="text-xs text-gray-500">
                                     Order #{returnItem.order.orderNumber}
                                   </div>
+                                  <div className="text-xs text-gray-500">
+                                    Exposure: {formatRon(getReturnExposure(returnItem))}
+                                  </div>
                                 </div>
                               </div>
                             </TableCell>
@@ -1433,13 +1496,57 @@ export default function AdminReturnsPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              <Badge
-                                className={
-                                  statusBadges[returnItem.status].color
-                                }
-                              >
+                              <Badge className={statusBadges[returnItem.status].color}>
                                 {statusBadges[returnItem.status].label}
                               </Badge>
+                              {returnItem.liability && (
+                                <div className="mt-1">
+                                  <Badge
+                                    variant="outline"
+                                    className={liabilityBadges[returnItem.liability].color}
+                                  >
+                                    {liabilityBadges[returnItem.liability].label}
+                                  </Badge>
+                                </div>
+                              )}
+                              {returnItem.resolutionStatus && (
+                                <div className="mt-1">
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      resolutionBadges[returnItem.resolutionStatus].color
+                                    }
+                                  >
+                                    {resolutionBadges[returnItem.resolutionStatus].label}
+                                  </Badge>
+                                </div>
+                              )}
+                              {(() => {
+                                const deadlineState = getClaimDeadlineState(
+                                  returnItem.externalClaimDeadline
+                                );
+                                if (!deadlineState) return null;
+
+                                return (
+                                  <div
+                                    className={`mt-1 text-xs ${
+                                      deadlineState.isOverdue
+                                        ? "text-red-700"
+                                        : "text-amber-700"
+                                    }`}
+                                  >
+                                    {deadlineState.isOverdue
+                                      ? `Claim overdue since ${format(
+                                          deadlineState.date,
+                                          "dd MMM yyyy"
+                                        )}`
+                                      : `Claim deadline ${format(
+                                          deadlineState.date,
+                                          "dd MMM yyyy"
+                                        )}`}
+                                  </div>
+                                );
+                              })()}
                               {returnItem.status === "REFUNDED" && (
                                 <div className="mt-1">
                                   <span className="text-xs font-semibold">
@@ -1669,14 +1776,80 @@ export default function AdminReturnsPage() {
                           {selectedReturnForDetails.orderItem.quantity}
                         </p>
                         <p>
-                          Price: $
-                          {selectedReturnForDetails.orderItem.price.toFixed(2)}
+                          Unit Price:{" "}
+                          {formatRon(selectedReturnForDetails.orderItem.price)}
                         </p>
                         <p>
                           Order #{selectedReturnForDetails.order.orderNumber}
                         </p>
+                        <p>
+                          Exposure:{" "}
+                          {formatRon(getReturnExposure(selectedReturnForDetails))}
+                        </p>
                       </div>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">
+                    Financial Exposure
+                  </CardTitle>
+                  <CardDescription>
+                    Refund impact and recovery urgency for this return.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="rounded-lg border p-4">
+                    <p className="text-sm text-muted-foreground">At-Risk Amount</p>
+                    <p className="mt-1 text-2xl font-semibold">
+                      {formatRon(getReturnExposure(selectedReturnForDetails))}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border p-4">
+                    <p className="text-sm text-muted-foreground">Liability</p>
+                    <p className="mt-1 text-lg font-semibold">
+                      {
+                        liabilityBadges[
+                          (selectedReturnForDetails.liability as ReturnLiability) ||
+                            "UNDECIDED"
+                        ].label
+                      }
+                    </p>
+                  </div>
+                  <div className="rounded-lg border p-4">
+                    <p className="text-sm text-muted-foreground">Claim Deadline</p>
+                    {(() => {
+                      const deadlineState = getClaimDeadlineState(
+                        selectedReturnForDetails.externalClaimDeadline
+                      );
+                      if (!deadlineState) {
+                        return (
+                          <p className="mt-1 text-lg font-semibold">Not set</p>
+                        );
+                      }
+
+                      return (
+                        <>
+                          <p className="mt-1 text-lg font-semibold">
+                            {format(deadlineState.date, "dd MMM yyyy")}
+                          </p>
+                          <p
+                            className={`text-sm ${
+                              deadlineState.isOverdue
+                                ? "text-red-700"
+                                : "text-amber-700"
+                            }`}
+                          >
+                            {deadlineState.isOverdue
+                              ? "Follow-up overdue"
+                              : `${deadlineState.daysRemaining} day(s) left`}
+                          </p>
+                        </>
+                      );
+                    })()}
                   </div>
                 </CardContent>
               </Card>
