@@ -66,6 +66,14 @@ Optional (COD): for some FAN accounts, COD AWBs require `info.returnPayment`.
 FANCOURIER_RETURN_PAYMENT=sender   # default: sender
 ```
 
+Optional (AWB billing override): if FAN support tells you that the AWB
+`info.payment` field must contain your billing company label instead of the
+generic `sender` / `recipient` value, set:
+
+```
+FANCOURIER_AWB_PAYMENT_LABEL=WEBIRA REM SRL Cluj-Napoca
+```
+
 Optional (locker COD): enable COD for FANbox checkout/orders.
 
 ```
@@ -129,6 +137,8 @@ The payload includes:
 - COD amount (if COD)
 - Return payment party for COD (`info.returnPayment`) when required by account
   rules
+- AWB payment billing label from `FANCOURIER_AWB_PAYMENT_LABEL` when required by
+  your FAN account; otherwise the integration defaults to `sender`
 - Declared value (insurance) when applicable
 - Recipient address from checkout
 - Service:

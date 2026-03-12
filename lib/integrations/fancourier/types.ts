@@ -64,6 +64,12 @@ export type FanCourierServiceType =
  */
 export type FanCourierPaymentParty = "sender" | "recipient";
 
+/**
+ * AWB payment field accepted by FAN Courier.
+ * Some accounts expect the billing company label instead of the payer enum.
+ */
+export type FanCourierAwbPayment = FanCourierPaymentParty | string;
+
 export interface FanCourierPackagesInfo {
     parcel: number;
     envelope?: number;
@@ -84,7 +90,7 @@ export interface FanCourierShipmentInfo {
     weight: number;
     cod: number;
     declaredValue: number;
-    payment: FanCourierPaymentParty;
+    payment: FanCourierAwbPayment;
     refund?: number | null;
     returnPayment?: FanCourierPaymentParty | number | null;
     observation?: string | null;

@@ -18,6 +18,7 @@ import {
 } from "@/lib/integrations/fancourier/client";
 import type {
   FanCourierAwbPayload,
+  FanCourierAwbPayment,
   FanCourierPaymentParty,
   FanCourierServiceType,
 } from "@/lib/integrations/fancourier/types";
@@ -583,6 +584,27 @@ const resolveCodReturnPayment = (): FanCourierPaymentParty | number => {
   return "sender";
 };
 
+const resolveAwbPayment = (): FanCourierAwbPayment => {
+  const candidates = [
+    process.env.FANCOURIER_AWB_PAYMENT_LABEL,
+    process.env.FANCOURIER_AWB_PAYMENT,
+  ];
+
+  for (const raw of candidates) {
+    const value = raw?.trim();
+    if (!value) continue;
+
+    const normalized = value.toLowerCase();
+    if (normalized === "sender" || normalized === "recipient") {
+      return normalized;
+    }
+
+    return value;
+  }
+
+  return "sender";
+};
+
 const parsePositiveDimensionCm = (raw: string | undefined): number | null => {
   if (!raw) return null;
   const parsed = Number(raw);
@@ -692,6 +714,7 @@ const buildAwbPayload = (
   const codValue = isCodPayment
     ? (input.order.codAmount ?? input.order.total)
     : 0;
+  const awbPayment = resolveAwbPayment();
   const returnPayment = codValue > 0 ? resolveCodReturnPayment() : null;
 
   return {
@@ -709,7 +732,7 @@ const buildAwbPayload = (
           weight: input.chargeableWeightKg,
           cod: codValue,
           declaredValue: input.order.declaredValue ?? 0,
-          payment: "sender",
+          payment: awbPayment,
           refund: null,
           returnPayment,
           observation: `Order ${input.order.orderNumber}`,
