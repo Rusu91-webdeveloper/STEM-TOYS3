@@ -102,6 +102,7 @@ export function ProductsMainDisplay({
           price: product.price,
           image: product.images?.[0] ?? "",
           quantity: 1,
+          stockQuantity: product.stockQuantity,
           isBook,
           slug: product.slug,
         },

@@ -8,7 +8,7 @@ import {
   type Variant,
 } from "@/components/products/VariantSelector";
 
-import type { CartItem } from "../context/CartContext";
+import type { AddToCartItemInput } from "../context/CartContext";
 import { useShoppingCart } from "../hooks/useShoppingCart";
 
 interface AddToCartButtonProps {
@@ -18,6 +18,7 @@ interface AddToCartButtonProps {
     price: number;
     image?: string;
     variants?: Variant[];
+    stockQuantity?: number;
   };
   className?: string;
   showQuantity?: boolean;
@@ -40,14 +41,18 @@ export function AddToCartButton({
       : undefined
   );
   const { addItem } = useShoppingCart();
+  const stockQuantity = Math.max(0, product.stockQuantity ?? 0);
+  const isOutOfStock = stockQuantity <= 0;
 
   const handleAddToCart = () => {
+    if (isOutOfStock) return;
+
     // Find the selected variant if any
     const selectedVariant = selectedVariantId
       ? product.variants?.find(v => v.id === selectedVariantId)
       : undefined;
 
-    const item: Omit<CartItem, "id"> = {
+    const item: AddToCartItemInput = {
       productId: product.id,
       variantId: selectedVariantId,
       name:
@@ -55,6 +60,7 @@ export function AddToCartButton({
       price: selectedVariant?.price ?? product.price,
       quantity,
       image: product.image,
+      stockQuantity,
     };
 
     addItem(item, quantity);
@@ -69,7 +75,9 @@ export function AddToCartButton({
   // Determine if Add to Cart should be disabled
   const hasVariants = product.variants && product.variants.length > 0;
   const isAddDisabled =
-    isAdded || (hasVariants && showVariantSelector && !selectedVariantId);
+    isAdded ||
+    isOutOfStock ||
+    (hasVariants && showVariantSelector && !selectedVariantId);
 
   return (
     <div
@@ -133,6 +141,11 @@ export function AddToCartButton({
             <>
               <Check className="h-5 w-5" />
               Added to Cart
+            </>
+          ) : isOutOfStock ? (
+            <>
+              <ShoppingCart className="h-5 w-5" />
+              Out of Stock
             </>
           ) : (
             <>

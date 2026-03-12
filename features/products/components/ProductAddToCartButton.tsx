@@ -4,7 +4,7 @@ import { ShoppingCart, Check } from "lucide-react";
 import React, { useState, useEffect } from "react";
 
 import type { Variant } from "@/components/products/VariantSelector";
-import type { CartItem } from "@/features/cart/context/CartContext";
+import type { AddToCartItemInput } from "@/features/cart/context/CartContext";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import { cn } from "@/lib/utils";
 
@@ -134,7 +134,7 @@ export function ProductAddToCartButton({
     setIsLoading(true);
 
     try {
-      const item: Omit<CartItem, "id"> = {
+      const item: AddToCartItemInput = {
         productId: product.id,
         variantId: selectedVariantId,
         name:
@@ -142,6 +142,7 @@ export function ProductAddToCartButton({
         price: selectedVariant?.price ?? product.price,
         quantity,
         image: product.image,
+        stockQuantity,
         isBook,
         selectedLanguage:
           isBook && hasAvailableLanguages ? selectedLanguage : undefined,

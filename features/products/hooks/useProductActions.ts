@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
-import type { CartItem } from "@/features/cart/context/CartContext";
+import type { AddToCartItemInput } from "@/features/cart/context/CartContext";
 
 interface Product {
   id: string;
@@ -363,12 +363,13 @@ export function useProductActions(
     setIsAddingToCart(true);
 
     try {
-      const item: Omit<CartItem, "id"> = {
+      const item: AddToCartItemInput = {
         productId: product.id,
         name: product.name,
         price: product.price,
         quantity: 1,
         image: product.images?.[0],
+        stockQuantity: product.stockQuantity,
         isBook,
         slug: product.slug,
       };

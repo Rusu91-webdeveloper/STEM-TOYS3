@@ -26,9 +26,13 @@ export interface CartItem {
   slug?: string; // Add slug for MiniCart stock fetch
 }
 
+export interface AddToCartItemInput extends Omit<CartItem, "id"> {
+  stockQuantity?: number;
+}
+
 interface CartContextType {
   items: CartItem[]; // Updated to match MiniCart usage
-  addToCart: (item: Omit<CartItem, "id">, quantity?: number) => void;
+  addToCart: (item: AddToCartItemInput, quantity?: number) => void;
   removeItem: (
     itemId: string,
     variantId?: string,
@@ -285,26 +289,71 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     return () => clearTimeout(timer);
   }, [loadCart]);
 
-  const addToCart = (itemToAdd: Omit<CartItem, "id">, quantity: number = 1) => {
+  const addToCart = (
+    itemToAdd: AddToCartItemInput,
+    quantity: number = 1
+  ) => {
     const cartItemId = getCartItemId(
       itemToAdd.productId,
       itemToAdd.variantId,
       itemToAdd.selectedLanguage
     );
+    const normalizedStockQuantity =
+      itemToAdd.isBook || typeof itemToAdd.stockQuantity !== "number"
+        ? null
+        : Math.max(0, itemToAdd.stockQuantity);
+    const existingItem = cartItems.find(item => item.id === cartItemId);
+
+    if (normalizedStockQuantity !== null) {
+      if (normalizedStockQuantity <= 0) {
+        return;
+      }
+
+      if (existingItem && existingItem.quantity >= normalizedStockQuantity) {
+        return;
+      }
+    }
 
     setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === cartItemId);
-      if (existingItem) {
+      const existingCartItem = prevItems.find(item => item.id === cartItemId);
+
+      if (existingCartItem) {
+        const nextQuantity = existingCartItem.quantity + quantity;
+        const cappedQuantity =
+          normalizedStockQuantity === null
+            ? nextQuantity
+            : Math.min(nextQuantity, normalizedStockQuantity);
+
+        if (cappedQuantity === existingCartItem.quantity) {
+          return prevItems;
+        }
+
         return prevItems.map(item =>
           item.id === cartItemId
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: cappedQuantity }
             : item
         );
       }
-      // Include slug if present
+
+      const normalizedQuantity =
+        normalizedStockQuantity === null
+          ? quantity
+          : Math.min(quantity, normalizedStockQuantity);
+
+      if (normalizedQuantity <= 0) {
+        return prevItems;
+      }
+
+      const { stockQuantity: _stockQuantity, ...cartItemData } = itemToAdd;
+
       return [
         ...prevItems,
-        { ...itemToAdd, id: cartItemId, quantity, slug: itemToAdd.slug },
+        {
+          ...cartItemData,
+          id: cartItemId,
+          quantity: normalizedQuantity,
+          slug: itemToAdd.slug,
+        },
       ];
     });
 

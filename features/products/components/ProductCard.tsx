@@ -105,6 +105,7 @@ export function ProductCard({
         price: product.price,
         image: product.images[0],
         quantity: 1,
+        stockQuantity,
         isBook,
         slug: product.slug,
       };

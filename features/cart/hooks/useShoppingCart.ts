@@ -1,5 +1,5 @@
 import { useCart } from "../context/CartContext";
-import type { CartItem } from "../context/CartContext";
+import type { AddToCartItemInput, CartItem } from "../context/CartContext";
 
 /**
  * Custom hook for accessing and manipulating the shopping cart
@@ -71,3 +71,4 @@ export function useShoppingCart() {
 export { useCart };
 
 export type { CartItem };
+export type { AddToCartItemInput };
