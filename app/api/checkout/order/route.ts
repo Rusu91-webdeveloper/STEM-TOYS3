@@ -769,7 +769,7 @@ export async function POST(request: Request) {
 
     // Keep checkout/order API in sync with /api/checkout/shipping-quote:
     // if a courier service has priceOverride configured, it must win.
-    let selectedServicePriceOverride: number | null = null;
+    let selectedAdminShippingPrice: number | null = null;
     let shippingSettingsForPricing: unknown = null;
     if (!isDigitalOnlyOrder && orderData.shippingMethod?.id) {
       try {
@@ -792,6 +792,10 @@ export async function POST(request: Request) {
           (service: any) =>
             service.id === serviceId && service.enabled !== false
         );
+        const legacyDeliveryPrice =
+          (shippingSettings as any)?.deliveryPrice?.active === true
+            ? Number((shippingSettings as any)?.deliveryPrice?.price)
+            : null;
 
         const overrideRaw = selectedService?.priceOverride;
         if (
@@ -801,12 +805,20 @@ export async function POST(request: Request) {
         ) {
           const parsedOverride = Number(overrideRaw);
           if (Number.isFinite(parsedOverride)) {
-            selectedServicePriceOverride = parsedOverride;
+            selectedAdminShippingPrice = parsedOverride;
           }
+        }
+
+        if (
+          selectedAdminShippingPrice === null &&
+          legacyDeliveryPrice !== null &&
+          Number.isFinite(legacyDeliveryPrice)
+        ) {
+          selectedAdminShippingPrice = legacyDeliveryPrice;
         }
       } catch (shippingSettingsError) {
         console.error(
-          "Failed to resolve shipping service price override:",
+          "Failed to resolve admin shipping price override:",
           shippingSettingsError
         );
       }
@@ -863,13 +875,14 @@ export async function POST(request: Request) {
           pricingVersion = quote.pricingVersion;
 
           // Priority:
-          // 1. Admin priceOverride (always wins — definitive admin control)
-          // 2. Frontend price (what the customer was shown at checkout)
-          // 3. Server-calculated quote (safety net when no frontend price)
-          // This prevents a mismatch where the UI shows one price but the
-          // order/email stores a different server-recalculated value.
-          if (selectedServicePriceOverride !== null) {
-            finalShippingCost = selectedServicePriceOverride;
+          // 1. Per-service admin priceOverride
+          // 2. Admin deliveryPrice (legacy/global UI control)
+          // 3. Frontend price shown at checkout
+          // 4. Server-calculated quote as a safety fallback
+          if (selectedAdminShippingPrice !== null) {
+            finalShippingCost = selectedAdminShippingPrice;
+          } else if (requestedShippingCost > 0) {
+            finalShippingCost = requestedShippingCost;
           } else {
             finalShippingCost = quote.totalPrice;
           }

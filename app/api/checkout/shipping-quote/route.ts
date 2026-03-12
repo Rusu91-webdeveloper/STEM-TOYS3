@@ -88,6 +88,14 @@ export async function GET(request: NextRequest) {
       (settings as any)?.couriers && Array.isArray((settings as any).couriers)
         ? (settings as any).couriers
         : DEFAULT_COURIERS;
+    const legacyDeliveryPrice =
+      (settings as any)?.deliveryPrice?.active === true
+        ? Number((settings as any)?.deliveryPrice?.price)
+        : null;
+    const normalizedLegacyDeliveryPrice =
+      legacyDeliveryPrice !== null && Number.isFinite(legacyDeliveryPrice)
+        ? legacyDeliveryPrice
+        : null;
 
     const methods = configuredCouriers
       .filter((courier: any) => courier.enabled !== false)
@@ -109,6 +117,8 @@ export async function GET(request: NextRequest) {
             const singleShipmentPrice =
               Number.isFinite(priceOverride) && priceOverride !== null
                 ? priceOverride
+                : normalizedLegacyDeliveryPrice !== null
+                  ? normalizedLegacyDeliveryPrice
                 : (quote?.totalPrice ?? 0);
             const mixedSupplierSurcharge =
               calculateMixedSupplierShippingSurcharge(
