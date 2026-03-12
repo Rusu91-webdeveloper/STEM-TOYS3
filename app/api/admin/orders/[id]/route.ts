@@ -159,6 +159,8 @@ export async function GET(
       paymentStatus: order.paymentStatus,
       paymentMethod: order.paymentMethod,
       shippingMethod: order.shippingMethod ?? undefined,
+      manualShippingReviewRequired: order.manualShippingReviewRequired,
+      shippingReviewReason: order.shippingReviewReason,
       notes: order.notes,
       tags: order.tags ?? [],
       codFeeEstimate: order.codFeeEstimate,

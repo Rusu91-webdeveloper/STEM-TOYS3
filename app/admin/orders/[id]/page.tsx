@@ -135,6 +135,8 @@ type OrderDetails = {
   paymentStatus: string;
   paymentMethod: string;
   shippingMethod?: string;
+  manualShippingReviewRequired?: boolean;
+  shippingReviewReason?: string | null;
   notes?: string | null;
   tags?: string[];
   codFeeEstimate?: number | null;
@@ -943,16 +945,24 @@ export default function OrderDetailsPage() {
         },
         body: JSON.stringify({ orderId: order.id }),
       });
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error("Failed to create supplier order");
+        const reason =
+          data?.reviewReason ||
+          data?.details?.join?.(" | ") ||
+          data?.error ||
+          "Failed to create supplier order";
+        throw new Error(reason);
       }
 
-      const data = await response.json();
-
       toast({
-        title: "Success",
-        description: `Created ${data.data.supplierOrdersCreated} supplier order(s)`,
+        title: data?.data?.manualReviewRequired ? "Needs manual review" : "Success",
+        description: data?.data?.manualReviewRequired
+          ? (data.data.reviewReason ??
+            `Created ${data.data.supplierOrdersCreated} supplier order(s), but this order still needs manual review.`)
+          : `Created ${data.data.supplierOrdersCreated} supplier order(s)`,
+        variant: data?.data?.manualReviewRequired ? "destructive" : "default",
       });
 
       // Refresh order details to show supplier orders
@@ -961,7 +971,10 @@ export default function OrderDetailsPage() {
       console.error("Error creating supplier order:", error);
       toast({
         title: "Error",
-        description: "Failed to create supplier order. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to create supplier order. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -1688,6 +1701,23 @@ export default function OrderDetailsPage() {
             </Button>
           </div>
         </div>
+
+        {order.manualShippingReviewRequired && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <div className="flex items-start gap-3">
+              <MessageSquareWarning className="mt-0.5 h-5 w-5 text-amber-700" />
+              <div>
+                <p className="text-sm font-semibold text-amber-900">
+                  Manual fulfillment review required
+                </p>
+                <p className="mt-1 text-sm text-amber-800">
+                  {order.shippingReviewReason ||
+                    "This order needs manual supplier/shipping work before fulfillment can continue."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Cancellation Reason Field - full width below header row */}
         {newStatus === "CANCELLED" && (

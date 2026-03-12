@@ -27,6 +27,8 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
           success: false,
           error: "Failed to process order",
           details: result.errors,
+          manualReviewRequired: result.manualReviewRequired ?? false,
+          reviewReason: result.reviewReason ?? null,
         },
         { status: 400 }
       );
@@ -42,6 +44,8 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
       data: {
         orderId,
         supplierOrdersCreated: result.supplierOrders.length,
+        manualReviewRequired: result.manualReviewRequired ?? false,
+        reviewReason: result.reviewReason ?? null,
         supplierOrders: result.supplierOrders.map(so => ({
           id: so.id,
           supplierId: so.supplierId,

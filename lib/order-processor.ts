@@ -5,6 +5,8 @@ export interface OrderProcessingResult {
   success: boolean;
   supplierOrders: any[];
   errors: string[];
+  manualReviewRequired?: boolean;
+  reviewReason?: string | null;
 }
 
 export interface SupplierOrderData {
@@ -49,6 +51,48 @@ type SupplierLineCandidate = {
 };
 
 export class OrderProcessor {
+  private static async updateManualReviewStatus(input: {
+    orderId: string;
+    reviewReason: string | null;
+  }): Promise<void> {
+    await db.order.update({
+      where: { id: input.orderId },
+      data: {
+        manualShippingReviewRequired: Boolean(input.reviewReason),
+        shippingReviewReason: input.reviewReason,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  private static buildManualReviewReason(input: {
+    hasPhysicalItems: boolean;
+    supplierOrdersCreated: number;
+    errors: string[];
+  }): string | null {
+    if (!input.hasPhysicalItems) {
+      return null;
+    }
+
+    if (input.errors.length === 0 && input.supplierOrdersCreated > 0) {
+      return null;
+    }
+
+    const uniqueErrors = Array.from(
+      new Set(
+        input.errors
+          .map(error => error.trim())
+          .filter(Boolean)
+      )
+    );
+
+    if (uniqueErrors.length > 0) {
+      return `Manual fulfillment review required: ${uniqueErrors.join(" | ")}`;
+    }
+
+    return "Manual fulfillment review required: supplier orders were not created automatically. Create or fix supplier lines in Admin.";
+  }
+
   /**
    * Process a new order and create supplier orders for each item
    */
@@ -77,12 +121,15 @@ export class OrderProcessor {
           success: false,
           supplierOrders: [],
           errors: ["Order not found"],
+          manualReviewRequired: false,
+          reviewReason: null,
         };
       }
 
       const supplierOrders: any[] = [];
       const errors: string[] = [];
       const supplierLineCandidates: SupplierLineCandidate[] = [];
+      const hasPhysicalItems = order.items.some(item => item.isDigital !== true);
 
       const bundleItems = order.items.filter(item => item.product?.isBundle === true);
       const bundleComponentIdsByBundleId = new Map<string, string[]>();
@@ -227,16 +274,52 @@ export class OrderProcessor {
         },
       });
 
+      const reviewReason = this.buildManualReviewReason({
+        hasPhysicalItems,
+        supplierOrdersCreated: supplierOrders.length,
+        errors,
+      });
+      const shouldNotifyManualReview =
+        Boolean(reviewReason) &&
+        (!order.manualShippingReviewRequired ||
+          order.shippingReviewReason !== reviewReason);
+
+      await this.updateManualReviewStatus({
+        orderId,
+        reviewReason,
+      });
+
+      if (shouldNotifyManualReview) {
+        const { AdminNotificationService } = await import(
+          "@/lib/email/admin-notification-service"
+        );
+        AdminNotificationService.sendOrderIssueNotification(
+          orderId,
+          "MANUAL_FULFILLMENT_REVIEW_REQUIRED",
+          reviewReason,
+          "HIGH"
+        ).catch(error => {
+          console.error(
+            `[OrderProcessor] Failed to send manual fulfillment review notification for order ${order.orderNumber}:`,
+            error
+          );
+        });
+      }
+
       return {
         success: errors.length === 0,
         supplierOrders,
         errors,
+        manualReviewRequired: Boolean(reviewReason),
+        reviewReason,
       };
     } catch (error) {
       return {
         success: false,
         supplierOrders: [],
         errors: [`Failed to process order: ${error}`],
+        manualReviewRequired: false,
+        reviewReason: null,
       };
     }
   }

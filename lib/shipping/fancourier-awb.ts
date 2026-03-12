@@ -162,6 +162,67 @@ const extractPickupLocationCandidates = (
   return candidates;
 };
 
+const extractFanboxAddress = (
+  snapshot: unknown,
+  fallback: {
+    pickupLocation?: string | null;
+    county: string;
+    locality: string;
+    postalCode: string;
+    street: string;
+  }
+): {
+  county: string;
+  locality: string;
+  street: string;
+  streetNo?: string;
+  zipCode?: string;
+  pickupLocation?: string;
+} => {
+  const pickupLocation =
+    extractPickupLocation(snapshot, fallback.pickupLocation) ??
+    fallback.pickupLocation ??
+    undefined;
+
+  let county = fallback.county;
+  let locality = fallback.locality;
+  let street = fallback.street;
+  let streetNo: string | undefined;
+  let zipCode = fallback.postalCode;
+
+  if (snapshot && typeof snapshot === "object") {
+    const record = snapshot as Record<string, unknown>;
+    const rawCounty = record.county;
+    const rawLocality = record.locality;
+    const rawPostalCode = record.postalCode;
+    const rawAddress = record.address;
+
+    if (typeof rawCounty === "string" && rawCounty.trim()) {
+      county = rawCounty.trim();
+    }
+    if (typeof rawLocality === "string" && rawLocality.trim()) {
+      locality = rawLocality.trim();
+    }
+    if (typeof rawPostalCode === "string" && rawPostalCode.trim()) {
+      zipCode = rawPostalCode.trim();
+    }
+    if (typeof rawAddress === "string" && rawAddress.trim()) {
+      const parsed = parseStreetData(rawAddress.trim());
+      street = parsed.street || street;
+      streetNo = parsed.streetNo;
+    }
+  }
+
+  return {
+    county,
+    locality,
+    street,
+    streetNo,
+    zipCode,
+    pickupLocation,
+  };
+};
+
 const hasPickupLocationValidationError = (
   response: Record<string, unknown> | null
 ): boolean => {
@@ -703,11 +764,21 @@ const buildAwbPayload = (
     pickupLocation,
     isCodPayment
   );
+  const fanboxService = isFanboxService(service);
   const recipientAddress = extractRecipientAddressParts({
     addressLine1: input.order.shippingAddress.addressLine1,
     addressLine2: input.order.shippingAddress.addressLine2,
     locality: input.order.shippingAddress.city,
   });
+  const fanboxAddress = fanboxService
+    ? extractFanboxAddress(input.order.lockerAddressSnapshot, {
+        pickupLocation,
+        county: normalizeFanCourierCountyName(input.order.shippingAddress.state),
+        locality: input.order.shippingAddress.city,
+        postalCode: input.order.shippingAddress.postalCode,
+        street: recipientAddress.street,
+      })
+    : null;
   const sender = senderConfig ?? getFanCourierSenderConfig();
   const awbOptions = resolveAwbOptionCodes(service);
   const shipmentDimensions = resolveShipmentDimensions(service, input.dimensions);
@@ -755,17 +826,18 @@ const buildAwbPayload = (
           phone: input.order.shippingAddress.phone,
           email: input.order.user?.email || undefined,
           address: {
-            county: normalizeFanCourierCountyName(input.order.shippingAddress.state),
-            locality: input.order.shippingAddress.city,
-            street: recipientAddress.street,
-            streetNo: recipientAddress.streetNo,
-            building: recipientAddress.building,
-            entrance: recipientAddress.entrance,
-            floor: recipientAddress.floor,
-            apartment: recipientAddress.apartment,
-            zipCode: input.order.shippingAddress.postalCode,
-            pickupLocation:
-              isFanboxService(service) ? (pickupLocation ?? undefined) : undefined,
+            county: normalizeFanCourierCountyName(
+              fanboxAddress?.county ?? input.order.shippingAddress.state
+            ),
+            locality: fanboxAddress?.locality ?? input.order.shippingAddress.city,
+            street: fanboxAddress?.street ?? recipientAddress.street,
+            streetNo: fanboxAddress?.streetNo ?? recipientAddress.streetNo,
+            building: fanboxService ? undefined : recipientAddress.building,
+            entrance: fanboxService ? undefined : recipientAddress.entrance,
+            floor: fanboxService ? undefined : recipientAddress.floor,
+            apartment: fanboxService ? undefined : recipientAddress.apartment,
+            zipCode: fanboxAddress?.zipCode ?? input.order.shippingAddress.postalCode,
+            pickupLocation: fanboxAddress?.pickupLocation,
           },
         },
         sender: {
