@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
+import { appConfig } from "@/lib/config/app-config";
 import { getRequiredEnvVar } from "@/lib/env";
 import { AdminNotificationService } from "@/lib/email/admin-notification-service";
 import {
@@ -16,6 +17,68 @@ import {
 // Webhook signature verification tolerance (300 seconds = 5 minutes)
 // This accounts for clock skew between Stripe's servers and ours
 const WEBHOOK_TOLERANCE = 300;
+
+const WEBHOOK_TAGS = {
+  adminNewOrderEmailSent: "stripe:webhook:admin-new-order-email-sent",
+  orderConfirmationEmailSent:
+    "stripe:webhook:order-confirmation-email-sent",
+  manualReviewAlertSent: "stripe:webhook:manual-review-alert-sent",
+} as const;
+
+function hasWebhookTag(
+  tags: string[] | null | undefined,
+  tag: (typeof WEBHOOK_TAGS)[keyof typeof WEBHOOK_TAGS]
+): boolean {
+  return Array.isArray(tags) && tags.includes(tag);
+}
+
+async function addWebhookTag(
+  db: any,
+  orderId: string,
+  currentTags: string[] | null | undefined,
+  tag: (typeof WEBHOOK_TAGS)[keyof typeof WEBHOOK_TAGS]
+): Promise<string[]> {
+  const nextTags = Array.from(new Set([...(currentTags || []), tag]));
+
+  await db.order.update({
+    where: { id: orderId },
+    data: {
+      tags: { set: nextTags },
+    },
+  });
+
+  return nextTags;
+}
+
+async function logWebhookEmailDelivery(input: {
+  db: any;
+  templateSlug: string;
+  to: string;
+  subject: string;
+  orderId: string;
+  messageId?: string;
+}): Promise<void> {
+  const template = await input.db.emailTemplate.findUnique({
+    where: { slug: input.templateSlug },
+    select: { id: true },
+  });
+
+  await input.db.emailLog.create({
+    data: {
+      templateId: template?.id ?? null,
+      to: input.to,
+      subject: input.subject,
+      status: "sent",
+      sentAt: new Date(),
+      metadata: {
+        orderId: input.orderId,
+        source: "stripe-webhook",
+        templateSlug: input.templateSlug,
+        messageId: input.messageId ?? null,
+      },
+    },
+  });
+}
 
 export async function POST(request: Request) {
   // If Stripe is disabled, acknowledge and exit
@@ -163,11 +226,12 @@ async function handleSuccessfulPayment(
       }));
 
     if (!order) {
-      console.warn(
+      throw new Error(
         `Payment succeeded but no order found for intent ${paymentIntentId}`
       );
-      return;
     }
+
+    let orderTags = Array.isArray(order.tags) ? [...order.tags] : [];
 
     // Check if order has ANY digital items (books with bookId or isDigital flag)
     // Fix: Changed from every() to some() to detect ANY digital items, not just ALL
@@ -198,13 +262,32 @@ async function handleSuccessfulPayment(
       },
     });
 
-    if (order.paymentStatus !== "PAID") {
-      AdminNotificationService.sendNewOrderNotification(order.id).catch(err => {
-        console.error(
-          `❌ [STRIPE][WEBHOOK] Failed to send admin new order notification for order ${order.id}:`,
-          err
+    if (!hasWebhookTag(orderTags, WEBHOOK_TAGS.adminNewOrderEmailSent)) {
+      const adminResult = await AdminNotificationService.sendNewOrderNotification(
+        order.id
+      );
+      if (!adminResult.success) {
+        throw new Error(
+          adminResult.error ||
+            `Failed to send admin new-order notification for ${order.id}`
         );
+      }
+
+      await logWebhookEmailDelivery({
+        db,
+        templateSlug: "admin-new-order",
+        to: appConfig.adminEmail,
+        subject: `Admin new order notification: ${order.orderNumber || order.id}`,
+        orderId: order.id,
+        messageId: adminResult.messageId,
       });
+
+      orderTags = await addWebhookTag(
+        db,
+        order.id,
+        orderTags,
+        WEBHOOK_TAGS.adminNewOrderEmailSent
+      );
     }
 
     // Verify payment status was updated before processing digital books
@@ -232,29 +315,22 @@ async function handleSuccessfulPayment(
       let supplierOrderCount = await db.supplierOrder.count({
         where: { orderId: order.id },
       });
-      try {
-        const { OrderProcessor } = await import("@/lib/order-processor");
-        if (supplierOrderCount === 0) {
-          const processResult = await OrderProcessor.processNewOrder(order.id);
-          if (!processResult.success && processResult.errors.length > 0) {
-            console.warn(
-              `[STRIPE][WEBHOOK] Supplier orders had errors for order ${order.id}:`,
-              processResult.errors
-            );
-          } else if (processResult.supplierOrders.length > 0) {
-            console.log(
-              `✅ [STRIPE][WEBHOOK] Created ${processResult.supplierOrders.length} supplier order(s) for order ${order.id}`
-            );
-          }
-          supplierOrderCount = await db.supplierOrder.count({
-            where: { orderId: order.id },
-          });
+      const { OrderProcessor } = await import("@/lib/order-processor");
+      if (supplierOrderCount === 0) {
+        const processResult = await OrderProcessor.processNewOrder(order.id);
+        if (!processResult.success && processResult.errors.length > 0) {
+          console.warn(
+            `[STRIPE][WEBHOOK] Supplier orders had errors for order ${order.id}:`,
+            processResult.errors
+          );
+        } else if (processResult.supplierOrders.length > 0) {
+          console.log(
+            `✅ [STRIPE][WEBHOOK] Created ${processResult.supplierOrders.length} supplier order(s) for order ${order.id}`
+          );
         }
-      } catch (processorError) {
-        console.error(
-          `❌ [STRIPE][WEBHOOK] OrderProcessor failed for order ${order.id}:`,
-          processorError
-        );
+        supplierOrderCount = await db.supplierOrder.count({
+          where: { orderId: order.id },
+        });
       }
       if (supplierOrderCount === 0) {
         const reason =
@@ -266,18 +342,37 @@ async function handleSuccessfulPayment(
             shippingReviewReason: reason,
           },
         });
-        // Notify admin that this order needs manual supplier/shipping review
-        AdminNotificationService.sendOrderIssueNotification(
-          order.id,
-          "MANUAL_SHIPPING_REVIEW_REQUIRED",
-          reason,
-          "HIGH"
-        ).catch(err => {
-          console.error(
-            `⚠️ [STRIPE][WEBHOOK] Failed to send manual shipping review notification for order ${order.id}:`,
-            err
+        if (!hasWebhookTag(orderTags, WEBHOOK_TAGS.manualReviewAlertSent)) {
+          const manualReviewResult =
+            await AdminNotificationService.sendOrderIssueNotification(
+              order.id,
+              "MANUAL_SHIPPING_REVIEW_REQUIRED",
+              reason,
+              "HIGH"
+            );
+          if (!manualReviewResult.success) {
+            throw new Error(
+              manualReviewResult.error ||
+                `Failed to send manual review alert for ${order.id}`
+            );
+          }
+
+          await logWebhookEmailDelivery({
+            db,
+            templateSlug: "admin-order-issue",
+            to: appConfig.adminEmail,
+            subject: `Manual fulfillment review required: ${order.orderNumber || order.id}`,
+            orderId: order.id,
+            messageId: manualReviewResult.messageId,
+          });
+
+          orderTags = await addWebhookTag(
+            db,
+            order.id,
+            orderTags,
+            WEBHOOK_TAGS.manualReviewAlertSent
           );
-        });
+        }
         console.warn(
           `⚠️ [STRIPE][WEBHOOK] Skipping AWB for order ${order.id}: ${reason}`
         );
@@ -324,7 +419,7 @@ async function handleSuccessfulPayment(
     // but we also send confirmation email for consistency
     if (userEmail || order.user?.email) {
       const recipientEmail = userEmail || order.user?.email;
-      try {
+      if (!hasWebhookTag(orderTags, WEBHOOK_TAGS.orderConfirmationEmailSent)) {
         const { DatabaseTemplateService } = await import(
           "@/lib/email/database-template-service"
         );
@@ -355,20 +450,31 @@ async function handleSuccessfulPayment(
             }
           );
 
-        if (sendResult.success) {
-          console.log(
-            `✅ [STRIPE][WEBHOOK] Order confirmation email sent to ${recipientEmail} for order ${order.id}`
-          );
-        } else {
-          console.error(
-            `❌ [STRIPE][WEBHOOK] Failed to send order confirmation email via template service:`,
-            sendResult.error
+        if (!sendResult.success) {
+          throw new Error(
+            sendResult.error ||
+              `Failed to send order confirmation email for ${order.id}`
           );
         }
-      } catch (emailError) {
-        console.error(
-          `❌ [STRIPE][WEBHOOK] Failed to send order confirmation email:`,
-          emailError
+
+        await logWebhookEmailDelivery({
+          db,
+          templateSlug: "order-confirmation",
+          to: recipientEmail,
+          subject: `Order confirmation: ${orderNumberForEmail}`,
+          orderId: order.id,
+          messageId: sendResult.messageId,
+        });
+
+        orderTags = await addWebhookTag(
+          db,
+          order.id,
+          orderTags,
+          WEBHOOK_TAGS.orderConfirmationEmailSent
+        );
+
+        console.log(
+          `✅ [STRIPE][WEBHOOK] Order confirmation email sent to ${recipientEmail} for order ${order.id}`
         );
       }
     }
@@ -377,6 +483,7 @@ async function handleSuccessfulPayment(
       `Error processing successful payment for intent ${paymentIntentId}:`,
       error
     );
+    throw error;
   }
 }
 
