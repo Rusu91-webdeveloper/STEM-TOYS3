@@ -915,8 +915,8 @@ export async function POST(request: Request) {
 
       const shippingRuleResult = applyMixedSupplierShippingRules({
         singleShipmentPrice:
-          selectedServicePriceOverride !== null
-            ? selectedServicePriceOverride
+          selectedAdminShippingPrice !== null
+            ? selectedAdminShippingPrice
             : shippingTotalEstimate,
         freeShippingEligible,
         analysis: supplierCartAnalysis,
