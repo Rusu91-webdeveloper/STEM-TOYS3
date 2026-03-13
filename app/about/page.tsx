@@ -138,18 +138,18 @@ export default function AboutPage() {
 
   const heroStats = [
     {
-      value: "87%",
-      label: t("aboutHeroMathImprovement"),
+      value: "RO",
+      label: "Magazin online pentru familii din Romania",
       accentClass: "text-emerald-300",
     },
     {
-      value: "30",
-      label: t("aboutHeroTransformationDays"),
+      value: "3-12+",
+      label: "Selectie pentru varste si etape diferite",
       accentClass: "text-sky-300",
     },
     {
-      value: "99%",
-      label: t("aboutHeroSatisfiedParents"),
+      value: "STEM",
+      label: "Categorie, ghiduri si suport pentru alegere",
       accentClass: "text-indigo-300",
     },
   ];
@@ -172,22 +172,19 @@ export default function AboutPage() {
                     height={28}
                     className="h-7 w-auto"
                   />
-                  <span className="text-white/80">
-                    {t("aboutHeroSocialProof")}
-                  </span>
+                  <span className="text-white/80">Despre brand</span>
                 </div>
                 <h1 className="text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-4xl">
-                  {t("aboutHeroHeadline")}{" "}
-                  <span className="bg-gradient-to-r from-rose-400 via-orange-400 to-amber-300 bg-clip-text text-transparent">
-                    {t("aboutHeroHeadlineStruggling")}
-                  </span>{" "}
-                  {t("aboutHeroHeadlineInto")}{" "}
+                  Cine este TechTots si cum construim un magazin online pentru
+                  jucarii{" "}
                   <span className="bg-gradient-to-r from-emerald-300 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
-                    {t("aboutHeroHeadlineFuture")}
+                    STEM si educative
                   </span>
                 </h1>
                 <p className="mx-auto max-w-3xl text-sm text-slate-200 sm:text-base md:text-lg">
-                  {t("aboutHeroSubheadline")}
+                  Pagina aceasta explica misiunea brandului, modul in care
+                  gandim selectia de produse si unde poti merge mai departe daca
+                  vrei sa alegi dupa varsta, categorie sau interes.
                 </p>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {heroStats.map(stat => (
@@ -213,7 +210,7 @@ export default function AboutPage() {
                     className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 via-sky-500 to-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:from-emerald-400 hover:via-sky-400 hover:to-indigo-400 sm:w-auto sm:text-base"
                   >
                     <Link href="/contact">
-                      {t("aboutHeroFreeConsultation")}
+                      Contact si suport
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
@@ -223,13 +220,13 @@ export default function AboutPage() {
                     size="lg"
                     className="w-full rounded-2xl border border-sky-400/60 bg-white/5 px-6 py-3 text-sm font-semibold text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/20 hover:text-white sm:w-auto sm:text-base"
                   >
-                    <Link href="/products">{t("aboutHeroSeeToys")}</Link>
+                    <Link href="/products">Vezi produsele</Link>
                   </Button>
                 </div>
                 <div className="mx-auto mt-4 inline-flex flex-col items-center gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-slate-200 shadow-inner shadow-black/30 sm:flex-row sm:text-sm">
-                  <span>🛡️ Calitate garantată și suport dedicat</span>
+                  <span>Informatii despre brand, suport si selectia produselor</span>
                   <span className="hidden h-1 w-1 rounded-full bg-white/30 sm:inline-block" />
-                  <span>Peste 10,000 de părinți au încredere în noi.</span>
+                  <span>Fara promisiuni artificiale, cu pagini comerciale si ghiduri clare</span>
                 </div>
               </div>
             </div>

@@ -134,6 +134,48 @@ export default async function RegionalStemPage({
       }}
       proofPoints={regionalCity.proofPoints}
       benefits={regionalCity.benefits}
+      quickFacts={[
+        {
+          label: "Intentie regionala",
+          value: `jucarii STEM ${regionalCity.city}, jucarii educative ${regionalCity.city}, robotica pentru copii ${regionalCity.city}`,
+        },
+        {
+          label: "Ce rezolva",
+          value: "Pagina conecteaza cautarea locala de tip oras + categorie cu huburile comerciale care chiar pot converti.",
+        },
+        {
+          label: "Semnal de incredere",
+          value: "Pagina este regionala, nu pretinde prezenta fizica locala si directioneaza transparent spre pagini nationale si de categorie.",
+        },
+        {
+          label: "Legaturi critice",
+          value: "Hub national STEM, robotica, jucarii educative, selectie dupa varsta si orase similare.",
+        },
+      ]}
+      guides={[
+        {
+          title: `Cum foloseste aceasta pagina cererea din ${regionalCity.city}`,
+          description:
+            "Scopul nu este sa repete homepage-ul, ci sa raspunda expresiilor de cautare locale cu intentie de cumparare si sa trimita rapid spre cea mai relevanta pagina comerciala.",
+        },
+        {
+          title: "Cand merita o pagina regionala in ecommerce",
+          description:
+            "Atunci cand cautarea combina orasul cu o intentie reala, iar pagina poate oferi rute utile spre selectie, livrare nationala si categorii relevante fara continut duplicat.",
+        },
+        {
+          title: "Cum contribuie la AI search",
+          description:
+            "Prin raspunsuri directe, denumiri clare de entitati si relatii interne simple intre oras, categorie, varsta si intentie comerciala.",
+        },
+      ]}
+      checklistTitle={`Cum ar trebui folosita pagina regionala pentru ${regionalCity.city}`}
+      checklistItems={[
+        "Incepe cu hubul local doar daca expresia de cautare include orasul sau intentia regionala.",
+        "Dupa intrare, mergi spre pagina nationala sau categoria cea mai apropiata de interesul copilului.",
+        "Foloseste selectie dupa varsta pentru a evita produse prea simple sau prea complexe.",
+        "Compara cu alte pagini comerciale doar daca intentia devine mai specifica: educativ, inteligent sau robotica.",
+      ]}
       clusters={[...nationalCommercialRoutes.slice(0, 4), ...siblingCities]}
       faqs={regionalCity.faq}
     />

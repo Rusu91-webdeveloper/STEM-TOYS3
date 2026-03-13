@@ -97,6 +97,49 @@ export default function StemToysLandingPage() {
         "Selectie dupa varsta, robotica, stiinta si invatare aplicata",
         "Leaga intentia comerciala de ghiduri si categorii reale",
       ]}
+      quickFacts={[
+        {
+          label: "Intentie principala",
+          value: "jucarii STEM, jucarii STEM copii, jucarii STEM Romania",
+        },
+        {
+          label: "Intentii secundare",
+          value: "cadouri STEM, kituri STEM, jocuri logica si robotica pentru copii",
+        },
+        {
+          label: "Pentru cine este",
+          value: "Parinti care vor sa ajunga rapid la o selectie relevanta, nu la un catalog generic.",
+        },
+        {
+          label: "Ce sustine",
+          value: "Hub-ul distribuie autoritate spre varsta, categorii, ghiduri si pagini regionale cu cerere reala.",
+        },
+      ]}
+      guides={[
+        {
+          title: "Cand merita sa alegi direct pagina STEM",
+          description:
+            "Atunci cand stii deja ca vrei produse cu componenta de logica, experiment, constructie sau tehnologie. Pagina aceasta este punctul cel mai bun de intrare pentru comparare rapida.",
+        },
+        {
+          title: "Cum separi STEM de simplul divertisment",
+          description:
+            "Produsele bune cer participare activa: copilul construieste, testeaza, ordoneaza pasi, observa rezultate si rezolva probleme, nu doar apasa pe un buton.",
+        },
+        {
+          title: "Cum folosesti pagina ca parinte",
+          description:
+            "Pornesti din hub, alegi ruta potrivita dupa varsta sau interes, apoi cobori spre categoria care rezolva cel mai bine contextul de acasa, cadou sau scoala.",
+        },
+      ]}
+      checklistTitle="Ce sa verifici inainte sa alegi o jucarie STEM"
+      checklistIntro="Pentru cautarile comerciale largi, viteza de selectie conteaza. Lista de mai jos reduce frictiunea si te trimite mai repede spre pagina potrivita."
+      checklistItems={[
+        "Porneste de la varsta si nivelul de autonomie al copilului.",
+        "Decide daca interesul principal este robotica, stiinta, constructii sau logica.",
+        "Verifica daca produsul este bun pentru joaca acasa, cadou sau activitati ghidate.",
+        "Foloseste paginile suport pentru varsta si categorii atunci cand rezultatele sunt prea largi.",
+      ]}
       benefits={[
         {
           title: "Mai putina confuzie la selectie",

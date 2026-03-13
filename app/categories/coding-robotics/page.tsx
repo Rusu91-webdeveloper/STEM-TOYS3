@@ -22,23 +22,23 @@ import {
 } from "@/features/home/components/homeTheme";
 
 export const metadata: Metadata = {
-  title: "Coding & Robotics | Jucării STEM pentru Programare",
+  title: "Robotica si coding pentru copii | Jucarii STEM TechTots",
   description:
-    "Explorează lumea programării și roboticii cu seturile noastre educaționale. Bundle-uri speciale pentru începători și avansați!",
+    "Descopera jucarii de robotica si coding pentru copii: roboti educativi, seturi programabile si kituri STEM potrivite pentru incepatori si nivel intermediar.",
   keywords: [
-    "jucării robotică",
-    "programare copii",
-    "coding toys",
-    "STEM technology",
-    "bundle-uri coding",
+    "robotica pentru copii",
+    "coding pentru copii",
+    "jucarii robotica copii",
+    "jucarii programabile",
+    "kituri robotica copii",
   ],
   alternates: {
     canonical: "https://www.techtots.ro/categories/coding-robotics",
   },
   openGraph: {
-    title: "Coding & Robotics | TechTots",
+    title: "Robotica si coding pentru copii | TechTots",
     description:
-      "Seturi de programare și robotică pentru copii - dezvoltă gândirea computațională",
+      "Seturi de programare si robotica pentru copii care sustin logica, constructia si invatarea practica.",
     url: "https://www.techtots.ro/categories/coding-robotics",
     type: "website",
   },
@@ -106,10 +106,10 @@ export default async function CodingRoboticsPage() {
                 <Bot className="h-8 w-8 sm:h-10 sm:w-10 text-cyan-300" />
               </div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
-                Coding & Robotics
+                Robotica si coding pentru copii
               </h1>
               <p className="text-slate-200 text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
-                Programare și robotică pentru viitorul digital
+                Roboti educativi, seturi programabile si produse pentru joaca tehnologica practica
               </p>
             </div>
           </div>
@@ -143,7 +143,7 @@ export default async function CodingRoboticsPage() {
           </section>
         )}
 
-        {/* Demo Video */}
+        {/* Buying guide */}
         <section className="container mx-auto px-4 sm:px-6 lg:px-10 pt-8 sm:pt-12">
           <div
             className={`${glassPanelClass} rounded-3xl border-white/15 bg-slate-900/60 px-5 py-6 shadow-xl shadow-black/30 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
@@ -151,13 +151,44 @@ export default async function CodingRoboticsPage() {
             <div className="flex items-center gap-3 mb-6">
               <Play className="h-6 w-6 text-sky-300" />
               <h2 className="text-2xl font-bold text-white">
-                Demo Video - Cum Funcționează
+                Cum alegi mai repede categoria potrivita
               </h2>
             </div>
-            <div className="aspect-video rounded-2xl overflow-hidden bg-slate-800/50 border border-white/10">
-              <div className="w-full h-full flex items-center justify-center">
-                <p className="text-slate-400 text-sm">
-                  [Video embed slot - adaugă codul de embed YouTube/Vimeo aici]
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+                <h3 className="text-lg font-semibold text-white">
+                  Pentru cine este buna pagina
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-200/80">
+                  Pentru parintii care cauta roboti educativi, coding vizual si
+                  kituri care duc copilul direct spre tehnologie si interactiune.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+                <h3 className="text-lg font-semibold text-white">
+                  Cand continui spre alte pagini
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-200/80">
+                  Daca vrei selectie mai larga, mergi in
+                  {" "}
+                  <Link href="/robotica-pentru-copii" className="text-cyan-300 underline underline-offset-4">
+                    hubul de robotica
+                  </Link>
+                  . Daca vrei filtrare dupa varsta, mergi in
+                  {" "}
+                  <Link href="/jucarii-stem-copii-6-8-ani" className="text-cyan-300 underline underline-offset-4">
+                    selectia 6-8 ani
+                  </Link>
+                  .
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+                <h3 className="text-lg font-semibold text-white">
+                  Ce intentie acopera
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-200/80">
+                  Cautari precum robotica pentru copii, coding pentru copii si
+                  jucarii programabile cu intentie comerciala deja clara.
                 </p>
               </div>
             </div>

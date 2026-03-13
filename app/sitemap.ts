@@ -1,140 +1,195 @@
 import { MetadataRoute } from "next";
 
+import { db } from "@/lib/db";
 import { regionalStemCities } from "@/lib/seo/regional-search";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+const staticRoutes: MetadataRoute.Sitemap = [
+  {
+    url: `${baseUrl}/`,
+    changeFrequency: "daily",
+    priority: 1,
+  },
+  {
+    url: `${baseUrl}/products`,
+    changeFrequency: "daily",
+    priority: 0.95,
+  },
+  {
+    url: `${baseUrl}/jucarii-stem`,
+    changeFrequency: "weekly",
+    priority: 0.95,
+  },
+  {
+    url: `${baseUrl}/jucarii-educative`,
+    changeFrequency: "weekly",
+    priority: 0.92,
+  },
+  {
+    url: `${baseUrl}/jucarii-inteligente`,
+    changeFrequency: "weekly",
+    priority: 0.9,
+  },
+  {
+    url: `${baseUrl}/robotica-pentru-copii`,
+    changeFrequency: "weekly",
+    priority: 0.92,
+  },
+  {
+    url: `${baseUrl}/categories`,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  },
+  {
+    url: `${baseUrl}/categories/coding-robotics`,
+    changeFrequency: "weekly",
+    priority: 0.86,
+  },
+  {
+    url: `${baseUrl}/categories/science-experiments`,
+    changeFrequency: "weekly",
+    priority: 0.88,
+  },
+  {
+    url: `${baseUrl}/categories/magnetic-building`,
+    changeFrequency: "weekly",
+    priority: 0.84,
+  },
+  {
+    url: `${baseUrl}/blog`,
+    changeFrequency: "weekly",
+    priority: 0.82,
+  },
+  {
+    url: `${baseUrl}/jucarii-stem-dupa-varsta`,
+    changeFrequency: "weekly",
+    priority: 0.82,
+  },
+  {
+    url: `${baseUrl}/jucarii-stem-copii-6-8-ani`,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  },
+  {
+    url: `${baseUrl}/beneficiile-jucariilor-stem`,
+    changeFrequency: "monthly",
+    priority: 0.74,
+  },
+  {
+    url: `${baseUrl}/ghid-educatie-stem-romania`,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  },
+  {
+    url: `${baseUrl}/ghid-jucarii-stem-2025`,
+    changeFrequency: "monthly",
+    priority: 0.72,
+  },
+  {
+    url: `${baseUrl}/about`,
+    changeFrequency: "monthly",
+    priority: 0.72,
+  },
+  {
+    url: `${baseUrl}/contact`,
+    changeFrequency: "monthly",
+    priority: 0.68,
+  },
+  {
+    url: `${baseUrl}/faq`,
+    changeFrequency: "monthly",
+    priority: 0.65,
+  },
+  {
+    url: `${baseUrl}/delivery`,
+    changeFrequency: "monthly",
+    priority: 0.64,
+  },
+  {
+    url: `${baseUrl}/warranty`,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    url: `${baseUrl}/returns`,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+];
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+
+  const [products, blogs, categories] = await Promise.all([
+    db.product.findMany({
+      where: {
+        isActive: true,
+        status: "APPROVED",
+      },
+      select: {
+        slug: true,
+        updatedAt: true,
+      },
+    }),
+    db.blog.findMany({
+      where: {
+        isPublished: true,
+      },
+      select: {
+        slug: true,
+        updatedAt: true,
+      },
+    }),
+    db.category.findMany({
+      where: {
+        isActive: true,
+      },
+      select: {
+        slug: true,
+      },
+    }),
+  ]);
 
   const regionalPages = regionalStemCities.map(city => ({
     url: `${baseUrl}/jucarii-stem/${city.slug}`,
     lastModified: now,
     changeFrequency: "weekly" as const,
-    priority: 0.85,
+    priority: city.slug === "bucuresti" || city.slug === "cluj-napoca" ? 0.84 : 0.78,
   }));
 
-  return [
-    {
-      url: `${baseUrl}/`,
+  const categoryPages = categories
+    .filter(
+      category =>
+        !["coding-robotics", "science-experiments", "magnetic-building"].includes(
+          category.slug
+        )
+    )
+    .map(category => ({
+      url: `${baseUrl}/categories/${category.slug}`,
       lastModified: now,
-      changeFrequency: "daily",
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/products`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/categories`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/blog`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/jucarii-stem`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.95,
-    },
-    {
-      url: `${baseUrl}/jucarii-educative`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/jucarii-inteligente`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/robotica-pentru-copii`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/about`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/contact`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/faq`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/delivery`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/warranty`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/returns`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/ghid-educatie-stem-romania`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/jucarii-stem-copii-6-8-ani`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/ghid-jucarii-stem-2025`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/jucarii-stem-dupa-varsta`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/beneficiile-jucariilor-stem`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    ...regionalPages,
-    {
-      url: `${baseUrl}/blog/beneficiile-educatiei-stem-pentru-copiii-romani`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-  ];
+      changeFrequency: "weekly" as const,
+      priority: 0.62,
+    }));
+
+  const productPages = products.map(product => ({
+    url: `${baseUrl}/products/${product.slug}`,
+    lastModified: product.updatedAt,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  const blogPages = blogs.map(blog => ({
+    url: `${baseUrl}/blog/${blog.slug}`,
+    lastModified: blog.updatedAt,
+    changeFrequency: "monthly" as const,
+    priority: 0.66,
+  }));
+
+  return staticRoutes.map(route => ({ ...route, lastModified: now })).concat(
+    regionalPages,
+    categoryPages,
+    productPages,
+    blogPages
+  );
 }

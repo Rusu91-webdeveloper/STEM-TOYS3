@@ -80,6 +80,49 @@ export default function RoboticsLandingPage() {
         "Leaga robotica de coding, constructie si invatare practica",
         "Sustine atat parintii, cat si cautarile pentru cadouri sau scoala",
       ]}
+      quickFacts={[
+        {
+          label: "Intentie principala",
+          value: "robotica pentru copii, roboti educativi, jucarii programabile",
+        },
+        {
+          label: "Intentii secundare",
+          value: "coding pentru copii, kituri robotica copii, robotica educationala",
+        },
+        {
+          label: "Pentru cine este",
+          value: "Familii care cauta produse tehnologice cu intentie de cumparare deja clara si valoare medie mai mare.",
+        },
+        {
+          label: "Rol in cluster",
+          value: "Sustine cautarile cu cea mai mare proximitate de selectie dintre toate huburile comerciale din nisa.",
+        },
+      ]}
+      guides={[
+        {
+          title: "Cand alegi robotica in loc de un set STEM general",
+          description:
+            "Atunci cand copilul este atras de mecanisme, miscare, pasi de programare sau interactiune tehnologica si vrei un produs mai specific decat un kit STEM mixt.",
+        },
+        {
+          title: "Cum incepi fara sa alegi un kit prea greu",
+          description:
+            "Cele mai bune puncte de intrare au feedback rapid, proiecte scurte si interfete simple. De aceea pagina trebuie legata strans de selectie dupa varsta.",
+        },
+        {
+          title: "De ce pagina trebuie sa trimita spre categorie si ghiduri",
+          description:
+            "Pentru ca intentia este puternica, dar compararea ramane importanta: unii cauta roboti programabili, altii cauta un cadou tech sau un kit de inceput.",
+        },
+      ]}
+      checklistTitle="Cum alegi un kit de robotica pentru copii"
+      checklistIntro="Pe cautarile de robotica, cele mai importante filtre sunt varsta, nivelul de autonomie si complexitatea proiectului."
+      checklistItems={[
+        "Alege un nivel de complexitate potrivit pentru varsta si rabdarea copilului.",
+        "Verifica daca produsul are programare vizuala, componente clare si obiective usor de finalizat.",
+        "Compara cu pagina de jucarii inteligente daca interesul este mai degraba logica decat robotica pura.",
+        "Foloseste categoria de coding si robotica pentru selectie finala de produse.",
+      ]}
       benefits={[
         {
           title: "Intentie comerciala foarte clara",

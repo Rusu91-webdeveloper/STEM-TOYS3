@@ -5,6 +5,7 @@ import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { getCombinedProduct } from "@/lib/api/products";
 import { db } from "@/lib/db";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
+import { buildDefaultProductFaq } from "@/lib/seo/product-faq";
 import type { Product } from "@/types/product";
 
 import type { BundleContentItem } from "./BundleContents";
@@ -136,6 +137,12 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
     product,
     reviewsForSchema
   );
+  const fallbackFaq = buildDefaultProductFaq(product);
+  const productFaq =
+    Array.isArray((product as any)?.metadata?.seo?.faq) &&
+    (product as any).metadata.seo.faq.length > 0
+      ? (product as any).metadata.seo.faq
+      : fallbackFaq;
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -162,13 +169,26 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
     ],
   };
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: productFaq.map(item => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+
   const filteredProductSchemas = Array.isArray(productSchemas)
     ? productSchemas.filter(
         schema => schema && schema["@type"] !== "BreadcrumbList"
       )
     : [];
 
-  const structuredData = [breadcrumbSchema, ...filteredProductSchemas];
+  const structuredData = [breadcrumbSchema, faqSchema, ...filteredProductSchemas];
 
   return (
     <>
@@ -179,6 +199,7 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
         initialReviews={reviews}
         userLoggedIn={false}
         bundleContents={bundleContents}
+        faq={productFaq}
       />
     </>
   );

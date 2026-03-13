@@ -23,23 +23,23 @@ import {
 } from "@/features/home/components/homeTheme";
 
 export const metadata: Metadata = {
-  title: "Magnetic Building | Jucării STEM pentru Construcții Creative",
+  title: "Constructii magnetice pentru copii | Inginerie si creativitate TechTots",
   description:
-    "Descoperă seturile noastre de construcții magnetice - perfecte pentru dezvoltarea gândirii inginerești și creativității. Bundle-uri cu reduceri speciale!",
+    "Descopera constructii magnetice pentru copii si seturi orientate spre inginerie, spatialitate si proiecte creative pentru joaca practica.",
   keywords: [
-    "jucării magnetice",
-    "construcții magnetice",
-    "STEM engineering",
-    "jucării educaționale",
-    "bundle-uri magnetic building",
+    "constructii magnetice copii",
+    "jucarii magnetice",
+    "jucarii inginerie copii",
+    "seturi constructii copii",
+    "constructii STEM copii",
   ],
   alternates: {
     canonical: "https://www.techtots.ro/categories/magnetic-building",
   },
   openGraph: {
-    title: "Magnetic Building | TechTots",
+    title: "Constructii magnetice pentru copii | TechTots",
     description:
-      "Seturi de construcții magnetice pentru copii - dezvoltă creativitatea și gândirea inginerească",
+      "Seturi de constructii magnetice si inginerie pentru copii care invata prin asamblare, spatialitate si proiecte creative.",
     url: "https://www.techtots.ro/categories/magnetic-building",
     type: "website",
   },
@@ -105,10 +105,10 @@ export default async function MagneticBuildingPage() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center px-4">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
-                Magnetic Building
+                Constructii magnetice pentru copii
               </h1>
               <p className="text-slate-200 text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
-                Construcții magnetice creative pentru dezvoltarea gândirii inginerești
+                Seturi de inginerie si constructii pentru spatialitate, creativitate si rezolvare de probleme
               </p>
             </div>
           </div>
@@ -142,7 +142,7 @@ export default async function MagneticBuildingPage() {
           </section>
         )}
 
-        {/* Demo Video Section */}
+        {/* Buying guide section */}
         <section className="container mx-auto px-4 sm:px-6 lg:px-10 pt-8 sm:pt-12">
           <div
             className={`${glassPanelClass} rounded-3xl border-white/15 bg-slate-900/60 px-5 py-6 shadow-xl shadow-black/30 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
@@ -150,14 +150,45 @@ export default async function MagneticBuildingPage() {
             <div className="flex items-center gap-3 mb-6">
               <Play className="h-6 w-6 text-sky-300" />
               <h2 className="text-2xl font-bold text-white">
-                Demo Video - Cum Funcționează
+                Cum alegi setul de constructii potrivit
               </h2>
             </div>
-            <div className="aspect-video rounded-2xl overflow-hidden bg-slate-800/50 border border-white/10">
-              {/* Video embed slot - replace with actual YouTube/Vimeo embed */}
-              <div className="w-full h-full flex items-center justify-center">
-                <p className="text-slate-400 text-sm">
-                  [Video embed slot - adaugă codul de embed YouTube/Vimeo aici]
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+                <h3 className="text-lg font-semibold text-white">
+                  Ce cauta parintii aici
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-200/80">
+                  Constructii magnetice, jucarii de inginerie si produse care
+                  dezvolta spatialitatea, rabdarea si proiectarea pas cu pas.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+                <h3 className="text-lg font-semibold text-white">
+                  Cand continui spre alte huburi
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-200/80">
+                  Daca vrei selectie STEM mai larga, foloseste
+                  {" "}
+                  <Link href="/jucarii-stem" className="text-indigo-300 underline underline-offset-4">
+                    pagina principala STEM
+                  </Link>
+                  . Daca vrei logica si provocari, compara si cu
+                  {" "}
+                  <Link href="/jucarii-inteligente" className="text-indigo-300 underline underline-offset-4">
+                    jucariile inteligente
+                  </Link>
+                  .
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+                <h3 className="text-lg font-semibold text-white">
+                  Cum alegi mai repede
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-200/80">
+                  Verifica varsta, numarul de piese, nivelul de dificultate si
+                  daca produsul se potriveste mai bine pentru joaca libera sau
+                  proiecte ghidate.
                 </p>
               </div>
             </div>

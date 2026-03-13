@@ -390,39 +390,28 @@ export default async function Home() {
   );
 }
 
-// SEO-Optimized Metadata for Hormozi-Transformed Homepage
 export function generateMetadata() {
   return {
-    title: "Transform Your Child Into a STEM Genius - TechTots Romania",
+    title:
+      "Jucarii STEM, jucarii educative si robotica pentru copii | TechTots",
     description:
-      "Stop homework battles forever! As AI and technology reshape our world, STEM education has never been more critical. Transform 'I hate math' to 'When can we do experiments?' with our proven STEM toys. Quality guaranteed.",
+      "TechTots este un magazin online din Romania cu jucarii STEM, jucarii educative, jucarii inteligente, kituri de robotica, jocuri de logica si experimente stiintifice pentru copii.",
     keywords: [
-      // Primary conversion-focused keywords
-      "transform copil geniu STEM",
-      "oprire lupte teme",
-      "jucării STEM care funcționează",
-      "copii iubesc matematica",
-      "experimente copii",
-
-      // Traditional SEO keywords
-      "jucării STEM România",
-      "jucării educative copii",
-      "jucării știință București",
-      "jucării tehnologie",
-      "jucării inginerie",
-      "jucării matematică",
-
-      // English keywords
-      "STEM toys Romania",
-      "transform child learning",
-      "stop homework battles",
-      "educational toys that work",
-      "science experiments kids",
+      "jucarii STEM",
+      "jucarii educative",
+      "jucarii inteligente",
+      "robotica pentru copii",
+      "kituri robotica copii",
+      "jocuri logica copii",
+      "experimente stiintifice copii",
+      "jucarii STEM Bucuresti",
+      "jucarii STEM Cluj",
     ],
     openGraph: {
-      title: "Transform Your Child Into a STEM Genius - TechTots",
+      title:
+        "Jucarii STEM, jucarii educative si robotica pentru copii | TechTots",
       description:
-        "Families worldwide are discovering how STEM education prepares kids for tomorrow's AI-driven world. Our STEM toys turn 'I hate math' into 'When's our next experiment?' Quality guaranteed.",
+        "Magazin online din Romania cu jucarii STEM, robotica pentru copii, jocuri de logica si experimente stiintifice.",
       type: "website",
       locale: "ro_RO",
       images: [
@@ -430,15 +419,16 @@ export function generateMetadata() {
           url: "/images/homepage_hero_banner_01.png",
           width: 1200,
           height: 630,
-          alt: "Child doing STEM experiment - transformation from struggling to loving learning",
+          alt: "TechTots - jucarii STEM si educative pentru copii",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Transform Your Child Into a STEM Genius",
+      title:
+        "Jucarii STEM, jucarii educative si robotica pentru copii | TechTots",
       description:
-        "Stop homework battles forever with our proven STEM toys. Quality guaranteed.",
+        "Exploreaza jucarii STEM, jucarii educative, robotica si experimente pentru copii.",
       images: ["/images/homepage_hero_banner_01.png"],
     },
     robots: {

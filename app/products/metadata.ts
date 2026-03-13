@@ -2,66 +2,48 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title:
-    "Transformă Copilul din 'Urăsc Matematica' în 'Vreau Să Experimentez!' - Jucării STEM Dovedite | TechTots România",
+    "Jucarii STEM, jucarii educative si kituri de robotica | TechTots",
   description:
-    "Pe măsură ce AI și tehnologia transformă lumea, educația STEM este esențială pentru copiii tăi. Jucăriile noastre STEM transformă luptele cu temele în sesiuni de experimentare pasionante. Calitate garantată. Livrare rapidă în toată România.",
+    "Exploreaza catalogul TechTots cu jucarii STEM, jucarii educative, robotica pentru copii, jocuri de logica si experimente stiintifice. Filtreaza dupa varsta, categorie si interes.",
   keywords: [
-    // Hormozi-focused transformation keywords
-    "transformare copii matematică România",
-    "jucării STEM care funcționează",
-    "copii iubesc știința experimente",
-    "stop lupte teme matematică",
-    "jucării educaționale dovedite rezultate",
-    "experimente acasă copii România",
-
-    // Romanian long-tail SEO keywords
-    "jucării STEM România 2025",
-    "jucării educaționale copii București",
-    "experimente știință acasă copii",
-    "robotică copii România Cluj",
-    "matematică distractivă copii Timișoara",
-    "kituri inginerie copii Iași",
-    "tehnologie educațională România",
-    "jocuri STEM interactive românești",
-
-    // Conversion-focused keywords
-    "garanție jucării STEM",
-    "rezultate garantate învățare copii",
-    "transformare 30 zile matematică",
-    "părinți mulțumiți jucării STEM",
-    "consultare gratuită jucării educaționale",
-
-    // Traditional SEO support
-    "produse STEM educaționale",
-    "jucării științifice copii",
-    "kituri robotică educațională",
-    "experimente chimie copii sigure",
-    "construcții inginerie creativitate",
+    "jucarii STEM",
+    "jucarii educative",
+    "jucarii inteligente",
+    "robotica pentru copii",
+    "kituri robotica copii",
+    "jocuri logica copii",
+    "experimente stiintifice copii",
+    "cadouri educative copii",
+    "jucarii STEM Bucuresti",
+    "jucarii STEM Cluj",
   ],
   openGraph: {
     title:
-      "Transformă Copilul în Geniu STEM - Educație pentru Era AI | TechTots",
+      "Jucarii STEM, jucarii educative si kituri de robotica | TechTots",
     description:
-      "Descoperă secretul părinților care au transformat 'urăsc matematica' în 'când facem experimente?'. Produse de calitate garantată!",
+      "Catalog de jucarii STEM si educative pentru copii: robotica, logica, constructii si experimente stiintifice pentru acasa sau cadou.",
     type: "website",
+    url: "https://www.techtots.ro/products",
     images: [
       {
         url: "/images/products-transformation-hero.jpg",
         width: 1200,
         height: 630,
-        alt: "Copil fericit experimentând cu jucării STEM - transformare de la plictiseală la pasiune pentru învățare",
+        alt: "Catalog TechTots cu jucarii STEM si educative",
       },
     ],
     locale: "ro_RO",
-    siteName: "TechTots România - Jucării STEM",
+    siteName: "TechTots",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Transformă Copilul în Geniu STEM - Calitate Garantată",
+    title:
+      "Jucarii STEM, jucarii educative si kituri de robotica | TechTots",
     description:
-      "Familii din întreaga lume transformă copiii cu jucăriile noastre STEM pentru era AI. Produse de calitate certificată!",
+      "Vezi produsele TechTots si filtreaza rapid jucarii STEM, robotica, logica si experimente pentru copii.",
     site: "@TechTotsRO",
     creator: "@TechTotsRO",
+    images: ["/images/products-transformation-hero.jpg"],
   },
   robots: {
     index: true,
@@ -78,15 +60,7 @@ export const metadata: Metadata = {
     canonical: "https://www.techtots.ro/products",
   },
   other: {
-    // Location targeting for Romanian market
     "geo.region": "RO",
     "geo.placename": "România",
-    "geo.position": "45.9432;24.9668", // Romania center coordinates
-    ICBM: "45.9432, 24.9668",
-
-    // Enhanced meta for conversion
-    "theme-color": "#10B981", // Green for trust/growth
-    "mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "default",
   },
 };

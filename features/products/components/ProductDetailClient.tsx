@@ -39,6 +39,7 @@ interface ProductDetailClientProps {
   userLoggedIn?: boolean;
   isBook?: boolean;
   bundleContents?: BundleContentItem[];
+  faq?: Array<{ question: string; answer: string }>;
 }
 
 export default function ProductDetailClient({
@@ -48,6 +49,7 @@ export default function ProductDetailClient({
   userLoggedIn = false,
   isBook,
   bundleContents = [],
+  faq = [],
 }: ProductDetailClientProps) {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
@@ -216,7 +218,7 @@ export default function ProductDetailClient({
               />
 
               <ProductFAQ
-                faq={(product?.metadata?.seo?.faq as any) || undefined}
+                faq={faq}
               />
 
               <ProductSearchPaths product={product} />

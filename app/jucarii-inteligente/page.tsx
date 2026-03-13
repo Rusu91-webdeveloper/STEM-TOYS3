@@ -80,6 +80,49 @@ export default function SmartToysLandingPage() {
         "Capteaza cautari smart, logice, STEM si cognitive",
         "Functioneaza bine pentru cautari Google si raspunsuri AI rezumative",
       ]}
+      quickFacts={[
+        {
+          label: "Intentie principala",
+          value: "jucarii inteligente, jucarii smart copii, jucarii care dezvolta inteligenta",
+        },
+        {
+          label: "Intentii secundare",
+          value: "jocuri logice copii, jucarii de inteligenta, jucarii inteligente Romania",
+        },
+        {
+          label: "Pentru cine este",
+          value: "Parinti care cauta produse mai provocatoare, nu jucarii pasive sau doar electronice.",
+        },
+        {
+          label: "Rol in cluster",
+          value: "Face legatura dintre cautarile smart si rutele comerciale catre STEM, robotica si logica.",
+        },
+      ]}
+      guides={[
+        {
+          title: "Ce inseamna inteligent intr-o cautare comerciala",
+          description:
+            "De cele mai multe ori nu inseamna doar ecran sau senzor. Inseamna jocuri si kituri care cer gandire activa, decizii, strategie, observatie si progres.",
+        },
+        {
+          title: "Cum deosebesti o jucarie smart de una zgomotoasa",
+          description:
+            "Cauta produse care il fac pe copil sa construiasca, sa anticipeze, sa corecteze si sa inteleaga un rezultat. Asta creeaza valoare educativa si motive reale de recomandare.",
+        },
+        {
+          title: "Unde trimite pagina dupa selectie",
+          description:
+            "Daca intentia devine tehnica, ruta naturala este robotica. Daca se duce spre gandire si provocari, merg mai bine logica, constructiile si selectia STEM pe varsta.",
+        },
+      ]}
+      checklistTitle="Semnale bune pentru o jucarie inteligenta"
+      checklistIntro="Lista scurta de mai jos ajuta atat selectia comerciala, cat si formularea raspunsurilor directe in AI search."
+      checklistItems={[
+        "Produsul cere participare activa, nu doar reactie la lumini sau sunete.",
+        "Exista o progresie clara: pasi, provocari, constructie sau experiment.",
+        "Copilul primeste feedback real si poate corecta singur.",
+        "Pagina finala de selectie ar trebui sa fie STEM, robotica sau logica, in functie de interes.",
+      ]}
       benefits={[
         {
           title: "Semnal mai bun pentru cautari moderne",

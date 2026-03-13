@@ -78,6 +78,49 @@ export default function EducationalToysLandingPage() {
         "Trimite spre subcategoriile care convertesc mai bine",
         "Sprijina cautarile pentru cadouri si recomandari pentru parinti",
       ]}
+      quickFacts={[
+        {
+          label: "Intentie principala",
+          value: "jucarii educative, jucarii educative copii, jocuri educative copii",
+        },
+        {
+          label: "Intentii secundare",
+          value: "cadouri educative, jucarii pentru invatare, jucarii educative online",
+        },
+        {
+          label: "Pentru cine este",
+          value: "Familii care stiu ca vor valoare educativa, dar nu au decis inca disciplina sau categoria.",
+        },
+        {
+          label: "Rol in cluster",
+          value: "Pagina filtreaza intentia larga si o distribuie spre STEM, logica, robotica si selectie dupa varsta.",
+        },
+      ]}
+      guides={[
+        {
+          title: "Cand incepi cu termenul jucarii educative",
+          description:
+            "Cand utilizatorul nu cauta inca explicit STEM, dar vrea sa evite jucariile fara valoare de invatare si are nevoie de recomandari mai clare.",
+        },
+        {
+          title: "Cum transformi intentia larga in selectie buna",
+          description:
+            "Separi produsele dupa ce vrei sa construiasca: logica, creativitate, atentie, autonomie sau invatare practica. Apoi trimiti spre categoria specializata.",
+        },
+        {
+          title: "De ce aceasta pagina trebuie sa existe separat",
+          description:
+            "Pentru ca multi cumparatori intra in magazin prin interogari generale. Daca nu exista o pagina dedicata, intentia larga se amesteca inutil cu pagina STEM principala.",
+        },
+      ]}
+      checklistTitle="Cum alegi jucarii educative fara sa te pierzi in optiuni"
+      checklistIntro="Pagina trebuie sa raspunda intentiei comerciale largi si sa duca repede spre o selectie potrivita, nu doar spre produse etichetate vag ca educative."
+      checklistItems={[
+        "Clarifica daca vrei dezvoltare prin logica, stiinta, robotica sau constructii.",
+        "Verifica daca produsul are activitate practica si feedback real pentru copil.",
+        "Alege in functie de varsta, nu doar de titlul produsului.",
+        "Foloseste huburile STEM si inteligent pentru filtrare mai fina cand intentia devine mai specifica.",
+      ]}
       benefits={[
         {
           title: "Acopera publicul mai larg",

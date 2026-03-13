@@ -5,19 +5,18 @@
 
 import { Metadata } from "next";
 import { createMetadata } from "@/lib/metadata";
-import { generateSTEMEducationFAQSchema, generateSTEMLearningPathSchema } from "@/lib/seo/advanced-schema";
+import { generateSTEMEducationFAQSchema } from "@/lib/seo/advanced-schema";
 import { AdvancedSEOHead } from "@/components/seo/AdvancedSEOHead";
 
 export const metadata: Metadata = createMetadata({
   title: "Ghid Complet Educație STEM pentru Copii în România 2025 | TechTots",
-  description: "Ghidul definitiv pentru educația STEM în România: curriculum național, jucării certificate, metode de învățare și resurse pentru părinți și educatori.",
+  description: "Ghid practic pentru educația STEM în România: cum alegi jucării potrivite, cum organizezi activități acasă și cum legi joaca de știință, logică și tehnologie.",
   keywords: [
     "educație STEM România",
+    "ghid jucarii STEM",
     "curriculum STEM românesc", 
-    "jucării educaționale STEM",
     "ghid părinți STEM",
     "dezvoltare abilități STEM copii",
-    "Ministerul Educației STEM",
     "competențe cheie România",
     "învățământ tehnologic România",
     "robotică educațională România",
@@ -60,13 +59,13 @@ export default function STEMEducationGuidePage() {
               Ghidul Complet pentru Educația STEM în România 2025
             </h1>
             <p className="text-xl mb-8 max-w-3xl mx-auto">
-              Tot ce trebuie să știți despre educația STEM: curriculum românesc, jucării certificate, 
-              metode de învățare și resurse pentru părinți și educatori.
+              Tot ce trebuie să știți despre educația STEM: cum alegi jucării potrivite,
+              cum organizezi activități practice și cum legi joaca de logică, știință și tehnologie.
             </p>
             <div className="flex justify-center space-x-4">
               <span className="bg-white/20 px-4 py-2 rounded-full">📚 Curriculum Românesc</span>
               <span className="bg-white/20 px-4 py-2 rounded-full">🎯 Competențe Cheie</span>
-              <span className="bg-white/20 px-4 py-2 rounded-full">🏆 Certificat MECTS</span>
+              <span className="bg-white/20 px-4 py-2 rounded-full">🧩 Activități practice</span>
             </div>
           </div>
         </section>
@@ -83,14 +82,14 @@ export default function STEMEducationGuidePage() {
                     <li>• Ce înseamnă educația STEM</li>
                     <li>• Importanța STEM în curriculumul românesc</li>
                     <li>• Competențele cheie dezvoltate</li>
-                    <li>• Alinierea cu standardele MECTS</li>
+                    <li>• Cum legi teoria de activități practice</li>
                   </ul>
                 </div>
                 <div className="bg-green-50 p-6 rounded-lg">
                   <h3 className="text-xl font-semibold mb-4">🧸 Alegerea Jucăriilor</h3>
                   <ul className="space-y-2 text-gray-700">
                     <li>• Criterii de selecție după vârstă</li>
-                    <li>• Certificări și siguranță</li>
+                    <li>• Siguranță și claritate în utilizare</li>
                     <li>• Jucării pentru fiecare disciplină STEM</li>
                     <li>• Buget și raport calitate-preț</li>
                   </ul>
@@ -172,8 +171,9 @@ export default function STEMEducationGuidePage() {
                 <div className="bg-green-50 p-8 rounded-lg mb-8">
                   <h3 className="text-2xl font-bold mb-4">Competențele Cheie STEM în România</h3>
                   <p className="mb-4">
-                    Conform <strong>Ministerului Educației din România</strong>, educația STEM contribuie 
-                    direct la dezvoltarea următoarelor competențe cheie:
+                    În contextul educației din România, activitățile STEM contribuie
+                    la dezvoltarea unor competențe cheie pe care părinții și profesorii
+                    le urmăresc constant în practică:
                   </p>
                   
                   <div className="grid md:grid-cols-3 gap-4">
@@ -241,19 +241,19 @@ export default function STEMEducationGuidePage() {
                     <div>
                       <h4 className="text-lg font-bold mb-3 text-purple-600">🎯 Alinierea Educațională</h4>
                       <ul className="space-y-2 text-gray-700">
-                        <li>✅ Certificare MECTS (Ministerul Educației)</li>
-                        <li>✅ Aliniere cu curriculumul național</li>
+                        <li>✅ Potrivire cu vârsta și nivelul de autonomie</li>
+                        <li>✅ Activitate practică și obiective clare</li>
                         <li>✅ Dezvoltarea competențelor cheie</li>
-                        <li>✅ Potrivire cu vârsta și nivelul educațional</li>
+                        <li>✅ Potrivire cu interesul dominant al copilului</li>
                       </ul>
                     </div>
                     <div>
                       <h4 className="text-lg font-bold mb-3 text-green-600">🛡️ Siguranța și Calitatea</h4>
                       <ul className="space-y-2 text-gray-700">
-                        <li>✅ Certificare CE pentru piața europeană</li>
+                        <li>✅ Materiale și componente adecvate vârstei</li>
                         <li>✅ Materiale non-toxice și durabile</li>
-                        <li>✅ Instrucțiuni în limba română</li>
-                        <li>✅ Suport tehnic local</li>
+                        <li>✅ Instrucțiuni clare și pași ușor de urmărit</li>
+                        <li>✅ Pagini de categorie și ghiduri pentru alegere</li>
                       </ul>
                     </div>
                   </div>
@@ -415,8 +415,9 @@ export default function STEMEducationGuidePage() {
                   Începeți Aventura STEM a Copilului Dumneavoastră Astăzi!
                 </h2>
                 <p className="text-lg mb-6">
-                  Descoperiți colecția noastră de jucării STEM certificate și aliniate cu curriculumul românesc.
-                  Fiecare produs este selectat special pentru a dezvolta competențele cheie ale copiilor români.
+                  Descoperiți colecția noastră de jucării STEM și educative și
+                  continuați selecția după categorie, vârstă și tipul de activitate
+                  pe care vreți să o faceți acasă.
                 </p>
                 <div className="flex justify-center space-x-4">
                   <a 

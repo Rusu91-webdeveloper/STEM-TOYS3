@@ -185,11 +185,11 @@ export default function HomePageClient({
     },
     {
       "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "@id": `${baseUrl}#LocalBusiness`,
-      name: "TechTots România - Jucării STEM Educaționale",
+      "@type": "OnlineStore",
+      "@id": `${baseUrl}#OnlineStore`,
+      name: "TechTots",
       description:
-        "Magazinul #1 de jucării STEM din România. Transformăm copiii din 'urăsc matematica' în 'când facem experimente?' în doar 30 de zile. Peste 10,000 de părinți mulțumiți.",
+        "Magazin online din Romania cu jucarii STEM, jucarii educative, kituri de robotica, jocuri de logica si experimente stiintifice pentru copii.",
       url: baseUrl,
       telephone: publicConfig.storePhone,
       email: publicConfig.contactEmail,
@@ -202,11 +202,6 @@ export default function HomePageClient({
         postalCode: process.env.NEXT_PUBLIC_STORE_POSTAL_CODE || "400000",
         addressRegion: process.env.NEXT_PUBLIC_STORE_STATE || "Cluj",
         addressCountry: "RO",
-      },
-      geo: {
-        "@type": "GeoCoordinates",
-        latitude: "46.7712",
-        longitude: "23.6236",
       },
       areaServed: [
         {
@@ -232,66 +227,43 @@ export default function HomePageClient({
       ],
       hasOfferCatalog: {
         "@type": "OfferCatalog",
-        name: "Jucării STEM România - Catalog Educațional",
+        name: "Catalog jucarii STEM si educative",
         itemListElement: [
           {
             "@type": "OfferCatalog",
-            name: "Jucării Științifice pentru copii 3-12 ani",
+            name: "Experimente stiintifice pentru copii",
             url: `${baseUrl}/categories/science-experiments`,
-            category: "Jucării STEM Știință",
+            category: "Stiinta",
             description:
-              "Experimente și kituri științifice care transformă învățarea în aventură",
+              "Experimente si kituri stiintifice pentru joaca practica si invatare aplicata.",
           },
           {
             "@type": "OfferCatalog",
-            name: "Jucării Tehnologie și Robotică",
+            name: "Robotica pentru copii",
             url: `${baseUrl}/robotica-pentru-copii`,
-            category: "Jucării STEM Tehnologie",
+            category: "Tehnologie",
             description:
-              "Roboți educaționali și kituri de programare pentru copii",
+              "Roboti educativi, coding si kituri interactive pentru copii curiosi.",
           },
           {
             "@type": "OfferCatalog",
-            name: "Jucării Inginerie și Construcții",
+            name: "Constructii si inginerie",
             url: `${baseUrl}/categories/magnetic-building`,
-            category: "Jucării STEM Inginerie",
+            category: "Inginerie",
             description:
-              "Kituri de construcție și inginerie pentru dezvoltarea creativității",
+              "Seturi de constructie pentru spatialitate, logica si proiecte creative.",
           },
           {
             "@type": "OfferCatalog",
-            name: "Jocuri Matematică Interactivă",
+            name: "Jucarii inteligente si logica",
             url: `${baseUrl}/jucarii-inteligente`,
-            category: "Jucării STEM Matematică",
+            category: "Logica",
             description:
-              "Jocuri matematice care fac calculele distractive și ușoare",
+              "Jocuri de logica, provocari smart si activitati pentru gandire structurata.",
           },
         ],
       },
-      openingHoursSpecification: {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday",
-        ],
-        opens: "09:00",
-        closes: "18:00",
-      },
-      paymentAccepted: ["Cash", "Credit Card", "PayPal", "Bank Transfer"],
       currenciesAccepted: "RON",
-      priceRange: "€€",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.9",
-        reviewCount: "2847",
-        bestRating: "5",
-        worstRating: "1",
-      },
     },
   ];
 

@@ -16,6 +16,16 @@ type LandingFaq = {
   answer: string;
 };
 
+type LandingFact = {
+  label: string;
+  value: string;
+};
+
+type LandingGuide = {
+  title: string;
+  description: string;
+};
+
 type CommercialLandingPageProps = {
   eyebrow: string;
   title: string;
@@ -30,6 +40,11 @@ type CommercialLandingPageProps = {
   };
   proofPoints: string[];
   benefits: LandingBenefit[];
+  quickFacts?: LandingFact[];
+  guides?: LandingGuide[];
+  checklistTitle?: string;
+  checklistIntro?: string;
+  checklistItems?: string[];
   clusters: LandingSectionLink[];
   faqs: LandingFaq[];
 };
@@ -42,6 +57,11 @@ export default function CommercialLandingPage({
   secondaryCta,
   proofPoints,
   benefits,
+  quickFacts = [],
+  guides = [],
+  checklistTitle,
+  checklistIntro,
+  checklistItems = [],
   clusters,
   faqs,
 }: CommercialLandingPageProps) {
@@ -116,6 +136,109 @@ export default function CommercialLandingPage({
             ))}
           </div>
         </section>
+
+        {quickFacts.length > 0 ? (
+          <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="rounded-[2rem] border border-slate-200/80 bg-white/92 px-6 py-8 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] sm:px-8">
+              <div className="max-w-3xl">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700">
+                  Rezumat Comercial
+                </p>
+                <h2 className="mt-3 text-3xl font-black text-slate-950">
+                  Ce intentie acopera pagina si cum ar trebui folosita
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+                  Sectiunea aceasta face pagina mai clara pentru parinti,
+                  motoare de cautare si sisteme AI care cauta raspunsuri
+                  directe, nu doar heading-uri generale.
+                </p>
+              </div>
+
+              <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {quickFacts.map(fact => (
+                  <article
+                    key={fact.label}
+                    className="rounded-[1.35rem] border border-slate-200 bg-slate-50/90 p-5"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
+                      {fact.label}
+                    </p>
+                    <p className="mt-3 text-sm leading-6 text-slate-700">
+                      {fact.value}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {guides.length > 0 ? (
+          <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="rounded-[2rem] border border-slate-200/80 bg-white/92 px-6 py-8 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] sm:px-8">
+              <div className="max-w-3xl">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-700">
+                  Ghid de Selectie
+                </p>
+                <h2 className="mt-3 text-3xl font-black text-slate-950">
+                  Raspunsuri directe pentru cautarile care preced comanda
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+                  Fiecare bloc de mai jos raspunde unei intrebari comerciale
+                  frecvente din SERP: ce aleg, pentru ce varsta, pentru ce tip
+                  de copil si cat de repede ajung la categoria corecta.
+                </p>
+              </div>
+
+              <div className="mt-8 grid gap-4 md:grid-cols-3">
+                {guides.map(guide => (
+                  <article
+                    key={guide.title}
+                    className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.4)]"
+                  >
+                    <h3 className="text-lg font-bold text-slate-950">
+                      {guide.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                      {guide.description}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {checklistItems.length > 0 ? (
+          <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="rounded-[2rem] border border-slate-200/80 bg-white/92 px-6 py-8 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] sm:px-8">
+              <div className="max-w-3xl">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-amber-700">
+                  Checklist de Cumparare
+                </p>
+                <h2 className="mt-3 text-3xl font-black text-slate-950">
+                  {checklistTitle || "Cum alegi mai repede produsul potrivit"}
+                </h2>
+                {checklistIntro ? (
+                  <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+                    {checklistIntro}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="mt-6 grid gap-3">
+                {checklistItems.map(item => (
+                  <div
+                    key={item}
+                    className="rounded-[1.35rem] border border-slate-200 bg-slate-50/90 px-4 py-4 text-sm font-medium text-slate-700"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="rounded-[2rem] border border-slate-200/80 bg-white/90 px-6 py-8 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] sm:px-8">

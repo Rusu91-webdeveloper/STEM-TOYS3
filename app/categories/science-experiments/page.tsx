@@ -22,23 +22,23 @@ import {
 } from "@/features/home/components/homeTheme";
 
 export const metadata: Metadata = {
-  title: "Science & Experiments | Kit-uri Științifice pentru Copii",
+  title: "Experimente stiintifice pentru copii | Kituri de stiinta TechTots",
   description:
-    "Descoperă lumea științei prin experimente practice! Kit-uri complete de chimie, fizică și biologie. Bundle-uri cu reduceri speciale!",
+    "Exploreaza kituri si experimente stiintifice pentru copii: seturi de chimie, fizica si observatie practica pentru joaca orientata spre stiinta.",
   keywords: [
-    "kit-uri știință",
-    "experimente copii",
-    "STEM science",
-    "chimie fizică biologie",
-    "bundle-uri science",
+    "experimente stiintifice copii",
+    "kituri stiinta copii",
+    "jucarii stiinta copii",
+    "experimente copii acasa",
+    "kituri experimente copii",
   ],
   alternates: {
     canonical: "https://www.techtots.ro/categories/science-experiments",
   },
   openGraph: {
-    title: "Science & Experiments | TechTots",
+    title: "Experimente stiintifice pentru copii | TechTots",
     description:
-      "Kit-uri științifice pentru copii - experimente practice de chimie, fizică și biologie",
+      "KIturi de stiinta si experimente pentru copii care invata prin observatie, testare si joaca practica.",
     url: "https://www.techtots.ro/categories/science-experiments",
     type: "website",
   },
@@ -106,10 +106,10 @@ export default async function ScienceExperimentsPage() {
                 <Atom className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-300" />
               </div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
-                Science & Experiments
+                Experimente stiintifice pentru copii
               </h1>
               <p className="text-slate-200 text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
-                Experimente practice pentru curiozitatea științifică
+                Kituri de stiinta pentru copii curiosi care invata prin testare si observatie
               </p>
             </div>
           </div>
@@ -143,7 +143,7 @@ export default async function ScienceExperimentsPage() {
           </section>
         )}
 
-        {/* Demo Video */}
+        {/* Buying guide */}
         <section className="container mx-auto px-4 sm:px-6 lg:px-10 pt-8 sm:pt-12">
           <div
             className={`${glassPanelClass} rounded-3xl border-white/15 bg-slate-900/60 px-5 py-6 shadow-xl shadow-black/30 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
@@ -151,13 +151,44 @@ export default async function ScienceExperimentsPage() {
             <div className="flex items-center gap-3 mb-6">
               <Play className="h-6 w-6 text-sky-300" />
               <h2 className="text-2xl font-bold text-white">
-                Demo Video - Cum Funcționează
+                Cum alegi un kit de stiinta potrivit
               </h2>
             </div>
-            <div className="aspect-video rounded-2xl overflow-hidden bg-slate-800/50 border border-white/10">
-              <div className="w-full h-full flex items-center justify-center">
-                <p className="text-slate-400 text-sm">
-                  [Video embed slot - adaugă codul de embed YouTube/Vimeo aici]
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+                <h3 className="text-lg font-semibold text-white">
+                  Cand alegi experimentele
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-200/80">
+                  Atunci cand copilul raspunde bine la observatie, testare,
+                  rezultate vizibile si curiozitate despre cum functioneaza lumea.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+                <h3 className="text-lg font-semibold text-white">
+                  Cum continui selectia
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-200/80">
+                  Daca vrei comparatie mai larga, mergi in
+                  {" "}
+                  <Link href="/jucarii-stem" className="text-emerald-300 underline underline-offset-4">
+                    hubul STEM
+                  </Link>
+                  {" "}sau in
+                  {" "}
+                  <Link href="/jucarii-stem-dupa-varsta" className="text-emerald-300 underline underline-offset-4">
+                    selectia dupa varsta
+                  </Link>
+                  .
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+                <h3 className="text-lg font-semibold text-white">
+                  Ce cautari acopera
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-200/80">
+                  experimente stiintifice copii, kituri stiinta copii si jucarii
+                  de stiinta pentru acasa sau cadou.
                 </p>
               </div>
             </div>

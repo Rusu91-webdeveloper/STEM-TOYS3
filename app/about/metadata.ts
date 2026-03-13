@@ -2,32 +2,31 @@ import { appConfig } from "@/lib/config/app-config";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
-  title: "Despre TechTots România - Jucării STEM pentru Minți Curioase",
+  title: "Despre TechTots | Magazin online de jucarii STEM si educative",
   description:
-    "Descoperă povestea TechTots România - cum ajutăm familii să-și pregătească copiii pentru era AI transformând 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
+    "Afla cine este TechTots, cum gandim selectia de jucarii STEM si educative si unde gasesti informatii despre comenzi, suport si misiunea brandului.",
   keywords: [
     "despre TechTots",
-    "povestea TechTots România",
+    "TechTots Romania",
     "jucării STEM România",
     "educație STEM copii",
-    "transformare copii prin STEM",
     "misie TechTots",
     "valori TechTots",
     "echipa TechTots",
-    "fondator TechTots",
+    "despre magazin jucarii STEM",
   ],
   pathWithoutLocale: "/about",
   canonicalUrl: "https://www.techtots.ro/about",
   translations: {
     ro: {
-      title: "Despre TechTots România - Jucării STEM pentru Minți Curioase",
+      title: "Despre TechTots | Magazin online de jucarii STEM si educative",
       description:
-        "Descoperă povestea TechTots România - cum ajutăm familii să-și pregătească copiii pentru era AI transformând 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
+        "Afla cine este TechTots, cum gandim selectia de jucarii STEM si educative si unde gasesti informatii despre comenzi, suport si misiunea brandului.",
     },
     en: {
-      title: "About TechTots Romania - STEM Toys for Curious Minds",
+      title: "About TechTots | Online store for STEM and educational toys",
       description:
-        "Discover the TechTots Romania story - how we help families prepare their children for the AI era by transforming 'I hate math' to 'when can we do experiments?' with our proven STEM toys.",
+        "Learn who TechTots is, how we approach STEM toy selection, and where to find support, contact, and brand mission information.",
     },
   },
   structuredData: {
@@ -35,14 +34,14 @@ export const metadata = createMetadata({
     "@type": "AboutPage",
     name: "About TechTots România",
     description:
-      "Descoperă povestea TechTots România - cum ajutăm familii să-și pregătească copiii pentru era AI transformând 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
+      "Pagina despre TechTots, magazin online din Romania specializat in jucarii STEM si educative.",
     url: "https://www.techtots.ro/about",
     mainEntity: {
       "@type": "Organization",
       name: "TechTots România",
       url: "https://www.techtots.ro",
       logo: "https://www.techtots.ro/TechTots_LOGO.png",
-      description: "Jucării STEM și resurse educaționale pentru copii români",
+      description: "Jucarii STEM si resurse educationale pentru copii din Romania",
       foundingDate: "2024",
       address: {
         "@type": "PostalAddress",
