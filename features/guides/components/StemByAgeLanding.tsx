@@ -26,8 +26,6 @@ import { useTranslation } from "@/lib/i18n";
 const surfaceBase =
   "rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-900/10 backdrop-blur-sm sm:p-8";
 
-const listBulletClass = "pl-3 text-left text-sm text-slate-700 sm:text-base";
-
 interface AgeSectionLink {
   href: string;
   label: string;
@@ -90,8 +88,14 @@ export function StemByAgeLanding() {
       ],
       linkIntro: translate("byAge3to5Explore"),
       links: [
-        { href: "/categories/mathematics", label: translate("guide2025MathematicsCategory") },
-        { href: "/categories/engineering", label: translate("guide2025EngineeringCategory") },
+        {
+          href: "/categories/mathematics",
+          label: translate("guide2025MathematicsCategory"),
+        },
+        {
+          href: "/categories/engineering",
+          label: translate("guide2025EngineeringCategory"),
+        },
       ],
       insight: translate("byAge3to5Content4"),
     },
@@ -106,8 +110,14 @@ export function StemByAgeLanding() {
       ],
       linkIntro: translate("byAge6to8See"),
       links: [
-        { href: "/categories/technology", label: translate("guide2025TechnologyCategory") },
-        { href: "/categories/science", label: translate("guide2025ScienceCategory") },
+        {
+          href: "/categories/technology",
+          label: translate("guide2025TechnologyCategory"),
+        },
+        {
+          href: "/categories/science",
+          label: translate("guide2025ScienceCategory"),
+        },
       ],
       insight: translate("byAge6to8Content4"),
     },
@@ -122,8 +132,14 @@ export function StemByAgeLanding() {
       ],
       linkIntro: translate("byAge9to12Recommend"),
       links: [
-        { href: "/categories/engineering", label: translate("guide2025EngineeringCategory") },
-        { href: "/categories/mathematics", label: translate("guide2025MathematicsCategory") },
+        {
+          href: "/categories/engineering",
+          label: translate("guide2025EngineeringCategory"),
+        },
+        {
+          href: "/categories/mathematics",
+          label: translate("guide2025MathematicsCategory"),
+        },
       ],
       insight: translate("byAge9to12Content4"),
     },
@@ -138,8 +154,14 @@ export function StemByAgeLanding() {
       ],
       linkIntro: translate("byAge13plusDiscover"),
       links: [
-        { href: "/categories/technology", label: translate("guide2025TechnologyCategory") },
-        { href: "/categories/engineering", label: translate("guide2025EngineeringCategory") },
+        {
+          href: "/categories/technology",
+          label: translate("guide2025TechnologyCategory"),
+        },
+        {
+          href: "/categories/engineering",
+          label: translate("guide2025EngineeringCategory"),
+        },
       ],
       insight: translate("byAge13plusContent4"),
     },
@@ -182,7 +204,9 @@ export function StemByAgeLanding() {
                 variant="outline"
                 className="rounded-2xl border border-white/40 bg-white/5 px-7 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 sm:text-base"
               >
-                <Link href="/products">{translate("byAgeExploreProducts")}</Link>
+                <Link href="/products">
+                  {translate("byAgeExploreProducts")}
+                </Link>
               </Button>
             </div>
             <div className="mt-10 grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -191,7 +215,9 @@ export function StemByAgeLanding() {
                   key={item.key}
                   className="rounded-2xl border border-white/10 bg-white/5 p-5 text-left shadow-inner shadow-black/30 transition hover:border-emerald-400/40 hover:bg-white/10"
                 >
-                  <p className="text-sm text-slate-200 sm:text-base">{item.label}</p>
+                  <p className="text-sm text-slate-200 sm:text-base">
+                    {item.label}
+                  </p>
                 </div>
               ))}
             </div>
@@ -218,12 +244,19 @@ export function StemByAgeLanding() {
                   className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50 p-4 shadow-inner shadow-slate-900/5"
                 >
                   <Lightbulb className="mt-1 h-5 w-5 text-amber-500" />
-                  <p className="text-sm text-slate-700 sm:text-base">{item.label}</p>
+                  <p className="text-sm text-slate-700 sm:text-base">
+                    {item.label}
+                  </p>
                 </div>
               ))}
             </CardContent>
           </Card>
-          <Card className={cn(surfaceBase, "bg-gradient-to-br from-indigo-900/60 via-slate-950/80 to-slate-950/90")}>
+          <Card
+            className={cn(
+              surfaceBase,
+              "bg-gradient-to-br from-indigo-900/60 via-slate-950/80 to-slate-950/90"
+            )}
+          >
             <CardHeader className="p-0">
               <CardTitle className="flex items-center gap-3 text-base text-white sm:text-lg">
                 <Compass className="h-5 w-5 text-sky-300" />
@@ -258,36 +291,98 @@ export function StemByAgeLanding() {
         className="container mx-auto px-4 pb-16 sm:px-6 lg:px-12"
         aria-labelledby="sfaturi-title"
       >
-        <div className={cn(surfaceBase, "space-y-6 bg-gradient-to-br from-indigo-900/70 via-slate-950/80 to-slate-950/90")}>
-          <div className="flex items-center gap-3">
-            <Sparkles className="h-6 w-6 text-sky-300" />
-            <h2 id="sfaturi-title" className="text-2xl font-semibold text-white sm:text-3xl">
-              {translate("byAgeSelectionTips")}
-            </h2>
-          </div>
-          <ol className="space-y-3 pl-4">
-            <ListItem as="li">{translate("byAgeSelectionTipsContent1")}</ListItem>
-            <ListItem as="li">{translate("byAgeSelectionTipsContent2")}</ListItem>
-            <ListItem as="li">{translate("byAgeSelectionTipsContent3")}</ListItem>
-            <ListItem as="li">{translate("byAgeSelectionTipsContent4")}</ListItem>
-          </ol>
-          <p className="text-sm text-slate-200 sm:text-base">{translate("byAgeSelectionTipsContent5")}</p>
-          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Button
-              asChild
-              size="lg"
-              className="rounded-2xl bg-white/90 px-7 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-white/20 transition hover:bg-white sm:text-base"
-            >
-              <Link href="/products">{translate("byAgeExploreProducts")}</Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="rounded-2xl border border-white/40 bg-white/5 px-7 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 sm:text-base"
-            >
-              <Link href="/contact">{translate("contactUs")}</Link>
-            </Button>
+        <div
+          className={cn(
+            surfaceBase,
+            "relative overflow-hidden border-white/10 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white shadow-2xl shadow-slate-950/25"
+          )}
+        >
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-300/70 to-transparent" />
+          <div className="absolute -left-20 top-12 h-48 w-48 rounded-full bg-sky-400/10 blur-3xl" />
+          <div className="absolute -right-24 bottom-0 h-56 w-56 rounded-full bg-indigo-400/15 blur-3xl" />
+          <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)] lg:items-start">
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Badge className="w-fit rounded-full border border-sky-300/25 bg-white/[0.08] px-4 py-2 text-xs font-semibold uppercase tracking-[0.32em] text-sky-100">
+                  Ghid de alegere
+                </Badge>
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-6 w-6 text-sky-300" />
+                  <h2
+                    id="sfaturi-title"
+                    className="text-2xl font-semibold tracking-tight text-white sm:text-3xl"
+                  >
+                    {translate("byAgeSelectionTips")}
+                  </h2>
+                </div>
+                <p className="max-w-2xl text-sm leading-7 text-slate-200 sm:text-base">
+                  Repere rapide pentru a alege kituri STEM potrivite, fără să
+                  sacrifici claritatea, siguranța sau motivația copilului.
+                </p>
+              </div>
+
+              <ol className="grid gap-3 sm:grid-cols-2">
+                <ListItem
+                  as="li"
+                  tone="inverse"
+                  className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-inner shadow-black/20"
+                >
+                  {translate("byAgeSelectionTipsContent1")}
+                </ListItem>
+                <ListItem
+                  as="li"
+                  tone="inverse"
+                  className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-inner shadow-black/20"
+                >
+                  {translate("byAgeSelectionTipsContent2")}
+                </ListItem>
+                <ListItem
+                  as="li"
+                  tone="inverse"
+                  className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-inner shadow-black/20"
+                >
+                  {translate("byAgeSelectionTipsContent3")}
+                </ListItem>
+                <ListItem
+                  as="li"
+                  tone="inverse"
+                  className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-inner shadow-black/20"
+                >
+                  {translate("byAgeSelectionTipsContent4")}
+                </ListItem>
+              </ol>
+            </div>
+
+            <div className="space-y-5 rounded-3xl border border-white/10 bg-white/[0.08] p-5 shadow-inner shadow-black/20 sm:p-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-200">
+                  Cum menții interesul
+                </p>
+                <p className="mt-3 text-sm leading-7 text-slate-100 sm:text-base">
+                  {translate("byAgeSelectionTipsContent5")}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 pt-1">
+                <Button
+                  asChild
+                  size="lg"
+                  className="w-full rounded-2xl bg-white px-7 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-sky-950/30 transition hover:bg-slate-100 sm:text-base"
+                >
+                  <Link href="/products">
+                    {translate("byAgeExploreProducts")}
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="w-full rounded-2xl border border-white/25 bg-transparent px-7 py-3 text-sm font-semibold text-white transition hover:border-sky-200/60 hover:bg-white/10 sm:text-base"
+                >
+                  <Link href="/contact">{translate("contactUs")}</Link>
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -306,7 +401,10 @@ function AgeSectionCard({ section }: { section: AgeSection }) {
         <Badge className="w-fit rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-700">
           {section.badge}
         </Badge>
-        <h2 id={`${section.id}-title`} className="text-2xl font-semibold text-slate-900 sm:text-3xl">
+        <h2
+          id={`${section.id}-title`}
+          className="text-2xl font-semibold text-slate-900 sm:text-3xl"
+        >
           {section.title}
         </h2>
         <ul className="space-y-3">
@@ -338,19 +436,38 @@ function AgeSectionCard({ section }: { section: AgeSection }) {
 function ListItem({
   children,
   as: Component = "div",
+  tone = "default",
+  className,
 }: {
   children: React.ReactNode;
   as?: "div" | "li";
+  tone?: "default" | "inverse";
+  className?: string;
 }) {
   return (
     <Component
       className={cn(
         "flex items-start gap-3 text-left",
         Component === "li" ? "list-none" : undefined,
+        className
       )}
     >
-      <span className="mt-1 h-2.5 w-2.5 rounded-full bg-gradient-to-br from-emerald-300 via-sky-300 to-indigo-300 shadow-md shadow-emerald-500/40" />
-      <span className={listBulletClass}>{children}</span>
+      <span
+        className={cn(
+          "mt-1 h-2.5 w-2.5 rounded-full bg-gradient-to-br shadow-md",
+          tone === "inverse"
+            ? "from-sky-200 via-cyan-300 to-indigo-300 shadow-sky-500/30"
+            : "from-emerald-300 via-sky-300 to-indigo-300 shadow-emerald-500/40"
+        )}
+      />
+      <span
+        className={cn(
+          "pl-3 text-left text-sm sm:text-base",
+          tone === "inverse" ? "text-slate-100" : "text-slate-700"
+        )}
+      >
+        {children}
+      </span>
     </Component>
   );
 }
