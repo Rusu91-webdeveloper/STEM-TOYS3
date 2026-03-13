@@ -32,7 +32,7 @@ jest.mock("@/lib/config/app-config", () => ({
   getAppConfig: (...args: any[]) => mockGetAppConfig(...args),
 }));
 
-jest.mock("@/lib/email/migration-helper", () => ({
+jest.mock("@/lib/nodemailer", () => ({
   sendEmailViaUnifiedSystem: (...args: any[]) =>
     mockSendEmailViaUnifiedSystem(...args),
 }));
@@ -106,13 +106,11 @@ describe("POST /api/contact", () => {
     expect(mockSendEmailViaUnifiedSystem).toHaveBeenCalledTimes(1);
     expect(mockSendEmailViaUnifiedSystem).toHaveBeenNthCalledWith(
       1,
-      "contact@techtots.ro",
-      expect.stringContaining("[Contact Form] General Inquiry"),
-      expect.any(String),
       expect.objectContaining({
-        variables: expect.objectContaining({
-          textContent: expect.stringContaining("Alice Example"),
-        }),
+        to: "contact@techtots.ro",
+        subject: expect.stringContaining("[Contact Form] General Inquiry"),
+        html: expect.any(String),
+        text: expect.stringContaining("Alice Example"),
       })
     );
     expect(mockAfter).toHaveBeenCalledTimes(1);
@@ -123,13 +121,11 @@ describe("POST /api/contact", () => {
     expect(mockSendEmailViaUnifiedSystem).toHaveBeenCalledTimes(2);
     expect(mockSendEmailViaUnifiedSystem).toHaveBeenNthCalledWith(
       2,
-      "alice@example.com",
-      expect.stringContaining("Confirmare"),
-      expect.any(String),
       expect.objectContaining({
-        variables: expect.objectContaining({
-          textContent: expect.stringContaining("Alice Example"),
-        }),
+        to: "alice@example.com",
+        subject: expect.stringContaining("Confirmare"),
+        html: expect.any(String),
+        text: expect.stringContaining("Alice Example"),
       })
     );
   });
@@ -147,10 +143,9 @@ describe("POST /api/contact", () => {
 
     expect(response.status).toBe(200);
     expect(mockSendEmailViaUnifiedSystem).toHaveBeenCalledWith(
-      "fallback@techtots.ro",
-      expect.any(String),
-      expect.any(String),
-      expect.any(Object)
+      expect.objectContaining({
+        to: "fallback@techtots.ro",
+      })
     );
   });
 

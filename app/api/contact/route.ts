@@ -6,7 +6,7 @@ import {
   type AppConfig,
   getAppConfig,
 } from "@/lib/config/app-config";
-import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
+import { sendEmailViaUnifiedSystem } from "@/lib/nodemailer";
 
 export const runtime = "nodejs";
 
@@ -131,8 +131,11 @@ async function sendBoundedEmail(
   textContent: string
 ) {
   const result = await withTimeout(
-    sendEmailViaUnifiedSystem(to, subject, html, {
-      variables: { textContent },
+    sendEmailViaUnifiedSystem({
+      to,
+      subject,
+      html,
+      text: textContent,
     }),
     CONTACT_EMAIL_TIMEOUT_MS,
     `Sending email to ${to}`

@@ -12,6 +12,7 @@ const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || "587");
 const EMAIL_USER = process.env.EMAIL_USER || "";
 const EMAIL_PASS = process.env.EMAIL_PASS || "";
 const EMAIL_FROM = process.env.EMAIL_FROM || "";
+const EMAIL_TIMEOUT_MS = parseInt(process.env.EMAIL_TIMEOUT_MS || "10000", 10);
 
 // Check configuration on startup
 if (!EMAIL_USER || !EMAIL_PASS) {
@@ -26,6 +27,9 @@ export const transporter = nodemailer.createTransport({
   host: EMAIL_HOST,
   port: EMAIL_PORT,
   secure: EMAIL_PORT === 465, // true for 465, false for other ports
+  connectionTimeout: EMAIL_TIMEOUT_MS,
+  greetingTimeout: EMAIL_TIMEOUT_MS,
+  socketTimeout: EMAIL_TIMEOUT_MS,
   auth: {
     user: EMAIL_USER,
     pass: EMAIL_PASS,
