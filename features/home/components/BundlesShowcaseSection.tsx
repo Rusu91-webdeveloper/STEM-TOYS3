@@ -93,16 +93,16 @@ export const BundlesShowcaseSection = React.memo(
       >
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div
-            className={`${glassPanelClass} border-blue-100 bg-white/95 p-4 shadow-[0_22px_60px_-28px_rgba(30,64,175,0.32)] backdrop-blur-sm sm:p-6 lg:p-8`}
+            className={`${glassPanelClass} border-slate-200/80 bg-white/92 p-4 sm:p-6 lg:p-8`}
           >
             <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
               <div className="max-w-3xl">
-                <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-blue-700">
+                <span className="inline-flex items-center rounded-full border border-sky-200/80 bg-sky-50/80 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.24em] text-sky-700">
                   {isRomanian
                     ? `Reducere ${bundlePromoPercent}% la bundle-uri`
                     : `${bundlePromoPercent}% off STEM bundles`}
                 </span>
-                <h2 className="mt-3 text-2xl font-black tracking-tight text-blue-900 sm:text-3xl lg:text-4xl">
+                <h2 className="mt-3 text-[2rem] font-black tracking-[-0.03em] text-slate-950 sm:text-[2.35rem] lg:text-[2.8rem]">
                   {isRomanian
                     ? "Alege un bundle STEM și economisește instant"
                     : "Choose a STEM bundle and save instantly"}
@@ -113,7 +113,7 @@ export const BundlesShowcaseSection = React.memo(
                     : "Bundles combine products that work better together and give you a better deal than buying separately."}
                 </p>
               </div>
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700">
+              <div className="rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm font-bold text-amber-700">
                 {isRomanian
                   ? `Oferta home page: -${bundlePromoPercent}% la bundle`
                   : `Homepage offer: ${bundlePromoPercent}% off bundles`}
@@ -158,7 +158,7 @@ export const BundlesShowcaseSection = React.memo(
                     data-conversion-action="bundle_card_click"
                     data-conversion-element={`bundle_card_${bundle.slug}`}
                     data-conversion-metadata={`{"bundleId":"${bundle.id}","bundleSlug":"${bundle.slug}","bundlePrice":${bundle.price}}`}
-                    className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_16px_32px_-20px_rgba(15,23,42,0.28)] transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_20px_40px_-24px_rgba(59,130,246,0.45)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    className="group relative overflow-hidden rounded-[1.6rem] border border-slate-200/90 bg-white/96 p-3 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.18)] transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_22px_44px_-30px_rgba(15,23,42,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                     aria-label={
                       isRomanian
                         ? `Vezi pachetul ${displayName}`
@@ -168,7 +168,7 @@ export const BundlesShowcaseSection = React.memo(
                       animationDelay: `${Math.min(index * 0.08, 0.2)}s`,
                     }}
                   >
-                    <span className="absolute left-3 top-3 z-10 rounded-full bg-gradient-to-r from-orange-500 to-amber-400 px-2.5 py-1 text-xs font-extrabold text-white shadow-lg">
+                    <span className="absolute left-3 top-3 z-10 rounded-full border border-white/60 bg-white/88 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-800 shadow-[0_12px_24px_-18px_rgba(15,23,42,0.25)]">
                       {isRomanian
                         ? `BUNDLE -${bundlePromoPercent}%`
                         : `BUNDLE ${bundlePromoPercent}% OFF`}
@@ -185,7 +185,7 @@ export const BundlesShowcaseSection = React.memo(
                     </div>
 
                     <div className="mt-4">
-                      <h3 className="line-clamp-2 text-lg font-bold text-slate-900">
+                      <h3 className="line-clamp-2 text-lg font-black tracking-[-0.02em] text-slate-950">
                         {displayName}
                       </h3>
                       <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-600">
@@ -194,7 +194,7 @@ export const BundlesShowcaseSection = React.memo(
 
                       <div className="mt-4 flex items-end justify-between gap-2">
                         <div>
-                          <p className="text-xl font-extrabold text-blue-900">
+                          <p className="text-xl font-extrabold text-slate-950">
                             {formatPrice(bundle.price)}
                           </p>
                           {typeof bundle.compareAtPrice === "number" &&
@@ -205,7 +205,7 @@ export const BundlesShowcaseSection = React.memo(
                             )}
                         </div>
 
-                        <span className="rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 px-3 py-2 text-xs font-bold text-white transition-all duration-200 group-hover:from-blue-500 group-hover:to-cyan-400">
+                        <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-slate-800 transition-all duration-200 group-hover:border-slate-300 group-hover:bg-white">
                           {isRomanian ? "Vezi pachetul" : "View bundle"}
                         </span>
                       </div>
@@ -242,7 +242,7 @@ export const BundlesShowcaseSection = React.memo(
                 data-conversion-category="ecommerce"
                 data-conversion-action="bundle_list_cta_click"
                 data-conversion-element="bundle_list_cta"
-                className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-5 py-2.5 text-sm font-bold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
+                className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-2.5 text-sm font-bold text-slate-800 transition hover:border-slate-300 hover:bg-white"
               >
                 {isRomanian
                   ? "Vezi toate pachetele și economiile active"

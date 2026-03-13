@@ -48,36 +48,36 @@ const MobileConversionOptimizer = dynamic(
 // Define categories data
 const categories = [
   {
-    name: "Coding & Robotics",
-    description: "Coding games, robots, and programmable toys",
+    name: "Coding si robotica",
+    description: "Roboti, coding si kituri programabile pentru joaca aplicata",
     slug: "coding-robotics",
     image: "/images/home/category-coding-kits.svg",
     productFilterCategory: "technology",
   },
   {
-    name: "Science Kits",
-    description: "Experiments and science sets that spark curiosity",
+    name: "Stiinta si experimente",
+    description: "Experimente practice si seturi care deschid curiozitatea",
     slug: "science-experiments",
     image: "/images/home/category-science-kits.svg",
     productFilterCategory: "science",
   },
   {
-    name: "Engineering",
-    description: "Build-and-create toys for future inventors",
+    name: "Constructie si inginerie",
+    description: "Jucarii de construit pentru spatialitate si proiecte creative",
     slug: "magnetic-building",
     image: "/images/home/category-engineering.svg",
     productFilterCategory: "engineering",
   },
   {
-    name: "Technology",
-    description: "Tech-focused toys and smart learning tools",
+    name: "Tehnologie",
+    description: "Instrumente smart si jucarii tech pentru copii curiosi",
     slug: "technology",
     image: "/images/home/category-robotics.svg",
     productFilterCategory: "technology",
   },
   {
-    name: "Mathematics",
-    description: "Math games and logic activities for fun learning",
+    name: "Matematica si logica",
+    description: "Jocuri de logica si activitati care fac matematica mai clara",
     slug: "mathematics",
     image: "/Mathematic.png",
     productFilterCategory: "mathematics",
@@ -85,30 +85,30 @@ const categories = [
 ];
 
 const homePageShellClass =
-  "relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f1f8ff_0%,#ffffff_48%,#eef6ff_100%)] text-slate-900";
+  "relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f6fbff_0%,#ffffff_45%,#f1f8ff_100%)] text-slate-900";
 
 const homePageOverlayTopClass =
-  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(56,189,248,0.18),transparent_42%),radial-gradient(circle_at_85%_12%,rgba(250,204,21,0.14),transparent_38%)]";
+  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_10%,rgba(56,189,248,0.12),transparent_38%),radial-gradient(circle_at_86%_14%,rgba(16,185,129,0.08),transparent_30%)]";
 
 const homePageOverlayBottomClass =
-  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_85%,rgba(34,197,94,0.12),transparent_42%),radial-gradient(circle_at_80%_82%,rgba(99,102,241,0.12),transparent_44%)]";
+  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_85%,rgba(34,197,94,0.08),transparent_36%),radial-gradient(circle_at_80%_82%,rgba(99,102,241,0.08),transparent_40%)]";
 
 const homePageContentWrapperClass =
-  "relative z-10 flex flex-col gap-4 sm:gap-6 lg:gap-10";
+  "relative z-10 flex flex-col gap-5 sm:gap-7 lg:gap-12";
 
 // Loading fallback for featured products accordion
 const FeaturedProductsLoader = () => (
   <section className="py-6 sm:py-8 md:py-12 lg:py-14">
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
       <div className="mb-4 sm:mb-6 md:mb-8 text-center">
-        <span className="inline-block px-2.5 py-0.5 sm:px-3 sm:py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full mb-2">
-          Recommended For You
+        <span className="inline-block rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-0.5 text-xs font-medium text-emerald-700 sm:px-3 sm:py-1 mb-2">
+          Selectie recomandata
         </span>
         <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2.5 sm:mb-3.5 md:mb-4 text-center mt-1 sm:mt-0 leading-tight tracking-tight">
-          Featured Products
+          Produse recomandate
         </h2>
         <p className="text-center text-muted-foreground mb-5 sm:mb-7 md:mb-9 max-w-3xl mx-auto px-4 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed">
-          Discover our carefully curated selection of educational toys
+          Descopera o selectie clara de jucarii educative si STEM
         </p>
       </div>
 
@@ -296,32 +296,30 @@ export default function HomePageClient({
           />
         </Suspense>
 
-        <SearchJourneysSection />
-
         {/* Bundle promo strip + Bundles - directly under featured products */}
         <section className="px-4 sm:px-6 lg:px-8">
           <div className="container mx-auto max-w-7xl">
-            <div className="relative overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 px-4 py-5 text-white shadow-[0_18px_50px_-20px_rgba(37,99,235,0.55)] sm:px-6 sm:py-6">
-              <div className="pointer-events-none absolute -left-10 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-white/15 blur-2xl" />
-              <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-amber-300/25 blur-2xl" />
+            <div className="relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.94)_0%,rgba(240,249,255,0.98)_56%,rgba(236,253,245,0.95)_100%)] px-5 py-5 text-slate-900 shadow-[0_26px_60px_-42px_rgba(15,23,42,0.22)] sm:px-7 sm:py-6">
+              <div className="pointer-events-none absolute -left-8 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-sky-200/40 blur-3xl" />
+              <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-emerald-200/35 blur-3xl" />
               <div className="relative flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
-                  <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-blue-100">
-                    Bundle Deal
+                  <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-sky-700">
+                    Pachete STEM
                   </p>
-                  <h2 className="mt-1 text-2xl font-black leading-tight sm:text-3xl">
-                    Save 10% on STEM Bundles
+                  <h2 className="mt-1 text-2xl font-black leading-tight text-slate-950 sm:text-3xl">
+                    Economisesti 10% cand alegi un bundle gata construit
                   </h2>
-                  <p className="mt-1 text-sm text-blue-100/95 sm:text-base">
-                    Build a real toy-store experience with ready-made bundles
-                    instead of shopping items one by one.
+                  <p className="mt-1 max-w-2xl text-sm text-slate-600 sm:text-base">
+                    Pachetele combina produse care functioneaza bine impreuna si
+                    reduc timpul de selectie.
                   </p>
                 </div>
                 <Link
                   href="/products?bundleView=bundles"
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-white/30 bg-white/15 px-5 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20"
+                  className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-900 shadow-[0_16px_34px_-28px_rgba(15,23,42,0.25)] transition hover:border-slate-300 hover:text-slate-950"
                 >
-                  Shop Bundles
+                  Vezi pachetele
                 </Link>
               </div>
             </div>
@@ -353,6 +351,8 @@ export default function HomePageClient({
         >
           <PillarSection />
         </Suspense>
+
+        <SearchJourneysSection />
 
         {/* Supplier Banner - Only visible on Home page */}
         <SupplierBanner t={t} />

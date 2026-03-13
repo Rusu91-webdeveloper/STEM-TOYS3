@@ -1,6 +1,14 @@
 "use client";
 
-import { ArrowRight, ChevronDown } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronDown,
+  GraduationCap,
+  ShieldCheck,
+  Layers3,
+  Truck,
+  Sparkles,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
@@ -64,21 +72,32 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
     "control"
   ).toLowerCase();
   const trustHighlights = [
-    { icon: "⭐", label: "4.9/5 Rating" },
-    { icon: "🎯", label: "By Age" },
-    { icon: "📦", label: "Bundle Savings" },
-    { icon: "🔒", label: "Secure Pay" },
-    { icon: "🚚", label: "1-3 Day Delivery" },
+    { icon: Sparkles, label: "Selectie STEM clara" },
+    { icon: GraduationCap, label: "Alegere pe varste" },
+    { icon: ShieldCheck, label: "Plata securizata" },
+    { icon: Truck, label: "Livrare 1-3 zile" },
   ];
   const ageQuickLinks = [
-    { icon: "🐣", label: "3-5", href: "/products?ageGroup=PRESCHOOL_3_5" },
-    { icon: "🎒", label: "6-8", href: "/products?ageGroup=ELEMENTARY_6_8" },
     {
-      icon: "🧠",
-      label: "9-12",
+      label: "3-5 ani",
+      hint: "Prima explorare",
+      href: "/products?ageGroup=PRESCHOOL_3_5",
+    },
+    {
+      label: "6-8 ani",
+      hint: "Invatare activa",
+      href: "/products?ageGroup=ELEMENTARY_6_8",
+    },
+    {
+      label: "9-12 ani",
+      hint: "Logica si proiecte",
       href: "/products?ageGroup=MIDDLE_SCHOOL_9_12",
     },
-    { icon: "🚀", label: "13+", href: "/products?ageGroup=TEENS_13_PLUS" },
+    {
+      label: "13+ ani",
+      hint: "Provocari smart",
+      href: "/products?ageGroup=TEENS_13_PLUS",
+    },
   ];
 
   useEffect(() => {
@@ -113,8 +132,8 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
     return t("homepageH1", "Jucării STEM alese pe vârste");
   };
 
-  const primaryCtaText = "Shop Now";
-  const secondaryCtaText = "Learn More";
+  const primaryCtaText = "Vezi jucariile STEM";
+  const secondaryCtaText = "Alege dupa varsta";
 
   return (
     <section
@@ -153,8 +172,8 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <div className="animate-in slide-in-from-bottom-8 fade-in flex w-full flex-col text-left duration-1000 fill-mode-forwards">
           <div className="max-w-5xl">
-            <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[0.7rem] font-bold uppercase tracking-[0.28em] text-white/90 backdrop-blur-md">
-              STEM Toys • TechTots
+            <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[0.68rem] font-bold uppercase tracking-[0.3em] text-white/92 backdrop-blur-md">
+              Selectie STEM pentru Romania
             </span>
           </div>
 
@@ -165,11 +184,11 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
           <p className="mt-4 max-w-4xl text-base font-semibold leading-relaxed text-white/95 [text-shadow:0_2px_14px_rgba(15,23,42,0.5)] sm:text-lg lg:text-xl">
             {t(
               "heroDescription",
-              "Pachete STEM clare, livrare rapidă, comandă simplă."
+              "Jucarii educative, robotica si seturi STEM selectate clar pentru acasa, cadouri si invatare aplicata."
             )}
           </p>
 
-          <div className="mt-7 flex w-full max-w-4xl flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="mt-7 flex w-full max-w-5xl flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
             <Link
               href="/products"
               onClick={() => {
@@ -196,20 +215,27 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
               }","ctaVariant":"${
                 ctaVariant?.name ?? ctaVariant?.id ?? "control"
               }"}`}
-              className={`${gradientButtonClass} group relative flex h-14 w-full items-center justify-center overflow-hidden rounded-2xl px-7 text-base font-black shadow-[0_22px_38px_-18px_rgba(37,99,235,0.7)] ring-1 ring-white/25 transition-all hover:-translate-y-0.5 hover:shadow-[0_28px_46px_-18px_rgba(14,165,233,0.65)] active:scale-[0.99] sm:w-auto sm:min-w-[250px] sm:px-10`}
+              className={`${gradientButtonClass} group relative flex min-h-[4.25rem] w-full items-center justify-between gap-4 overflow-hidden rounded-[1.35rem] px-5 py-3 text-left shadow-[0_24px_42px_-18px_rgba(37,99,235,0.65)] ring-1 ring-white/25 transition-all hover:-translate-y-0.5 hover:shadow-[0_30px_52px_-18px_rgba(14,165,233,0.6)] active:scale-[0.99] sm:min-w-[290px] sm:px-6`}
             >
               <span
                 aria-hidden
                 className="absolute inset-y-0 -left-10 w-16 skew-x-[-20deg] bg-white/25 blur-sm transition-transform duration-700 group-hover:translate-x-[18rem]"
               />
-              <span className="relative z-10 flex items-center gap-2">
-                {primaryCtaText}
+              <span className="relative z-10 flex flex-col">
+                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/70">
+                  Catalog complet
+                </span>
+                <span className="mt-0.5 text-base font-black text-white sm:text-[1.05rem]">
+                  {primaryCtaText}
+                </span>
+              </span>
+              <span className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/14 ring-1 ring-white/20">
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
 
             <Link
-              href="/blog"
+              href="/jucarii-stem-dupa-varsta"
               onClick={() => {
                 void trackHeadlineAB("clicks");
                 void trackCTAAB("clicks");
@@ -227,16 +253,26 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
               data-conversion="cta"
               data-conversion-type="click"
               data-conversion-category="navigation"
-              data-conversion-action="hero_secondary_blog_cta_click"
-              data-conversion-element="hero_secondary_blog_cta"
-              data-conversion-metadata={`{"cta":"secondary_blog","headlineVariant":"${
+              data-conversion-action="hero_secondary_age_cta_click"
+              data-conversion-element="hero_secondary_age_cta"
+              data-conversion-metadata={`{"cta":"secondary_age","headlineVariant":"${
                 headlineVariant?.name ?? headlineVariant?.id ?? "control"
               }","ctaVariant":"${
                 ctaVariant?.name ?? ctaVariant?.id ?? "control"
               }"}`}
-              className="group inline-flex h-14 w-full items-center justify-center rounded-2xl border border-white/55 bg-white/90 px-7 text-base font-bold text-slate-900 shadow-[0_12px_26px_-18px_rgba(15,23,42,0.45)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white sm:w-auto sm:min-w-[220px] sm:px-10"
+              className="group inline-flex min-h-[4.25rem] w-full items-center justify-between gap-4 rounded-[1.35rem] border border-white/55 bg-white/90 px-5 py-3 text-left text-slate-900 shadow-[0_14px_30px_-18px_rgba(15,23,42,0.45)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white sm:min-w-[290px] sm:px-6"
             >
-              {secondaryCtaText}
+              <span className="flex flex-col">
+                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                  Selectie rapida
+                </span>
+                <span className="mt-0.5 text-base font-black text-slate-950 sm:text-[1.05rem]">
+                  {secondaryCtaText}
+                </span>
+              </span>
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 transition group-hover:border-slate-300 group-hover:bg-white">
+                <Layers3 className="h-4 w-4" />
+              </span>
             </Link>
           </div>
 
@@ -256,20 +292,24 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
           </div>
 
           <div className="mt-5 flex w-full max-w-6xl flex-wrap items-center gap-2.5">
-            {trustHighlights.map(item => (
-              <div
-                key={item.label}
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-3 py-2 text-xs font-semibold text-white/95 shadow-[0_10px_20px_-18px_rgba(15,23,42,0.75)] backdrop-blur-md"
-              >
-                <span
-                  aria-hidden
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-sm"
+            {trustHighlights.map(item => {
+              const Icon = item.icon;
+
+              return (
+                <div
+                  key={item.label}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-3 py-2 text-xs font-semibold text-white/95 shadow-[0_10px_20px_-18px_rgba(15,23,42,0.75)] backdrop-blur-md"
                 >
-                  {item.icon}
-                </span>
-                <span>{item.label}</span>
-              </div>
-            ))}
+                  <span
+                    aria-hidden
+                    className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </span>
+                  <span>{item.label}</span>
+                </div>
+              );
+            })}
           </div>
 
           <div className="mt-4 grid w-full max-w-6xl grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
@@ -277,12 +317,14 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
               <Link
                 key={link.label}
                 href={link.href}
-                className="group inline-flex items-center justify-center gap-2 rounded-2xl border border-white/22 bg-white/10 px-3 py-3 text-sm font-semibold text-white shadow-[0_12px_20px_-18px_rgba(15,23,42,0.65)] backdrop-blur-md transition hover:-translate-y-0.5 hover:border-white/35 hover:bg-white/16"
+                className="group flex flex-col items-start justify-center rounded-2xl border border-white/22 bg-white/10 px-4 py-3 text-left text-white shadow-[0_12px_20px_-18px_rgba(15,23,42,0.65)] backdrop-blur-md transition hover:-translate-y-0.5 hover:border-white/35 hover:bg-white/16"
               >
-                <span aria-hidden className="text-base">
-                  {link.icon}
+                <span className="text-sm font-black tracking-tight">
+                  {link.label}
                 </span>
-                <span>{link.label}</span>
+                <span className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] text-white/70">
+                  {link.hint}
+                </span>
               </Link>
             ))}
           </div>

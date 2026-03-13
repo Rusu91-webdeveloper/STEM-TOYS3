@@ -22,27 +22,27 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
       title: t("transformation1"),
       description: t("transformation1Desc"),
       image: "/Science.png",
-      badge: "Transformare",
-      category: "Science",
-      icon: "📱➡️🧪", // Screen to Science
+      badge: "Rezultat",
+      category: "Stiinta",
+      icon: "Ecran -> Experiment",
     },
     {
       key: "transformation2",
       title: t("transformation2"),
       description: t("transformation2Desc"),
       image: "/Mathematic.png",
-      badge: "Transformare",
-      category: "Mathematics",
-      icon: "😰➡️😍", // Struggles to Love
+      badge: "Rezultat",
+      category: "Matematica",
+      icon: "Nesiguranta -> Incredere",
     },
     {
       key: "transformation3",
       title: t("transformation3"),
       description: t("transformation3Desc"),
       image: "/coding-robotic.png",
-      badge: "Transformare",
-      category: "Coding & Robotics",
-      icon: "😴➡️🚀", // Bored to Inventor
+      badge: "Rezultat",
+      category: "Coding si robotica",
+      icon: "Plictiseala -> Inventator",
     },
   ];
 
@@ -113,10 +113,10 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
               {t("whyChooseTechTots")}
             </h2>
             <div className="mt-3 flex flex-wrap gap-2">
-              {[t("provenResults", "Proven Results"), t("qualityProducts", "Quality Products"), t("parentsLoveThisBecause", "Parents Love This")].map((item) => (
+              {[t("provenResults", "Rezultate clare"), t("qualityProducts", "Produse bine alese"), t("parentsLoveThisBecause", "Apreciat de parinti")].map((item) => (
                 <span
                   key={item}
-                  className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-700 sm:text-xs"
+                  className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600 sm:text-[11px]"
                 >
                   {item}
                 </span>
@@ -176,7 +176,7 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
                             {card.category}
                           </span>
                         </div>
-                        <span className="inline-flex items-center justify-center rounded-2xl border border-white/80 bg-white/75 px-3 py-2 text-2xl shadow-[0_10px_25px_-18px_rgba(15,23,42,0.25)] backdrop-blur-sm sm:text-3xl">
+                        <span className="inline-flex items-center justify-center rounded-2xl border border-white/80 bg-white/82 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700 shadow-[0_10px_25px_-18px_rgba(15,23,42,0.25)] backdrop-blur-sm sm:text-[11px]">
                           {card.icon}
                         </span>
                       </div>
@@ -204,10 +204,10 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
                                 clipRule="evenodd"
                               />
                             </svg>
-                            Rezultat Dovedit
+                            Beneficiu clar
                           </div>
                           <span className="text-xs font-medium text-slate-800">
-                            părinți văd progres real prin joacă
+                            progres vizibil prin joaca aplicata
                           </span>
                         </div>
                       </div>
