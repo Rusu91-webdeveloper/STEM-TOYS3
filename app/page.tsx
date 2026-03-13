@@ -162,7 +162,7 @@ async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
     // **PERFORMANCE**: Add timeout to prevent slow database queries from blocking LCP
     // In development, use longer timeout to allow debugging
     const timeoutMs = process.env.NODE_ENV === "development" ? 5000 : 500;
-    const timeoutPromise = new Promise<Product[]>((resolve) => {
+    const timeoutPromise = new Promise<Product[]>(resolve => {
       setTimeout(() => {
         if (process.env.NODE_ENV === "development") {
           console.warn(
@@ -233,7 +233,7 @@ function readLocalizedField(
   const containerKeys = ["localized", "translations", "multilingual", language];
   const candidates: Array<unknown> = [meta];
 
-  containerKeys.forEach((containerKey) => {
+  containerKeys.forEach(containerKey => {
     const next = toRecord(meta[containerKey]);
     if (next) {
       candidates.push(next);
@@ -255,10 +255,7 @@ function readLocalizedField(
       const suffixed = readString(asRecord[`${key}_${language}`]);
       if (suffixed) return suffixed;
 
-      const langSuffix =
-        language === "ro"
-          ? `${key}Ro`
-          : `${key}En`;
+      const langSuffix = language === "ro" ? `${key}Ro` : `${key}En`;
       const bySuffix = readString(asRecord[langSuffix]);
       if (bySuffix) return bySuffix;
     }
@@ -297,10 +294,12 @@ async function fetchHomepageBundlesOptimized(): Promise<HomeBundle[]> {
     });
 
     const timeoutMs = process.env.NODE_ENV === "development" ? 5000 : 500;
-    const timeoutPromise = new Promise<HomeBundle[]>((resolve) => {
+    const timeoutPromise = new Promise<HomeBundle[]>(resolve => {
       setTimeout(() => {
         if (process.env.NODE_ENV === "development") {
-          console.warn(`[Homepage Bundles] Query timed out after ${timeoutMs}ms`);
+          console.warn(
+            `[Homepage Bundles] Query timed out after ${timeoutMs}ms`
+          );
         }
         resolve([]);
       }, timeoutMs);
@@ -308,7 +307,7 @@ async function fetchHomepageBundlesOptimized(): Promise<HomeBundle[]> {
 
     const bundles = await Promise.race([queryPromise, timeoutPromise]);
 
-    return (bundles ?? []).map((bundle) => {
+    return (bundles ?? []).map(bundle => {
       const trimmedDescription = bundle.description?.trim();
       const description =
         trimmedDescription && trimmedDescription.length > 0
@@ -426,7 +425,6 @@ export function generateMetadata() {
         "Families worldwide are discovering how STEM education prepares kids for tomorrow's AI-driven world. Our STEM toys turn 'I hate math' into 'When's our next experiment?' Quality guaranteed.",
       type: "website",
       locale: "ro_RO",
-      alternateLocale: "en_US",
       images: [
         {
           url: "/images/homepage_hero_banner_01.png",
@@ -443,32 +441,19 @@ export function generateMetadata() {
         "Stop homework battles forever with our proven STEM toys. Quality guaranteed.",
       images: ["/images/homepage_hero_banner_01.png"],
     },
-    other: {
-      // **PERFORMANCE**: Preload critical resources for hero section to improve LCP
-      "link-preload-hero":
-        "/images/optimized/homepage_hero_banner_01_fallback.jpg",
-      // Additional SEO meta tags
-      robots: "index, follow, max-image-preview:large",
-      googlebot: "index, follow, max-image-preview:large",
-      bingbot: "index, follow, max-image-preview:large",
-    },
-    // **PERFORMANCE**: Add preload links in head for critical LCP resources
-    links: [
-      {
-        rel: "preload",
-        href: "/images/optimized/homepage_hero_banner_01_fallback.jpg",
-        as: "image",
-        type: "image/jpeg",
-        fetchPriority: "high",
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
       },
-    ],
-    // Structured data for better search results
+    },
     alternates: {
       canonical: "https://www.techtots.ro/",
-      languages: {
-        ro: "https://www.techtots.ro/ro/",
-        en: "https://www.techtots.ro/en/",
-      },
     },
   };
 }

@@ -60,44 +60,7 @@ export default async function RootLayout({
           fetchPriority="high"
         />
 
-        {/* Organization Schema for Site-wide SEO */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "TechTots România",
-              url: "https://techtots.ro",
-              logo: "https://techtots.ro/images/logo.png",
-              description:
-                "Jucării STEM și resurse educaționale pentru copii români",
-              foundingDate: "2024",
-              address: {
-                "@type": "PostalAddress",
-                streetAddress:
-                  process.env.STORE_STREET_ADDRESS || "Strada Mehedinți 54-56",
-                addressLocality: process.env.STORE_CITY || "Cluj-Napoca",
-                addressRegion: process.env.STORE_STATE || "Cluj",
-                postalCode: process.env.STORE_POSTAL_CODE || "400000",
-                addressCountry: "RO",
-              },
-              contactPoint: {
-                "@type": "ContactPoint",
-                telephone:
-                  process.env.FANCOURIER_SENDER_PHONE || "+40771248029",
-                contactType: "customer service",
-                availableLanguage: "Romanian",
-              },
-              sameAs: [
-                "https://www.facebook.com/techtotsromania",
-                "https://www.instagram.com/techtotsro",
-                "https://www.linkedin.com/company/techtots-romania",
-              ],
-            }),
-          }}
-        />
-        {/* Page-scoped JSON-LD only; global injection removed */}
+        {/* Structured data is injected from route metadata to keep entity data consistent. */}
       </head>
       <body
         className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}

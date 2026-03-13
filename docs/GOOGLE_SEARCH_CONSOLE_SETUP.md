@@ -3,6 +3,9 @@
 This guide will walk you through setting up Google Search Console API access to
 enable live SEO data in your dashboard.
 
+For the post-setup indexing sequence, see
+[docs/SEARCH_CONSOLE_INDEXING_ROLLOUT.md](/Users/emanuelrusu/Desktop/MVPs/STEM-TOYS3/docs/SEARCH_CONSOLE_INDEXING_ROLLOUT.md).
+
 ## Prerequisites
 
 - A Google account with access to Google Cloud Console

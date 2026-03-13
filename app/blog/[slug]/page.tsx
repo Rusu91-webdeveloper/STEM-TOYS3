@@ -10,6 +10,8 @@ import {
   generateSEOTrackingData,
 } from "@/lib/utils/seo";
 
+export { generateMetadata } from "./metadata";
+
 type BlogPostPageProps = {
   params: Promise<{
     slug: string;

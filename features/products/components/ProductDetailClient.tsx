@@ -19,6 +19,7 @@ import { ProductFeatures } from "./ProductFeatures";
 import { ProductHeader } from "./ProductHeader";
 import { ProductImageGallery } from "./ProductImageGallery";
 import type { Review } from "./ProductReviews";
+import ProductSearchPaths from "./ProductSearchPaths";
 import ProductSpecs from "./ProductSpecs";
 import {
   productBackgroundClass,
@@ -217,6 +218,8 @@ export default function ProductDetailClient({
               <ProductFAQ
                 faq={(product?.metadata?.seo?.faq as any) || undefined}
               />
+
+              <ProductSearchPaths product={product} />
             </div>
           </div>
         </div>

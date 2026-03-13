@@ -74,7 +74,7 @@ export async function generateMetadata(
       const multilingual = meta?.multilingual;
       const supportsBoth = meta?.language === "both";
       if (multilingual && supportsBoth) {
-        const lang = isRoSlug ? "ro" : isEnSlug ? "en" : "en";
+        const lang = isRoSlug ? "ro" : isEnSlug ? "en" : "ro";
         const ml = multilingual[lang] || {};
         localizedTitle = ml.title || localizedTitle;
         localizedExcerpt = ml.excerpt || localizedExcerpt;
@@ -136,6 +136,21 @@ export async function generateMetadata(
           }
         : undefined,
     };
+
+    const alternates =
+      ((blogPost as any).metadata?.language === "both" ||
+        Boolean((blogPost as any).metadata?.multilingual)) &&
+      (isRoSlug || isEnSlug)
+        ? {
+            canonical: canonicalUrl,
+            languages: {
+              en: enUrl,
+              ro: roUrl,
+            },
+          }
+        : {
+            canonical: canonicalUrl,
+          };
 
     return {
       title: `${localizedTitle} | TechTots Blog`,
@@ -200,13 +215,7 @@ export async function generateMetadata(
             ? [blogPost.coverImage]
             : [],
       },
-      alternates: {
-        canonical: canonicalUrl,
-        languages: {
-          en: enUrl,
-          ro: roUrl,
-        },
-      },
+      alternates,
       other: {
         structuredData: JSON.stringify(structuredData),
       },

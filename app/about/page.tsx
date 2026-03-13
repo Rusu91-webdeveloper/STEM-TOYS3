@@ -9,60 +9,6 @@ import { BookCarousel } from "@/components/ui/book-carousel";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
 
-// Structured Data for About Page
-const aboutStructuredData = {
-  "@context": "https://schema.org",
-  "@type": "AboutPage",
-  name: "About TechTots România",
-  description:
-    "Descoperă povestea TechTots România - cum ajutăm familii să-și pregătească copiii pentru era AI transformând 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
-  url: "https://www.techtots.ro/about",
-  mainEntity: {
-    "@type": "Organization",
-    name: "TechTots România",
-    url: "https://www.techtots.ro",
-    logo: "https://www.techtots.ro/TechTots_LOGO.png",
-    description: "Jucării STEM și resurse educaționale pentru copii români",
-    foundingDate: "2025",
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: process.env.NEXT_PUBLIC_STORE_STREET_ADDRESS || "Strada Mehedinți 54-56",
-      addressLocality: process.env.NEXT_PUBLIC_STORE_CITY || "Cluj-Napoca",
-      addressRegion: process.env.NEXT_PUBLIC_STORE_STATE || "Cluj",
-      postalCode: process.env.NEXT_PUBLIC_STORE_POSTAL_CODE || "400000",
-      addressCountry: "RO",
-    },
-    contactPoint: {
-      "@type": "ContactPoint",
-      telephone: process.env.NEXT_PUBLIC_STORE_PHONE || "+40771248029",
-      contactType: "customer service",
-      availableLanguage: "Romanian",
-    },
-    sameAs: [
-      "https://www.facebook.com/techtotsromania",
-      "https://www.instagram.com/techtotsro",
-      "https://www.linkedin.com/company/techtots-romania",
-    ],
-  },
-  breadcrumb: {
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Acasă",
-        item: "https://www.techtots.ro",
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Despre noi",
-        item: "https://www.techtots.ro/about",
-      },
-    ],
-  },
-};
-
 type BookLanguage = "english" | "romanian";
 
 export default function AboutPage() {
@@ -210,13 +156,6 @@ export default function AboutPage() {
 
   return (
     <>
-      {/* Structured Data for SEO */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(aboutStructuredData),
-        }}
-      />
       <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/70 text-slate-900">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),_transparent_55%)]" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(99,102,241,0.08),_transparent_60%)]" />
@@ -233,7 +172,9 @@ export default function AboutPage() {
                     height={28}
                     className="h-7 w-auto"
                   />
-                  <span className="text-white/80">{t("aboutHeroSocialProof")}</span>
+                  <span className="text-white/80">
+                    {t("aboutHeroSocialProof")}
+                  </span>
                 </div>
                 <h1 className="text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-4xl">
                   {t("aboutHeroHeadline")}{" "}
@@ -254,10 +195,14 @@ export default function AboutPage() {
                       key={stat.label}
                       className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-inner shadow-black/20 backdrop-blur"
                     >
-                      <div className={`text-2xl font-bold sm:text-3xl ${stat.accentClass}`}>
+                      <div
+                        className={`text-2xl font-bold sm:text-3xl ${stat.accentClass}`}
+                      >
                         {stat.value}
                       </div>
-                      <p className="mt-2 text-xs text-slate-200 sm:text-sm">{stat.label}</p>
+                      <p className="mt-2 text-xs text-slate-200 sm:text-sm">
+                        {stat.label}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -373,7 +318,10 @@ export default function AboutPage() {
                     <BookCarousel
                       books={books}
                       onLanguageToggle={toggleBookLanguage}
-                      currentLanguages={[bookVersions.book1, bookVersions.book2]}
+                      currentLanguages={[
+                        bookVersions.book1,
+                        bookVersions.book2,
+                      ]}
                       showLanguageToggle={false}
                     />
                   </div>
@@ -545,27 +493,39 @@ export default function AboutPage() {
                   <div className="rounded-2xl border border-slate-200/70 bg-white/95 p-5 shadow-inner shadow-slate-900/5">
                     <dl className="space-y-3 text-xs text-slate-700 sm:text-sm">
                       <div>
-                        <dt className="text-emerald-700">{t("companyLegalEntity", "Denumire")}</dt>
+                        <dt className="text-emerald-700">
+                          {t("companyLegalEntity", "Denumire")}
+                        </dt>
                         <dd className="mt-1 text-slate-900">
-                          {process.env.NEXT_PUBLIC_STORE_LEGAL_NAME || "WEBIRA REM S.R.L."}
+                          {process.env.NEXT_PUBLIC_STORE_LEGAL_NAME ||
+                            "WEBIRA REM S.R.L."}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-emerald-700">{t("companyLegalAddress", "Sediu social")}</dt>
+                        <dt className="text-emerald-700">
+                          {t("companyLegalAddress", "Sediu social")}
+                        </dt>
                         <dd className="mt-1 leading-relaxed">
-                          {process.env.NEXT_PUBLIC_STORE_LEGAL_ADDRESS || "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70"}
+                          {process.env.NEXT_PUBLIC_STORE_LEGAL_ADDRESS ||
+                            "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70"}
                         </dd>
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">
                         <div>
                           <dt className="text-emerald-700">
-                            {t("companyLegalCuiLabel", "Cod de identificare fiscală")}
+                            {t(
+                              "companyLegalCuiLabel",
+                              "Cod de identificare fiscală"
+                            )}
                           </dt>
                           <dd className="mt-1 text-slate-900">51813997</dd>
                         </div>
                         <div>
                           <dt className="text-emerald-700">
-                            {t("companyLegalCuiDateLabel", "Data înregistrării")}
+                            {t(
+                              "companyLegalCuiDateLabel",
+                              "Data înregistrării"
+                            )}
                           </dt>
                           <dd className="mt-1 text-slate-900">20.05.2025</dd>
                         </div>
@@ -573,12 +533,19 @@ export default function AboutPage() {
                       <div className="grid gap-3 sm:grid-cols-2">
                         <div>
                           <dt className="text-emerald-700">
-                            {t("companyLegalRegCommerce", "Registrul Comerțului")}
+                            {t(
+                              "companyLegalRegCommerce",
+                              "Registrul Comerțului"
+                            )}
                           </dt>
-                          <dd className="mt-1 text-slate-900">J2025035239005</dd>
+                          <dd className="mt-1 text-slate-900">
+                            J2025035239005
+                          </dd>
                         </div>
                         <div>
-                          <dt className="text-emerald-700">{t("companyLegalRegDate", "Data înscrierii")}</dt>
+                          <dt className="text-emerald-700">
+                            {t("companyLegalRegDate", "Data înscrierii")}
+                          </dt>
                           <dd className="mt-1 text-slate-900">19.05.2025</dd>
                         </div>
                       </div>
@@ -609,7 +576,9 @@ export default function AboutPage() {
                     size="lg"
                     className="w-full rounded-2xl border border-white/40 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 sm:w-auto sm:text-base"
                   >
-                    <Link href="/contact">{t("aboutHeroFreeConsultation")}</Link>
+                    <Link href="/contact">
+                      {t("aboutHeroFreeConsultation")}
+                    </Link>
                   </Button>
                 </div>
               </section>

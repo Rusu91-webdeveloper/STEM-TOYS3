@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 
+import { appConfig } from "./config/app-config";
 import { en } from "./i18n/translations/en";
 import { ro } from "./i18n/translations/ro";
 import { registerStructuredDataVariants } from "./structured-data-registry";
@@ -56,6 +57,8 @@ type MetadataOptions = {
     };
   };
   pathWithoutLocale?: string;
+  verification?: Metadata["verification"];
+  other?: Metadata["other"];
 };
 
 // Create metadata with alternates for each language
@@ -70,10 +73,12 @@ export function createMetadata({
   ogImage = "/opengraph-image.png",
   structuredData,
   noindex = false,
-  city = "București",
-  region = "RO",
+  city = appConfig.city,
+  region = appConfig.state,
   translations,
   pathWithoutLocale = "",
+  verification,
+  other,
 }: MetadataOptions = {}): Metadata {
   // Add the Romanian-specific keywords that improve local SEO
   const romanianKeywords = [
@@ -90,16 +95,23 @@ export function createMetadata({
   const allKeywords = [...keywords, ...romanianKeywords, ...additionalKeywords];
 
   // Generate alternates for each supported language including hreflang attributes
-  const languages = {};
-  const alternateLanguages = [];
+  const languages: Record<string, string> = {};
+  const alternateLocales: string[] = [];
 
   // Base URL for the canonical URL
   const baseUrl = "https://www.techtots.ro";
 
   // Build the languages object for alternates
   for (const lang of metadataLanguages) {
-    languages[lang.code] = `/${lang.code}${pathWithoutLocale}`;
-    alternateLanguages.push(lang.code === "ro" ? "ro_RO" : `en_${lang.region}`);
+    const localizedPath =
+      lang.code === "ro"
+        ? `${baseUrl}${pathWithoutLocale}`
+        : `${baseUrl}/${lang.code}${pathWithoutLocale}`;
+    languages[lang.code] = localizedPath;
+
+    if (lang.code !== "ro") {
+      alternateLocales.push(`en_${lang.region}`);
+    }
   }
 
   const resolvedTitle = getTranslation(title);
@@ -109,14 +121,12 @@ export function createMetadata({
     title: resolvedTitle,
     description: resolvedDescription,
     alternates: {
-      languages,
       canonical: canonicalUrl || `${baseUrl}${pathWithoutLocale}`,
     },
     openGraph: {
       title: getTranslation(ogTitle || title),
       description: getTranslation(ogDescription || description),
       locale: "ro_RO",
-      alternateLocale: alternateLanguages,
       images: [
         {
           url: ogImage,
@@ -153,15 +163,27 @@ export function createMetadata({
       // Location information for local SEO
       "geo.placename": city,
       "geo.region": region,
-      "geo.position": "44.4268;26.1025", // Bucharest coordinates
-      ICBM: "44.4268, 26.1025", // Bucharest coordinates
+      ...other,
     },
-    verification: {
-      google: "46d30c56bd33dcae", // Google Search Console verification code
-      yandex: "your-yandex-verification-code", // Replace with your actual Yandex verification code
+    verification: verification || {
+      google: "46d30c56bd33dcae",
     },
     authors: [{ name: "TechTots Team", url: `${baseUrl}/about` }],
   };
+
+  if (Object.keys(languages).length > 1) {
+    metadata.alternates = {
+      ...metadata.alternates,
+      languages,
+    };
+  }
+
+  if (alternateLocales.length > 0) {
+    metadata.openGraph = {
+      ...metadata.openGraph,
+      alternateLocale: alternateLocales,
+    };
+  }
 
   // Add keywords if provided
   if (allKeywords && allKeywords.length > 0) {
@@ -176,7 +198,11 @@ export function createMetadata({
     };
     if (pathWithoutLocale) {
       const localeCodes = metadataLanguages.map(lang => lang.code);
-      registerStructuredDataVariants(pathWithoutLocale, localeCodes, structuredData);
+      registerStructuredDataVariants(
+        pathWithoutLocale,
+        localeCodes,
+        structuredData
+      );
     }
   }
 

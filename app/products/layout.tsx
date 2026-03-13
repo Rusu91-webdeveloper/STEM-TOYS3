@@ -1,9 +1,8 @@
 import React from "react";
 
-export const metadata = {
-  title: "Products | NextCommerce",
-  description: "Browse our collection of educational STEM toys for children",
-};
+import { metadata as productsMetadata } from "./metadata";
+
+export const metadata = productsMetadata;
 
 export default function ProductsLayout({
   children,

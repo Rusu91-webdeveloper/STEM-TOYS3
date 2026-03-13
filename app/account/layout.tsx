@@ -20,8 +20,20 @@ import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "My Account | NextCommerce",
-  description: "Manage your account and view your orders",
+  title: "Contul meu | TechTots",
+  description:
+    "Sectiune privata pentru administrarea contului si a comenzilor.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      "max-image-preview": "none",
+      "max-snippet": 0,
+      "max-video-preview": 0,
+    },
+  },
 };
 
 export default async function AccountLayout({

@@ -4,10 +4,8 @@ import { format } from "date-fns";
 import {
   ArrowLeft,
   Calendar,
-  User,
   Tag,
   Clock,
-  Share2,
   BookOpen,
   TrendingUp,
   Lightbulb,
@@ -17,13 +15,13 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 
+import BlogCommercialRoutes from "@/components/blog/BlogCommercialRoutes";
 import EnhancedMarkdownRenderer from "@/components/blog/EnhancedMarkdownRenderer";
 import { BlogLanguageToggle } from "@/components/blog/BlogLanguageToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Share } from "@/components/ui/share";
 import { useTranslation } from "@/lib/i18n";
 
@@ -381,6 +379,10 @@ export default function ProfessionalBlogTemplate({
             </div>
           </div>
         )}
+
+        <div className="max-w-6xl mx-auto mt-6 sm:mt-8 md:mt-10">
+          <BlogCommercialRoutes stemCategory={post.stemCategory} />
+        </div>
 
         {/* Related Posts Section - Compact on Mobile */}
         {relatedPosts && relatedPosts.length > 0 && (

@@ -70,20 +70,14 @@ const mainKeywords = [
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebSite",
+  "@id": "https://www.techtots.ro/#website",
   name: "TechTots România - Jucării STEM Premium pentru Educație Științifică",
   url: "https://www.techtots.ro",
-  potentialAction: {
-    "@type": "SearchAction",
-    target: {
-      "@type": "EntryPoint",
-      urlTemplate: "https://www.techtots.ro/search?q={search_term_string}",
-    },
-    "query-input": "required name=search_term_string",
-  },
   description:
     "Transformă copilul într-un geniu STEM! Jucării educative premium pentru dezvoltarea științifică. Livrare gratuită în România. Calitate garantată.",
   publisher: {
     "@type": "Organization",
+    "@id": "https://www.techtots.ro/#organization",
     name: "TechTots România",
     logo: {
       "@type": "ImageObject",
@@ -107,18 +101,17 @@ const structuredData = {
     address: {
       "@type": "PostalAddress",
       addressCountry: "RO",
-      addressLocality: "București",
-      postalCode: "010001",
+      addressLocality: appConfig.city,
+      addressRegion: appConfig.state,
+      postalCode: appConfig.postalCode,
+      streetAddress: appConfig.streetAddress,
     },
     sameAs: [
-      "https://facebook.com/techtots.ro",
-      "https://instagram.com/techtots.ro",
+      "https://www.facebook.com/techtotsromania",
+      "https://www.instagram.com/techtotsro",
       "https://linkedin.com/company/techtots-romania",
-      "https://youtube.com/channel/techtots-romania",
     ],
-    // E-E-A-T signals for 2025
     foundingDate: "2024",
-    numberOfEmployees: "10-50",
     areaServed: {
       "@type": "Country",
       name: "Romania",
@@ -131,7 +124,7 @@ const structuredData = {
       "Educational technology",
     ],
   },
-  inLanguage: ["ro", "en"],
+  inLanguage: "ro",
   audience: {
     "@type": "Audience",
     audienceType: "Romanian parents, educators, children 3-16 years",
@@ -187,10 +180,10 @@ const organizationSchema = {
     "Lider în jucării STEM educative premium din România. Transformăm copiii în genii științifici prin jocuri interactive și experimente captivante.",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "Strada Mehedinți 54-56",
-    addressLocality: "București",
-    addressRegion: "București",
-    postalCode: "010001",
+    streetAddress: appConfig.streetAddress,
+    addressLocality: appConfig.city,
+    addressRegion: appConfig.state,
+    postalCode: appConfig.postalCode,
     addressCountry: "RO",
   },
   contactPoint: [
@@ -216,14 +209,11 @@ const organizationSchema = {
     },
   ],
   sameAs: [
-    "https://facebook.com/techtots.ro",
-    "https://instagram.com/techtots.ro",
+    "https://www.facebook.com/techtotsromania",
+    "https://www.instagram.com/techtotsro",
     "https://linkedin.com/company/techtots-romania",
-    "https://youtube.com/channel/techtots-romania",
   ],
-  // Enhanced E-E-A-T signals for 2025
   foundingDate: "2024",
-  numberOfEmployees: "10-50",
   areaServed: {
     "@type": "Country",
     name: "Romania",
@@ -237,24 +227,6 @@ const organizationSchema = {
     "Romanian education system",
     "Parent-child learning activities",
   ],
-  hasCredential: [
-    {
-      "@type": "EducationalOccupationalCredential",
-      credentialCategory: "certification",
-      name: "STEM Education Specialist",
-    },
-  ],
-  award: [
-    "Best Educational Toys Romania 2024",
-    "Innovation in STEM Learning 2024",
-  ],
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.8",
-    reviewCount: "1247",
-    bestRating: "5",
-    worstRating: "1",
-  },
 };
 
 // Combine structured data
@@ -275,7 +247,6 @@ export const metadata = createMetadata({
   // Additional SEO meta tags for 2025
   other: {
     "google-site-verification": "46d30c56bd33dcae",
-    "msvalidate.01": "REPLACE_WITH_BING_VERIFICATION_CODE",
   },
   translations: {
     ro: {

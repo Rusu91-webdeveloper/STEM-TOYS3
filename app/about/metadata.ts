@@ -1,3 +1,4 @@
+import { appConfig } from "@/lib/config/app-config";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -42,18 +43,18 @@ export const metadata = createMetadata({
       url: "https://www.techtots.ro",
       logo: "https://www.techtots.ro/TechTots_LOGO.png",
       description: "Jucării STEM și resurse educaționale pentru copii români",
-      foundingDate: "2025",
+      foundingDate: "2024",
       address: {
         "@type": "PostalAddress",
-        streetAddress: "Strada Mehedinți 54-56",
-        addressLocality: "Cluj-Napoca",
-        addressRegion: "Cluj",
-        postalCode: "400000",
+        streetAddress: appConfig.streetAddress,
+        addressLocality: appConfig.city,
+        addressRegion: appConfig.state,
+        postalCode: appConfig.postalCode,
         addressCountry: "RO",
       },
       contactPoint: {
         "@type": "ContactPoint",
-        telephone: "+40-xxx-xxx-xxx",
+        telephone: appConfig.storePhone,
         contactType: "customer service",
         availableLanguage: "Romanian",
       },

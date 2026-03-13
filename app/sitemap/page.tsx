@@ -16,6 +16,7 @@ import {
   CommunicationIcons,
 } from "@/components/ui/icon-system";
 import { Separator } from "@/components/ui/separator";
+import { regionalStemCities } from "@/lib/seo/regional-search";
 
 const sitemapLinks = [
   { href: "/", label: "Acasă", icon: NavigationIcons.Menu },
@@ -30,6 +31,31 @@ const sitemapLinks = [
     label: "Blog & Cărți educaționale",
     icon: ContentIcons.DigitalBook,
   },
+  {
+    href: "/jucarii-stem",
+    label: "Jucării STEM",
+    icon: EcommerceIcons.Package,
+  },
+  {
+    href: "/jucarii-educative",
+    label: "Jucării educative",
+    icon: EcommerceIcons.Package,
+  },
+  {
+    href: "/jucarii-inteligente",
+    label: "Jucării inteligente",
+    icon: EcommerceIcons.Package,
+  },
+  {
+    href: "/robotica-pentru-copii",
+    label: "Robotică pentru copii",
+    icon: EcommerceIcons.Package,
+  },
+  ...regionalStemCities.map(city => ({
+    href: `/jucarii-stem/${city.slug}`,
+    label: `Jucarii STEM ${city.city}`,
+    icon: EcommerceIcons.Package,
+  })),
   { href: "/about", label: "Despre noi", icon: StatusIcons.Info },
   { href: "/contact", label: "Contact", icon: CommunicationIcons.Email },
   {

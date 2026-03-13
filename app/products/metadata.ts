@@ -76,10 +76,6 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "https://www.techtots.ro/products",
-    languages: {
-      ro: "https://www.techtots.ro/ro/products",
-      en: "https://www.techtots.ro/en/products",
-    },
   },
   other: {
     // Location targeting for Romanian market

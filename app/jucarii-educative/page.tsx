@@ -1,0 +1,139 @@
+import type { Metadata } from "next";
+
+import CommercialLandingPage from "@/components/seo/CommercialLandingPage";
+import { createMetadata } from "@/lib/metadata";
+
+const faq = [
+  {
+    question: "Care este diferenta dintre jucarii educative si jucarii STEM?",
+    answer:
+      "Jucariile educative sunt categoria mai larga. Jucariile STEM sunt o subcategorie orientata spre logica, experiment, constructie, programare si invatare aplicata.",
+  },
+  {
+    question:
+      "Ce jucarii educative aleg pentru un copil curios, dar usor plictisit?",
+    answer:
+      "Cele mai bune optiuni sunt cele cu feedback rapid: experimente scurte, jocuri logice, robotica entry-level si constructii cu rezultate vizibile.",
+  },
+  {
+    question: "Pot jucariile educative sa fie si distractive?",
+    answer:
+      "Da. De fapt, cele mai bune produse din nisa sunt exact cele in care copilul simte ca se joaca, iar parintele vede beneficii reale de invatare.",
+  },
+];
+
+export const metadata: Metadata = createMetadata({
+  title: "Jucarii Educative pentru Copii | Jucarii Educative Online Romania",
+  description:
+    "Alege jucarii educative pentru copii care dezvolta logica, atentia, creativitatea si autonomia. Descopera selectii relevante pentru acasa, scoala si cadouri inteligente.",
+  keywords: [
+    "jucarii educative",
+    "jucarii educative copii",
+    "jucarii educative online",
+    "jucarii educative Romania",
+    "jocuri educative copii",
+    "cadouri educative",
+    "jucarii pentru invatare",
+  ],
+  pathWithoutLocale: "/jucarii-educative",
+  canonicalUrl: "https://www.techtots.ro/jucarii-educative",
+  structuredData: [
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Jucarii Educative pentru Copii",
+      description:
+        "Pagina comerciala pentru jucarii educative, cu rute catre selectii STEM, logica, stiinta, robotica si recomandari dupa varsta.",
+      url: "https://www.techtots.ro/jucarii-educative",
+      inLanguage: "ro",
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faq.map(item => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    },
+  ],
+});
+
+export default function EducationalToysLandingPage() {
+  return (
+    <CommercialLandingPage
+      eyebrow="Intentie Comerciala"
+      title="Jucarii educative care fac legatura dintre joaca de zi cu zi si invatarea care conteaza"
+      description="Termenul jucarii educative atrage un public foarte larg in Romania. Pagina asta filtreaza acea intentie spre selectii mai precise: STEM, varsta, logica, creativitate si cadouri cu valoare educativa reala."
+      primaryCta={{
+        href: "/products",
+        label: "Exploreaza jucariile educative",
+      }}
+      secondaryCta={{ href: "/jucarii-stem", label: "Vezi selectia STEM" }}
+      proofPoints={[
+        "Capteaza cautari generale cu intentie comerciala mare",
+        "Trimite spre subcategoriile care convertesc mai bine",
+        "Sprijina cautarile pentru cadouri si recomandari pentru parinti",
+      ]}
+      benefits={[
+        {
+          title: "Acopera publicul mai larg",
+          description:
+            "Nu toti cumparatorii cauta direct STEM. Multi intra prin termeni ca jucarii educative, jocuri educative sau cadouri educative.",
+        },
+        {
+          title: "Reduce cannibalizarea",
+          description:
+            "Pagina separa intentia generala de intentia strict STEM si lasa fiecare cluster sa se specializeze pe propriul set de cautari.",
+        },
+        {
+          title: "Creste sansele de descoperire in AI search",
+          description:
+            "Explicatiile clare despre beneficii, selectie si utilizare practica cresc sansele ca pagina sa fie citata in raspunsuri sintetice.",
+        },
+      ]}
+      clusters={[
+        {
+          href: "/jucarii-stem",
+          label: "Jucarii STEM",
+          description:
+            "Varianta specializata pentru parintii care cauta deja disciplina STEM explicit.",
+        },
+        {
+          href: "/jucarii-inteligente",
+          label: "Jucarii inteligente",
+          description:
+            "Buna pentru cautari legate de logica, autonomie, jocuri smart si dezvoltare cognitiva.",
+        },
+        {
+          href: "/beneficiile-jucariilor-stem",
+          label: "Beneficiile jucariilor STEM",
+          description:
+            "Suport informational pentru parintii care compara joaca distractiva cu joaca utila.",
+        },
+        {
+          href: "/categories/coding-robotics",
+          label: "Coding si robotica",
+          description:
+            "Subcategorie cu semnal educational puternic pentru tehnologie si programare.",
+        },
+        {
+          href: "/categories/science-experiments",
+          label: "Stiinta si experimente",
+          description:
+            "Pentru copiii care invata mai bine prin observatie, testare si curiozitate.",
+        },
+        {
+          href: "/jucarii-stem-dupa-varsta",
+          label: "Alege dupa varsta",
+          description:
+            "Selectie rapida pentru parintii care vor sa scape de produse nepotrivite.",
+        },
+      ]}
+      faqs={faq}
+    />
+  );
+}

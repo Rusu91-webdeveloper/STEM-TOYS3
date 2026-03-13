@@ -18,6 +18,8 @@ import {
   homeOverlayTopClass,
 } from "@/features/home/components/homeTheme";
 
+export { metadata } from "./metadata";
+
 // Enable ISR with 5 minute revalidation
 export const revalidate = 300;
 

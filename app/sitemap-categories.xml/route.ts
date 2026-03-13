@@ -29,19 +29,13 @@ export async function GET() {
     // If no categories, include the categories index page so the sitemap always has at least one <url>
     if (!categories || categories.length === 0) {
       const now = new Date().toISOString();
-      ["ro", "en"].forEach(lang => {
-        const url =
-          lang === "ro"
-            ? `${baseUrl}/categories`
-            : `${baseUrl}/${lang}/categories`;
-        sitemap += `
+      sitemap += `
   <url>
-    <loc>${url}</loc>
+    <loc>${baseUrl}/categories</loc>
     <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>`;
-      });
     }
 
     // Add categories

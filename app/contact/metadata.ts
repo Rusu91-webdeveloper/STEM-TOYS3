@@ -31,8 +31,8 @@ const contactStructuredData = {
       },
     ],
     sameAs: [
-      "https://facebook.com/techtots.ro",
-      "https://instagram.com/techtots.ro",
+      "https://www.facebook.com/techtotsromania",
+      "https://www.instagram.com/techtotsro",
       "https://linkedin.com/company/techtots-romania",
     ],
   },
@@ -40,8 +40,7 @@ const contactStructuredData = {
 
 export const metadata = createMetadata({
   title: "Contact TechTots România | Suport Clienți și Parteneriate",
-  description:
-    `Suntem aici pentru întrebări despre comenzi, recomandări de jucării STEM sau parteneriate educaționale. Scrie-ne la ${appConfig.contactEmail} sau completează formularul de contact.`,
+  description: `Suntem aici pentru întrebări despre comenzi, recomandări de jucării STEM sau parteneriate educaționale. Scrie-ne la ${appConfig.contactEmail} sau completează formularul de contact.`,
   keywords: [
     "contact TechTots",
     "suport clienți TechTots",
@@ -55,14 +54,11 @@ export const metadata = createMetadata({
   translations: {
     ro: {
       title: "Contact TechTots România | Suport Clienți și Parteneriate",
-      description:
-        `Suntem aici pentru întrebări despre comenzi, recomandări de jucării STEM sau parteneriate educaționale. Scrie-ne la ${appConfig.contactEmail} sau completează formularul de contact.`,
+      description: `Suntem aici pentru întrebări despre comenzi, recomandări de jucării STEM sau parteneriate educaționale. Scrie-ne la ${appConfig.contactEmail} sau completează formularul de contact.`,
     },
     en: {
       title: "Contact TechTots Romania | Customer Support & Partnerships",
-      description:
-        `Reach out for order questions, STEM toy recommendations, or educational partnerships. Email ${appConfig.contactEmail} or use the contact form.`,
+      description: `Reach out for order questions, STEM toy recommendations, or educational partnerships. Email ${appConfig.contactEmail} or use the contact form.`,
     },
   },
 });
-

@@ -45,6 +45,6 @@ export const metadata = createMetadata({
       url: "https://www.techtots.ro",
       logo: "https://www.techtots.ro/TechTots_LOGO.png",
     },
-    inLanguage: ["ro", "en"],
+    inLanguage: "ro",
   },
 });

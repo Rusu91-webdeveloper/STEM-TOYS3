@@ -17,14 +17,14 @@ export default function robots(): MetadataRoute.Robots {
           "/products",
           "/categories",
           "/blog",
-          "/books",
           "/about",
           "/contact",
           "/warranty",
           "/returns",
+          "/delivery",
+          "/faq",
           "/privacy",
           "/terms",
-          "/ro",
         ],
         disallow: [
           "/admin",
@@ -51,14 +51,14 @@ export default function robots(): MetadataRoute.Robots {
           "/products",
           "/categories",
           "/blog",
-          "/books",
           "/about",
           "/contact",
           "/warranty",
           "/returns",
+          "/delivery",
+          "/faq",
           "/privacy",
           "/terms",
-          "/ro", // Romanian content
         ],
         disallow: ["/admin", "/api", "/auth", "/checkout", "/account"],
       },
@@ -66,38 +66,16 @@ export default function robots(): MetadataRoute.Robots {
       // Mobile-first crawling for Google Mobile
       {
         userAgent: "Googlebot-Mobile",
-        allow: ["/", "/products", "/categories", "/blog", "/books"],
+        allow: ["/", "/products", "/categories", "/blog"],
         disallow: ["/admin", "/api", "/auth", "/checkout", "/account"],
       },
 
       // Optimized for Bing
       {
         userAgent: "Bingbot",
-        allow: ["/", "/products", "/categories", "/blog", "/books"],
+        allow: ["/", "/products", "/categories", "/blog"],
         disallow: ["/admin", "/api", "/auth", "/checkout", "/account"],
         crawlDelay: 2, // Bing recommends slightly higher delay
-      },
-
-      // Block AI training bots (common practice for content protection)
-      {
-        userAgent: "GPTBot",
-        disallow: ["/"],
-      },
-      {
-        userAgent: "ChatGPT-User",
-        disallow: ["/"],
-      },
-      {
-        userAgent: "Google-Extended",
-        disallow: ["/"],
-      },
-      {
-        userAgent: "anthropic-ai",
-        disallow: ["/"],
-      },
-      {
-        userAgent: "Claude-Web",
-        disallow: ["/"],
       },
 
       // Block common bad bots
@@ -114,7 +92,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/"],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `${baseUrl}/sitemap-index.xml`,
     host: baseUrl,
   };
 }
