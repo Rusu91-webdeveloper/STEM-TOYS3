@@ -235,52 +235,36 @@ export default function HomePageClient({
         name: "Jucării STEM România - Catalog Educațional",
         itemListElement: [
           {
-            "@type": "Offer",
-            itemOffered: {
-              "@type": "Product",
-              name: "Jucării Științifice pentru copii 3-12 ani",
-              category: "Jucării STEM Știință",
-              description:
-                "Experimente și kituri științifice care transformă învățarea în aventură",
-            },
-            areaServed: "România",
-            availableDeliveryMethod: "https://schema.org/OnSitePickup",
+            "@type": "OfferCatalog",
+            name: "Jucării Științifice pentru copii 3-12 ani",
+            url: `${baseUrl}/categories/science-experiments`,
+            category: "Jucării STEM Știință",
+            description:
+              "Experimente și kituri științifice care transformă învățarea în aventură",
           },
           {
-            "@type": "Offer",
-            itemOffered: {
-              "@type": "Product",
-              name: "Jucării Tehnologie și Robotică",
-              category: "Jucării STEM Tehnologie",
-              description:
-                "Roboți educaționali și kituri de programare pentru copii",
-            },
-            areaServed: "România",
-            availableDeliveryMethod: "https://schema.org/OnSitePickup",
+            "@type": "OfferCatalog",
+            name: "Jucării Tehnologie și Robotică",
+            url: `${baseUrl}/robotica-pentru-copii`,
+            category: "Jucării STEM Tehnologie",
+            description:
+              "Roboți educaționali și kituri de programare pentru copii",
           },
           {
-            "@type": "Offer",
-            itemOffered: {
-              "@type": "Product",
-              name: "Jucării Inginerie și Construcții",
-              category: "Jucării STEM Inginerie",
-              description:
-                "Kituri de construcție și inginerie pentru dezvoltarea creativității",
-            },
-            areaServed: "România",
-            availableDeliveryMethod: "https://schema.org/OnSitePickup",
+            "@type": "OfferCatalog",
+            name: "Jucării Inginerie și Construcții",
+            url: `${baseUrl}/categories/magnetic-building`,
+            category: "Jucării STEM Inginerie",
+            description:
+              "Kituri de construcție și inginerie pentru dezvoltarea creativității",
           },
           {
-            "@type": "Offer",
-            itemOffered: {
-              "@type": "Product",
-              name: "Jocuri Matematică Interactivă",
-              category: "Jucării STEM Matematică",
-              description:
-                "Jocuri matematice care fac calculele distractive și ușoare",
-            },
-            areaServed: "România",
-            availableDeliveryMethod: "https://schema.org/OnSitePickup",
+            "@type": "OfferCatalog",
+            name: "Jocuri Matematică Interactivă",
+            url: `${baseUrl}/jucarii-inteligente`,
+            category: "Jucării STEM Matematică",
+            description:
+              "Jocuri matematice care fac calculele distractive și ușoare",
           },
         ],
       },
