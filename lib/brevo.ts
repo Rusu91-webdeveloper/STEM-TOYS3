@@ -10,10 +10,20 @@ import { isDevelopment } from "./security";
 
 // Brevo API configuration
 const BREVO_API_BASE_URL = "https://api.brevo.com/v3";
+const BREVO_REQUEST_TIMEOUT_MS = parseTimeout(
+  process.env.BREVO_REQUEST_TIMEOUT_MS,
+  10000
+);
+
+function parseTimeout(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
 
 // Create axios instance for Brevo API
 const brevoAxios = axios.create({
   baseURL: BREVO_API_BASE_URL,
+  timeout: BREVO_REQUEST_TIMEOUT_MS,
   headers: {
     accept: "application/json",
     "content-type": "application/json",
@@ -33,6 +43,9 @@ export const brevoTransporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
   port: 587,
   secure: false, // true for 465, false for other ports
+  connectionTimeout: BREVO_REQUEST_TIMEOUT_MS,
+  greetingTimeout: BREVO_REQUEST_TIMEOUT_MS,
+  socketTimeout: BREVO_REQUEST_TIMEOUT_MS,
   auth: {
     user: process.env.BREVO_SMTP_LOGIN,
     pass: process.env.BREVO_SMTP_KEY,

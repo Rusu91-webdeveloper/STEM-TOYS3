@@ -59,6 +59,8 @@ export default function ContactPage() {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 20000);
 
     try {
       const response = await fetch("/api/contact", {
@@ -67,12 +69,27 @@ export default function ContactPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
+        signal: controller.signal,
       });
-
-      const data = await response.json();
+      const contentType = response.headers.get("content-type") || "";
+      const data = contentType.includes("application/json")
+        ? await response.json()
+        : null;
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to send message");
+        if (data?.error) {
+          throw new Error(data.error);
+        }
+
+        if (response.status === 504) {
+          throw new Error(
+            "Serverul a raspuns prea greu. Te rugam sa incerci din nou in cateva momente."
+          );
+        }
+
+        throw new Error(
+          "A aparut o eroare la trimiterea mesajului. Te rugam sa incerci din nou."
+        );
       }
 
       // Success
@@ -81,11 +98,14 @@ export default function ContactPage() {
     } catch (err) {
       console.error("Contact form error:", err);
       setError(
-        err instanceof Error
+        err instanceof DOMException && err.name === "AbortError"
+          ? "Cererea a expirat. Te rugam sa incerci din nou."
+          : err instanceof Error
           ? err.message
-          : "A apărut o eroare la trimiterea mesajului. Te rugăm să încerci din nou."
+          : "A aparut o eroare la trimiterea mesajului. Te rugam sa incerci din nou."
       );
     } finally {
+      window.clearTimeout(timeoutId);
       setIsSubmitting(false);
     }
   };
@@ -160,11 +180,10 @@ export default function ContactPage() {
                   </p>
                   <div className="mt-4 rounded-2xl border border-emerald-300/40 bg-emerald-500/10 p-4 text-xs text-emerald-900/90">
                     <p className="font-semibold">
-                      <strong>📧 Ai primit și un email de confirmare!</strong>
+                      <strong>📧 In mod normal vei primi si un email de confirmare.</strong>
                     </p>
                     <p className="mt-1">
-                      Verifică căsuța de email (inclusiv spam/junk) pentru confirmarea că am primit
-                      mesajul tău.
+                      Verifica si folderul spam/junk daca nu il vezi in inbox in urmatoarele minute.
                     </p>
                   </div>
                   <Button
