@@ -10,8 +10,11 @@ export function CheckoutContent() {
   const { t } = useTranslation();
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(160deg,#0f172a_0%,#0c1a2e_45%,#0f172a_100%)] text-slate-100">
-      {/* Subtle color overlays */}
+    <div
+      className="relative min-h-screen overflow-hidden bg-[#0f172a] text-slate-100"
+      style={{ colorScheme: "dark" }}
+    >
+      {/* Subtle color overlays — opaque-safe gradients */}
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(56,189,248,0.07),transparent_55%),radial-gradient(ellipse_at_bottom-right,rgba(139,92,246,0.06),transparent_50%)]"
         aria-hidden
@@ -25,7 +28,7 @@ export function CheckoutContent() {
         <div className="container mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 
           {/* Checkout Header */}
-          <div className="mx-auto mb-8 w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-slate-800/60 px-5 py-8 shadow-xl shadow-black/40 backdrop-blur sm:mb-10 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
+          <div className="mx-auto mb-8 w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-slate-800 px-5 py-8 shadow-xl shadow-black/40 sm:mb-10 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
             <div className="mx-auto max-w-3xl text-center">
               <h1 className="mb-4 text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
                 {t("checkoutPageH1", "Completează Transformarea Copilului Tău")}
@@ -70,7 +73,7 @@ export function CheckoutContent() {
           </div>
 
           {/* Checkout Flow */}
-          <div className="rounded-3xl border border-white/10 bg-slate-800/50 px-4 py-6 shadow-xl shadow-black/30 backdrop-blur sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+          <div className="rounded-3xl border border-white/10 bg-[#1a2744] px-4 py-6 shadow-xl shadow-black/30 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
             <StripeBypassProvider>
               <CheckoutFlow />
             </StripeBypassProvider>

@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 
 import { useCart } from "@/features/cart";
 import CouponInput from "@/features/cart/components/CouponInput";
-import { glassCardClass } from "@/features/home/components/homeTheme";
+import { darkGlassCardClass } from "@/features/home/components/homeTheme";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
@@ -194,7 +194,7 @@ export function CheckoutSummary({
   if (isLoading) {
     return (
       <div
-        className={`${glassCardClass} space-y-4 bg-slate-900/60 p-6 text-slate-100 animate-pulse`}
+        className={`${darkGlassCardClass} space-y-4 p-6 text-slate-100 animate-pulse`}
       >
         <div className="h-6 w-1/2 rounded bg-white/10"></div>
         <div className="space-y-2">
@@ -229,7 +229,7 @@ export function CheckoutSummary({
   if (cartItems.length === 0) {
     return (
       <div
-        className={`${glassCardClass} space-y-4 bg-slate-900/60 p-6 text-slate-100`}
+        className={`${darkGlassCardClass} space-y-4 p-6 text-slate-100`}
       >
         <h2 className="text-xl font-semibold">
           {t("orderSummary", "Order Summary")}
@@ -241,7 +241,7 @@ export function CheckoutSummary({
 
   return (
     <div
-      className={`${glassCardClass} space-y-4 border-white/10 bg-slate-900/70 p-4 text-slate-100 shadow-xl shadow-black/30 sm:p-6 lg:sticky lg:top-4`}
+      className={`${darkGlassCardClass} space-y-4 p-4 text-slate-100 shadow-xl shadow-black/30 sm:p-6 lg:sticky lg:top-4`}
     >
       <h2 className="text-xl font-semibold text-slate-100">
         {t("orderSummary", "Order Summary")}

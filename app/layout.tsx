@@ -39,6 +39,7 @@ export default async function RootLayout({
       lang={initialLanguage}
       className="scroll-smooth"
       data-scroll-behavior="smooth"
+      style={{ colorScheme: "light" }}
       suppressHydrationWarning={true}
     >
       <head>

@@ -19,4 +19,7 @@ export const glassCardClass =
 export const gradientButtonClass =
   "rounded-[1rem] sm:rounded-2xl bg-[linear-gradient(135deg,#0f766e_0%,#0284c7_55%,#2563eb_100%)] text-white shadow-[0_18px_34px_-24px_rgba(14,116,144,0.5)] transition hover:brightness-[1.04]";
 
+export const darkGlassCardClass =
+  "rounded-[1.2rem] sm:rounded-[1.75rem] border border-white/10 bg-slate-900 shadow-[0_16px_34px_-30px_rgba(0,0,0,0.5)] sm:shadow-[0_22px_45px_-34px_rgba(0,0,0,0.6)] backdrop-blur-sm";
+
 export const subtleDividerClass = "my-3 sm:my-4 border-t border-slate-200/70";

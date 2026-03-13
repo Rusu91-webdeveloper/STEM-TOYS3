@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { glassCardClass } from "@/features/home/components/homeTheme";
+import { darkGlassCardClass } from "@/features/home/components/homeTheme";
 import { createFormValidator } from "@/lib/formValidation";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -424,7 +424,7 @@ export function ShippingAddressForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
         <div
-          className={`${glassCardClass} border-white/10 bg-slate-900/70 p-6 text-slate-100 shadow-lg shadow-black/20`}
+          className={`${darkGlassCardClass} p-6 text-slate-100 shadow-lg shadow-black/20`}
         >
         <h2 className="text-xl font-semibold mb-4 text-white">{t("shippingAddress")}</h2>
 
@@ -530,7 +530,7 @@ export function ShippingAddressForm({
                 value={formData.fullName}
                 onChange={handleChange}
                 className={cn(
-                  "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60 focus:ring-sky-400/20",
+                  "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60 focus:ring-sky-400/20",
                   errors.fullName && "border-red-500"
                 )}
               />
@@ -550,7 +550,7 @@ export function ShippingAddressForm({
                   value={formData.companyName || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
+                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.companyName && "border-red-500"
                   )}
                 />
@@ -571,7 +571,7 @@ export function ShippingAddressForm({
                   value={formData.cui || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
+                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.cui && "border-red-500"
                   )}
                 />
@@ -592,7 +592,7 @@ export function ShippingAddressForm({
                   value={formData.street || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
+                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.street && "border-red-500"
                   )}
                 />
@@ -611,7 +611,7 @@ export function ShippingAddressForm({
                   value={formData.streetNumber || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
+                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.streetNumber && "border-red-500"
                   )}
                 />
@@ -633,7 +633,7 @@ export function ShippingAddressForm({
                   name="block"
                   value={formData.block || ""}
                   onChange={handleChange}
-                  className="border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60"
+                  className="border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60"
                 />
               </div>
 
@@ -646,7 +646,7 @@ export function ShippingAddressForm({
                   name="entrance"
                   value={formData.entrance || ""}
                   onChange={handleChange}
-                  className="border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60"
+                  className="border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60"
                 />
               </div>
 
@@ -659,7 +659,7 @@ export function ShippingAddressForm({
                   name="floor"
                   value={formData.floor || ""}
                   onChange={handleChange}
-                  className="border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60"
+                  className="border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60"
                 />
               </div>
 
@@ -672,7 +672,7 @@ export function ShippingAddressForm({
                   name="apartment"
                   value={formData.apartment || ""}
                   onChange={handleChange}
-                  className="border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60"
+                  className="border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60"
                 />
               </div>
             </div>
@@ -690,7 +690,7 @@ export function ShippingAddressForm({
                   "addressDetailsPlaceholder",
                   "Ex: Interfon 23, lângă farmacia X"
                 )}
-                className="border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60"
+                className="border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60"
               />
             </div>
 
@@ -705,7 +705,7 @@ export function ShippingAddressForm({
                   value={formData.city}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
+                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.city && "border-red-500"
                   )}
                 />
@@ -725,7 +725,7 @@ export function ShippingAddressForm({
                     value={formData.state}
                     onChange={handleChange}
                     className={cn(
-                      "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
+                      "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                       errors.state && "border-red-500"
                     )}
                   />
@@ -736,7 +736,7 @@ export function ShippingAddressForm({
                   >
                     <SelectTrigger
                       className={cn(
-                        "border-white/20 bg-slate-700/60 text-white",
+                        "border-white/20 bg-slate-700 text-white",
                         errors.state && "border-red-500"
                       )}
                     >
@@ -774,7 +774,7 @@ export function ShippingAddressForm({
                   value={formData.postalCode}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
+                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.postalCode && "border-red-500"
                   )}
                 />
@@ -796,7 +796,7 @@ export function ShippingAddressForm({
                     value={formData.country}
                     onChange={handleChange}
                     className={cn(
-                      "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
+                      "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                       errors.country && "border-red-500"
                     )}
                   />
@@ -808,7 +808,7 @@ export function ShippingAddressForm({
                   >
                     <SelectTrigger
                       className={cn(
-                        "border-white/20 bg-slate-700/60 text-white data-[placeholder]:text-slate-400",
+                        "border-white/20 bg-slate-700 text-white data-[placeholder]:text-slate-400",
                         errors.country && "border-red-500"
                       )}
                     >
@@ -845,7 +845,7 @@ export function ShippingAddressForm({
                 value={formData.phone}
                 onChange={handleChange}
                 className={cn(
-                  "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
+                  "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                   errors.phone && "border-red-500"
                 )}
               />

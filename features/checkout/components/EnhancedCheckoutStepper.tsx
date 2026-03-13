@@ -4,7 +4,7 @@ import { CreditCard, Eye, MapPin, Truck } from "lucide-react";
 import React from "react";
 
 import { useTranslation } from "@/lib/i18n";
-import { glassCardClass } from "@/features/home/components/homeTheme";
+import { darkGlassCardClass } from "@/features/home/components/homeTheme";
 
 import { CheckoutStep, CheckoutData } from "../types";
 
@@ -237,7 +237,7 @@ export function EnhancedCheckoutStepper({
 
   return (
     <div
-      className={`${glassCardClass} mb-6 border-white/10 bg-slate-900/70 p-4 text-slate-100 shadow-lg shadow-black/20 sm:mb-8 sm:p-6`}
+      className={`${darkGlassCardClass} mb-6 p-4 text-slate-100 shadow-lg shadow-black/20 sm:mb-8 sm:p-6`}
     >
       {/* Progress Bar */}
       <ProgressBar

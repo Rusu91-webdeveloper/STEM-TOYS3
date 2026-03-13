@@ -803,22 +803,22 @@ export function CheckoutFlow() {
         {/* Step Content */}
         <div
           className="mt-8 space-y-6 text-slate-100
-          [&_div.bg-white]:border-white/10 [&_div.bg-white]:bg-slate-900/70 [&_div.bg-white]:text-slate-100
-          [&_div.bg-blue-50]:border-white/10 [&_div.bg-blue-50]:bg-sky-500/10 [&_div.bg-blue-50]:text-slate-100
-          [&_div.bg-green-50]:border-white/10 [&_div.bg-green-50]:bg-emerald-500/10 [&_div.bg-green-50]:text-slate-100
-          [&_div.bg-purple-50]:border-white/10 [&_div.bg-purple-50]:bg-purple-500/10 [&_div.bg-purple-50]:text-slate-100
-          [&_.bg-indigo-50]:border-white/10 [&_.bg-indigo-50]:bg-sky-500/10 [&_.bg-indigo-50]:text-slate-100
-          [&_.border-gray-200]:border-white/10 [&_.border-gray-300]:border-white/15
-          [&_.border-blue-200]:border-white/10 [&_.border-green-200]:border-white/10
-          [&_.bg-gray-50]:bg-white/10 [&_.bg-gray-200]:bg-white/10
-          [&_.text-gray-500]:text-slate-300 [&_.text-gray-400]:text-slate-400
-          [&_.text-gray-600]:text-slate-200 [&_.text-gray-700]:text-slate-100 [&_.text-gray-800]:text-slate-100
-          [&_.text-indigo-600]:text-sky-300 [&_.text-indigo-700]:text-sky-200
-          [&_.text-green-600]:text-emerald-300 [&_.text-blue-700]:text-sky-200 [&_.text-blue-600]:text-sky-300
-          [&_.text-purple-700]:text-purple-200 [&_.bg-blue-100]:bg-sky-500/10 [&_.text-blue-800]:text-sky-200
-          [&_.bg-yellow-100]:bg-amber-400/10 [&_.text-yellow-800]:text-amber-200
-          [&_.bg-green-200]:bg-emerald-500/15 [&_.text-green-700]:text-emerald-200 [&_.text-green-800]:text-emerald-100
-          [&_.border]:border-white/10"
+          [&_.bg-white]:!bg-slate-900 [&_.bg-white]:!text-slate-100 [&_.bg-white]:!border-white/10
+          [&_.bg-blue-50]:!bg-sky-900/40 [&_.bg-blue-50]:!text-slate-100
+          [&_.bg-green-50]:!bg-emerald-900/40 [&_.bg-green-50]:!text-slate-100
+          [&_.bg-purple-50]:!bg-purple-900/40 [&_.bg-purple-50]:!text-slate-100
+          [&_.bg-indigo-50]:!bg-sky-900/40 [&_.bg-indigo-50]:!text-slate-100
+          [&_.bg-gray-50]:!bg-white/5 [&_.bg-gray-200]:!bg-white/10
+          [&_.bg-blue-100]:!bg-sky-900/30 [&_.bg-yellow-100]:!bg-amber-900/30 [&_.bg-green-200]:!bg-emerald-900/30
+          [&_.border-gray-200]:!border-white/10 [&_.border-gray-300]:!border-white/15
+          [&_.border-blue-200]:!border-white/10 [&_.border-green-200]:!border-white/10
+          [&_.text-gray-400]:!text-slate-400 [&_.text-gray-500]:!text-slate-300
+          [&_.text-gray-600]:!text-slate-200 [&_.text-gray-700]:!text-slate-100 [&_.text-gray-800]:!text-slate-100
+          [&_.text-indigo-600]:!text-sky-300 [&_.text-indigo-700]:!text-sky-200
+          [&_.text-green-600]:!text-emerald-300 [&_.text-green-700]:!text-emerald-200 [&_.text-green-800]:!text-emerald-100
+          [&_.text-blue-600]:!text-sky-300 [&_.text-blue-700]:!text-sky-200 [&_.text-blue-800]:!text-sky-200
+          [&_.text-purple-700]:!text-purple-200 [&_.text-yellow-800]:!text-amber-200
+          [&_.border]:!border-white/10"
         >
           {currentStep === "shipping-address" && (
             <div className="space-y-6">
