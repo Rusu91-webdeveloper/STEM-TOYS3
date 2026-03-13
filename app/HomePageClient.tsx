@@ -63,7 +63,8 @@ const categories = [
   },
   {
     name: "Constructie si inginerie",
-    description: "Jucarii de construit pentru spatialitate si proiecte creative",
+    description:
+      "Jucarii de construit pentru spatialitate si proiecte creative",
     slug: "magnetic-building",
     image: "/images/home/category-engineering.svg",
     productFilterCategory: "engineering",
@@ -299,7 +300,7 @@ export default function HomePageClient({
         {/* Bundle promo strip + Bundles - directly under featured products */}
         <section className="px-4 sm:px-6 lg:px-8">
           <div className="container mx-auto max-w-7xl">
-            <div className="relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.94)_0%,rgba(240,249,255,0.98)_56%,rgba(236,253,245,0.95)_100%)] px-5 py-5 text-slate-900 shadow-[0_26px_60px_-42px_rgba(15,23,42,0.22)] sm:px-7 sm:py-6">
+            <div className="relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.94)_0%,rgba(240,249,255,0.98)_56%,rgba(236,253,245,0.95)_100%)] px-4 py-4 text-slate-900 shadow-[0_22px_50px_-38px_rgba(15,23,42,0.2)] sm:rounded-[2rem] sm:px-7 sm:py-6">
               <div className="pointer-events-none absolute -left-8 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-sky-200/40 blur-3xl" />
               <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-emerald-200/35 blur-3xl" />
               <div className="relative flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
@@ -307,17 +308,17 @@ export default function HomePageClient({
                   <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-sky-700">
                     Pachete STEM
                   </p>
-                  <h2 className="mt-1 text-2xl font-black leading-tight text-slate-950 sm:text-3xl">
+                  <h2 className="mt-1 text-[1.45rem] font-black leading-tight tracking-[-0.03em] text-slate-950 sm:text-3xl">
                     Economisesti 10% cand alegi un bundle gata construit
                   </h2>
-                  <p className="mt-1 max-w-2xl text-sm text-slate-600 sm:text-base">
+                  <p className="mt-1 max-w-2xl text-[13px] text-slate-600 sm:text-base">
                     Pachetele combina produse care functioneaza bine impreuna si
                     reduc timpul de selectie.
                   </p>
                 </div>
                 <Link
                   href="/products?bundleView=bundles"
-                  className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-900 shadow-[0_16px_34px_-28px_rgba(15,23,42,0.25)] transition hover:border-slate-300 hover:text-slate-950"
+                  className="inline-flex h-10 items-center justify-center rounded-[1rem] border border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 shadow-[0_16px_34px_-28px_rgba(15,23,42,0.25)] transition hover:border-slate-300 hover:text-slate-950 sm:h-11 sm:rounded-2xl sm:px-5"
                 >
                   Vezi pachetele
                 </Link>

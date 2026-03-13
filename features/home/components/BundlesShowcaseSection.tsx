@@ -38,7 +38,10 @@ function getBundleSavings(bundle: HomeBundle): number {
 }
 
 function isProbablyRomanian(text: string): boolean {
-  return /[ăâîșț]/i.test(text) || /\b(și|pentru|copil|vârstă|pachet|joc|rapid)\b/i.test(text);
+  return (
+    /[ăâîșț]/i.test(text) ||
+    /\b(și|pentru|copil|vârstă|pachet|joc|rapid)\b/i.test(text)
+  );
 }
 
 function looksEnglish(text: string): boolean {
@@ -87,10 +90,7 @@ export const BundlesShowcaseSection = React.memo(
     }
 
     return (
-      <section
-        id="bundle-showcase"
-        className="py-3 sm:py-5 md:py-6 lg:py-8"
-      >
+      <section id="bundle-showcase" className="py-3 sm:py-5 md:py-6 lg:py-8">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div
             className={`${glassPanelClass} border-slate-200/80 bg-white/92 p-4 sm:p-6 lg:p-8`}
@@ -102,25 +102,25 @@ export const BundlesShowcaseSection = React.memo(
                     ? `Reducere ${bundlePromoPercent}% la bundle-uri`
                     : `${bundlePromoPercent}% off STEM bundles`}
                 </span>
-                <h2 className="mt-3 text-[2rem] font-black tracking-[-0.03em] text-slate-950 sm:text-[2.35rem] lg:text-[2.8rem]">
+                <h2 className="mt-3 text-[1.65rem] font-black tracking-[-0.04em] text-slate-950 sm:text-[2.35rem] lg:text-[2.8rem]">
                   {isRomanian
                     ? "Alege un bundle STEM și economisește instant"
                     : "Choose a STEM bundle and save instantly"}
                 </h2>
-                <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:text-base">
+                <p className="mt-2.5 text-[13px] leading-5 text-slate-600 sm:mt-3 sm:text-base sm:leading-relaxed">
                   {isRomanian
                     ? "Bundle-urile combină produse care funcționează bine împreună și îți oferă preț mai bun decât cumpărarea separată."
                     : "Bundles combine products that work better together and give you a better deal than buying separately."}
                 </p>
               </div>
-              <div className="rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm font-bold text-amber-700">
+              <div className="rounded-[1rem] border border-amber-200/80 bg-amber-50/80 px-3.5 py-2.5 text-[13px] font-bold text-amber-700 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm">
                 {isRomanian
                   ? `Oferta home page: -${bundlePromoPercent}% la bundle`
                   : `Homepage offer: ${bundlePromoPercent}% off bundles`}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
               {bundles.map((bundle, index) => {
                 const savings = getBundleSavings(bundle);
                 const displayName = isRomanian
@@ -134,7 +134,10 @@ export const BundlesShowcaseSection = React.memo(
                       bundle.descriptionRo,
                       getRomanianFallbackDescription(bundle.description)
                     )
-                  : withStringFallback(bundle.descriptionEn, bundle.description);
+                  : withStringFallback(
+                      bundle.descriptionEn,
+                      bundle.description
+                    );
 
                 return (
                   <Link
@@ -158,7 +161,7 @@ export const BundlesShowcaseSection = React.memo(
                     data-conversion-action="bundle_card_click"
                     data-conversion-element={`bundle_card_${bundle.slug}`}
                     data-conversion-metadata={`{"bundleId":"${bundle.id}","bundleSlug":"${bundle.slug}","bundlePrice":${bundle.price}}`}
-                    className="group relative overflow-hidden rounded-[1.6rem] border border-slate-200/90 bg-white/96 p-3 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.18)] transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_22px_44px_-30px_rgba(15,23,42,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                    className="group relative overflow-hidden rounded-[1.2rem] border border-slate-200/90 bg-white/96 p-3 shadow-[0_16px_32px_-26px_rgba(15,23,42,0.16)] transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_22px_44px_-30px_rgba(15,23,42,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 sm:rounded-[1.6rem]"
                     aria-label={
                       isRomanian
                         ? `Vezi pachetul ${displayName}`
@@ -174,7 +177,7 @@ export const BundlesShowcaseSection = React.memo(
                         : `BUNDLE ${bundlePromoPercent}% OFF`}
                     </span>
 
-                    <div className="relative h-40 overflow-hidden rounded-xl">
+                    <div className="relative h-32 overflow-hidden rounded-xl sm:h-40">
                       <Image
                         src={bundle.images[0] || "/images/placeholder.png"}
                         alt={displayName}
@@ -184,17 +187,17 @@ export const BundlesShowcaseSection = React.memo(
                       />
                     </div>
 
-                    <div className="mt-4">
-                      <h3 className="line-clamp-2 text-lg font-black tracking-[-0.02em] text-slate-950">
+                    <div className="mt-3.5 sm:mt-4">
+                      <h3 className="line-clamp-2 text-base font-black tracking-[-0.02em] text-slate-950 sm:text-lg">
                         {displayName}
                       </h3>
-                      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-600">
+                      <p className="mt-1.5 line-clamp-2 text-[13px] leading-5 text-slate-600 sm:mt-2 sm:text-sm sm:leading-relaxed">
                         {displayDescription}
                       </p>
 
-                      <div className="mt-4 flex items-end justify-between gap-2">
+                      <div className="mt-3.5 flex items-end justify-between gap-2 sm:mt-4">
                         <div>
-                          <p className="text-xl font-extrabold text-slate-950">
+                          <p className="text-lg font-extrabold text-slate-950 sm:text-xl">
                             {formatPrice(bundle.price)}
                           </p>
                           {typeof bundle.compareAtPrice === "number" &&
@@ -205,13 +208,13 @@ export const BundlesShowcaseSection = React.memo(
                             )}
                         </div>
 
-                        <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-slate-800 transition-all duration-200 group-hover:border-slate-300 group-hover:bg-white">
+                        <span className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-slate-800 transition-all duration-200 group-hover:border-slate-300 group-hover:bg-white sm:px-3 sm:py-2 sm:text-xs sm:tracking-[0.12em]">
                           {isRomanian ? "Vezi pachetul" : "View bundle"}
                         </span>
                       </div>
 
                       {savings > 0 && (
-                        <p className="mt-3 text-xs font-semibold text-amber-700">
+                        <p className="mt-2.5 text-[11px] font-semibold text-amber-700 sm:mt-3 sm:text-xs">
                           {isRomanian
                             ? `Economie estimată: ${formatPrice(savings)}`
                             : `Estimated savings: ${formatPrice(savings)}`}
@@ -242,7 +245,7 @@ export const BundlesShowcaseSection = React.memo(
                 data-conversion-category="ecommerce"
                 data-conversion-action="bundle_list_cta_click"
                 data-conversion-element="bundle_list_cta"
-                className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-2.5 text-sm font-bold text-slate-800 transition hover:border-slate-300 hover:bg-white"
+                className="inline-flex items-center justify-center rounded-[1rem] border border-slate-200 bg-slate-50 px-5 py-2.5 text-sm font-bold text-slate-800 transition hover:border-slate-300 hover:bg-white sm:rounded-2xl"
               >
                 {isRomanian
                   ? "Vezi toate pachetele și economiile active"

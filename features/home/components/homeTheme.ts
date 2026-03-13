@@ -11,12 +11,12 @@ export const homeContentWrapperClass =
   "relative z-10 flex flex-col gap-5 sm:gap-8 lg:gap-14";
 
 export const glassPanelClass =
-  "rounded-[2rem] border border-slate-200/80 bg-white/88 shadow-[0_28px_70px_-46px_rgba(15,23,42,0.2)] backdrop-blur-sm";
+  "rounded-[1.5rem] sm:rounded-[2rem] border border-slate-200/80 bg-white/88 shadow-[0_22px_55px_-42px_rgba(15,23,42,0.18)] sm:shadow-[0_28px_70px_-46px_rgba(15,23,42,0.2)] backdrop-blur-sm";
 
 export const glassCardClass =
-  "rounded-[1.75rem] border border-slate-200/80 bg-white/90 shadow-[0_22px_45px_-34px_rgba(15,23,42,0.16)] backdrop-blur-sm";
+  "rounded-[1.2rem] sm:rounded-[1.75rem] border border-slate-200/80 bg-white/90 shadow-[0_16px_34px_-30px_rgba(15,23,42,0.14)] sm:shadow-[0_22px_45px_-34px_rgba(15,23,42,0.16)] backdrop-blur-sm";
 
 export const gradientButtonClass =
-  "rounded-2xl bg-[linear-gradient(135deg,#0f766e_0%,#0284c7_55%,#2563eb_100%)] text-white shadow-[0_20px_40px_-24px_rgba(14,116,144,0.55)] transition hover:brightness-[1.04]";
+  "rounded-[1rem] sm:rounded-2xl bg-[linear-gradient(135deg,#0f766e_0%,#0284c7_55%,#2563eb_100%)] text-white shadow-[0_18px_34px_-24px_rgba(14,116,144,0.5)] transition hover:brightness-[1.04]";
 
 export const subtleDividerClass = "my-3 sm:my-4 border-t border-slate-200/70";

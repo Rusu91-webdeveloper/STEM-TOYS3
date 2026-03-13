@@ -137,7 +137,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
 
   return (
     <section
-      className="relative flex min-h-[58svh] w-full flex-col justify-center overflow-hidden pt-2 sm:min-h-[520px] lg:min-h-[560px]"
+      className="relative flex min-h-[52svh] w-full flex-col justify-center overflow-hidden pt-1 sm:min-h-[520px] lg:min-h-[560px]"
       aria-label={t("heroSection", "Homepage Hero Section")}
     >
       <div className="absolute inset-0 z-0 select-none">
@@ -169,26 +169,26 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
         />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <div className="animate-in slide-in-from-bottom-8 fade-in flex w-full flex-col text-left duration-1000 fill-mode-forwards">
-          <div className="max-w-5xl">
-            <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[0.68rem] font-bold uppercase tracking-[0.3em] text-white/92 backdrop-blur-md">
+          <div className="max-w-4xl">
+            <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.26em] text-white/92 backdrop-blur-md sm:px-4 sm:py-1.5 sm:text-[0.68rem] sm:tracking-[0.3em]">
               Selectie STEM pentru Romania
             </span>
           </div>
 
-          <h1 className="mt-4 max-w-6xl text-4xl font-black leading-[0.95] tracking-tight text-white [text-shadow:0_6px_26px_rgba(15,23,42,0.55)] sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
+          <h1 className="mt-3 max-w-4xl text-[2.2rem] font-black leading-[0.94] tracking-[-0.04em] text-white [text-shadow:0_6px_26px_rgba(15,23,42,0.55)] sm:mt-4 sm:text-5xl lg:max-w-6xl lg:text-7xl xl:text-[5.4rem]">
             {t("homepageH1Short", getHeadline())}
           </h1>
 
-          <p className="mt-4 max-w-4xl text-base font-semibold leading-relaxed text-white/95 [text-shadow:0_2px_14px_rgba(15,23,42,0.5)] sm:text-lg lg:text-xl">
+          <p className="mt-3 max-w-[34rem] text-[0.95rem] font-medium leading-6 text-white/95 [text-shadow:0_2px_14px_rgba(15,23,42,0.5)] sm:mt-4 sm:text-base sm:leading-7 lg:max-w-4xl lg:text-xl">
             {t(
               "heroDescription",
               "Jucarii educative, robotica si seturi STEM selectate clar pentru acasa, cadouri si invatare aplicata."
             )}
           </p>
 
-          <div className="mt-7 flex w-full max-w-5xl flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="mt-6 flex w-full max-w-4xl flex-col items-stretch gap-2.5 sm:mt-7 sm:flex-row sm:items-center sm:gap-4">
             <Link
               href="/products"
               onClick={() => {
@@ -215,21 +215,21 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
               }","ctaVariant":"${
                 ctaVariant?.name ?? ctaVariant?.id ?? "control"
               }"}`}
-              className={`${gradientButtonClass} group relative flex min-h-[4.25rem] w-full items-center justify-between gap-4 overflow-hidden rounded-[1.35rem] px-5 py-3 text-left shadow-[0_24px_42px_-18px_rgba(37,99,235,0.65)] ring-1 ring-white/25 transition-all hover:-translate-y-0.5 hover:shadow-[0_30px_52px_-18px_rgba(14,165,233,0.6)] active:scale-[0.99] sm:min-w-[290px] sm:px-6`}
+              className={`${gradientButtonClass} group relative flex min-h-[3.6rem] w-full items-center justify-between gap-3 overflow-hidden rounded-[1.15rem] px-4 py-2.5 text-left shadow-[0_20px_34px_-18px_rgba(37,99,235,0.62)] ring-1 ring-white/25 transition-all hover:-translate-y-0.5 hover:shadow-[0_28px_46px_-18px_rgba(14,165,233,0.58)] active:scale-[0.99] sm:min-h-[4.25rem] sm:min-w-[290px] sm:gap-4 sm:rounded-[1.35rem] sm:px-6 sm:py-3`}
             >
               <span
                 aria-hidden
                 className="absolute inset-y-0 -left-10 w-16 skew-x-[-20deg] bg-white/25 blur-sm transition-transform duration-700 group-hover:translate-x-[18rem]"
               />
               <span className="relative z-10 flex flex-col">
-                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/70">
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/70 sm:text-[11px] sm:tracking-[0.18em]">
                   Catalog complet
                 </span>
-                <span className="mt-0.5 text-base font-black text-white sm:text-[1.05rem]">
+                <span className="mt-0.5 text-[0.95rem] font-black text-white sm:text-[1.05rem]">
                   {primaryCtaText}
                 </span>
               </span>
-              <span className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/14 ring-1 ring-white/20">
+              <span className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-[0.95rem] bg-white/14 ring-1 ring-white/20 sm:h-10 sm:w-10 sm:rounded-2xl">
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
@@ -260,23 +260,23 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
               }","ctaVariant":"${
                 ctaVariant?.name ?? ctaVariant?.id ?? "control"
               }"}`}
-              className="group inline-flex min-h-[4.25rem] w-full items-center justify-between gap-4 rounded-[1.35rem] border border-white/55 bg-white/90 px-5 py-3 text-left text-slate-900 shadow-[0_14px_30px_-18px_rgba(15,23,42,0.45)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white sm:min-w-[290px] sm:px-6"
+              className="group inline-flex min-h-[3.6rem] w-full items-center justify-between gap-3 rounded-[1.15rem] border border-white/55 bg-white/90 px-4 py-2.5 text-left text-slate-900 shadow-[0_14px_30px_-18px_rgba(15,23,42,0.45)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white sm:min-h-[4.25rem] sm:min-w-[290px] sm:gap-4 sm:rounded-[1.35rem] sm:px-6 sm:py-3"
             >
               <span className="flex flex-col">
-                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 sm:text-[11px] sm:tracking-[0.18em]">
                   Selectie rapida
                 </span>
-                <span className="mt-0.5 text-base font-black text-slate-950 sm:text-[1.05rem]">
+                <span className="mt-0.5 text-[0.95rem] font-black text-slate-950 sm:text-[1.05rem]">
                   {secondaryCtaText}
                 </span>
               </span>
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 transition group-hover:border-slate-300 group-hover:bg-white">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-[0.95rem] border border-slate-200 bg-slate-50 text-slate-700 transition group-hover:border-slate-300 group-hover:bg-white sm:h-10 sm:w-10 sm:rounded-2xl">
                 <Layers3 className="h-4 w-4" />
               </span>
             </Link>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold text-white/90">
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] font-semibold text-white/90 sm:gap-x-5 sm:gap-y-2 sm:text-sm">
             <span className="inline-flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.2)]" />
               Livrare 1-3 zile
@@ -291,20 +291,20 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
             </span>
           </div>
 
-          <div className="mt-5 flex w-full max-w-6xl flex-wrap items-center gap-2.5">
+          <div className="mt-4 flex w-full max-w-5xl flex-wrap items-center gap-2 sm:mt-5 sm:gap-2.5">
             {trustHighlights.map(item => {
               const Icon = item.icon;
 
               return (
                 <div
                   key={item.label}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-3 py-2 text-xs font-semibold text-white/95 shadow-[0_10px_20px_-18px_rgba(15,23,42,0.75)] backdrop-blur-md"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-2.5 py-1.5 text-[11px] font-semibold text-white/95 shadow-[0_10px_20px_-18px_rgba(15,23,42,0.75)] backdrop-blur-md sm:px-3 sm:py-2 sm:text-xs"
                 >
                   <span
                     aria-hidden
-                    className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20"
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 sm:h-6 sm:w-6"
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   </span>
                   <span>{item.label}</span>
                 </div>
@@ -312,17 +312,17 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
             })}
           </div>
 
-          <div className="mt-4 grid w-full max-w-6xl grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+          <div className="mt-4 grid w-full max-w-5xl grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-3 lg:max-w-6xl">
             {ageQuickLinks.map(link => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="group flex flex-col items-start justify-center rounded-2xl border border-white/22 bg-white/10 px-4 py-3 text-left text-white shadow-[0_12px_20px_-18px_rgba(15,23,42,0.65)] backdrop-blur-md transition hover:-translate-y-0.5 hover:border-white/35 hover:bg-white/16"
+                className="group flex flex-col items-start justify-center rounded-[1rem] border border-white/22 bg-white/10 px-3 py-2.5 text-left text-white shadow-[0_12px_20px_-18px_rgba(15,23,42,0.65)] backdrop-blur-md transition hover:-translate-y-0.5 hover:border-white/35 hover:bg-white/16 sm:rounded-2xl sm:px-4 sm:py-3"
               >
-                <span className="text-sm font-black tracking-tight">
+                <span className="text-[0.95rem] font-black tracking-tight sm:text-sm">
                   {link.label}
                 </span>
-                <span className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] text-white/70">
+                <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.12em] text-white/70 sm:text-[11px] sm:tracking-[0.14em]">
                   {link.hint}
                 </span>
               </Link>
@@ -331,7 +331,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
         </div>
       </div>
 
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 animate-bounce opacity-70">
+      <div className="absolute bottom-3 left-1/2 hidden -translate-x-1/2 animate-bounce opacity-70 sm:block">
         <ChevronDown className="h-6 w-6 text-white/90" />
       </div>
     </section>

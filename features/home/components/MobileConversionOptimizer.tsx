@@ -89,7 +89,7 @@ function MobileConversionOptimizer({ t: _t }: MobileConversionOptimizerProps) {
       {/* Mobile Sticky CTA Bar - Only visible on mobile after scroll */}
       {isVisible && (
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-          <div className="border-t border-white/10 bg-slate-950/90 px-4 py-3 backdrop-blur">
+          <div className="border-t border-white/10 bg-slate-950/90 px-4 py-2.5 backdrop-blur">
             <div className="mx-auto flex max-w-sm items-center justify-between gap-3">
               <Link
                 href="/products"
@@ -97,8 +97,7 @@ function MobileConversionOptimizer({ t: _t }: MobileConversionOptimizerProps) {
                 className={`${gradientButtonClass} flex-1 px-4 py-3 text-sm font-semibold`}
               >
                 <div className="flex items-center justify-center gap-2">
-                  <span>🚀</span>
-                  <span>Începe Acum</span>
+                  <span>Vezi catalogul</span>
                 </div>
               </Link>
 
@@ -107,11 +106,10 @@ function MobileConversionOptimizer({ t: _t }: MobileConversionOptimizerProps) {
                 onClick={() =>
                   trackConversion("sticky_secondary", "mobile_bar")
                 }
-                className="flex-1 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-center text-sm font-semibold text-white/90 transition hover:border-white/30 hover:bg-white/15"
+                className="flex-1 rounded-[1rem] border border-white/20 bg-white/10 px-4 py-3 text-center text-sm font-semibold text-white/90 transition hover:border-white/30 hover:bg-white/15 sm:rounded-2xl"
               >
                 <div className="flex items-center justify-center gap-2">
-                  <span>📞</span>
-                  <span>Consultare</span>
+                  <span>Contact</span>
                 </div>
               </Link>
 
@@ -250,10 +248,10 @@ function MobileConversionOptimizer({ t: _t }: MobileConversionOptimizerProps) {
         <Link
           href="/contact"
           onClick={() => trackConversion("floating_contact", "mobile_fab")}
-          className="w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-110 animate-pulse"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-[0_20px_35px_-18px_rgba(37,99,235,0.6)] transition-all duration-300 hover:scale-105 hover:from-sky-700 hover:to-blue-700"
         >
           <svg
-            className="w-6 h-6"
+            className="h-5 w-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
