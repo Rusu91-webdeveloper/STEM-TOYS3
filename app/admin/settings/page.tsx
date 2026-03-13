@@ -1480,23 +1480,25 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="shipping">Shipping</TabsTrigger>
-          <TabsTrigger value="cod">Taxa Ramburs</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="tax">Tax</TabsTrigger>
-          <TabsTrigger value="businessHours">Business Hours</TabsTrigger>
-          <TabsTrigger value="orderProcessing">Order Processing</TabsTrigger>
-          <TabsTrigger value="inventoryManagement">
-            Inventory Management
-          </TabsTrigger>
-          <TabsTrigger value="marketing">Marketing</TabsTrigger>
-          <TabsTrigger value="security">Security & Backup</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+          <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 h-auto flex-wrap sm:flex-nowrap gap-1">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="general" className="text-xs sm:text-sm">General</TabsTrigger>
+            <TabsTrigger value="shipping" className="text-xs sm:text-sm">Shipping</TabsTrigger>
+            <TabsTrigger value="cod" className="text-xs sm:text-sm">Ramburs</TabsTrigger>
+            <TabsTrigger value="payments" className="text-xs sm:text-sm">Payments</TabsTrigger>
+            <TabsTrigger value="tax" className="text-xs sm:text-sm">Tax</TabsTrigger>
+            <TabsTrigger value="businessHours" className="text-xs sm:text-sm">Hours</TabsTrigger>
+            <TabsTrigger value="orderProcessing" className="text-xs sm:text-sm">Orders</TabsTrigger>
+            <TabsTrigger value="inventoryManagement" className="text-xs sm:text-sm">
+              Inventory
+            </TabsTrigger>
+            <TabsTrigger value="marketing" className="text-xs sm:text-sm">Marketing</TabsTrigger>
+            <TabsTrigger value="security" className="text-xs sm:text-sm">Security</TabsTrigger>
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm">Analytics</TabsTrigger>
+            <TabsTrigger value="users" className="text-xs sm:text-sm">Users</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">

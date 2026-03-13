@@ -3,9 +3,9 @@
 import { LogOut, Menu, X, Settings, User, Home, Package } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
@@ -22,7 +22,13 @@ export default function AdminLayout({
   const { data: session, status } = useOptimizedSession();
   const router = useRouter();
   const { t } = useTranslation();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Auto-close sidebar on route change (mobile navigation)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   // Check if user is authenticated and has admin or visitor role
   const isAuthenticated = status === "authenticated";
@@ -68,8 +74,8 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50">
       {/* Admin Header - Enhanced with better styling */}
-      <header className="bg-white border-b border-gray-200 fixed top-0 w-full z-20 shadow-sm">
-        <div className="px-4 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 fixed top-0 w-full z-30 shadow-sm">
+        <div className="px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
           {/* Left side - Logo and Menu */}
           <div className="flex items-center gap-4">
             {/* Mobile menu button */}
@@ -86,7 +92,7 @@ export default function AdminLayout({
 
             {/* Logo and Title */}
             <Link href="/admin" className="flex items-center group">
-              <div className="relative h-10 w-20 mr-3">
+              <div className="relative h-8 w-16 sm:h-10 sm:w-20 mr-2 sm:mr-3">
                 <Image
                   className="object-contain"
                   src="/TechTots_LOGO.png"
@@ -95,10 +101,11 @@ export default function AdminLayout({
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  Admin Dashboard
+                <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  <span className="hidden sm:inline">Admin Dashboard</span>
+                  <span className="sm:hidden">Admin</span>
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 hidden sm:block">
                   TechTots Management
                 </span>
               </div>
@@ -150,24 +157,24 @@ export default function AdminLayout({
       </header>
 
       {/* Admin Content */}
-      <div className="flex pt-20">
+      <div className="flex pt-[60px] sm:pt-[72px]">
+        {/* Mobile sidebar backdrop */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* Sidebar - Enhanced with responsive design */}
         <aside
           className={`
-            fixed inset-y-0 left-0 z-10 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
+            fixed inset-y-0 left-0 z-20 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
           `}
         >
-          {/* Mobile overlay */}
-          {sidebarOpen && (
-            <div
-              className="fixed inset-0 bg-black bg-opacity-50 z-0 lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
-          )}
-
           {/* Sidebar content */}
-          <div className="relative z-10 h-full flex flex-col">
+          <div className="h-full flex flex-col pt-[60px] sm:pt-[72px] lg:pt-0">
             {/* Sidebar header for mobile */}
             <div className="lg:hidden p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
@@ -198,18 +205,10 @@ export default function AdminLayout({
         </aside>
 
         {/* Main Content - Enhanced with better spacing and responsive design */}
-        <main className="flex-1 lg:ml-0 p-4 lg:p-8">
+        <main className="flex-1 min-w-0 p-3 sm:p-4 lg:p-8">
           <div className="max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
-
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
     </div>
   );
 }

@@ -352,7 +352,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="animate-pulse">
               <div className="bg-gray-200 h-32 rounded-lg"></div>
@@ -377,28 +377,29 @@ export default function AdminDashboard() {
       {/* Enhanced Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
             Dashboard
           </h1>
-          <p className="text-gray-600 mt-1 flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Welcome to your admin dashboard - Monitor your store's performance
+          <p className="text-gray-600 mt-1 flex items-center gap-2 text-sm sm:text-base">
+            <Activity className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">Welcome to your admin dashboard - Monitor your store&apos;s performance</span>
+            <span className="sm:hidden">Monitor your store&apos;s performance</span>
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" asChild>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+          <Button variant="outline" size="sm" className="shrink-0" asChild>
             <Link href="/admin/fulfillment-issues">
               <AlertCircle className="h-4 w-4 mr-2" />
               Fulfillment Issues
             </Link>
           </Button>
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outline" size="sm" className="shrink-0" asChild>
             <Link href="/admin/analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
               View Analytics
             </Link>
           </Button>
-          <Button size="sm" asChild>
+          <Button size="sm" className="shrink-0" asChild>
             <Link href="/admin/products">
               <Package className="h-4 w-4 mr-2" />
               Manage Products
@@ -411,7 +412,7 @@ export default function AdminDashboard() {
       <DemoModeBanner />
 
       {/* Stats Grid - Enhanced */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {data.stats.map((stat, index) => (
           <StatCard key={index} stat={stat} />
         ))}
@@ -465,7 +466,7 @@ export default function AdminDashboard() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
             <OpsMetricCard
               title="Ready To Place"
               value={
@@ -504,7 +505,7 @@ export default function AdminDashboard() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
             <OpsMetricCard
               title="Issue Value At Risk"
               value={
@@ -624,16 +625,20 @@ export default function AdminDashboard() {
                 variant="outline"
                 disabled={readyPlacementQueue.length === 0}
                 onClick={() => openOrdersInTabs(readyPlacementQueue, 3)}
+                className="text-xs sm:text-sm"
               >
-                Open Top 3 Placement Orders
+                <span className="hidden sm:inline">Open Top 3 Placement Orders</span>
+                <span className="sm:hidden">Top 3 Placement</span>
               </Button>
               <Button
                 size="sm"
                 variant="outline"
                 disabled={issueFollowUpQueue.length === 0}
                 onClick={() => openOrdersInTabs(issueFollowUpQueue, 3)}
+                className="text-xs sm:text-sm"
               >
-                Open Top 3 Issue Orders
+                <span className="hidden sm:inline">Open Top 3 Issue Orders</span>
+                <span className="sm:hidden">Top 3 Issues</span>
               </Button>
               <Button size="sm" variant="outline" asChild>
                 <Link href="/admin/fulfillment-issues">Open Issues Queue</Link>

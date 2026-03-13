@@ -265,21 +265,22 @@ export default async function AdminProductsPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Produse STEM</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Produse STEM</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gestionează produsele fizice STEM (jucării educaționale, kituri,
             materiale)
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <ManualCacheClearButton />
           <BulkUploadModal />
           <Button asChild>
             <Link href="/admin/products/create">
               <Plus className="h-4 w-4 mr-2" />
-              Adaugă Produs Nou
+              <span className="hidden sm:inline">Adaugă Produs Nou</span>
+              <span className="sm:hidden">Adaugă</span>
             </Link>
           </Button>
         </div>

@@ -389,39 +389,39 @@ export default function OrdersPage() {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
-          <Button variant="outline" className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Orders</h1>
+          <Button variant="outline" className="flex items-center gap-2 self-start sm:self-auto">
             <Download className="h-4 w-4" />
             <span>Export</span>
           </Button>
         </div>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col gap-4 sm:gap-6">
               <form
                 onSubmit={handleSearch}
-                className="flex w-full max-w-sm items-center space-x-2"
+                className="flex w-full sm:max-w-sm items-center space-x-2"
               >
                 <Input
                   type="search"
-                  placeholder="Search orders or customers..."
+                  placeholder="Search orders..."
                   className="w-full"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                 />
-                <Button type="submit" variant="outline" size="icon">
+                <Button type="submit" variant="outline" size="icon" className="shrink-0">
                   <Search className="h-4 w-4" />
                 </Button>
               </form>
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2">
                 <Select
                   defaultValue="all"
                   value={status}
                   onValueChange={value => setStatus(value)}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[160px]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -438,7 +438,7 @@ export default function OrdersPage() {
                   value={workflowBucket}
                   onValueChange={value => setWorkflowBucket(value)}
                 >
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-full sm:w-[170px]">
                     <SelectValue placeholder="Workflow" />
                   </SelectTrigger>
                   <SelectContent>
@@ -453,7 +453,7 @@ export default function OrdersPage() {
                   value={period}
                   onValueChange={value => setPeriod(value)}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[160px]">
                     <SelectValue placeholder="Time Period" />
                   </SelectTrigger>
                   <SelectContent>
@@ -484,7 +484,7 @@ export default function OrdersPage() {
                   No orders found. Try adjusting your filters.
                 </div>
               ) : (
-                <table className="w-full border-collapse">
+                <table className="w-full border-collapse min-w-[700px]">
                   <thead>
                     <tr className="border-b text-xs font-medium text-muted-foreground">
                       <th className="px-4 py-3 text-left">
@@ -611,9 +611,9 @@ export default function OrdersPage() {
               )}
             </div>
 
-            <div className="mt-4 flex items-center justify-between">
+            <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="text-sm text-muted-foreground">
-                Showing {orders.length} of {pagination.total} orders
+                Showing {orders.length} of {pagination.total}
               </div>
               <div className="flex items-center gap-2">
                 <Button
