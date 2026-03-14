@@ -110,12 +110,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         dateModified: blogPost.updatedAt || blogPost.publishedAt,
         author: {
           "@type": "Organization",
-          name: "TechTots România",
-          url: "https://techtots.ro",
-          logo: {
-            "@type": "ImageObject",
-            url: "https://techtots.ro/images/logo.png",
-          },
+          name: "TechTots Editorial",
+          url: "https://www.techtots.ro/authors/techtots-editorial",
+          sameAs: [
+            "https://www.techtots.ro/authors/techtots-editorial",
+            "https://www.linkedin.com/company/techtots-romania/",
+            "https://www.instagram.com/techtots_magazin/",
+          ],
         },
         publisher: {
           "@type": "Organization",

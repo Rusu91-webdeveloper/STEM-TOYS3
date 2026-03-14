@@ -9,15 +9,6 @@ import {
   Users,
 } from "lucide-react";
 
-import {
-  glassCardClass,
-  glassPanelClass,
-  gradientButtonClass,
-  homeBackgroundClass,
-  homeContentWrapperClass,
-  homeOverlayBottomClass,
-  homeOverlayTopClass,
-} from "@/features/home/components/homeTheme";
 import { createMetadata } from "@/lib/metadata";
 
 const recommendedArticles = [
@@ -53,64 +44,60 @@ const editorialFocusAreas = [
     description:
       "Convertim metodologia STEM în ghiduri ușor de implementat pentru părinți și educatori.",
     icon: GraduationCap,
-    stat: "45+ ghiduri structurate",
   },
   {
-    title: "Povești din comunitate",
+    title: "Comunitate de părinți",
     description:
-      "Documentăm transformările familiilor TechTots și cele mai eficiente ritualuri de învățare.",
+      "Documentăm experiențele familiilor TechTots și cele mai eficiente moduri de a introduce STEM în rutina zilnică.",
     icon: Users,
-    stat: "10k+ familii intervievate",
   },
   {
-    title: "Experimente verificate",
+    title: "Produse testate",
     description:
-      "Testăm fiecare kit STEM înainte de recomandare și documentăm pașii, dificultatea și rezultatele.",
+      "Fiecare produs recomandat pe platformă este analizat din perspectiva valorii educaționale înainte de a fi listat.",
     icon: PenLine,
-    stat: "320+ experimente validate",
   },
   {
-    title: "Trenduri & inovație",
+    title: "Conținut actualizat",
     description:
-      "Scanăm noutățile din educație și tehnologie pentru a aduce primele recomandări în România.",
+      "Actualizăm ghidurile și articolele pe măsură ce apar produse noi sau cercetări relevante în educația STEM.",
     icon: Sparkles,
-    stat: "24 rapoarte anuale",
   },
 ];
 
 const editorialSeries = [
   {
-    label: "STEM Transformation Playbook",
+    label: "Ghiduri pe grupe de vârstă",
     summary:
-      "Seria premium cu planuri de 30-60 zile pentru a transforma complet obiceiurile de învățare.",
+      "Resurse structurate pentru fiecare etapă de dezvoltare — de la joaca senzorială la robotică avansată.",
   },
   {
-    label: "Micro Experimente Săptămânale",
+    label: "Experimente acasă",
     summary:
-      "Experimente rapide (15-20 min) care mențin curiozitatea vie fără pregătire complexă.",
+      "Activități STEM simple, cu materiale accesibile, gândite pentru părinții ocupați.",
   },
   {
-    label: "STEM & AI Parenting Lab",
+    label: "Alegeri informate",
     summary:
-      "Strategii pentru a integra AI și tehnologia într-un mod sigur, creativ și controlat.",
+      "Comparații și analize ale categoriilor de jucării educative, pentru cumpărători care vor să înțeleagă ce cumpără.",
   },
 ];
 
 export const metadata: Metadata = createMetadata({
-  title: "TechTots Editorial | STEM Insights & Parenting Playbooks",
+  title: "TechTots Editorial | Ghiduri STEM și resurse pentru părinți",
   description:
-    "Descoperă echipa TechTots Editorial: specialiști în curriculum STEM, ghiduri premium și transformarea experiențelor părinților în playbook-uri aplicate.",
+    "Echipa TechTots Editorial creează ghiduri STEM practice, articole despre jucării educative și resurse pentru familiile din România care vor să susțină dezvoltarea copiilor prin joacă.",
   pathWithoutLocale: "/authors/techtots-editorial",
   translations: {
     ro: {
-      title: "TechTots Editorial | Playbook-uri STEM pentru părinți",
+      title: "TechTots Editorial | Ghiduri STEM pentru părinți",
       description:
-        "Echipa TechTots Editorial documentează transformările familiilor și dezvoltă ghiduri STEM premium pentru părinți și educatori.",
+        "Ghiduri STEM, articole educative și resurse pentru părinții care vor să susțină dezvoltarea copiilor prin joacă structurată.",
     },
     en: {
-      title: "TechTots Editorial | STEM Insights & Parenting Playbooks",
+      title: "TechTots Editorial | STEM Guides & Parenting Resources",
       description:
-        "Meet the TechTots Editorial team: specialists turning real family transformations into actionable STEM learning playbooks.",
+        "The TechTots Editorial team creates practical STEM guides, educational toy reviews and resources for Romanian families.",
     },
   },
   structuredData: {
@@ -123,245 +110,206 @@ export const metadata: Metadata = createMetadata({
       "https://www.instagram.com/techtots_magazin/",
     ],
     description:
-      "Echipa editorială TechTots creează ghiduri STEM ultra-practice, bazate pe cercetare și experiențe reale ale părinților.",
+      "Echipa editorială TechTots creează ghiduri STEM practice și articole despre jucării educative pentru familiile din România.",
   },
 });
 
 export default function TechTotsEditorialAuthorPage() {
   return (
-    <div className={homeBackgroundClass}>
-      <div className={homeOverlayTopClass} aria-hidden />
-      <div className={homeOverlayBottomClass} aria-hidden />
-
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100">
+      {/* Ambient background glows */}
       <div
-        className={`${homeContentWrapperClass} pt-24 pb-16 sm:pt-28 md:pt-32`}
-      >
-        <section className="relative container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div
-            className={`${glassPanelClass} relative overflow-hidden border-white/10 bg-slate-950/70 px-5 py-10 text-slate-100 shadow-2xl shadow-black/40 sm:px-8 sm:py-12`}
-          >
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(56,189,248,0.08),transparent_45%),radial-gradient(circle_at_85%_80%,rgba(16,185,129,0.06),transparent_40%)]"
+        aria-hidden
+      />
+
+      <div className="relative z-10 mx-auto max-w-6xl space-y-12 px-4 pb-20 pt-24 sm:px-6 sm:pt-28 lg:px-8">
+
+        {/* ── Hero ─────────────────────────────────────────────── */}
+        <section className="rounded-3xl border border-white/10 bg-slate-900 p-8 shadow-2xl shadow-black/50 sm:p-12">
+          <div className="relative overflow-hidden">
             <div
-              className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-sky-500/15 to-indigo-500/25 opacity-80"
+              className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl"
               aria-hidden
             />
-            <div
-              className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl"
-              aria-hidden
-            />
-            <div className="relative z-10 flex flex-col gap-6 sm:gap-8">
-              <div className="max-w-2xl space-y-3 sm:space-y-4">
-                <span className="inline-flex items-center gap-2 self-start rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-emerald-200">
-                  TechTots Editorial
-                  <Sparkles className="h-3.5 w-3.5 text-emerald-200" />
-                </span>
-                <h1 className="text-3xl font-extrabold leading-tight text-white drop-shadow-[0_25px_56px_rgba(15,23,42,0.65)] sm:text-4xl md:text-5xl">
-                  Playbook-urile STEM care transformă copiii în inventatori
-                </h1>
-                <p className="text-sm text-slate-200 sm:text-base">
-                  Echipa editorială TechTots face curatoria tuturor ghidurilor,
-                  experimentelor și rapoartelor noastre. Documentăm transformări
-                  reale ale familiilor și le convertim în strategii simplu de
-                  implementat, cu rezultate măsurabile în 30-60 de zile.
-                </p>
-              </div>
+            <div className="relative z-10 max-w-3xl space-y-5">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-300">
+                TechTots Editorial
+                <Sparkles className="h-3.5 w-3.5" />
+              </span>
 
-              <div className="grid gap-4 text-xs text-slate-200 sm:grid-cols-3 sm:text-sm">
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-inner shadow-black/30">
-                  <p className="font-semibold text-white">Focus editorial</p>
-                  <p className="text-slate-300">
-                    Curriculum STEM aplicat + transformarea obiceiurilor de
-                    învățare.
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-inner shadow-black/30">
-                  <p className="font-semibold text-white">Metodologie</p>
-                  <p className="text-slate-300">
-                    Observăm familii reale, testăm kituri în laborator și
-                    sintetizăm playbook-uri.
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-inner shadow-black/30">
-                  <p className="font-semibold text-white">Misiune</p>
-                  <p className="text-slate-300">
-                    Transformăm “Nu-mi place matematica” în “Ce experiment facem
-                    azi?”
-                  </p>
-                </div>
-              </div>
+              <h1 className="text-3xl font-extrabold leading-tight text-white sm:text-4xl md:text-5xl">
+                Ghiduri STEM practice pentru familii din România
+              </h1>
 
-              <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                <div className="text-sm text-slate-200 sm:text-base">
-                  Pregătim lunar peste{" "}
-                  <span className="font-semibold text-white">40 de articole</span>
-                  , experimentăm cu peste{" "}
-                  <span className="font-semibold text-white">25 de kituri STEM</span>{" "}
-                  și construim playbook-uri folosite de
-                  <span className="font-semibold text-white"> 10,000+</span>{" "}
-                  familii.
-                </div>
-                <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-                  <Link
-                    href="/products"
-                    className={`${gradientButtonClass} flex items-center justify-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold shadow-lg transition hover:scale-[1.02] sm:text-base`}
-                  >
-                    Descoperă kiturile recomandate
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                  <Link
-                    href="/blog"
-                    className="flex items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/30 transition hover:border-white/30 hover:bg-white/15"
-                  >
-                    Citește toate articolele
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="container mx-auto mt-12 max-w-6xl px-4 sm:mt-16 sm:px-6 lg:px-8">
-          <div className="grid gap-6 lg:grid-cols-[2fr_1fr] lg:gap-8">
-            <div
-              className={`${glassPanelClass} border-white/10 bg-slate-950/70 p-6 text-slate-100 shadow-2xl shadow-black/40 sm:p-8`}
-            >
-              <h2 className="text-2xl font-semibold text-white sm:text-3xl">
-                Ce documentăm și livrăm în fiecare playbook
-              </h2>
-              <p className="mt-3 text-sm text-slate-300 sm:text-base">
-                Echipa editorială lucrează în sprinturi săptămânale alături de
-                specialiști STEM, psihologi educaționali și părinți din
-                comunitate pentru a crea materiale ultra-practice.
+              <p className="text-base text-slate-300 sm:text-lg">
+                Echipa editorială TechTots scrie ghiduri, articole și resurse
+                despre jucării educative și educație STEM — conținut bazat pe
+                experiențele reale ale familiilor și pe valoarea educațională a
+                produselor pe care le comercializăm.
               </p>
 
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                {editorialFocusAreas.map(area => {
-                  const Icon = area.icon;
-                  return (
-                    <div
-                      key={area.title}
-                      className={`${glassCardClass} relative overflow-hidden border-white/10 bg-slate-900/70 p-5 shadow-lg shadow-black/30`}
-                    >
-                      <div
-                        className="absolute inset-x-0 -top-20 h-28 rounded-full bg-emerald-400/10 blur-3xl"
-                        aria-hidden
-                      />
-                      <div className="relative z-10 flex flex-col gap-3">
-                        <Icon className="h-6 w-6 text-emerald-200" />
-                        <div>
-                          <h3 className="text-lg font-semibold text-white">
-                            {area.title}
-                          </h3>
-                          <p className="mt-1 text-sm text-slate-300">
-                            {area.description}
-                          </p>
-                        </div>
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">
-                          {area.stat}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <aside
-              className={`${glassPanelClass} border-white/10 bg-slate-950/70 p-6 text-slate-100 shadow-2xl shadow-black/40 sm:p-8`}
-            >
-              <h2 className="text-xl font-semibold text-white sm:text-2xl">
-                Serii editoriale recurente
-              </h2>
-              <p className="mt-2 text-sm text-slate-300">
-                Primești documentație completă, resurse printabile și planuri
-                gata de implementat.
-              </p>
-
-              <div className="mt-6 space-y-4">
-                {editorialSeries.map(series => (
+              <div className="grid gap-4 pt-2 sm:grid-cols-3">
+                {[
+                  {
+                    label: "Focus editorial",
+                    value: "Curriculum STEM aplicat pentru părinți",
+                  },
+                  {
+                    label: "Metodologie",
+                    value: "Ghiduri practice, produse analizate, comunitate",
+                  },
+                  {
+                    label: "Misiune",
+                    value: "Joaca structurată ca motor de dezvoltare",
+                  },
+                ].map(({ label, value }) => (
                   <div
-                    key={series.label}
-                    className={`${glassCardClass} border-white/10 bg-slate-900/65 p-4 shadow-inner shadow-black/30`}
+                    key={label}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
                   >
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-200">
-                      {series.label}
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      {label}
                     </p>
-                    <p className="mt-2 text-sm text-slate-200">
-                      {series.summary}
-                    </p>
+                    <p className="mt-1 text-sm text-slate-200">{value}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-6 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-slate-200 sm:text-sm">
-                <Sparkles className="h-5 w-5 text-emerald-200" />
-                <span>
-                  Abonează-te la newsletter-ul TechTots pentru acces anticipat
-                  la serii noi și playbook-uri pilot.
-                </span>
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Link
+                  href="/products"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-600 via-sky-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:brightness-110"
+                >
+                  Descoperă produsele recomandate
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/blog"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                >
+                  Citește toate articolele
+                </Link>
               </div>
-            </aside>
+            </div>
           </div>
         </section>
 
-        <section className="container mx-auto mt-12 max-w-6xl px-4 sm:mt-16 sm:px-6 lg:px-8">
-          <div
-            className={`${glassPanelClass} border-white/10 bg-slate-950/70 p-6 text-slate-100 shadow-2xl shadow-black/40 sm:p-8`}
-          >
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-2xl font-semibold text-white sm:text-3xl">
-                  Articole recomandate de echipa editorială
-                </h2>
-                <p className="mt-2 max-w-2xl text-sm text-slate-300 sm:text-base">
-                  Începe cu cele mai citite resurse – fiecare articol include
-                  check-list-uri descărcabile și pași acționabili pentru acasă.
-                </p>
-              </div>
-              <Link
-                href="/blog"
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:border-white/30 hover:bg-white/15"
-              >
-                Explorează biblioteca completă
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
+        {/* ── Focus areas + Series ─────────────────────────────── */}
+        <section className="grid gap-8 lg:grid-cols-[2fr_1fr]">
+          {/* Focus areas */}
+          <div className="rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-xl shadow-black/40 sm:p-8">
+            <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+              Ce acoperă conținutul nostru
+            </h2>
+            <p className="mt-2 text-sm text-slate-400 sm:text-base">
+              Scriem pentru părinți și educatori care vor să înțeleagă cum să
+              folosească jucăriile STEM ca unelte de dezvoltare, nu doar ca
+              cadouri.
+            </p>
 
-            <div className="mt-8 grid gap-5 sm:grid-cols-2">
-              {recommendedArticles.map(article => (
-                <article
-                  key={article.href}
-                  className={`${glassCardClass} group relative overflow-hidden border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-black/35 transition hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_25px_60px_-15px_rgba(56,189,248,0.45)]`}
-                >
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {editorialFocusAreas.map(area => {
+                const Icon = area.icon;
+                return (
                   <div
-                    className="absolute inset-x-0 -top-28 h-32 rounded-full bg-sky-400/15 blur-3xl transition group-hover:bg-emerald-400/20"
-                    aria-hidden
-                  />
-                  <div className="relative z-10 flex flex-col gap-3">
-                    <span className="inline-flex w-fit items-center justify-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-sky-200">
-                      {article.category}
-                    </span>
-                    <h3 className="text-lg font-semibold text-white sm:text-xl">
-                      {article.title}
+                    key={area.title}
+                    className="rounded-2xl border border-white/10 bg-slate-800 p-5"
+                  >
+                    <Icon className="h-5 w-5 text-emerald-400" />
+                    <h3 className="mt-3 text-base font-semibold text-white">
+                      {area.title}
                     </h3>
-                    <p className="text-sm text-slate-200">
-                      {article.description}
+                    <p className="mt-1 text-sm text-slate-400">
+                      {area.description}
                     </p>
-                    <div className="flex items-center justify-between text-xs text-slate-300">
-                      <span>{article.readingTime} de citire</span>
-                      <Link
-                        href={article.href}
-                        className="inline-flex items-center gap-1 text-emerald-200 transition hover:text-emerald-100"
-                      >
-                        Citește articolul
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
                   </div>
-                </article>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Editorial series */}
+          <aside className="rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-xl shadow-black/40 sm:p-8">
+            <h2 className="text-xl font-semibold text-white sm:text-2xl">
+              Serii de conținut
+            </h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Organizăm articolele în serii tematice pentru a fi ușor de urmărit
+              pas cu pas.
+            </p>
+
+            <div className="mt-6 space-y-4">
+              {editorialSeries.map(series => (
+                <div
+                  key={series.label}
+                  className="rounded-2xl border border-white/10 bg-slate-800 p-4"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-widest text-sky-300">
+                    {series.label}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-300">{series.summary}</p>
+                </div>
               ))}
             </div>
+
+            <div className="mt-6 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+              <p className="text-sm text-slate-300">
+                Abonează-te la newsletter-ul TechTots pentru a primi noile ghiduri
+                direct în inbox.
+              </p>
+            </div>
+          </aside>
+        </section>
+
+        {/* ── Recommended articles ─────────────────────────────── */}
+        <section className="rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-xl shadow-black/40 sm:p-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+                Articole recomandate
+              </h2>
+              <p className="mt-1 max-w-xl text-sm text-slate-400">
+                Resurse de bază pentru familiile care abia încep să exploreze
+                jucăriile STEM.
+              </p>
+            </div>
+            <Link
+              href="/blog"
+              className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15"
+            >
+              Toate articolele
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {recommendedArticles.map(article => (
+              <Link
+                key={article.href}
+                href={article.href}
+                className="group rounded-2xl border border-white/10 bg-slate-800 p-6 transition hover:-translate-y-1 hover:border-sky-500/40 hover:shadow-lg hover:shadow-sky-500/10"
+              >
+                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-sky-300">
+                  {article.category}
+                </span>
+                <h3 className="mt-3 text-base font-semibold text-white group-hover:text-sky-300 sm:text-lg">
+                  {article.title}
+                </h3>
+                <p className="mt-2 text-sm text-slate-400">{article.description}</p>
+                <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
+                  <span>{article.readingTime} de citire</span>
+                  <span className="flex items-center gap-1 text-emerald-400 transition group-hover:text-emerald-300">
+                    Citește
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
+
       </div>
     </div>
   );
