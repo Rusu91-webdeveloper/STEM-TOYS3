@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/features/cart";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
-import { glassCardClass } from "@/features/home/components/homeTheme";
+import { darkGlassCardClass } from "@/features/home/components/homeTheme";
 import { cn } from "@/lib/utils";
 
 import { fetchShippingQuotes, fetchShippingSettings } from "../lib/checkoutApi";
@@ -462,7 +462,7 @@ export function ShippingMethodSelector({
       )}
 
       <div
-        className={`${glassCardClass} border-white/10 bg-slate-900/70 p-6 text-slate-100 shadow-lg shadow-black/20`}
+        className={`${darkGlassCardClass} p-6 text-slate-100 shadow-lg shadow-black/20`}
       >
         <div className="mb-4 flex items-center gap-2">
           <Truck className="h-5 w-5 text-sky-300" />
@@ -491,10 +491,10 @@ export function ShippingMethodSelector({
                   className={cn(
                     "flex items-center gap-3 rounded-2xl border p-4 transition-all duration-200",
                     isSelected
-                      ? "border-sky-400 bg-sky-500/20 shadow-lg shadow-sky-500/20"
-                      : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10",
+                      ? "border-sky-400 bg-sky-900/80 shadow-lg shadow-sky-500/20"
+                      : "border-white/10 bg-slate-800 hover:border-white/20 hover:bg-slate-700",
                     freeShippingApplied && method.id === "priority"
-                      ? "border-amber-400/30 bg-amber-500/10"
+                      ? "border-amber-400/30 bg-amber-900/60"
                       : ""
                   )}
                 >
