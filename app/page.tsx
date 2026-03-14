@@ -96,25 +96,26 @@ const heroSectionCriticalCSS = `
   }
 `;
 
-// **PERFORMANCE**: Ultra-fast cached featured products query with minimal overhead
 async function getFeaturedProducts(): Promise<Product[]> {
   try {
     const cacheKey = "homepage_featured_products_v2";
-
-    // **PERFORMANCE**: Minimal cache access with optimized TTL
     const { getCached } = await import("@/lib/cache");
     const TIME = (await import("@/lib/constants")).TIME;
 
     const cachedResult = await getCached(
       cacheKey,
       () => fetchFeaturedProductsOptimized(),
-      TIME.CACHE_DURATION.MEDIUM // 30 minutes for homepage data
+      TIME.CACHE_DURATION.MEDIUM
     );
 
-    // **PERFORMANCE**: Return immediately without processing
-    return cachedResult || [];
+    // Guard: never return a cached empty array — it likely means a cold-start timeout fired
+    if (!cachedResult || cachedResult.length === 0) {
+      // Attempt a fresh, uncached fetch so we don't serve a blank section
+      return await fetchFeaturedProductsOptimized();
+    }
+
+    return cachedResult;
   } catch (error) {
-    // **PERFORMANCE**: Silent error handling
     console.error("Error fetching featured products:", error);
     return [];
   }
@@ -159,16 +160,11 @@ async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
       take: 8, // Show 8 products in the grid for better e-commerce showcase
     });
 
-    // **PERFORMANCE**: Add timeout to prevent slow database queries from blocking LCP
-    // In development, use longer timeout to allow debugging
-    const timeoutMs = process.env.NODE_ENV === "development" ? 5000 : 500;
+    // Allow enough time for Neon serverless cold starts (can take 1–3 s)
+    const timeoutMs = 5000;
     const timeoutPromise = new Promise<Product[]>(resolve => {
       setTimeout(() => {
-        if (process.env.NODE_ENV === "development") {
-          console.warn(
-            `[Featured Products] Query timed out after ${timeoutMs}ms`
-          );
-        }
+        console.warn(`[Featured Products] Query timed out after ${timeoutMs}ms`);
         resolve([]);
       }, timeoutMs);
     });
@@ -191,7 +187,6 @@ async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
   }
 }
 
-// **PERFORMANCE**: Cached homepage bundles query with defensive fallbacks
 async function getHomepageBundles(): Promise<HomeBundle[]> {
   try {
     const cacheKey = "homepage_bundles_v1";
@@ -204,7 +199,12 @@ async function getHomepageBundles(): Promise<HomeBundle[]> {
       TIME.CACHE_DURATION.MEDIUM
     );
 
-    return cachedResult || [];
+    // Guard: never serve a cached empty array — re-fetch if cache has nothing
+    if (!cachedResult || cachedResult.length === 0) {
+      return await fetchHomepageBundlesOptimized();
+    }
+
+    return cachedResult;
   } catch (error) {
     console.error("Error fetching homepage bundles:", error);
     return [];
@@ -293,14 +293,11 @@ async function fetchHomepageBundlesOptimized(): Promise<HomeBundle[]> {
       take: 3,
     });
 
-    const timeoutMs = process.env.NODE_ENV === "development" ? 5000 : 500;
+    // Allow enough time for Neon serverless cold starts (can take 1–3 s)
+    const timeoutMs = 5000;
     const timeoutPromise = new Promise<HomeBundle[]>(resolve => {
       setTimeout(() => {
-        if (process.env.NODE_ENV === "development") {
-          console.warn(
-            `[Homepage Bundles] Query timed out after ${timeoutMs}ms`
-          );
-        }
+        console.warn(`[Homepage Bundles] Query timed out after ${timeoutMs}ms`);
         resolve([]);
       }, timeoutMs);
     });
@@ -348,32 +345,17 @@ async function fetchHomepageBundlesOptimized(): Promise<HomeBundle[]> {
 export const revalidate = 1800; // Revalidate every 30 minutes for better cache freshness
 
 export default async function Home() {
-  // **PERFORMANCE**: Aggressive caching strategy for TTFB optimization
   let featuredProducts: Product[] = [];
   let homepageBundles: HomeBundle[] = [];
 
   try {
-    const featuredProductsPromise = Promise.race([
-      getFeaturedProducts(),
-      new Promise<Product[]>(resolve => {
-        setTimeout(() => resolve([]), 200);
-      }),
-    ]);
-
-    const bundlesPromise = Promise.race([
-      getHomepageBundles(),
-      new Promise<HomeBundle[]>(resolve => {
-        setTimeout(() => resolve([]), 220);
-      }),
-    ]);
-
+    // Run both fetches in parallel — each has its own 5s internal timeout
     [featuredProducts, homepageBundles] = await Promise.all([
-      featuredProductsPromise,
-      bundlesPromise,
+      getFeaturedProducts(),
+      getHomepageBundles(),
     ]);
   } catch (error) {
-    // **PERFORMANCE**: Silent fallback to prevent TTFB blocking
-    console.error("Cache error in homepage:", error);
+    console.error("Homepage data fetch error:", error);
     featuredProducts = [];
     homepageBundles = [];
   }

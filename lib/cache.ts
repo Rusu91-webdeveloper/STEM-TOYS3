@@ -513,11 +513,16 @@ export async function getCached<T>(
         // If not in cache, fetch fresh data
         const freshData = await fetchFn();
 
-        // **PERFORMANCE**: Use different TTL for different data types
-        const cacheTTL = getOptimizedTTL(key, ttl);
+        // Guard: never cache an empty array — it likely means a cold-start timeout fired.
+        // Caching [] would lock the page into showing nothing for the full TTL.
+        const isEmptyArray = Array.isArray(freshData) && freshData.length === 0;
 
-        // Store in Redis cache
-        await cache.set(key, freshData, Math.floor(cacheTTL / 1000)); // Convert ms to seconds
+        if (!isEmptyArray) {
+          // **PERFORMANCE**: Use different TTL for different data types
+          const cacheTTL = getOptimizedTTL(key, ttl);
+          // Store in Redis cache
+          await cache.set(key, freshData, Math.floor(cacheTTL / 1000)); // Convert ms to seconds
+        }
 
         if (process.env.NODE_ENV === "development") {
           console.log(
@@ -547,8 +552,12 @@ export async function getCached<T>(
     // If not in cache, fetch fresh data
     const freshData = await fetchFn();
 
-    // Store in memory cache
-    await memoryCache.set(key, freshData, Math.floor(ttl / 1000));
+    // Guard: never cache empty arrays (cold-start timeout results)
+    const isEmptyArray = Array.isArray(freshData) && freshData.length === 0;
+    if (!isEmptyArray) {
+      // Store in memory cache
+      await memoryCache.set(key, freshData, Math.floor(ttl / 1000));
+    }
 
     if (process.env.NODE_ENV === "development") {
       console.log(`💾 Memory cache MISS, stored fresh data for key: ${key}`);
