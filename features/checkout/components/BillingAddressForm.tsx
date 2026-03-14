@@ -9,6 +9,7 @@ import { useTranslation } from "@/lib/i18n";
 
 import { ShippingAddress } from "../types";
 import { ShippingAddressForm } from "./ShippingAddressForm";
+import { darkGlassCardClass } from "@/features/home/components/homeTheme";
 
 interface BillingAddressFormProps {
   useSameAddress: boolean;
@@ -35,16 +36,16 @@ export const BillingAddressForm = React.memo(function BillingAddressForm({
 
   return (
     <>
-      <div className="mt-6 rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm">
+      <div className={`${darkGlassCardClass} mt-6 p-4`}>
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-800 text-slate-300">
             <FileText className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-slate-950">
+            <p className="text-sm font-semibold text-slate-100">
               {t("billingAddressTitle", "Adresa de facturare")}
             </p>
-            <p className="mt-1 text-sm leading-relaxed text-slate-600">
+            <p className="mt-1 text-sm leading-relaxed text-slate-300">
               {t(
                 "billingAddressHint",
                 "Poți folosi aceeași adresă ca pentru livrare sau poți adăuga una separată pentru facturare."
@@ -55,7 +56,7 @@ export const BillingAddressForm = React.memo(function BillingAddressForm({
 
         <label
           htmlFor="billing-same"
-          className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-3"
+          className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-slate-800 px-3 py-3"
         >
           <Checkbox
             id="billing-same"
@@ -66,11 +67,11 @@ export const BillingAddressForm = React.memo(function BillingAddressForm({
           <div className="min-w-0">
             <Label
               htmlFor="billing-same"
-              className="text-sm font-medium leading-6 text-slate-900"
+              className="text-sm font-medium leading-6 text-slate-100"
             >
               {t("sameAsShipping", "Aceeași ca adresa de livrare")}
             </Label>
-            <p className="text-xs leading-5 text-slate-500">
+            <p className="text-xs leading-5 text-slate-400">
               {t(
                 "billingAddressToggleHelp",
                 "Debifează doar dacă ai nevoie de date diferite pentru factură."
@@ -81,16 +82,16 @@ export const BillingAddressForm = React.memo(function BillingAddressForm({
       </div>
 
       {showBillingForm && (
-        <div className="mt-4 rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm sm:p-5">
+        <div className={`${darkGlassCardClass} mt-4 p-4 sm:p-5`}>
           <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-800 text-slate-300">
               <MapPinHouse className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-medium text-slate-950">
+              <h3 className="text-lg font-medium text-slate-100">
                 {t("billingAddress", "Adresa de facturare")}
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-400">
                 {t(
                   "billingAddressFormHint",
                   "Completează datele care trebuie să apară pe documentele fiscale."
@@ -98,7 +99,7 @@ export const BillingAddressForm = React.memo(function BillingAddressForm({
               </p>
             </div>
           </div>
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/40 p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/10 bg-slate-800 p-3 sm:p-4">
             <h4 className="sr-only">
               {t("billingAddress", "Adresa de facturare")}
             </h4>

@@ -4,6 +4,7 @@ import React from "react";
 
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
+import { darkGlassCardClass } from "@/features/home/components/homeTheme";
 
 interface OrderSummarySectionProps {
   subtotal: number;
@@ -28,7 +29,7 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
   const { t } = useTranslation();
 
   return (
-    <div className="bg-white rounded-lg border p-4 sm:p-6">
+    <div className={`${darkGlassCardClass} p-4 sm:p-6`}>
       <h3 className="text-base sm:text-lg font-semibold mb-4">
         {t("orderSummary", "Order Summary")}
       </h3>
@@ -41,7 +42,7 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
 
         {/* **DISCOUNT LINE** */}
         {discountAmount > 0 && appliedCoupon && (
-          <div className="flex justify-between text-green-600 text-sm sm:text-base">
+          <div className="flex justify-between text-emerald-400 text-sm sm:text-base">
             <span className="font-medium truncate">
               {t("discount", "Discount")} ({appliedCoupon.code})
             </span>
@@ -62,13 +63,13 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
           <span>
             {t("shipping", "Shipping")}
             {shippingCost === 0 && (
-              <span className="ml-2 text-xs text-emerald-600 font-medium">
+              <span className="ml-2 text-xs text-emerald-400 font-medium">
                 (Transport gratuit!)
               </span>
             )}
           </span>
           <span
-            className={shippingCost === 0 ? "text-emerald-600 font-medium" : ""}
+            className={shippingCost === 0 ? "text-emerald-400 font-medium" : ""}
           >
             {shippingCost === 0 ? "GRATUIT" : formatPrice(shippingCost)}
           </span>
@@ -89,7 +90,7 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
         {/* **SAVINGS HIGHLIGHT** */}
         {discountAmount > 0 && (
           <div className="text-center pt-2">
-            <p className="text-xs sm:text-sm text-green-600 font-medium">
+            <p className="text-xs sm:text-sm text-emerald-400 font-medium">
               🎉 {t("youSaved", "You saved")} {formatPrice(discountAmount)}!
             </p>
           </div>

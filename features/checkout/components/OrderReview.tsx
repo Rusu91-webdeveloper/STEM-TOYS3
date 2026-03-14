@@ -12,6 +12,7 @@ import { CheckoutData, CheckoutStep } from "../types";
 import { OrderActions } from "./OrderActions";
 import { OrderSummarySection } from "./OrderSummarySection";
 import { usePricingBreakdown } from "./PricingBreakdown";
+import { darkGlassCardClass } from "@/features/home/components/homeTheme";
 
 interface OrderReviewProps {
   checkoutData: CheckoutData;
@@ -99,7 +100,7 @@ export function OrderReview({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="bg-white rounded-lg border p-4 sm:p-6">
+      <div className={`${darkGlassCardClass} p-4 sm:p-6`}>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
           <h2 className="text-lg sm:text-xl font-semibold">
             {t("orderReview", "Order Review")}
@@ -242,16 +243,16 @@ export function OrderReview({
           </div>
 
           {checkoutData.paymentMethod?.startsWith("netopia_") ? (
-            <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4 text-xs sm:text-sm">
+            <div className="rounded-2xl border border-sky-400/30 bg-sky-900/40 p-4 text-xs sm:text-sm">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-300">
                   <ShieldCheck className="h-4 w-4" />
                 </div>
                 <div className="space-y-1">
-                  <p className="font-medium break-words text-blue-950">
+                  <p className="font-medium break-words text-sky-100">
                     {paymentMethodLabel}
                   </p>
-                  <p className="text-blue-800">
+                  <p className="text-sky-300">
                     {t(
                       "netopiaReviewNotice",
                       "Veți fi redirecționat către Netopia pentru a finaliza plata după ce confirmați comanda."
@@ -261,17 +262,17 @@ export function OrderReview({
               </div>
             </div>
           ) : checkoutData.paymentMethod === "cash_on_delivery" ? (
-            <div className="rounded-2xl border border-amber-200 bg-[linear-gradient(135deg,rgba(255,251,235,0.95),rgba(255,255,255,1))] p-4 text-xs sm:text-sm">
+            <div className="rounded-2xl border border-amber-400/30 bg-amber-900/40 p-4 text-xs sm:text-sm">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-300">
                   <Banknote className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1 space-y-3">
                   <div>
-                    <p className="font-medium break-words text-amber-950">
+                    <p className="font-medium break-words text-amber-100">
                       {paymentMethodLabel}
                     </p>
-                    <p className="mt-1 text-amber-800">
+                    <p className="mt-1 text-amber-300">
                       {isLockerShippingForOrder
                         ? t(
                             "codLockerReviewNotice",
@@ -287,8 +288,8 @@ export function OrderReview({
                     <div
                       className={
                         checkoutData.codConsentAccepted
-                          ? "rounded-xl border border-emerald-200 bg-white px-3 py-2 text-emerald-700"
-                          : "rounded-xl border border-rose-200 bg-white px-3 py-2 text-rose-700"
+                          ? "rounded-xl border border-emerald-400/30 bg-slate-800 px-3 py-2 text-emerald-400"
+                          : "rounded-xl border border-rose-400/30 bg-slate-800 px-3 py-2 text-rose-400"
                       }
                     >
                       <p className="text-[11px] font-semibold uppercase tracking-wide">
@@ -309,8 +310,8 @@ export function OrderReview({
                     <div
                       className={
                         checkoutData.codGuaranteePaymentIntentId
-                          ? "rounded-xl border border-emerald-200 bg-white px-3 py-2 text-emerald-700"
-                          : "rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700"
+                          ? "rounded-xl border border-emerald-400/30 bg-slate-800 px-3 py-2 text-emerald-400"
+                          : "rounded-xl border border-white/10 bg-slate-800 px-3 py-2 text-slate-300"
                       }
                     >
                       <p className="text-[11px] font-semibold uppercase tracking-wide">
@@ -329,7 +330,7 @@ export function OrderReview({
                       </p>
                     </div>
                   </div>
-                  <p className="text-amber-900/85">
+                  <p className="text-amber-300/85">
                     {t(
                       "codReviewPostRefusal",
                       "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale/contabile aplicabile în România."

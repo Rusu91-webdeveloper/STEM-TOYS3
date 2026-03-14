@@ -437,7 +437,7 @@ export function FanboxMapPicker({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-white/20 bg-slate-950/30 p-2">
+      <div className="rounded-xl border border-white/20 bg-slate-900 p-2">
         <div className="mb-2 flex items-center justify-between gap-2">
           <p className="text-sm font-semibold text-slate-100">
             Hartă oficială FAN Courier
@@ -473,7 +473,7 @@ export function FanboxMapPicker({
         <div
           id={rootIdRef.current}
           ref={rootNodeRef}
-          className="h-[360px] overflow-hidden rounded-lg border border-white/10 bg-slate-900/60"
+          className="h-[360px] overflow-hidden rounded-lg border border-white/10 bg-slate-900"
         />
         {widgetStatus === "loading" && (
           <p className="mt-2 text-xs text-slate-300">
@@ -490,10 +490,10 @@ export function FanboxMapPicker({
         value={search}
         onChange={event => setSearch(event.target.value)}
         placeholder="Caută FANbox după nume sau adresă"
-        className="w-full rounded-lg border border-white/20 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-300 focus:border-sky-300 focus:outline-none"
+        className="w-full rounded-lg border border-white/20 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-300 focus:border-sky-300 focus:outline-none"
       />
 
-      <div className="max-h-64 space-y-2 overflow-y-auto rounded-xl border border-white/10 bg-slate-950/30 p-2">
+      <div className="max-h-64 space-y-2 overflow-y-auto rounded-xl border border-white/10 bg-slate-900 p-2">
         {visibleList.length === 0 ? (
           <p className="px-2 py-3 text-sm text-slate-300">
             Nu există rezultate pentru căutarea ta.
