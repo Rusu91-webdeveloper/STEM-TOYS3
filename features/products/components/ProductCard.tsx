@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Product } from "@/types/product";
 
@@ -30,6 +31,7 @@ export function ProductCard({
 }: ProductCardProps) {
   // CRITICAL: All hooks must be called unconditionally at the top level
   const { formatPrice } = useCurrency();
+  const { t } = useTranslation();
   const { addItem } = useShoppingCart();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
@@ -145,6 +147,13 @@ export function ProductCard({
 
   const isOutOfStock = stockQuantity <= 0;
   const isLowStock = stockQuantity > 0 && stockQuantity < 4;
+  const bundleLabel = t("bundle", "Bundle");
+  const bundleCtaLabel = t("addBundleToCart", "Add Bundle");
+  const addToCartLabel = t("addToCart", "Add to Cart");
+  const addingToCartLabel = t("addingToCart", "Adding...");
+  const addedLabel = t("added", "Added!");
+  const addedToCartLabel = t("addedToCart", "Added to Cart");
+  const outOfStockLabel = t("outOfStock", "Out of Stock");
 
   if (layout === "list") {
     return (
@@ -173,7 +182,7 @@ export function ProductCard({
             {isBundle && (
               <Badge className="bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-700 hover:to-sky-700 text-white border-0 shadow-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
                 <Package className="h-3 w-3 mr-1" />
-                Bundle Deal
+                {bundleLabel}
               </Badge>
             )}
             {isOnSale && (
@@ -183,13 +192,13 @@ export function ProductCard({
             )}
             {isOutOfStock && (
               <Badge className="bg-slate-900 text-white border-0 shadow-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                Sold Out
+                {outOfStockLabel}
               </Badge>
             )}
           </div>
           {isBundle && bundleItemsCount > 0 && (
             <div className="absolute top-3 right-3 z-20 rounded-md bg-slate-900/85 px-2 py-1 text-[10px] font-semibold text-white shadow-sm">
-              {bundleItemsCount} items
+              {bundleItemsCount} produse
             </div>
           )}
         </div>
@@ -220,7 +229,7 @@ export function ProductCard({
               <div className="rounded-lg border border-cyan-200 bg-cyan-50/80 px-3 py-2 flex items-center justify-between gap-2">
                 <span className="inline-flex items-center text-xs font-semibold text-cyan-800">
                   <Package className="h-3.5 w-3.5 mr-1.5" />
-                  Curated STEM Bundle
+                  {bundleLabel}
                 </span>
                 {bundleDiscount > 0 && (
                   <span className="text-xs font-bold text-emerald-700">
@@ -233,17 +242,17 @@ export function ProductCard({
             <div className="flex flex-wrap gap-2">
               {isBundle && bundleItemsCount > 0 && (
                 <div className="inline-flex items-center px-2 py-1 rounded-md bg-cyan-50 border border-cyan-100 text-xs font-medium text-cyan-700">
-                  {bundleItemsCount} items included
+                  {bundleItemsCount} produse incluse
                 </div>
               )}
               {product.ageRange && (
                 <div className="inline-flex items-center px-2 py-1 rounded-md bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600">
-                  Ages {product.ageRange}
+                  Vârsta {product.ageRange}
                 </div>
               )}
               {isLowStock && (
                 <div className="inline-flex items-center px-2 py-1 rounded-md bg-amber-50 border border-amber-100 text-xs font-medium text-amber-700">
-                  Only {stockQuantity} left
+                  Doar {stockQuantity} rămase
                 </div>
               )}
             </div>
@@ -263,7 +272,7 @@ export function ProductCard({
               </div>
               {isBundle && savingsAmount > 0 && (
                 <p className="text-xs font-medium text-emerald-600">
-                  Save {formatPrice(savingsAmount)}
+                  Economisești {formatPrice(savingsAmount)}
                 </p>
               )}
               {/* Optional: Add unit text if needed, e.g. "per item" */}
@@ -287,17 +296,17 @@ export function ProductCard({
               {isAddingToCart ? (
                 <span className="flex items-center gap-2">
                   <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin" />
-                  Adding...
+                  {addingToCartLabel}
                 </span>
               ) : justAdded ? (
                 <span className="flex items-center gap-2 font-medium">
-                  <ShoppingCart className="h-4 w-4" /> Added
+                  <ShoppingCart className="h-4 w-4" /> {addedToCartLabel}
                 </span>
               ) : isOutOfStock ? (
-                "Out of Stock"
+                outOfStockLabel
               ) : (
                 <span className="flex items-center gap-2 font-medium">
-                  {isBundle ? "Add Bundle" : "Add to Cart"}
+                  {isBundle ? bundleCtaLabel : addToCartLabel}
                 </span>
               )}
             </Button>
@@ -337,7 +346,7 @@ export function ProductCard({
           {isBundle && (
             <Badge className="border border-cyan-200 bg-cyan-50 text-cyan-800 shadow-none px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
               <Package className="h-3 w-3 mr-1" />
-              Bundle
+              {bundleLabel}
             </Badge>
           )}
           {isOnSale && (
@@ -347,18 +356,18 @@ export function ProductCard({
           )}
           {isOutOfStock && (
             <Badge className="border-0 bg-slate-900 text-white shadow-sm px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
-              Sold Out
+              {outOfStockLabel}
             </Badge>
           )}
           {!isOutOfStock && isLowStock && (
             <Badge className="border-0 bg-amber-500 text-white shadow-sm px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
-              Low Stock
+              Stoc limitat
             </Badge>
           )}
         </div>
         {isBundle && bundleItemsCount > 0 && (
           <div className="absolute right-2.5 top-2.5 z-20 rounded-full border border-white/80 bg-white/95 px-2 py-0.5 text-[10px] font-semibold text-slate-700 shadow-sm">
-            {bundleItemsCount} items
+            {bundleItemsCount} produse
           </div>
         )}
 
@@ -374,7 +383,7 @@ export function ProductCard({
                 ? "bg-emerald-500 hover:bg-emerald-600 text-white"
                 : isBundle && "hover:border-cyan-600 hover:bg-cyan-600"
             )}
-            title={isBundle ? "Quick Add Bundle" : "Quick Add"}
+            title={isBundle ? bundleCtaLabel : addToCartLabel}
           >
             {isAddingToCart ? (
               <div className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
@@ -434,12 +443,12 @@ export function ProductCard({
           </Link>
           {isBundle && bundleDiscount > 0 && (
             <p className="text-[10px] sm:text-[11px] font-medium text-cyan-700">
-              Bundle · -{bundleDiscount}%
+              {bundleLabel} · -{bundleDiscount}%
             </p>
           )}
           {isBundle && bundleItemsCount > 0 && (
             <p className="text-[10px] sm:text-[11px] text-slate-500">
-              {bundleItemsCount} items
+              {bundleItemsCount} produse
             </p>
           )}
         </div>
@@ -479,23 +488,23 @@ export function ProductCard({
             {isAddingToCart ? (
               <span className="flex items-center justify-center gap-1">
                 <div className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                <span className="hidden sm:inline">Adding...</span>
+                <span className="hidden sm:inline">{addingToCartLabel}</span>
               </span>
             ) : justAdded ? (
               <span className="flex items-center justify-center gap-1">
                 <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                <span>Added!</span>
+                <span>{addedLabel}</span>
               </span>
             ) : isOutOfStock ? (
-              <span className="hidden sm:inline">Out of Stock</span>
+              <span className="hidden sm:inline">{outOfStockLabel}</span>
             ) : (
               <span className="flex items-center justify-center gap-1">
                 <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 <span className="hidden xs:inline sm:inline">
-                  {isBundle ? "Add Bundle" : "Add to Cart"}
+                  {isBundle ? bundleCtaLabel : addToCartLabel}
                 </span>
                 <span className="xs:hidden sm:hidden">
-                  {isBundle ? "Bundle" : "Cart"}
+                  {isBundle ? bundleLabel : t("cart", "Cart")}
                 </span>
               </span>
             )}

@@ -140,19 +140,19 @@ export function AddToCartButton({
           {isAdded ? (
             <>
               <Check className="h-5 w-5" />
-              Added to Cart
+              Adăugat în coș
             </>
           ) : isOutOfStock ? (
             <>
               <ShoppingCart className="h-5 w-5" />
-              Out of Stock
+              Stoc epuizat
             </>
           ) : (
             <>
               <ShoppingCart className="h-5 w-5" />
               {hasVariants && showVariantSelector && !selectedVariantId
-                ? "Select Options"
-                : "Add to Cart"}
+                ? "Selectează opțiunile"
+                : "Adaugă în coș"}
             </>
           )}
         </button>

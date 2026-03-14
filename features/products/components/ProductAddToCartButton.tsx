@@ -266,7 +266,7 @@ export function ProductAddToCartButton({
           {isAdded ? (
             <>
               <Check className={config.icon} />
-              {size === "sm" ? "Added!" : "Added to Cart"}
+              {size === "sm" ? "Adăugat!" : "Adăugat în coș"}
             </>
           ) : isLoading ? (
             <>
@@ -276,26 +276,26 @@ export function ProductAddToCartButton({
                   "animate-spin border-2 border-current border-t-transparent rounded-full"
                 )}
               />
-              {size === "sm" ? "Adding..." : "Adding to Cart..."}
+              {size === "sm" ? "Se adaugă..." : "Se adaugă în coș..."}
             </>
           ) : isOutOfStock || isAtMaxInCart ? (
             <>
-              <span>Out of Stock</span>
+              <span>Stoc epuizat</span>
             </>
           ) : (
             <>
               <ShoppingCart className={config.icon} />
               {hasVariants && !selectedVariantId
                 ? size === "sm"
-                  ? "Select"
-                  : "Select Options"
+                  ? "Selectează"
+                  : "Selectează opțiunile"
                 : isBookAndNeedsLanguage
                   ? size === "sm"
-                    ? "Choose Language"
-                    : "Select Language"
+                    ? "Alege limba"
+                    : "Selectează limba"
                   : size === "sm"
-                    ? "Add"
-                    : "Add to Cart"}
+                    ? "Adaugă"
+                    : "Adaugă în coș"}
             </>
           )}
         </button>
@@ -307,11 +307,11 @@ export function ProductAddToCartButton({
       {isDisabled && !isAdded && !isLoading && !isOutOfStock && (
         <div className="text-xs text-gray-500 text-center bg-gray-50 px-4 py-2 rounded-lg">
           {languagesLoading
-            ? "Loading book information..."
+            ? "Se încarcă informații despre carte..."
             : hasVariants && !selectedVariantId
-              ? "Please select product options above"
+              ? "Te rugăm să selectezi opțiunile produsului de mai sus"
               : isBook && hasAvailableLanguages && !selectedLanguage
-                ? "Please choose your preferred language"
+                ? "Te rugăm să alegi limba preferată"
                 : ""}
         </div>
       )}

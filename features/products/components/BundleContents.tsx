@@ -64,6 +64,55 @@ export function BundleContents({ items, bundleSlug, t }: BundleContentsProps) {
         </div>
       </div>
 
+      <div className="rounded-xl border border-cyan-100 bg-gradient-to-br from-cyan-50 via-white to-sky-50 p-3 sm:p-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">
+              {t("bundleVisualGuideTitle", "Open any product included in this bundle")}
+            </p>
+            <p className="text-xs text-slate-600">
+              {t(
+                "bundleVisualGuideSubtitle",
+                "Each image below opens the full product page."
+              )}
+            </p>
+          </div>
+          <span className="inline-flex w-fit items-center rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-cyan-700 ring-1 ring-cyan-200">
+            {items.length} {t("products", "Products")}
+          </span>
+        </div>
+
+        <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+          {items.map(item => {
+            const imageUrl =
+              Array.isArray(item.images) && item.images.length > 0
+                ? item.images[0]
+                : "/placeholder-product.png";
+
+            return (
+              <Link
+                key={`bundle-preview-${item.id}`}
+                href={buildProductHref(item.slug)}
+                className="group min-w-[120px] max-w-[120px] rounded-xl border border-white/80 bg-white p-2 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-200 hover:shadow-md"
+              >
+                <div className="relative aspect-square overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
+                  <OptimizedProductImage
+                    src={imageUrl}
+                    alt={item.name}
+                    fill
+                    className="object-contain p-2 transition-transform duration-300 group-hover:scale-105"
+                    sizes="120px"
+                  />
+                </div>
+                <p className="mt-2 line-clamp-2 text-xs font-semibold text-slate-800 group-hover:text-cyan-700">
+                  {item.name}
+                </p>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         {items.map((item, index) => {
           const imageUrl =
@@ -74,18 +123,19 @@ export function BundleContents({ items, bundleSlug, t }: BundleContentsProps) {
           return (
             <article
               key={item.id}
-              className="group rounded-xl border border-slate-200 bg-white p-3 transition hover:border-cyan-300 hover:shadow-sm"
+              className="group rounded-xl border border-slate-200 bg-white p-3 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-sm"
             >
               <div className="flex gap-3">
                 <Link
                   href={buildProductHref(item.slug)}
                   className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50"
+                  aria-label={`${t("viewProduct", "View product")}: ${item.name}`}
                 >
                   <OptimizedProductImage
                     src={imageUrl}
                     alt={item.name}
                     fill
-                    className="object-contain p-1.5"
+                    className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-105"
                     sizes="80px"
                   />
                 </Link>
