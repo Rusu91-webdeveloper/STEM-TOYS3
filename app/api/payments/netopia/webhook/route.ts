@@ -187,9 +187,7 @@ export async function POST(request: Request) {
     console.log(`   Order ID: ${orderID || "Not provided"}`);
     console.log(`   Transaction ID: ${ntpID || "Not provided"}`);
     console.log(
-      `   Status Code: ${
-        normalizedStatusCode ?? rawStatus ?? "Not provided"
-      }`
+      `   Status Code: ${normalizedStatusCode ?? rawStatus ?? "Not provided"}`
     );
     console.log(`   Amount: ${amount} ${currency || ""}`);
 
@@ -439,6 +437,34 @@ export async function POST(request: Request) {
                 );
               }
             }
+          }
+
+          try {
+            const { syncOrderInvoiceToOblio } = await import(
+              "@/lib/integrations/oblio/service"
+            );
+            const invoiceSyncResult = await syncOrderInvoiceToOblio({
+              orderId: resolvedOrderId,
+            });
+
+            if (invoiceSyncResult.status === "failed") {
+              console.error(
+                `❌ [WEBHOOK] Oblio sync failed for order ${resolvedOrderId}: ${invoiceSyncResult.message}`
+              );
+            } else if (invoiceSyncResult.status === "synced") {
+              console.log(
+                `✅ [WEBHOOK] Oblio invoice synced for order ${resolvedOrderId}`
+              );
+            } else if (invoiceSyncResult.status === "already_synced") {
+              console.log(
+                `ℹ️ [WEBHOOK] Oblio invoice already synced for order ${resolvedOrderId}`
+              );
+            }
+          } catch (invoiceError) {
+            console.error(
+              `❌ [WEBHOOK] Unexpected Oblio sync error for order ${resolvedOrderId}:`,
+              invoiceError
+            );
           }
 
           // Check if order contains digital books

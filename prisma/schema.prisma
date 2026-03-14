@@ -316,7 +316,8 @@ model Address {
   localitate       String?
   sector           String?
   user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders           Order[]
+  shippingOrders   Order[] @relation("OrderShippingAddress")
+  billingOrders    Order[] @relation("OrderBillingAddress")
 }
 
 model PaymentCard {
@@ -597,12 +598,14 @@ model Order {
   updatedBy                    String?
   campaignApplications         CampaignApplication[]
   coupon                       Coupon?               @relation(fields: [couponId], references: [id])
-  shippingAddress              Address               @relation(fields: [shippingAddressId], references: [id])
   user                         User                  @relation(fields: [userId], references: [id])
+  billingAddress               Address?              @relation("OrderBillingAddress", fields: [billingAddressId], references: [id])
   items                        OrderItem[]
+  invoices                     OrderInvoice[]
   shipments                    Shipment[]
   statusHistory                OrderStatusHistory[]
   returns                      Return[]
+  shippingAddress              Address               @relation("OrderShippingAddress", fields: [shippingAddressId], references: [id])
   supplierOrders               SupplierOrder[]
 
   @@index([userId])
@@ -610,6 +613,7 @@ model Order {
   @@index([paymentStatus])
   @@index([orderNumber])
   @@index([couponId])
+  @@index([billingAddressId])
 }
 
 model Shipment {
@@ -1419,6 +1423,49 @@ model SupplierInvoice {
   @@index([dueDate])
 }
 
+model OrderInvoice {
+  id                    String                   @id @default(cuid())
+  orderId               String
+  provider              ExternalInvoiceProvider  @default(OBLIO)
+  documentType          ExternalInvoiceType      @default(INVOICE)
+  status                InvoiceStatus            @default(DRAFT)
+  syncStatus            ExternalSyncStatus       @default(PENDING)
+  einvoiceStatus        EinvoiceSyncStatus       @default(NOT_SENT)
+  seriesName            String?
+  number                String?
+  providerInvoiceId     String?
+  providerClientId      String?
+  providerLink          String?
+  providerEinvoiceLink  String?
+  issueDate             DateTime?
+  dueDate               DateTime?
+  currency              String                   @default("RON")
+  totalAmount           Float
+  collectType           String?
+  collectDocumentNumber String?
+  lastSyncAt            DateTime?
+  syncedAt              DateTime?
+  collectedAt           DateTime?
+  canceledAt            DateTime?
+  errorMessage          String?
+  requestHash           String?
+  payload               Json?
+  response              Json?
+  metadata              Json?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+  order                 Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, provider, documentType])
+  @@index([orderId])
+  @@index([provider])
+  @@index([documentType])
+  @@index([status])
+  @@index([syncStatus])
+  @@index([providerInvoiceId])
+  @@index([seriesName, number])
+}
+
 // Invoices received FROM suppliers (e.g., KidStory) - for reconciliation
 model ReceivedSupplierInvoice {
   id                   String                 @id @default(cuid())
@@ -2030,6 +2077,30 @@ enum PaymentStatus {
   PROCESSING
   COMPLETED
   CANCELLED
+}
+
+enum ExternalInvoiceProvider {
+  OBLIO
+}
+
+enum ExternalInvoiceType {
+  INVOICE
+  CREDIT_NOTE
+}
+
+enum ExternalSyncStatus {
+  PENDING
+  SYNCED
+  FAILED
+  SKIPPED
+}
+
+enum EinvoiceSyncStatus {
+  NOT_SENT
+  SENT
+  PROCESSING
+  ACCEPTED
+  REJECTED
 }
 
 enum ReturnReason {

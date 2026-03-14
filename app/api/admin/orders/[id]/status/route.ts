@@ -113,6 +113,28 @@ export async function PATCH(
     // Invalidate analytics cache since order status change affects analytics
     await invalidateAnalyticsOnOrderChange();
 
+    try {
+      const { syncOrderInvoiceToOblio, shouldSyncCodInvoiceForStatus } =
+        await import("@/lib/integrations/oblio/service");
+
+      if (shouldSyncCodInvoiceForStatus(validatedData.status)) {
+        const invoiceSyncResult = await syncOrderInvoiceToOblio({
+          orderId,
+        });
+
+        if (invoiceSyncResult.status === "failed") {
+          console.error(
+            `Failed to sync Oblio invoice after status update for ${orderId}: ${invoiceSyncResult.message}`
+          );
+        }
+      }
+    } catch (invoiceError) {
+      console.error(
+        `Unexpected Oblio sync error after status update for ${orderId}:`,
+        invoiceError
+      );
+    }
+
     return NextResponse.json({
       success: true,
       message: `Order status updated to ${validatedData.status}`,
@@ -167,6 +189,32 @@ export async function POST(req: NextRequest) {
 
     // Invalidate analytics cache since bulk order status changes affect analytics
     await invalidateAnalyticsOnOrderChange();
+
+    try {
+      const { syncOrderInvoiceToOblio, shouldSyncCodInvoiceForStatus } =
+        await import("@/lib/integrations/oblio/service");
+
+      if (shouldSyncCodInvoiceForStatus(validatedData.status)) {
+        const failedOrderIds = new Set(
+          result.errors.map(entry => entry.orderId)
+        );
+        for (const orderId of validatedData.orderIds) {
+          if (failedOrderIds.has(orderId)) continue;
+
+          const invoiceSyncResult = await syncOrderInvoiceToOblio({ orderId });
+          if (invoiceSyncResult.status === "failed") {
+            console.error(
+              `Failed to sync Oblio invoice after bulk status update for ${orderId}: ${invoiceSyncResult.message}`
+            );
+          }
+        }
+      }
+    } catch (invoiceError) {
+      console.error(
+        "Unexpected Oblio sync error after bulk status update:",
+        invoiceError
+      );
+    }
 
     return NextResponse.json({
       success: true,

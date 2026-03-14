@@ -36,6 +36,15 @@ export async function GET(
             },
           },
         },
+        billingAddress: true,
+        invoices: {
+          where: {
+            provider: "OBLIO",
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
         shippingAddress: true,
       },
     });
@@ -73,6 +82,8 @@ export async function GET(
             },
       })),
       shippingAddress: order.shippingAddress,
+      billingAddress: order.billingAddress,
+      invoices: order.invoices,
       subtotal: order.subtotal,
       tax: order.tax,
       shippingCost: order.shippingCost,

@@ -79,3 +79,4 @@ storybook-static
 backups/
 *.sql
 *.sql.gz
+!prisma/migrations/**/migration.sql

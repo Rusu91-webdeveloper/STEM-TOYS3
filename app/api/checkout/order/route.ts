@@ -749,8 +749,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "A valid shipping method is required for physical products.",
+          message: "A valid shipping method is required for physical products.",
           error: "SHIPPING_METHOD_REQUIRED",
         },
         { status: 400 }
@@ -1505,6 +1504,7 @@ export async function POST(request: Request) {
     console.log("DEBUG: user.id at order creation", user?.id);
     // Save shipping address to database or get existing address
     let shippingAddressId;
+    let billingAddressId: string | null = null;
 
     try {
       const shippingCompanyName = normalizeOptionalString(
@@ -1552,6 +1552,82 @@ export async function POST(request: Request) {
       // Use a placeholder ID for development
       if (process.env.NODE_ENV === "development") {
         shippingAddressId = "address-placeholder";
+      } else {
+        throw dbError;
+      }
+    }
+
+    try {
+      const effectiveBillingAddressData =
+        billingAddressData || shippingAddressData;
+      const billingMatchesShipping =
+        effectiveBillingAddressData.addressLine1 ===
+          shippingAddressData.addressLine1 &&
+        (effectiveBillingAddressData.addressLine2 || null) ===
+          (shippingAddressData.addressLine2 || null) &&
+        effectiveBillingAddressData.city === shippingAddressData.city &&
+        effectiveBillingAddressData.state === shippingAddressData.state &&
+        effectiveBillingAddressData.postalCode ===
+          shippingAddressData.postalCode &&
+        effectiveBillingAddressData.country === shippingAddressData.country &&
+        effectiveBillingAddressData.phone === shippingAddressData.phone &&
+        (normalizeOptionalString(effectiveBillingAddressData.companyName) ||
+          null) ===
+          (normalizeOptionalString(shippingAddressData.companyName) || null) &&
+        (normalizeOptionalString(effectiveBillingAddressData.cui) || null) ===
+          (normalizeOptionalString(shippingAddressData.cui) || null) &&
+        effectiveBillingAddressData.fullName === shippingAddressData.fullName;
+
+      if (billingMatchesShipping) {
+        billingAddressId = shippingAddressId;
+      } else {
+        const billingCompanyName = normalizeOptionalString(
+          effectiveBillingAddressData.companyName
+        );
+        const billingCui = normalizeOptionalString(
+          effectiveBillingAddressData.cui
+        );
+
+        const existingBillingAddress = await db.address.findFirst({
+          where: {
+            userId: user.id,
+            fullName: effectiveBillingAddressData.fullName,
+            addressLine1: effectiveBillingAddressData.addressLine1,
+            city: effectiveBillingAddressData.city,
+            postalCode: effectiveBillingAddressData.postalCode,
+            isBillingAddress: true,
+            ...(billingCompanyName ? { companyName: billingCompanyName } : {}),
+            ...(billingCui ? { cui: billingCui } : {}),
+          },
+        });
+
+        if (existingBillingAddress) {
+          billingAddressId = existingBillingAddress.id;
+        } else {
+          const newBillingAddress = await db.address.create({
+            data: {
+              userId: user.id,
+              name: "Billing Address",
+              companyName: billingCompanyName,
+              cui: billingCui,
+              fullName: effectiveBillingAddressData.fullName,
+              addressLine1: effectiveBillingAddressData.addressLine1,
+              addressLine2: effectiveBillingAddressData.addressLine2 || null,
+              city: effectiveBillingAddressData.city,
+              state: effectiveBillingAddressData.state,
+              postalCode: effectiveBillingAddressData.postalCode,
+              country: effectiveBillingAddressData.country,
+              phone: effectiveBillingAddressData.phone,
+              isBillingAddress: true,
+            },
+          });
+          billingAddressId = newBillingAddress.id;
+        }
+      }
+    } catch (dbError) {
+      console.error("Failed to create/find billing address:", dbError);
+      if (process.env.NODE_ENV === "development") {
+        billingAddressId = shippingAddressId;
       } else {
         throw dbError;
       }
@@ -1635,10 +1711,11 @@ export async function POST(request: Request) {
             status: isNetopiaPayment ? "PENDING_REVIEW" : "PROCESSING",
             paymentStatus:
               (orderData.paymentStatus as any) ??
-              ((isCODPayment || isNetopiaPayment || requiresOnlineAuthorization)
+              (isCODPayment || isNetopiaPayment || requiresOnlineAuthorization
                 ? "PENDING"
                 : "PAID"),
             shippingAddressId,
+            billingAddressId,
             stripePaymentIntentId: orderData.stripePaymentIntentId || null,
             // Store COD information in notes field (we can add proper fields later)
             notes:

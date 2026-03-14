@@ -20,8 +20,7 @@ const WEBHOOK_TOLERANCE = 300;
 
 const WEBHOOK_TAGS = {
   adminNewOrderEmailSent: "stripe:webhook:admin-new-order-email-sent",
-  orderConfirmationEmailSent:
-    "stripe:webhook:order-confirmation-email-sent",
+  orderConfirmationEmailSent: "stripe:webhook:order-confirmation-email-sent",
   manualReviewAlertSent: "stripe:webhook:manual-review-alert-sent",
 } as const;
 
@@ -95,7 +94,9 @@ export async function POST(request: Request) {
   const keyValidation = validateStripeSecretKey(stripeSecretKey);
   if (!keyValidation.valid && process.env.NODE_ENV === "production") {
     return NextResponse.json(
-      { error: `Stripe configuration error: ${keyValidation.error || "Invalid key"}` },
+      {
+        error: `Stripe configuration error: ${keyValidation.error || "Invalid key"}`,
+      },
       { status: 500 }
     );
   }
@@ -263,9 +264,8 @@ async function handleSuccessfulPayment(
     });
 
     if (!hasWebhookTag(orderTags, WEBHOOK_TAGS.adminNewOrderEmailSent)) {
-      const adminResult = await AdminNotificationService.sendNewOrderNotification(
-        order.id
-      );
+      const adminResult =
+        await AdminNotificationService.sendNewOrderNotification(order.id);
       if (!adminResult.success) {
         throw new Error(
           adminResult.error ||
@@ -412,6 +412,34 @@ async function handleSuccessfulPayment(
           );
         }
       }
+    }
+
+    try {
+      const { syncOrderInvoiceToOblio } = await import(
+        "@/lib/integrations/oblio/service"
+      );
+      const invoiceSyncResult = await syncOrderInvoiceToOblio({
+        orderId: order.id,
+      });
+
+      if (invoiceSyncResult.status === "failed") {
+        console.error(
+          `❌ [STRIPE][WEBHOOK] Oblio sync failed for order ${order.id}: ${invoiceSyncResult.message}`
+        );
+      } else if (invoiceSyncResult.status === "synced") {
+        console.log(
+          `✅ [STRIPE][WEBHOOK] Oblio invoice synced for order ${order.id}`
+        );
+      } else if (invoiceSyncResult.status === "already_synced") {
+        console.log(
+          `ℹ️ [STRIPE][WEBHOOK] Oblio invoice already synced for order ${order.id}`
+        );
+      }
+    } catch (invoiceError) {
+      console.error(
+        `❌ [STRIPE][WEBHOOK] Unexpected Oblio sync error for order ${order.id}:`,
+        invoiceError
+      );
     }
 
     // Send confirmation email for all orders (both digital and physical)
@@ -703,7 +731,8 @@ async function handleDispute(dispute: Stripe.Dispute, stripe: Stripe) {
       });
 
       // Send urgent alert to admin team about the dispute
-      const disputeDescription = `Payment dispute received for order ${order.orderNumber}. ` +
+      const disputeDescription =
+        `Payment dispute received for order ${order.orderNumber}. ` +
         `Dispute ID: ${dispute.id}, Amount: ${(dispute.amount / 100).toFixed(2)} ${dispute.currency.toUpperCase()}, ` +
         `Reason: ${dispute.reason || "Not specified"}. ` +
         `Respond within the deadline to avoid automatic loss.`;
@@ -714,7 +743,10 @@ async function handleDispute(dispute: Stripe.Dispute, stripe: Stripe) {
         disputeDescription,
         "URGENT"
       ).catch(err => {
-        console.error(`Failed to send dispute alert for order ${order.id}:`, err);
+        console.error(
+          `Failed to send dispute alert for order ${order.id}:`,
+          err
+        );
       });
     } else {
       console.warn(

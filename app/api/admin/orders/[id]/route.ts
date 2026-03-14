@@ -75,6 +75,13 @@ export async function GET(
             },
           },
         },
+        billingAddress: true,
+        invoices: {
+          where: {
+            provider: "OBLIO",
+          },
+          orderBy: { createdAt: "desc" },
+        },
         shippingAddress: true,
         shipments: {
           orderBy: { createdAt: "desc" },
@@ -172,6 +179,8 @@ export async function GET(
       couponCode: order.couponCode,
       total: order.total,
       shippingAddress: order.shippingAddress,
+      billingAddress: order.billingAddress,
+      invoices: order.invoices,
       shipments: order.shipments.map(shipment => ({
         id: shipment.id,
         courier: shipment.courier,
