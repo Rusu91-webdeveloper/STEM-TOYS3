@@ -91,7 +91,8 @@ export default function ProductDetailClient({
     fetchFreeShippingSettings();
   }, []);
 
-  const getCategoryName = () => product.category?.name || t("generalCategory");
+  const getCategoryName = () =>
+    product.category?.name?.trim() || t("allProducts", "All products");
 
   const derivedIsBook = Boolean(
     isBook ??
