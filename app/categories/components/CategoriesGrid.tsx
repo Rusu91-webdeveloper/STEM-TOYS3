@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { useTranslation, TranslationKey } from "@/lib/i18n";
 import {
-  glassCardClass,
+  darkGlassCardClass,
   gradientButtonClass,
 } from "@/features/home/components/homeTheme";
 
@@ -37,7 +37,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
           prefetch
         >
           <div
-            className={`${glassCardClass} relative overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-2xl`}
+          className={`${darkGlassCardClass} relative overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-2xl`}
           >
             {/* Image section */}
             <div className="relative w-full h-48 sm:h-56 md:h-64">
@@ -98,9 +98,9 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
               {/* CTA Arrow */}
               <div className="mt-8 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-400/80">
-                  <span className="h-px w-8 bg-slate-500/40" aria-hidden />
+                  <span className="h-px w-8 bg-slate-600" aria-hidden />
                   STEM
-                  <span className="h-px w-8 bg-slate-500/40" aria-hidden />
+                  <span className="h-px w-8 bg-slate-600" aria-hidden />
                 </div>
                 <span
                   className={`${gradientButtonClass} inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-semibold uppercase tracking-wide shadow-lg shadow-sky-500/25`}
