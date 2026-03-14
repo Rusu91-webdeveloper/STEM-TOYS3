@@ -306,13 +306,13 @@ const PaymentMethodSelectorComponent = ({
   ) => {
     switch (variant) {
       case "recommended":
-        return "border border-violet-200 bg-violet-50 text-violet-700";
+        return "border border-violet-500/30 bg-violet-500/10 text-violet-300";
       case "popular":
-        return "border border-amber-200 bg-amber-50 text-amber-700";
+        return "border border-amber-500/30 bg-amber-500/10 text-amber-300";
       case "saved":
-        return "border border-emerald-200 bg-emerald-50 text-emerald-700";
+        return "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300";
       case "unavailable":
-        return "border border-rose-200 bg-rose-50 text-rose-700";
+        return "border border-rose-500/30 bg-rose-500/10 text-rose-300";
       default:
         return "border border-white/10 bg-slate-800 text-slate-300";
     }
@@ -322,48 +322,58 @@ const PaymentMethodSelectorComponent = ({
     switch (provider) {
       case "stripe":
         return {
-          bg: "bg-violet-100",
-          text: "text-violet-700",
+          bg: "bg-violet-500/10",
+          text: "text-violet-400",
           icon: <ShieldCheck className="h-3.5 w-3.5" />,
           label: "Stripe",
+          borderAndGlow: "border-violet-500/50 shadow-[0_0_15px_rgba(139,92,246,0.15)] ring-1 ring-violet-500/20 bg-gradient-to-br from-violet-500/10 to-transparent",
         };
       case "netopia":
         return {
-          bg: "bg-blue-100",
-          text: "text-blue-700",
+          bg: "bg-blue-500/10",
+          text: "text-blue-400",
           icon: <CreditCard className="h-3.5 w-3.5" />,
           label: "Netopia",
+          borderAndGlow: "border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20 bg-gradient-to-br from-blue-500/10 to-transparent",
         };
       case "cod":
         return {
-          bg: "bg-amber-100",
-          text: "text-amber-700",
+          bg: "bg-amber-500/10",
+          text: "text-amber-400",
           icon: <Banknote className="h-3.5 w-3.5" />,
           label: t("cashOnDelivery", "Ramburs"),
+          borderAndGlow: "border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/20 bg-gradient-to-br from-amber-500/10 to-transparent",
         };
       default:
         return {
-          bg: "bg-slate-800",
-          text: "text-slate-300",
+          bg: "bg-slate-500/10",
+          text: "text-slate-400",
           icon: <CreditCard className="h-3.5 w-3.5" />,
           label: "Payment",
+          borderAndGlow: "border-slate-500/50 ring-1 ring-slate-500/20 bg-gradient-to-br from-slate-500/10 to-transparent",
         };
     }
   };
 
   const getColorConfig = (color: string) => {
-    const configs: Record<string, { icon: string; bg: string }> = {
+    const configs: Record<string, { icon: string; bg: string; checkBg: string; checkBorder: string }> = {
       violet: {
-        icon: "text-violet-600",
-        bg: "bg-violet-50",
+        icon: "text-violet-400",
+        bg: "bg-violet-500/10",
+        checkBg: "bg-violet-500",
+        checkBorder: "border-violet-500",
       },
       blue: {
-        icon: "text-blue-600",
-        bg: "bg-blue-50",
+        icon: "text-blue-400",
+        bg: "bg-blue-500/10",
+        checkBg: "bg-blue-500",
+        checkBorder: "border-blue-500",
       },
       amber: {
-        icon: "text-amber-600",
-        bg: "bg-amber-50",
+        icon: "text-amber-400",
+        bg: "bg-amber-500/10",
+        checkBg: "bg-amber-500",
+        checkBorder: "border-amber-500",
       },
     };
     return configs[color] || configs.violet;
@@ -535,32 +545,30 @@ const PaymentMethodSelectorComponent = ({
               key={method.id}
               htmlFor={`payment-${method.id}`}
               className={cn(
-                "group relative flex gap-3 rounded-3xl border px-4 py-4 shadow-sm transition-all",
+                "group relative flex gap-4 rounded-3xl border px-5 py-5 transition-all duration-300 ease-out",
                 isDisabled
-                  ? "cursor-not-allowed border-white/10 bg-slate-800/50 opacity-85"
-                  : "cursor-pointer bg-slate-800",
+                  ? "cursor-not-allowed border-white/5 bg-slate-800/20 opacity-50"
+                  : "cursor-pointer bg-slate-800/80 hover:bg-slate-800 backdrop-blur-sm",
                 !isDisabled &&
                   (isSelected
-                    ? "border-emerald-300 ring-2 ring-emerald-100"
-                    : "border-white/10 hover:border-white/20 hover:bg-slate-700")
+                    ? providerStyles.borderAndGlow + " scale-[1.01] z-10"
+                    : "border-white/10 hover:border-white/20 hover:scale-[1.005] hover:shadow-lg")
               )}
             >
               <div
                 className={cn(
-                  "mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all",
+                  "mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300",
                   isDisabled
-                    ? "border-slate-600 bg-slate-700"
+                    ? "border-slate-700 bg-slate-800"
                     : isSelected
-                      ? "border-emerald-700 bg-emerald-700 shadow-sm"
-                      : "border-white/20 bg-slate-700"
+                      ? `${colorConfig.checkBorder} ${colorConfig.checkBg} scale-110 shadow-sm`
+                      : "border-slate-500 bg-transparent group-hover:border-slate-400"
                 )}
               >
                 {isDisabled ? (
-                  <Lock className="h-3 w-3 text-slate-500" />
+                  <Lock className="h-2.5 w-2.5 text-slate-600" />
                 ) : (
-                  isSelected && (
-                    <Check className="h-4 w-4 text-white" strokeWidth={3} />
-                  )
+                  <Check className={cn("h-3 w-3 text-white transition-transform duration-300", isSelected ? "scale-100 opacity-100" : "scale-0 opacity-0")} strokeWidth={3} />
                 )}
               </div>
 
@@ -571,25 +579,25 @@ const PaymentMethodSelectorComponent = ({
                 className="sr-only"
               />
 
-              <div className="flex flex-1 items-start gap-3.5">
+              <div className="flex flex-1 items-start gap-4">
                 <div
                   className={cn(
-                    "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-colors",
+                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 shadow-inner",
                     isDisabled
-                      ? "bg-slate-700"
+                      ? "bg-slate-800 border border-white/5"
                       : isSelected
-                        ? colorConfig.bg
-                        : "bg-slate-700 group-hover:bg-slate-600"
+                        ? colorConfig.bg + " border border-white/10 scale-105"
+                        : "bg-slate-700 border border-white/5 group-hover:bg-slate-600"
                   )}
                 >
                   <div
                     className={cn(
-                      "transition-colors",
+                      "transition-all duration-300",
                       isDisabled
-                        ? "text-slate-400"
+                        ? "text-slate-500"
                         : isSelected
-                          ? colorConfig.icon
-                          : "text-slate-500 group-hover:text-slate-600"
+                          ? colorConfig.icon + " scale-110"
+                          : "text-slate-400 group-hover:text-slate-300"
                     )}
                   >
                     {method.icon}
@@ -599,14 +607,14 @@ const PaymentMethodSelectorComponent = ({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <h3 className="text-sm font-semibold text-white sm:text-base">
+                      <h3 className="text-base font-semibold text-white tracking-tight sm:text-[17px]">
                         {method.name}
                       </h3>
                       {(method.description || method.disabledReason) && (
                         <p
                           className={cn(
-                            "mt-1 text-xs leading-relaxed",
-                            isDisabled ? "text-slate-500" : "text-slate-300"
+                            "mt-1 text-sm leading-relaxed max-w-[95%]",
+                            isDisabled ? "text-slate-500" : "text-slate-400"
                           )}
                         >
                           {method.disabledReason || method.description}
@@ -614,17 +622,17 @@ const PaymentMethodSelectorComponent = ({
                       )}
                     </div>
                     {method.fee && !isDisabled && (
-                      <span className="inline-flex items-center rounded-full bg-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-300">
+                      <span className="inline-flex items-center rounded-lg border border-white/10 bg-slate-700/50 px-2.5 py-1 text-xs font-semibold text-slate-300 backdrop-blur-md">
                         {method.fee}
                       </span>
                     )}
                   </div>
 
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
                     {method.badge && (
                       <span
                         className={cn(
-                          "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                          "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-sm",
                           getBadgeStyles(method.badgeVariant)
                         )}
                       >
@@ -634,7 +642,7 @@ const PaymentMethodSelectorComponent = ({
 
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border border-white/5 backdrop-blur-md shadow-sm",
                         providerStyles.bg,
                         providerStyles.text
                       )}
