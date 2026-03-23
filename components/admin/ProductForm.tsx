@@ -159,7 +159,9 @@ export default function ProductForm({
   // Form hook
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData
+      ? { ...initialData, slug: slugify(initialData.slug ?? "") }
+      : {
       name: "",
       slug: "",
       sku: "",
@@ -486,7 +488,13 @@ export default function ProductForm({
                       <FormItem>
                         <FormLabel>Slug</FormLabel>
                         <FormControl>
-                          <Input placeholder="product-slug" {...field} />
+                          <Input
+                            placeholder="product-slug"
+                            {...field}
+                            onChange={e =>
+                              field.onChange(slugify(e.target.value))
+                            }
+                          />
                         </FormControl>
                         <FormDescription>
                           Used in the URL. Auto-generated from name.
