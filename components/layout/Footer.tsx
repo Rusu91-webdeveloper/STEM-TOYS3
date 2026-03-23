@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { useTranslation } from "@/lib/i18n";
+import { getRegionalStemLinks } from "@/lib/seo/regional-search";
 
 interface StoreSettings {
   storeName: string;
@@ -413,8 +414,26 @@ export default function Footer({
           </div>
         </div>
 
+        {/* City SEO links — internal linking without cluttering the homepage */}
+        <div className="mt-10 border-t border-white/5 pt-6">
+          <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-600">
+            Livrare rapidă în
+          </p>
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            {getRegionalStemLinks().map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-xs text-gray-500 transition-colors hover:text-gray-300"
+              >
+                {link.label.replace("Jucarii STEM ", "")}
+              </Link>
+            ))}
+          </div>
+        </div>
+
         {/* Bottom Bar: Payments & Copyright */}
-        <div className="mt-12 border-t border-white/5 pt-8">
+        <div className="mt-10 border-t border-white/5 pt-8">
           <div className="flex flex-col-reverse justify-between gap-6 lg:flex-row lg:items-center">
             {/* Copyright & Legal */}
             <div className="flex flex-col gap-4 text-center lg:text-left">

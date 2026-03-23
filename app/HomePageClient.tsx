@@ -11,7 +11,6 @@ import { CategoriesSection } from "@/features/home/components/CategoriesSection"
 import { FeaturedProductsGrid } from "@/features/home/components/FeaturedProductsGrid";
 import { HeroSection } from "@/features/home/components/HeroSection";
 import PillarSection from "@/features/home/components/PillarSection";
-import { SearchJourneysSection } from "@/features/home/components/SearchJourneysSection";
 import type { HomeBundle } from "@/features/home/types";
 import { publicConfig } from "@/lib/config/app-config";
 import { useCurrency } from "@/lib/currency";
@@ -352,8 +351,6 @@ export default function HomePageClient({
         >
           <PillarSection />
         </Suspense>
-
-        <SearchJourneysSection />
 
         {/* Supplier Banner - Only visible on Home page */}
         <SupplierBanner t={t} />
