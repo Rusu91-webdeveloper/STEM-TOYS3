@@ -29,7 +29,7 @@ import {
 import { ProductDeleteButton } from "@/app/admin/products/components/ProductDeleteButton";
 import { ProductStatusActions } from "@/app/admin/products/components/ProductStatusActions";
 import { ProductEnhancementModal } from "./ProductEnhancementModal";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Product {
@@ -51,6 +51,7 @@ interface Product {
   stemDiscipline?: string;
   learningOutcomes?: string[];
   productType?: string;
+  featured?: boolean;
   specialCategories?: string[];
   status?: string;
   supplier?: {
@@ -73,6 +74,28 @@ interface ProductGridProps {
 function ProductCard({ product }: { product: Product }) {
   const router = useRouter();
   const [showEnhancementModal, setShowEnhancementModal] = useState(false);
+  const [isFeatured, setIsFeatured] = useState(product.featured ?? false);
+  const [isTogglingFeatured, setIsTogglingFeatured] = useState(false);
+
+  const toggleFeatured = async () => {
+    if (isTogglingFeatured) return;
+    try {
+      setIsTogglingFeatured(true);
+      const newValue = !isFeatured;
+      const res = await fetch(`/api/admin/products/${product.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ featured: newValue }),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      setIsFeatured(newValue);
+    } catch {
+      // revert optimistic update on failure
+      setIsFeatured(isFeatured);
+    } finally {
+      setIsTogglingFeatured(false);
+    }
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("ro-RO", {
@@ -135,11 +158,17 @@ function ProductCard({ product }: { product: Product }) {
             <CardDescription className="mt-1">
               {product.category?.name || "Fără categorie"}
             </CardDescription>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               <Badge variant="default" className="bg-purple-600">
                 STEM
               </Badge>
               {getStatusBadge(product.status)}
+              {isFeatured && (
+                <Badge variant="default" className="bg-amber-500 gap-1">
+                  <Star className="h-3 w-3 fill-current" />
+                  Featured
+                </Badge>
+              )}
               {product.supplier?.companyName && (
                 <Badge variant="outline">{product.supplier.companyName}</Badge>
               )}
@@ -248,6 +277,17 @@ function ProductCard({ product }: { product: Product }) {
                 Enhance with AI
               </Button>
             )}
+
+            <Button
+              variant={isFeatured ? "default" : "outline"}
+              size="sm"
+              onClick={toggleFeatured}
+              disabled={isTogglingFeatured}
+              className={isFeatured ? "bg-amber-500 hover:bg-amber-600 border-amber-500" : ""}
+            >
+              <Star className={`h-4 w-4 mr-2 ${isFeatured ? "fill-current" : ""}`} />
+              {isFeatured ? "Remove from Featured" : "Mark as Featured"}
+            </Button>
 
             <Button asChild variant="default" size="sm" className="flex-1">
               <Link href={`/admin/products/${product.id}`}>Editează</Link>

@@ -3,6 +3,7 @@
 import {
   LayoutDashboard,
   Package,
+  Star,
   ShoppingCart,
   Users,
   Settings,
@@ -82,6 +83,11 @@ export const adminNavItems = [
     title: "Products",
     href: "/admin/products",
     icon: Package,
+  },
+  {
+    title: "Featured Products",
+    href: "/admin/featured-products",
+    icon: Star,
   },
   {
     title: "Books",

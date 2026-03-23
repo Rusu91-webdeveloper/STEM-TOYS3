@@ -20,6 +20,7 @@ const productUpdateSchema = z.object({
     .min(0, "Stock quantity must be non-negative")
     .optional(),
   isActive: z.boolean().optional(),
+  featured: z.boolean().optional(),
   categoryId: z.string().optional(),
   tags: z.array(z.string()).optional(),
   images: z.array(z.string()).optional(),

@@ -55,6 +55,7 @@ interface Product {
   learningOutcomes?: string[];
   productType?: string;
   specialCategories?: string[];
+  featured?: boolean;
   status?: string;
   supplier?: {
     id: string;
