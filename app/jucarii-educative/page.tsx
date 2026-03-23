@@ -5,27 +5,31 @@ import { createMetadata } from "@/lib/metadata";
 
 const faq = [
   {
-    question: "Care este diferenta dintre jucarii educative si jucarii STEM?",
+    question: "Sunt prea scumpe jucăriile educative față de ce găsesc în magazine?",
     answer:
-      "Jucariile educative sunt categoria mai larga. Jucariile STEM sunt o subcategorie orientata spre logica, experiment, constructie, programare si invatare aplicata.",
+      "Prețul reflectă de obicei materialele, siguranța și cât rezistă la repetări: o jucărie la care copilul revine săptămână de săptămână îți scoate din ecuație „cumpăr din nou peste o lună”. La TechTots lucrăm cu branduri precum Fischertechnik, Thames & Kosmos, Djeco, 4M sau Magblox tocmai pentru a avea în coș variante care merită banii, nu doar ambalaj frumos. Compară ce primești în cutie și pentru ce vârstă e gândită — acolo se vede dacă merită.",
   },
   {
-    question:
-      "Ce jucarii educative aleg pentru un copil curios, dar usor plictisit?",
+    question: "Cum știu că e potrivită pentru vârsta copilului meu?",
     answer:
-      "Cele mai bune optiuni sunt cele cu feedback rapid: experimente scurte, jocuri logice, robotica entry-level si constructii cu rezultate vizibile.",
+      "Începe mereu de pe etichetă: vârsta recomandată e făcută să prevină frustrarea (prea greu) sau plictiseala (prea simplu). Urmărește și cât de mult poate lucra singur: unii copii vor autonomie din prima, alții au nevoie de un adult la început, iar asta e normal. La noi găsești produse pentru 3–14 ani; dacă ești între două variante, alege-o pe cea care îi lasă loc să crească, nu să o termine într-o după-amiază.",
   },
   {
-    question: "Pot jucariile educative sa fie si distractive?",
+    question: "Chiar se joacă copilul cu ele sau rămân în dulap după două zile?",
     answer:
-      "Da. De fapt, cele mai bune produse din nisa sunt exact cele in care copilul simte ca se joaca, iar parintele vede beneficii reale de invatare.",
+      "Cel mai bun semn e o joacă cu feedback rapid: vede rezultat, poate încerca altceva, nu așteaptă jumătate de oră până „se întâmplă ceva”. Ferește-te de jucăriile care sună educative dar sunt doar o singură apăsare de buton fără sens. Când activitatea are pași clari și un rezultat vizibil — un experiment, un model care stă în picioare, un cod care face robotul să se miște — copilul revine pentru că îi dă plăcere, nu pentru că i-ai cerut tu.",
+  },
+  {
+    question: "Cu ce sunt diferite de jucăriile „normale”, de la raft?",
+    answer:
+      "Jucăriile obișnuite pot fi grozave pentru relaxare; cele educative adaugă un scop practic: copilul exersează ceva concret — logică, mâini îndemânatice, răbdare, încercări repetate. Nu e vorba să înlocuiești toată joaca „de plăcere”, ci să ai în casă și variante care îl ajută să observe, să întrebe și să rezolve. Diferența se simte în timp: se vede nu doar în seara aia, ci în felul în care își ia singur inițiativa.",
   },
 ];
 
 export const metadata: Metadata = createMetadata({
-  title: "Jucarii Educative pentru Copii | Jucarii Educative Online Romania",
+  title: "Jucării educative pentru copii | TechTots.ro",
   description:
-    "Alege jucarii educative pentru copii care dezvolta logica, atentia, creativitatea si autonomia. Descopera selectii relevante pentru acasa, scoala si cadouri inteligente.",
+    "Jucării educative pentru copii 3–14 ani: branduri precum Fischertechnik, Thames & Kosmos, Djeco, 4M, Magblox. Livrare în 1–3 zile în România. Alege după ce exersează copilul: știință, construcții, robotică sau matematică aplicată.",
   keywords: [
     "jucarii educative",
     "jucarii educative copii",
@@ -41,9 +45,9 @@ export const metadata: Metadata = createMetadata({
     {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
-      name: "Jucarii Educative pentru Copii",
+      name: "Jucării educative pentru copii",
       description:
-        "Pagina comerciala pentru jucarii educative, cu rute catre selectii STEM, logica, stiinta, robotica si recomandari dupa varsta.",
+        "Jucării educative pentru copii, cu selecție pe categorii: știință și experimente, construcții și logică, robotică și programare, matematică aplicată. Livrare în România.",
       url: "https://www.techtots.ro/jucarii-educative",
       inLanguage: "ro",
     },
@@ -65,115 +69,79 @@ export const metadata: Metadata = createMetadata({
 export default function EducationalToysLandingPage() {
   return (
     <CommercialLandingPage
-      eyebrow="Intentie Comerciala"
-      title="Jucarii educative care fac legatura dintre joaca de zi cu zi si invatarea care conteaza"
-      description="Termenul jucarii educative atrage un public foarte larg in Romania. Pagina asta filtreaza acea intentie spre selectii mai precise: STEM, varsta, logica, creativitate si cadouri cu valoare educativa reala."
+      eyebrow="TechTots.ro"
+      title="Jucării educative care îl ajută să învețe jucând"
+      description="Aici găsești jucării educative alese pentru copii între 3 și 14 ani: de la experimente și construcții la robotică și matematică aplicată, de la branduri pe care te poți baza (Fischertechnik, Thames & Kosmos, Djeco, 4M, Magblox). Rămâi dacă vrei recomandări sincere, livrare în 1–3 zile și tot ce ai nevoie ca să alegi dintr-o dată potrivit pentru copilul tău, nu doar „educativ” pe etichetă."
       primaryCta={{
         href: "/products",
-        label: "Exploreaza jucariile educative",
+        label: "Vezi jucăriile din magazin",
       }}
-      secondaryCta={{ href: "/jucarii-stem", label: "Vezi selectia STEM" }}
+      secondaryCta={{
+        href: "/jucarii-stem-dupa-varsta",
+        label: "Alege după vârstă",
+      }}
       proofPoints={[
-        "Capteaza cautari generale cu intentie comerciala mare",
-        "Trimite spre subcategoriile care convertesc mai bine",
-        "Sprijina cautarile pentru cadouri si recomandari pentru parinti",
+        "Branduri premium, testate în familii ca a ta",
+        "Livrare în 1–3 zile, în România",
+        "Vârste 3–14 ani, cu produse care țin pasul cu copilul",
       ]}
-      quickFacts={[
-        {
-          label: "Intentie principala",
-          value: "jucarii educative, jucarii educative copii, jocuri educative copii",
-        },
-        {
-          label: "Intentii secundare",
-          value: "cadouri educative, jucarii pentru invatare, jucarii educative online",
-        },
-        {
-          label: "Pentru cine este",
-          value: "Familii care stiu ca vor valoare educativa, dar nu au decis inca disciplina sau categoria.",
-        },
-        {
-          label: "Rol in cluster",
-          value: "Pagina filtreaza intentia larga si o distribuie spre STEM, logica, robotica si selectie dupa varsta.",
-        },
-      ]}
+      quickFacts={[]}
+      guidesHeadline={{
+        kicker: "Sfaturi de părinte",
+        title: "Cum alegi o jucărie cu valoare educativă reală",
+        intro: "",
+      }}
       guides={[
         {
-          title: "Cand incepi cu termenul jucarii educative",
+          title: "Respectă vârsta, nu sloganul de pe cutie",
           description:
-            "Cand utilizatorul nu cauta inca explicit STEM, dar vrea sa evite jucariile fara valoare de invatare si are nevoie de recomandari mai clare.",
+            "Dacă e prea sus, copilul renunță; dacă e prea jos, se plictisește. Eticheta e un reper, nu un concurs — folosește-o ca să îi lași loc să reușească fără să fie nevoie să sari peste trei capitole ca să ajungă la joacă.",
         },
         {
-          title: "Cum transformi intentia larga in selectie buna",
+          title: "Caută un lucru concret de făcut, nu „activitate” generică",
           description:
-            "Separi produsele dupa ce vrei sa construiasca: logica, creativitate, atentie, autonomie sau invatare practica. Apoi trimiti spre categoria specializata.",
+            "O jucărie utilă îi arată copilului ce urmează: pune, combină, încearcă, observă. Dacă după deschidere nu știe ce are de făcut în cinci minute, probabil va cere ajutorul tău la fiecare pas — și obosește amândoi.",
         },
         {
-          title: "De ce aceasta pagina trebuie sa existe separat",
+          title: "Uită-te la materiale și la ce lasă în mână",
           description:
-            "Pentru ca multi cumparatori intra in magazin prin interogari generale. Daca nu exista o pagina dedicata, intentia larga se amesteca inutil cu pagina STEM principala.",
+            "Vrei piese care se potrivesc bine, instrucțiuni clare și siguranță acolo unde sunt părți mici sau experimente. Nu trebuie să fii inginer; trebuie doar să simți că poți lăsa copilul să lucreze fără să crăpi de grijă la fiecare piesă.",
+        },
+        {
+          title: "Întreabă-te: ce exersează aici, de fapt?",
+          description:
+            "Răbdare, ordine, numărare, încercări repetate, curiozitate — una dintre ele trebuie să iasă la suprafață. Dacă nu poți răspunde sincer, probabil e mai mult decor decât învățare.",
         },
       ]}
-      checklistTitle="Cum alegi jucarii educative fara sa te pierzi in optiuni"
-      checklistIntro="Pagina trebuie sa raspunda intentiei comerciale largi si sa duca repede spre o selectie potrivita, nu doar spre produse etichetate vag ca educative."
-      checklistItems={[
-        "Clarifica daca vrei dezvoltare prin logica, stiinta, robotica sau constructii.",
-        "Verifica daca produsul are activitate practica si feedback real pentru copil.",
-        "Alege in functie de varsta, nu doar de titlul produsului.",
-        "Foloseste huburile STEM si inteligent pentru filtrare mai fina cand intentia devine mai specifica.",
-      ]}
-      benefits={[
-        {
-          title: "Acopera publicul mai larg",
-          description:
-            "Nu toti cumparatorii cauta direct STEM. Multi intra prin termeni ca jucarii educative, jocuri educative sau cadouri educative.",
-        },
-        {
-          title: "Reduce cannibalizarea",
-          description:
-            "Pagina separa intentia generala de intentia strict STEM si lasa fiecare cluster sa se specializeze pe propriul set de cautari.",
-        },
-        {
-          title: "Creste sansele de descoperire in AI search",
-          description:
-            "Explicatiile clare despre beneficii, selectie si utilizare practica cresc sansele ca pagina sa fie citata in raspunsuri sintetice.",
-        },
-      ]}
+      clustersHeadline={{
+        kicker: "În catalog",
+        title: "Cele mai căutate categorii educative",
+        intro: "",
+      }}
       clusters={[
         {
-          href: "/jucarii-stem",
-          label: "Jucarii STEM",
+          href: "/categories/science-experiments",
+          label: "Știință și experimente",
           description:
-            "Varianta specializata pentru parintii care cauta deja disciplina STEM explicit.",
+            "Copilul urmează pașii, pune întrebări și vede ce se întâmplă când schimbă ceva — nu doar citește despre fenomen.",
         },
         {
-          href: "/jucarii-inteligente",
-          label: "Jucarii inteligente",
+          href: "/categories/magnetic-building",
+          label: "Construcții și logică",
           description:
-            "Buna pentru cautari legate de logica, autonomie, jocuri smart si dezvoltare cognitiva.",
-        },
-        {
-          href: "/beneficiile-jucariilor-stem",
-          label: "Beneficiile jucariilor STEM",
-          description:
-            "Suport informational pentru parintii care compara joaca distractiva cu joaca utila.",
+            "Asamblează, încearcă variante și înțelege cum stă în picioare o structură — spațialitate și gândire ordonată, nu doar „legat de piese”.",
         },
         {
           href: "/categories/coding-robotics",
-          label: "Coding si robotica",
+          label: "Robotică și coding",
           description:
-            "Subcategorie cu semnal educational puternic pentru tehnologie si programare.",
+            "Leagă idei, tastează sau programează și vede efectul în mișcare: robotul răspunde la ce a hotărât el, nu la un singur buton magic.",
         },
         {
-          href: "/categories/science-experiments",
-          label: "Stiinta si experimente",
+          href: "/categories/mathematics",
+          label: "Matematică aplicată",
           description:
-            "Pentru copiii care invata mai bine prin observatie, testare si curiozitate.",
-        },
-        {
-          href: "/jucarii-stem-dupa-varsta",
-          label: "Alege dupa varsta",
-          description:
-            "Selectie rapida pentru parintii care vor sa scape de produse nepotrivite.",
+            "Numără, compară, rezolvă provocări concrete — înțelege numerele prin joc, nu prin fișe stoarse la final de săptămână.",
         },
       ]}
       faqs={faq}

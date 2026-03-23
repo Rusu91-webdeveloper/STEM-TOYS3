@@ -124,57 +124,70 @@ export default async function RegionalStemPage({
 
   return (
     <CommercialLandingPage
-      eyebrow={`Cerere regionala ${regionalCity.city}`}
+      eyebrow={`Jucarii STEM ${regionalCity.city}`}
       title={regionalCity.heroTitle}
       description={regionalCity.heroDescription}
       primaryCta={{ href: "/products", label: "Vezi produsele STEM" }}
       secondaryCta={{
         href: "/jucarii-stem",
-        label: "Vezi hubul national STEM",
+        label: "Jucării STEM în toată țara",
       }}
       proofPoints={regionalCity.proofPoints}
       benefits={regionalCity.benefits}
+      benefitsHeadline={{
+        kicker: "De ce TechTots",
+        title: `De ce parintii din ${regionalCity.city} aleg TechTots`,
+      }}
       quickFacts={[
         {
-          label: "Intentie regionala",
-          value: `jucarii STEM ${regionalCity.city}, jucarii educative ${regionalCity.city}, robotica pentru copii ${regionalCity.city}`,
+          label: "Livrare",
+          value: regionalCity.deliveryInfo,
         },
         {
-          label: "Ce rezolva",
-          value: "Pagina conecteaza cautarea locala de tip oras + categorie cu huburile comerciale care chiar pot converti.",
+          label: "Varste acoperite",
+          value:
+            "3-5 ani, 6-8 ani, 9-12 ani, 13+ ani — selectie curata dupa obiectiv educational si nivel de dificultate",
         },
         {
-          label: "Semnal de incredere",
-          value: "Pagina este regionala, nu pretinde prezenta fizica locala si directioneaza transparent spre pagini nationale si de categorie.",
+          label: "Branduri disponibile",
+          value:
+            "CreativaMente, Thames & Kosmos, Fischertechnik, 4M, Gigo Toys, Egmont Toys si altele",
         },
         {
-          label: "Legaturi critice",
-          value: "Hub national STEM, robotica, jucarii educative, selectie dupa varsta si orase similare.",
+          label: "Comenzi si intrebari",
+          value:
+            "Disponibil prin formular de contact; confirma disponibilitatea si termenul la checkout inainte de plata",
         },
       ]}
       guides={[
         {
-          title: `Cum foloseste aceasta pagina cererea din ${regionalCity.city}`,
+          title: "Cum alegi dupa varsta",
           description:
-            "Scopul nu este sa repete homepage-ul, ci sa raspunda expresiilor de cautare locale cu intentie de cumparare si sa trimita rapid spre cea mai relevanta pagina comerciala.",
+            "Porneste de la varsta copilului si de la interesul dominant: experimente, constructii, logica sau robotica. Fiecare categorie are produse filtrate dupa nivel si dificultate.",
         },
         {
-          title: "Cand merita o pagina regionala in ecommerce",
+          title: "Cadouri cu sens",
           description:
-            "Atunci cand cautarea combina orasul cu o intentie reala, iar pagina poate oferi rute utile spre selectie, livrare nationala si categorii relevante fara continut duplicat.",
+            "Un produs STEM bun nu se simte ca o lectie. Dezvolta abilitate reala, ofera rezultate vizibile si ii tine pe copii concentrati — nu doar distrasi.",
         },
         {
-          title: "Cum contribuie la AI search",
+          title: "Cum navighez catalogul",
           description:
-            "Prin raspunsuri directe, denumiri clare de entitati si relatii interne simple intre oras, categorie, varsta si intentie comerciala.",
+            "Foloseste filtrele de varsta si categorie (stiinta, robotica, constructii, logica) pentru a ajunge rapid la produsul potrivit, fara sa parcurgi intregul catalog.",
         },
       ]}
-      checklistTitle={`Cum ar trebui folosita pagina regionala pentru ${regionalCity.city}`}
+      guidesHeadline={{
+        kicker: "Ghid de alegere",
+        title: "Cum alegi mai repede produsul potrivit",
+        intro: "",
+      }}
+      checklistTitle="Inainte sa comanzi"
+      checklistKicker="Checklist rapid"
       checklistItems={[
-        "Incepe cu hubul local doar daca expresia de cautare include orasul sau intentia regionala.",
-        "Dupa intrare, mergi spre pagina nationala sau categoria cea mai apropiata de interesul copilului.",
-        "Foloseste selectie dupa varsta pentru a evita produse prea simple sau prea complexe.",
-        "Compara cu alte pagini comerciale doar daca intentia devine mai specifica: educativ, inteligent sau robotica.",
+        "Alege varsta copilului ca punct de pornire, nu categoria sau brandul.",
+        "Verifica daca produsul necesita supraveghere adulta sau poate fi folosit independent.",
+        "Citeste obiectivul educational din descriere — nu doar lista de materiale incluse.",
+        `Confirma termenul de livrare catre ${regionalCity.city} la finalizarea comenzii.`,
       ]}
       clusters={[...nationalCommercialRoutes.slice(0, 4), ...siblingCities]}
       faqs={regionalCity.faq}

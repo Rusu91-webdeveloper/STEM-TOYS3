@@ -1,5 +1,13 @@
 import Link from "next/link";
 
+import {
+  CommercialLandingAgeTableSection,
+  type CommercialAgeTable,
+} from "@/components/seo/CommercialLandingAgeTableSection";
+import { CommercialLandingClustersSection } from "@/components/seo/CommercialLandingClustersSection";
+import { CommercialLandingFaqSection } from "@/components/seo/CommercialLandingFaqSection";
+import { CommercialLandingQuickFactsSection } from "@/components/seo/CommercialLandingQuickFactsSection";
+
 type LandingSectionLink = {
   href: string;
   label: string;
@@ -26,6 +34,12 @@ type LandingGuide = {
   description: string;
 };
 
+type SectionHeadline = {
+  kicker: string;
+  title: string;
+  intro?: string;
+};
+
 type CommercialLandingPageProps = {
   eyebrow: string;
   title: string;
@@ -39,13 +53,23 @@ type CommercialLandingPageProps = {
     label: string;
   };
   proofPoints: string[];
-  benefits: LandingBenefit[];
+  benefits?: LandingBenefit[];
+  /** When set, wraps benefits in a card with this headline (e.g. „De ce TechTots?”). */
+  benefitsHeadline?: SectionHeadline;
   quickFacts?: LandingFact[];
+  /** Optional age-band table (e.g. robotics entry levels). */
+  ageTable?: CommercialAgeTable;
   guides?: LandingGuide[];
+  /** Overrides default „Ghid de selecție” block copy. */
+  guidesHeadline?: SectionHeadline;
   checklistTitle?: string;
   checklistIntro?: string;
   checklistItems?: string[];
+  /** Overrides default checklist kicker. */
+  checklistKicker?: string;
   clusters: LandingSectionLink[];
+  /** Titlu secțiune linkuri (implicit: Alte pagini utile / Unde poți merge mai departe). */
+  clustersHeadline?: SectionHeadline;
   faqs: LandingFaq[];
 };
 
@@ -56,15 +80,38 @@ export default function CommercialLandingPage({
   primaryCta,
   secondaryCta,
   proofPoints,
-  benefits,
+  benefits = [],
+  benefitsHeadline,
   quickFacts = [],
+  ageTable,
   guides = [],
+  guidesHeadline,
   checklistTitle,
   checklistIntro,
   checklistItems = [],
+  checklistKicker,
   clusters,
+  clustersHeadline,
   faqs,
 }: CommercialLandingPageProps) {
+  const benefitsGrid = (
+    <div
+      className={`grid gap-5 md:grid-cols-3${benefitsHeadline ? " mt-8" : ""}`}
+    >
+      {benefits.map(benefit => (
+        <article
+          key={benefit.title}
+          className="rounded-[1.75rem] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.45)]"
+        >
+          <h2 className="text-xl font-bold text-slate-900">{benefit.title}</h2>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            {benefit.description}
+          </p>
+        </article>
+      ))}
+    </div>
+  );
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f8fcff_0%,#eef8ff_48%,#f7fbff_100%)] text-slate-900">
       <div
@@ -119,78 +166,63 @@ export default function CommercialLandingPage({
           </div>
         </section>
 
-        <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-5 md:grid-cols-3">
-            {benefits.map(benefit => (
-              <article
-                key={benefit.title}
-                className="rounded-[1.75rem] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.45)]"
-              >
-                <h2 className="text-xl font-bold text-slate-900">
-                  {benefit.title}
-                </h2>
-                <p className="mt-3 text-sm leading-6 text-slate-600">
-                  {benefit.description}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
+        {ageTable ? (
+          <CommercialLandingAgeTableSection ageTable={ageTable} />
+        ) : null}
 
-        {quickFacts.length > 0 ? (
+        {benefits.length > 0 ? (
           <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="rounded-[2rem] border border-slate-200/80 bg-white/92 px-6 py-8 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] sm:px-8">
-              <div className="max-w-3xl">
-                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700">
-                  Rezumat Comercial
-                </p>
-                <h2 className="mt-3 text-3xl font-black text-slate-950">
-                  Ce intentie acopera pagina si cum ar trebui folosita
-                </h2>
-                <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
-                  Sectiunea aceasta face pagina mai clara pentru parinti,
-                  motoare de cautare si sisteme AI care cauta raspunsuri
-                  directe, nu doar heading-uri generale.
-                </p>
-              </div>
-
-              <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {quickFacts.map(fact => (
-                  <article
-                    key={fact.label}
-                    className="rounded-[1.35rem] border border-slate-200 bg-slate-50/90 p-5"
-                  >
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
-                      {fact.label}
+            {benefitsHeadline ? (
+              <div className="rounded-[2rem] border border-slate-200/80 bg-white/92 px-6 py-8 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] sm:px-8">
+                <div className="max-w-3xl">
+                  <p className="text-sm font-semibold uppercase tracking-[0.22em] text-sky-700">
+                    {benefitsHeadline.kicker}
+                  </p>
+                  <h2 className="mt-3 text-3xl font-black text-slate-950">
+                    {benefitsHeadline.title}
+                  </h2>
+                  {benefitsHeadline.intro ? (
+                    <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+                      {benefitsHeadline.intro}
                     </p>
-                    <p className="mt-3 text-sm leading-6 text-slate-700">
-                      {fact.value}
-                    </p>
-                  </article>
-                ))}
+                  ) : null}
+                </div>
+                {benefitsGrid}
               </div>
-            </div>
+            ) : (
+              benefitsGrid
+            )}
           </section>
         ) : null}
+
+        <CommercialLandingQuickFactsSection quickFacts={quickFacts} />
 
         {guides.length > 0 ? (
           <section className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="rounded-[2rem] border border-slate-200/80 bg-white/92 px-6 py-8 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] sm:px-8">
               <div className="max-w-3xl">
                 <p className="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-700">
-                  Ghid de Selectie
+                  {guidesHeadline?.kicker ?? "Ghid de selecție"}
                 </p>
                 <h2 className="mt-3 text-3xl font-black text-slate-950">
-                  Raspunsuri directe pentru cautarile care preced comanda
+                  {guidesHeadline?.title ?? "Întrebări frecvente înainte de comandă"}
                 </h2>
-                <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
-                  Fiecare bloc de mai jos raspunde unei intrebari comerciale
-                  frecvente din SERP: ce aleg, pentru ce varsta, pentru ce tip
-                  de copil si cat de repede ajung la categoria corecta.
-                </p>
+                {guidesHeadline?.intro !== undefined &&
+                guidesHeadline.intro === "" ? null : (
+                  <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+                    {guidesHeadline?.intro ??
+                      "Răspunsuri scurte la ce întreabă mulți părinți: ce să aleagă, pentru ce vârstă și cum ajung mai repede la varianta potrivită."}
+                  </p>
+                )}
               </div>
 
-              <div className="mt-8 grid gap-4 md:grid-cols-3">
+              <div
+                className={`mt-8 grid gap-4 ${
+                  guides.length >= 4
+                    ? "sm:grid-cols-2 xl:grid-cols-4"
+                    : "md:grid-cols-3"
+                }`}
+              >
                 {guides.map(guide => (
                   <article
                     key={guide.title}
@@ -214,7 +246,7 @@ export default function CommercialLandingPage({
             <div className="rounded-[2rem] border border-slate-200/80 bg-white/92 px-6 py-8 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] sm:px-8">
               <div className="max-w-3xl">
                 <p className="text-sm font-semibold uppercase tracking-[0.22em] text-amber-700">
-                  Checklist de Cumparare
+                  {checklistKicker ?? "Checklist de cumpărare"}
                 </p>
                 <h2 className="mt-3 text-3xl font-black text-slate-950">
                   {checklistTitle || "Cum alegi mai repede produsul potrivit"}
@@ -240,62 +272,12 @@ export default function CommercialLandingPage({
           </section>
         ) : null}
 
-        <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-[2rem] border border-slate-200/80 bg-white/90 px-6 py-8 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] sm:px-8">
-            <div className="max-w-2xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-700">
-                Clustere Comerciale
-              </p>
-              <h2 className="mt-3 text-3xl font-black text-slate-950">
-                Intrari puternice pentru cautarile care aduc comenzi
-              </h2>
-              <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
-                Paginile de mai jos sunt construite pentru intentii diferite:
-                comparatie, selectie, cadou, varsta si disciplina.
-              </p>
-            </div>
+        <CommercialLandingClustersSection
+          clusters={clusters}
+          clustersHeadline={clustersHeadline}
+        />
 
-            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {clusters.map(cluster => (
-                <Link
-                  key={cluster.href}
-                  href={cluster.href}
-                  className="group rounded-[1.5rem] border border-slate-200 bg-slate-50/90 p-5 transition hover:border-sky-300 hover:bg-white hover:shadow-[0_20px_45px_-30px_rgba(14,116,144,0.45)]"
-                >
-                  <p className="text-lg font-bold text-slate-900 group-hover:text-sky-800">
-                    {cluster.label}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {cluster.description}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-[2rem] border border-slate-200/80 bg-white/92 px-6 py-8 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] sm:px-8">
-            <h2 className="text-3xl font-black text-slate-950">
-              Intrebari frecvente
-            </h2>
-            <div className="mt-6 grid gap-4">
-              {faqs.map(faq => (
-                <article
-                  key={faq.question}
-                  className="rounded-[1.5rem] border border-slate-200 bg-slate-50/90 p-5"
-                >
-                  <h3 className="text-lg font-bold text-slate-900">
-                    {faq.question}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-base">
-                    {faq.answer}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
+        <CommercialLandingFaqSection faqs={faqs} />
       </div>
     </div>
   );

@@ -431,17 +431,21 @@ export const en = {
   // Homepage specific translations
   heroSection: "Hero Section",
   inspireMinds: "Inspire Curious Minds",
-  heroBadgeTitle: "Inspire Curious Minds",
-  heroBadgeSubtitle: "10,000+ delighted parents who transformed their kids",
+  heroBadgeTitle: "Specialized STEM store",
+  heroBadgeSubtitle: "European brands, age-curated selection",
   heroPrimarySubtitle: "STEM toys that make learning irresistible",
   heroDescription:
-    "Replace screen time with active learning. Over 10,000 parents have already transformed their children from 'phone dependent' to 'future inventors' with our STEM toys.",
+    "A specialized shop featuring Fischertechnik, Thames & Kosmos, Djeco, 4M, and more: delivery in 1–3 days, age-picked products—not an endless catalog.",
+  heroKicker: "STEM selection for Romania",
+  heroTrust1: "Premium European brands",
+  heroTrust2: "Delivery in 1–3 days across Romania",
+  heroTrust3: "Age-curated selection",
 
   // Hormozi Formula Headlines - Outcome focused, not feature focused
   homepageH1:
-    "Transform Your Child Into a STEM Genius Without Homework Battles",
+    "Educational STEM toys, curated for ages 3–14",
   // Short, UI-friendly variants
-  homepageH1Short: "Turn Learning Into Irresistible STEM",
+  homepageH1Short: "Educational STEM toys, curated for ages 3–14",
   homepageH1Subtitle:
     "From 'I don't want to learn!' to 'Mom, can I do experiments?' with our STEM toys that make math and science irresistible",
   homepageH1SubtitleShort: "STEM toys that make learning irresistible",

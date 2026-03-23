@@ -5,26 +5,36 @@ import { createMetadata } from "@/lib/metadata";
 
 const faq = [
   {
-    question: "Ce robotica pentru copii este potrivita pentru inceput?",
+    question: "De la ce vârstă are sens robotica pentru copii?",
     answer:
-      "Pentru inceput merg cel mai bine kiturile cu feedback imediat, programare vizuala, componente clare si proiecte scurte pe care copilul le poate finaliza repede.",
+      "Multe kituri din magazin sunt gândite de la aproximativ 3 ani în sus, dar „robotica” în sens practic — montaj, motoraș, reguli clare de funcționare — devine confortabilă în jurul școlii mici (6–8 ani), în funcție de răbdare și de citirea instrucțiunilor. Pentru 10–14 ani apar deja proiecte mai lungi, cu pași de depanare și uneori programare mai fină. Verifică mereu recomandarea de pe cutie și nivelul de autonomie al copilului tău.",
   },
   {
-    question: "La ce varsta poate incepe un copil robotica?",
+    question: "E greu de montat? Trebuie să fiți doi adulți?",
     answer:
-      "Depinde de produs, dar multe kituri entry-level functioneaza bine de la 6-8 ani, iar pentru 9-12 ani poti urca spre sisteme mai complexe si proiecte pe mai multe etape.",
+      "Depinde de kit: unele sunt gândite ca prim contact (piese mari, pași puțini), altele au șuruburi mici și manual mai stufos. Ca regulă, primele sesiuni merg mai bine cu un adult alături — nu neapărat ca să „facă el”, ci ca să organizeze pașii și să evite frustrarea. După ce copilul prinde ritmul, devine din ce în ce mai independent.",
   },
   {
-    question: "Este robotica buna doar pentru copiii foarte tehnici?",
+    question: "Se poate face robotica fără computer sau tabletă?",
     answer:
-      "Nu. Robotica ii ajuta si pe copiii creativi sau practici, pentru ca imbina jocul, constructia, logica, testarea si satisfactia de a vedea produsul in miscare.",
+      "Da, există kituri în care totul e fizic: construiești, pornești motorul, testezi pe masă — fără aplicație. Altele combină hardware-ul cu programare vizuală pe ecran. Dacă vrei ecran cât mai puțin, filtrează după vârstă mică și descrieri de tip „fără software obligatoriu” sau citește fișa produsului; la TechTots găsești de la modele simple la seturi mai avansate (de ex. unele linii Fischertechnik sau Thames & Kosmos, în funcție de articol).",
+  },
+  {
+    question: "E un cadou potrivit sau riscă să stea în cutie?",
+    answer:
+      "E un cadou excelent dacă știi că micuțul chiar îi place să construiască și are timp liber câteva după-amiezi — nu doar o oră. Alege un nivel realist după vârstă și evită „prea mult pentru prima dată”. Un kit cu proiecte scurte și rezultat vizibil (se mișcă ceva!) are șanse mai mari să fie deschis din nou a doua zi.",
+  },
+  {
+    question: "Ce buget e realist pentru un prim kit?",
+    answer:
+      "În catalogul TechTots, pentru robotică și kituri conexe vei găsi de obicei un plajă de aproximativ 99–907 lei, în funcție de mărimea setului, motor, senzori și marcă (ex. Gigo Toys / Genius Toy, Fischertechnik, Thames & Kosmos cu linia KAI, 4M Kidz Robotix). Nu e nevoie să sari direct la cel mai complex model: un prim kit potrivit contează mai mult decât prețul maxim.",
   },
 ];
 
 export const metadata: Metadata = createMetadata({
   title: "Robotica pentru Copii | Roboti Educativi si Coding pentru Copii",
   description:
-    "Alege robotica pentru copii cu kituri potrivite pentru acasa: roboti educativi, jucarii programabile, coding vizual si proiecte STEM pentru varste diferite.",
+    "Kituri de robotică pentru copii 3–14 ani: construcție, motoare, programare vizuală. Gigo, Fischertechnik, Thames & Kosmos, 4M — de la primul robot la proiecte mai ample.",
   keywords: [
     "robotica pentru copii",
     "jucarii robotica copii",
@@ -40,9 +50,9 @@ export const metadata: Metadata = createMetadata({
     {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
-      name: "Robotica pentru Copii",
+      name: "Robotica pentru copii la TechTots",
       description:
-        "Pagina comerciala pentru robotica educationala, coding si roboti programabili pentru copii.",
+        "Kituri de robotică educativă pentru copii: construire, testare și învățare practică, cu vârste între 3 și 14 ani.",
       url: "https://www.techtots.ro/robotica-pentru-copii",
       inLanguage: "ro",
     },
@@ -64,118 +74,115 @@ export const metadata: Metadata = createMetadata({
 export default function RoboticsLandingPage() {
   return (
     <CommercialLandingPage
-      eyebrow="Robotica si Coding"
-      title="Robotica pentru copii care vor sa construiasca, sa programeze si sa vada ideile in miscare"
-      description="Aceasta este pagina comerciala pentru cautarile de robotica, roboti educativi, coding si jucarii programabile. Leaga intentia foarte clara de cumparare de subcategoria cu cea mai mare relevanta tehnologica din magazin."
+      eyebrow="Construcție și explorare"
+      title="Robotica pentru copii: construiește, programează, vezi mișcarea"
+      description="Copilul tău e fascinat de cum funcționează lucrurile? Îi place să potrivească piese, să vadă o roată care se învârte și să înțeleagă de ce merge sau de ce nu? Aici găsești kituri cu care poate construi modele care se mișcă, poate testa idei și poate învăța pas cu pas — fără presiunea de a fi „deja bun la tehnic”."
       primaryCta={{
         href: "/categories/coding-robotics",
-        label: "Vezi robotica si coding",
+        label: "Vezi kiturile de robotică",
       }}
       secondaryCta={{
-        href: "/jucarii-stem-copii-6-8-ani",
-        label: "Optiuni pentru 6-8 ani",
+        href: "/jucarii-stem-dupa-varsta",
+        label: "Alege după vârstă",
       }}
       proofPoints={[
-        "Capteaza cautari de robotica educationala cu intentie puternica",
-        "Leaga robotica de coding, constructie si invatare practica",
-        "Sustine atat parintii, cat si cautarile pentru cadouri sau scoala",
+        "Înțelege cauză-efect: ce piese fac ca robotul să se comporte într-un fel anume.",
+        "Exersează răbdarea: uneori merge din prima, uneori trebuie să încerce din nou.",
+        "Are un rezultat concret — ceva ce poate arăta bunicii sau unui prieten.",
       ]}
-      quickFacts={[
-        {
-          label: "Intentie principala",
-          value: "robotica pentru copii, roboti educativi, jucarii programabile",
-        },
-        {
-          label: "Intentii secundare",
-          value: "coding pentru copii, kituri robotica copii, robotica educationala",
-        },
-        {
-          label: "Pentru cine este",
-          value: "Familii care cauta produse tehnologice cu intentie de cumparare deja clara si valoare medie mai mare.",
-        },
-        {
-          label: "Rol in cluster",
-          value: "Sustine cautarile cu cea mai mare proximitate de selectie dintre toate huburile comerciale din nisa.",
-        },
-      ]}
+      ageTable={{
+        kicker: "Pe scurt",
+        title: "De la ce vârstă începe robotica?",
+        intro:
+          "Nu există un singur răspuns: „robotica” poate însemna modele mari și joacă de rol la 4 ani, sau proiecte cu motoraș și instrucțiuni la 9 ani. Tabelul de mai jos e un reper, nu o regulă rigidă.",
+        rows: [
+          {
+            ageRange: "3–5 ani",
+            productType:
+              "Modele pre-montate sau cu piese mari, roboți de jucărie educativi, primele vehicule cu elemente mecanice simple (ex. linii Gigo Toys / Genius Toy, seturi 4M Kidz Robotix foarte accesibile).",
+            focus:
+              "Pune piese la loc, împinge, trage, vede că „se leagă” ceva; exersează motricitate fină și urmărește o secvență simplă (întâi roata, apoi caroseria).",
+          },
+          {
+            ageRange: "6–9 ani",
+            productType:
+              "Kituri de construcție cu motoraș, uneori senzori de bază sau ghid pas cu pas (Fischertechnik, Thames & Kosmos, 4M — în funcție de setul ales).",
+            focus:
+              "Învață să citească schema, să urmeze ordinea pașilor, să numească părți (ax, roț dințate) și să conecteze ideea de „instrucțiune” cu mișcarea din realitate.",
+          },
+          {
+            ageRange: "10–14 ani",
+            productType:
+              "Seturi mai ample, proiecte cu mai multe variante sau programare (ex. linia KAI de la Thames & Kosmos, Fischertechnik la niveluri superioare).",
+            focus:
+              "Poate încerca variante (alt șasiu, altă transmisie), poate depana, poate documenta ce a schimbat și de ce — aproape de un mic proiect de laborator.",
+          },
+        ],
+      }}
+      guidesHeadline={{
+        kicker: "Sfaturi practice",
+        title: "Cum alegi primul kit fără să greșești",
+        intro:
+          "Patru repere care te scutesc de achiziția „prea grea” sau de setul care nu se potrivește stilului copilului.",
+      }}
       guides={[
         {
-          title: "Cand alegi robotica in loc de un set STEM general",
+          title: "Potrivește vârsta reală",
           description:
-            "Atunci cand copilul este atras de mecanisme, miscare, pasi de programare sau interactiune tehnologica si vrei un produs mai specific decat un kit STEM mixt.",
+            "Cutia poate spune 8+, dar copilul tău preferă proiecte de 20 de minute sau sesiuni de o oră? Alege după răbdare, nu doar după număr.",
         },
         {
-          title: "Cum incepi fara sa alegi un kit prea greu",
+          title: "Un motor clar, un scop clar",
           description:
-            "Cele mai bune puncte de intrare au feedback rapid, proiecte scurte si interfete simple. De aceea pagina trebuie legata strans de selectie dupa varsta.",
+            "Primul kit e reușit dacă la final se vede mișcare sau o acțiune evidentă. Evită, la început, combinațiile cu prea mulți pași opționali.",
         },
         {
-          title: "De ce pagina trebuie sa trimita spre categorie si ghiduri",
+          title: "Verifică cât e „cu adultul lângă”",
           description:
-            "Pentru ca intentia este puternica, dar compararea ramane importanta: unii cauta roboti programabili, altii cauta un cadou tech sau un kit de inceput.",
-        },
-      ]}
-      checklistTitle="Cum alegi un kit de robotica pentru copii"
-      checklistIntro="Pe cautarile de robotica, cele mai importante filtre sunt varsta, nivelul de autonomie si complexitatea proiectului."
-      checklistItems={[
-        "Alege un nivel de complexitate potrivit pentru varsta si rabdarea copilului.",
-        "Verifica daca produsul are programare vizuala, componente clare si obiective usor de finalizat.",
-        "Compara cu pagina de jucarii inteligente daca interesul este mai degraba logica decat robotica pura.",
-        "Foloseste categoria de coding si robotica pentru selectie finala de produse.",
-      ]}
-      benefits={[
-        {
-          title: "Intentie comerciala foarte clara",
-          description:
-            "Cine cauta robotica pentru copii are deja un interes puternic pentru produse tehnologice si este aproape de selectie.",
+            "Dacă știi că vei fi doar tu în weekend, alege manual prietenos și piese care nu cer scule exotice. Dacă copilul lucrează singur la masă, altfel stau lucrurile.",
         },
         {
-          title: "Conecteaza produsul cu rezultatul",
+          title: "Lasă loc de următorul pas",
           description:
-            "Pagina explica de ce robotica nu este doar distractie tech, ci si logica, planificare, perseverenta si rezolvare de probleme.",
-        },
-        {
-          title: "Mutare naturala spre categorie si produse",
-          description:
-            "Este o pagina de intrare ideala spre categoria coding-robotics si spre produsele cu valoare mai mare din catalog.",
+            "Nu e nevoie să cumperi cel mai mare set din gamă. Un kit potrivit lasă loc de entuziasm pentru următorul nivel — și asta e un semn bun.",
         },
       ]}
       clusters={[
         {
           href: "/categories/coding-robotics",
-          label: "Categoria coding si robotica",
+          label: "Robotică și coding în catalog",
           description:
-            "Principala destinatie comerciala pentru produse programabile si roboti educativi.",
+            "Toate kiturile din această zonă, cu filtre după ce ai nevoie: vârstă, tip de activitate, buget.",
         },
         {
           href: "/jucarii-inteligente",
-          label: "Jucarii inteligente",
+          label: "Jucării inteligente",
           description:
-            "Extensie naturala pentru cautari de logica, autonomie si produse smart.",
+            "Dacă interesul e mai mult logică și puzzle decât șuruburi și motoare, poți găsi alternative potrivite aici.",
         },
         {
           href: "/jucarii-stem",
-          label: "Jucarii STEM",
+          label: "Universul STEM",
           description:
-            "Hub-ul principal care conecteaza robotica de restul universului STEM din magazin.",
+            "Legături spre experimente, construcție și alte materii — util dacă vrei să combini robotică cu alte activități.",
         },
         {
           href: "/ghid-educatie-stem-romania",
-          label: "Ghid STEM Romania",
+          label: "Ghid educație STEM",
           description:
-            "Context educational mai larg pentru parintii care vor sa inteleaga traseul de invatare.",
+            "Context despre cum se leagă jocul de școală și ce înseamnă „STEM” în practică, pe scurt.",
         },
         {
           href: "/jucarii-stem-dupa-varsta",
-          label: "Alege dupa varsta",
+          label: "Idei pe vârste",
           description:
-            "Ajuta la filtrarea rapida a kiturilor de robotica in functie de maturitatea copilului.",
+            "Liste filtrate ca să nu citești zeci de fișe: intră pe segmentul de vârstă care vi se potrivește.",
         },
         {
           href: "/beneficiile-jucariilor-stem",
           label: "Beneficiile jocului STEM",
           description:
-            "Arata de ce produsele de robotica au impact real in dezvoltarea copilului.",
+            "De ce merită timpul petrecut pe construit și testat — fără promisiuni exagerate, doar ce observă mulți părinți.",
         },
       ]}
       faqs={faq}

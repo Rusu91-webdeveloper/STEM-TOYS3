@@ -58,54 +58,53 @@ const routeAccents = [
 const routeMeta: Record<
   string,
   {
-    kicker: string;
-    hint: string;
+    title: string;
+    subtitle: string;
     cta: string;
     icon: LucideIcon;
-    bestFor: string;
   }
 > = {
   "/jucarii-stem": {
-    kicker: "Cel mai cautat cluster",
-    hint: "STEM, experimente, constructii",
-    cta: "Intra in hub",
+    title: "Unde încep?",
+    subtitle:
+      "Dacă vrei prima selecție STEM, pornește de aici.",
+    cta: "Vezi selecția",
     icon: Layers3,
-    bestFor: "Prima selectie",
   },
   "/jucarii-educative": {
-    kicker: "Pentru intentie larga",
-    hint: "Invatare prin joaca, cadouri utile",
-    cta: "Vezi selectia",
+    title: "Cadouri cu rost",
+    subtitle:
+      "Când vrei învățare în joacă și cadouri care țin mai mult decât o zi, intră aici.",
+    cta: "Descoperă oferta",
     icon: GraduationCap,
-    bestFor: "Acasa si cadouri",
   },
   "/jucarii-inteligente": {
-    kicker: "Pentru logica si smart play",
-    hint: "Logica, autonomie, provocari",
-    cta: "Descopera ruta",
+    title: "Minte activă",
+    subtitle:
+      "Dacă îți plac logica, puzzle-urile și jocurile care ridică nivelul de provocare, explorează categoria.",
+    cta: "Vezi categoria",
     icon: Brain,
-    bestFor: "Provocari smart",
   },
   "/robotica-pentru-copii": {
-    kicker: "Pentru intentie tech",
-    hint: "Robotica, coding, kituri",
-    cta: "Vezi robotica",
+    title: "Roboți și proiecte",
+    subtitle:
+      "Când copilul vrea să construiască, să programeze și să vadă cum „prinde viață” un kit, alege robotica.",
+    cta: "Vezi roboții",
     icon: Bot,
-    bestFor: "Pasi tech",
   },
   "/jucarii-stem-dupa-varsta": {
-    kicker: "Pentru selectie usoara",
-    hint: "3-5 ani, 6-8 ani, 9-12 ani, 13+",
-    cta: "Alege dupa varsta",
+    title: "Alegi pe vârstă",
+    subtitle:
+      "Dacă vrei să filtrezi rapid după etapa copilului (3–5, 6–8, 9–12 ani și mai mult), folosește ghidul.",
+    cta: "Filtrează acum",
     icon: Layers3,
-    bestFor: "Alegere rapida",
   },
   "/ghid-educatie-stem-romania": {
-    kicker: "Pentru comparare si documentare",
-    hint: "Context clar, comparare rapida",
-    cta: "Citeste ghidul",
+    title: "Citește înainte",
+    subtitle:
+      "Când vrei să compari, să înțelegi termenii și să citești recomandări înainte de comandă, deschide ghidul.",
+    cta: "Deschide ghidul",
     icon: Microscope,
-    bestFor: "Inainte de comanda",
   },
 };
 
@@ -164,48 +163,24 @@ export function SearchJourneysSection() {
                           : ""
                       }
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex flex-col gap-2">
+                      <div className="mt-1 flex items-start justify-between gap-4">
+                        <div className="flex min-w-0 flex-1 items-start gap-3">
                           <span
-                            className={`inline-flex w-fit items-center justify-center rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.16em] ${isFeatured ? accent.badge : "border border-slate-200 bg-slate-50 text-slate-700"}`}
-                          >
-                            {meta?.kicker || `Ruta ${index + 1}`}
-                          </span>
-                          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
-                        </div>
-                        <ArrowUpRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-slate-700" />
-                      </div>
-
-                      <div className="mt-5">
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`inline-flex h-10 w-10 items-center justify-center rounded-[1rem] text-slate-900 sm:h-12 sm:w-12 sm:rounded-2xl ${isFeatured ? "border border-white/80 bg-white/85 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.28)]" : "border border-slate-200/80 bg-slate-50/90"}`}
+                            className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] text-slate-900 sm:h-12 sm:w-12 sm:rounded-2xl ${isFeatured ? "border border-white/80 bg-white/85 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.28)]" : "border border-slate-200/80 bg-slate-50/90"}`}
                           >
                             <Icon className="h-5 w-5" />
                           </span>
-                          <div>
+                          <div className="min-w-0">
                             <p className="text-[1.35rem] font-black tracking-[-0.04em] text-slate-950 sm:text-[1.8rem]">
-                              {journey.label}
+                              {meta?.title || journey.label}
                             </p>
-                            <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400 sm:text-[13px] sm:tracking-[0.14em]">
-                              {meta?.hint}
+                            <p className="sr-only">{journey.label}</p>
+                            <p className="mt-2 text-[13px] leading-5 text-slate-600 sm:text-sm sm:leading-6">
+                              {meta?.subtitle || journey.description}
                             </p>
                           </div>
                         </div>
-                        <p className="mt-3 max-w-[36rem] text-[13px] leading-5 text-slate-600 sm:mt-4 sm:text-sm sm:leading-6">
-                          {journey.description}
-                        </p>
-                      </div>
-
-                      <div className="mt-5 flex flex-wrap items-center gap-2">
-                        <span className="rounded-full border border-slate-200/80 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                          Potrivit pentru
-                        </span>
-                        <span className="rounded-full border border-slate-200/80 bg-white/80 px-3 py-1 text-xs font-semibold text-slate-700">
-                          {meta?.bestFor}
-                        </span>
+                        <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-slate-700" />
                       </div>
 
                       <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-800">
@@ -224,17 +199,17 @@ export function SearchJourneysSection() {
                     {isFeatured ? (
                       <div className="mt-5 rounded-[1.15rem] border border-white/80 bg-white/78 p-4 shadow-[0_20px_40px_-32px_rgba(15,23,42,0.22)] backdrop-blur-sm sm:rounded-[1.5rem] sm:p-5 xl:mt-0 xl:p-6">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 sm:text-[11px] sm:tracking-[0.22em]">
-                          Ruta principala
+                          Start rapid
                         </p>
                         <h3 className="mt-3 text-[1.3rem] font-black leading-[1.02] tracking-[-0.04em] text-slate-950 sm:text-[1.65rem]">
-                          Intrarea rapida pentru cautarile comerciale mari
+                          De aici leagă tot ce ține de STEM în magazin
                         </h3>
                         <div className="mt-4 grid gap-2.5">
                           <div className="rounded-[1rem] border border-slate-200/80 bg-white/92 px-3 py-2.5 text-[13px] font-medium text-slate-700 sm:rounded-2xl sm:text-sm">
-                            STEM, educative, inteligente si robotica
+                            Jucării STEM, educative, inteligente și robotică
                           </div>
                           <div className="rounded-[1rem] border border-slate-200/80 bg-white/92 px-3 py-2.5 text-[13px] font-medium text-slate-700 sm:rounded-2xl sm:text-sm">
-                            Cea mai buna pornire pentru prima vizita
+                            Cea mai bună intrare dacă e prima ta vizită
                           </div>
                         </div>
                       </div>

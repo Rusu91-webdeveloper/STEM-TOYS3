@@ -4,7 +4,6 @@ import {
   ArrowRight,
   ChevronDown,
   GraduationCap,
-  ShieldCheck,
   Layers3,
   Truck,
   Sparkles,
@@ -72,10 +71,12 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
     "control"
   ).toLowerCase();
   const trustHighlights = [
-    { icon: Sparkles, label: "Selectie STEM clara" },
-    { icon: GraduationCap, label: "Alegere pe varste" },
-    { icon: ShieldCheck, label: "Plata securizata" },
-    { icon: Truck, label: "Livrare 1-3 zile" },
+    { icon: Sparkles, label: t("heroTrust1", "Branduri premium europene") },
+    { icon: Truck, label: t("heroTrust2", "Livrare 1–3 zile în România") },
+    {
+      icon: GraduationCap,
+      label: t("heroTrust3", "Selecție curată pe vârste"),
+    },
   ];
   const ageQuickLinks = [
     {
@@ -122,18 +123,21 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
 
   const getHeadline = () => {
     if (headlineVariantKey.includes("variant_a")) {
-      return "Mai puțin ecran. Mai multă învățare.";
+      return "STEM acasă: seturi alese pe vârste";
     }
 
     if (headlineVariantKey.includes("variant_b")) {
       return "Alege rapid după vârstă.";
     }
 
-    return t("homepageH1", "Jucării STEM alese pe vârste");
+    return t(
+      "homepageH1",
+      "Jucării STEM educative, alese pentru copii 3–14 ani"
+    );
   };
 
-  const primaryCtaText = "Vezi jucariile STEM";
-  const secondaryCtaText = "Alege dupa varsta";
+  const primaryCtaText = "Vezi jucăriile STEM";
+  const secondaryCtaText = "Alege după vârstă";
 
   return (
     <section
@@ -173,7 +177,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
         <div className="animate-in slide-in-from-bottom-8 fade-in flex w-full flex-col text-left duration-1000 fill-mode-forwards">
           <div className="max-w-4xl">
             <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.26em] text-white/92 backdrop-blur-md sm:px-4 sm:py-1.5 sm:text-[0.68rem] sm:tracking-[0.3em]">
-              Selectie STEM pentru Romania
+              {t("heroKicker", "Selecție STEM pentru România")}
             </span>
           </div>
 
@@ -274,21 +278,6 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
                 <Layers3 className="h-4 w-4" />
               </span>
             </Link>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] font-semibold text-white/90 sm:gap-x-5 sm:gap-y-2 sm:text-sm">
-            <span className="inline-flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.2)]" />
-              Livrare 1-3 zile
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_0_4px_rgba(34,211,238,0.18)]" />
-              Plată securizată
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-indigo-400 shadow-[0_0_0_4px_rgba(129,140,248,0.18)]" />
-              Recomandări pe vârstă
-            </span>
           </div>
 
           <div className="mt-4 flex w-full max-w-5xl flex-wrap items-center gap-2 sm:mt-5 sm:gap-2.5">

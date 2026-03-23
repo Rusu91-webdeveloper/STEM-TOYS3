@@ -520,17 +520,21 @@ export const ro = {
   // Homepage specific translations - Hormozi Style Conversion Copy
   heroSection: "Secțiunea Principală",
   inspireMinds: "Inspiră Minți Curioase",
-  heroBadgeTitle: "Inspiră Minți Curioase",
-  heroBadgeSubtitle: "10.000+ părinți fericiți care și-au transformat copiii",
+  heroBadgeTitle: "Magazin STEM specializat",
+  heroBadgeSubtitle: "Branduri europene, selecție pe vârste",
   heroPrimarySubtitle: "Jucării STEM care fac învățarea irezistibilă",
   heroDescription:
-    "Înlocuiește timpul de ecran cu învățare activă. Peste 10.000 de părinți și-au transformat deja copiii din 'dependenți de telefon' în 'viitori inventatori' cu jucăriile noastre STEM.",
+    "Magazin specializat cu Fischertechnik, Thames & Kosmos, Djeco, 4M și altele: livrare în 1–3 zile, produse alese pe vârste, nu catalog nesfârșit.",
+  heroKicker: "Selecție STEM pentru România",
+  heroTrust1: "Branduri premium europene",
+  heroTrust2: "Livrare 1–3 zile în România",
+  heroTrust3: "Selecție curată pe vârste",
 
   // Hormozi Formula Headlines - Outcome focused, not feature focused
   homepageH1:
-    "Transformă Copilul Tău Într-un Geniu STEM Fără Luptele cu Temele",
+    "Jucării STEM educative, alese pentru copii 3–14 ani",
   // Short, UI-friendly variants
-  homepageH1Short: "Transformă Învățarea în Joacă STEM",
+  homepageH1Short: "Jucării STEM educative, alese pentru copii 3–14 ani",
   homepageH1Subtitle:
     "De la 'Nu vreau să învăț!' la 'Mama, pot să fac experimente?' cu jucăriile noastre STEM care fac matematica și știința irezistibile",
   homepageH1SubtitleShort: "Jucării STEM care fac învățarea irezistibilă",
