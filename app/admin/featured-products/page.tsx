@@ -26,12 +26,14 @@ export default function ManageFeaturedProductsPage() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/products");
+        const response = await fetch("/api/products?limit=200");
         if (!response.ok) {
           throw new Error("Failed to fetch products");
         }
         const data = await response.json();
-        setProducts(data);
+        // API returns paginated shape { products: [...], pagination: {}, meta: {} }
+        const productList = Array.isArray(data) ? data : (data.products ?? []);
+        setProducts(productList);
       } catch (error) {
         console.error("Error fetching products:", error);
         setStatusMessage({
