@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface SupplierOption {
   id: string;
+  name: string;
   companyName?: string | null;
 }
 
@@ -159,7 +160,7 @@ export function EnhancedProductFilter({
       if (supplier) {
         result.push({
           key: "supplierId",
-          label: `Supplier: ${supplier.companyName}`,
+          label: `Supplier: ${supplier.companyName || supplier.name}`,
           value: filters.supplierId,
         });
       }
@@ -250,7 +251,7 @@ export function EnhancedProductFilter({
               <SelectItem value="all">All Suppliers</SelectItem>
               {suppliers.map(supplier => (
                 <SelectItem key={supplier.id} value={supplier.id}>
-                  {supplier.companyName}
+                  {supplier.companyName || supplier.name}
                 </SelectItem>
               ))}
             </SelectContent>
