@@ -224,7 +224,7 @@ export function SearchJourneysSection() {
                 <div className="max-w-2xl">
                   <div className="inline-flex items-center gap-2 rounded-full border border-sky-200/80 bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.26em] text-sky-700">
                     <MapPin className="h-3.5 w-3.5" />
-                    Cerere Regionala
+                    Livrare rapidă în orașele tale
                   </div>
                   <h3 className="mt-3 text-[1.5rem] font-black leading-[1.02] tracking-[-0.04em] text-slate-950 sm:text-[1.9rem]">
                     Orasele mari raman la un click distanta
@@ -274,13 +274,10 @@ export function SearchJourneysSection() {
                         {link.label}
                       </p>
                       <p className="mt-2 text-[13px] leading-5 text-slate-600 sm:text-sm sm:leading-6">
-                        STEM, educative si robotica pentru cautari locale cu
-                        intentie clara.
+                        Jucării STEM cu livrare rapidă în{" "}
+                        {link.label.replace("Jucarii STEM ", "")}.
                       </p>
-                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
-                        <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                          Pagina regionala
-                        </span>
+                      <div className="mt-4 flex items-center justify-end gap-3 border-t border-slate-100 pt-3">
                         <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800">
                           Vezi pagina
                         </span>
@@ -289,15 +286,6 @@ export function SearchJourneysSection() {
                   ))}
                 </div>
 
-                <div className="mt-5 flex flex-col gap-2 rounded-[1rem] border border-dashed border-slate-200 bg-slate-50/70 px-4 py-4 text-[13px] text-slate-600 sm:rounded-[1.25rem] sm:flex-row sm:items-center sm:justify-between sm:text-sm">
-                  <span>
-                    Bucuresti, Cluj si Timisoara raman intrarile regionale
-                    principale.
-                  </span>
-                  <span className="font-semibold text-slate-800">
-                    Restul oraselor raman in chips.
-                  </span>
-                </div>
               </div>
             </div>
           </div>

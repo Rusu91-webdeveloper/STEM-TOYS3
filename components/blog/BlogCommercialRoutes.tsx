@@ -18,9 +18,9 @@ export default function BlogCommercialRoutes({
 
   return (
     <InternalLinkCards
-      eyebrow="Intentie comerciala"
+      eyebrow="Explorează în continuare"
       title="Continua din articol spre paginile care aduc comenzi"
-      description="Articolele bune nu trebuie sa ramana izolate. Sectiunea aceasta impinge autoritate din continutul educational spre huburile comerciale si regionale care pot capta urmatorul pas al vizitatorului."
+      description="Descoperă jucăriile și ghidurile potrivite pentru etapa în care se află copilul tău."
       links={links}
     />
   );

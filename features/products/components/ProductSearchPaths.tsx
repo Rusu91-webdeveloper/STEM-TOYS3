@@ -25,7 +25,7 @@ export default function ProductSearchPaths({
 
   const regionalLinks = getRegionalStemLinks(3).map(link => ({
     ...link,
-    description: `${link.description} Util pentru cautari regionale cu intentie de cumparare.`,
+    description: `${link.description}`,
   }));
 
   const links = [...productLinks.slice(0, 4), ...regionalLinks];
@@ -34,7 +34,7 @@ export default function ProductSearchPaths({
     <InternalLinkCards
       eyebrow="Rute de cautare"
       title="Unde mai castiga acest produs relevanta in cautare"
-      description={`Legam produsul "${product.name}" de paginile comerciale si regionale care sustin intentia de selectie, comparatie si cumparare in Romania.`}
+      description="Alte resurse utile dacă ești în căutarea produsului potrivit pentru copilul tău."
       links={links}
     />
   );

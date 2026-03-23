@@ -64,7 +64,7 @@ export const metadata: Metadata = createMetadata({
 export default function SmartToysLandingPage() {
   return (
     <CommercialLandingPage
-      eyebrow="Cluster Smart Learning"
+      eyebrow="Jucării pentru minți active"
       title="Jucarii inteligente pentru copii care vor mai mult decat lumini si sunete"
       description="Multi parinti cauta jucarii inteligente atunci cand vor produse care provoaca mintea copilului. Pagina asta captureaza exact acel tip de cautare si o trimite spre logica, robotica, STEM si jocuri care chiar construiesc abilitati."
       primaryCta={{
@@ -76,31 +76,14 @@ export default function SmartToysLandingPage() {
         label: "Vezi robotica pentru copii",
       }}
       proofPoints={[
-        "Leaga termenul jucarii inteligente de produse cu intentie educativa clara",
+        "Selecție atentă de jucării care stimulează gândirea, logica și autonomia copilului.",
         "Capteaza cautari smart, logice, STEM si cognitive",
         "Functioneaza bine pentru cautari Google si raspunsuri AI rezumative",
       ]}
-      quickFacts={[
-        {
-          label: "Intentie principala",
-          value: "jucarii inteligente, jucarii smart copii, jucarii care dezvolta inteligenta",
-        },
-        {
-          label: "Intentii secundare",
-          value: "jocuri logice copii, jucarii de inteligenta, jucarii inteligente Romania",
-        },
-        {
-          label: "Pentru cine este",
-          value: "Parinti care cauta produse mai provocatoare, nu jucarii pasive sau doar electronice.",
-        },
-        {
-          label: "Rol in cluster",
-          value: "Face legatura dintre cautarile smart si rutele comerciale catre STEM, robotica si logica.",
-        },
-      ]}
+      quickFacts={[]}
       guides={[
         {
-          title: "Ce inseamna inteligent intr-o cautare comerciala",
+          title: "Cum alegi o jucărie cu adevărat inteligentă",
           description:
             "De cele mai multe ori nu inseamna doar ecran sau senzor. Inseamna jocuri si kituri care cer gandire activa, decizii, strategie, observatie si progres.",
         },
@@ -116,7 +99,7 @@ export default function SmartToysLandingPage() {
         },
       ]}
       checklistTitle="Semnale bune pentru o jucarie inteligenta"
-      checklistIntro="Lista scurta de mai jos ajuta atat selectia comerciala, cat si formularea raspunsurilor directe in AI search."
+      checklistIntro="Câteva criterii care te ajută să alegi jucăria potrivită pentru copilul tău."
       checklistItems={[
         "Produsul cere participare activa, nu doar reactie la lumini sau sunete.",
         "Exista o progresie clara: pasi, provocari, constructie sau experiment.",
@@ -127,7 +110,7 @@ export default function SmartToysLandingPage() {
         {
           title: "Semnal mai bun pentru cautari moderne",
           description:
-            "Jucarii inteligente este un termen comercial flexibil. Poate atrage parinti interesati de tehnologie, inteligenta, autonomie si invatare smart.",
+            "Jucăriile inteligente combină tehnologia cu învățarea activă — perfecte pentru copiii curioși și independenți.",
         },
         {
           title: "Pod intre educativ si tehnologic",
@@ -157,7 +140,7 @@ export default function SmartToysLandingPage() {
           href: "/jucarii-stem",
           label: "Jucarii STEM",
           description:
-            "Hub comercial principal pentru intentia STEM din Romania.",
+            "Cea mai completă selecție de jucării STEM din România.",
         },
         {
           href: "/jucarii-educative",

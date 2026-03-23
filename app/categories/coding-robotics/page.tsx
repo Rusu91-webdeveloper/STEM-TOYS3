@@ -184,11 +184,11 @@ export default async function CodingRoboticsPage() {
               </div>
               <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
                 <h3 className="text-lg font-semibold text-white">
-                  Ce intentie acopera
+                  Ce dezvoltă aceste jucării
                 </h3>
                 <p className="mt-3 text-sm leading-6 text-slate-200/80">
-                  Cautari precum robotica pentru copii, coding pentru copii si
-                  jucarii programabile cu intentie comerciala deja clara.
+                  Kituri de robotică și coding care pregătesc copiii pentru un
+                  viitor tehnologic — prin joacă aplicată.
                 </p>
               </div>
             </div>
