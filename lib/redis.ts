@@ -3,17 +3,20 @@ import { Redis } from "@upstash/redis";
 // Get Redis timeout from environment variables with a default of 2 seconds
 const REDIS_TIMEOUT = parseInt(process.env.REDIS_TIMEOUT ?? "2000", 10);
 
-// Create Redis client with connection info from environment variables
-export const redis = new Redis({
-  url: process.env.REDIS_URL ?? "",
-  token: process.env.REDIS_TOKEN ?? "",
-  automaticDeserialization: true,
-});
-
-// Check if Redis is configured
+// Check if Redis is configured before creating the client to avoid Upstash
+// logging "url/token missing" warnings on every cold start when Redis is not set up.
 export const isRedisConfigured = !!(
   process.env.REDIS_URL && process.env.REDIS_TOKEN
 );
+
+// Create Redis client only when both env vars are present
+export const redis = isRedisConfigured
+  ? new Redis({
+      url: process.env.REDIS_URL!,
+      token: process.env.REDIS_TOKEN!,
+      automaticDeserialization: true,
+    })
+  : null;
 
 // Use a memory fallback when Redis is not available
 const memoryCache = new Map<string, { value: string; expiry: number }>();
@@ -59,7 +62,7 @@ export async function getCartFromCache(userId: string): Promise<string | null> {
     }
 
     // Use Redis with timeout
-    return await withTimeout<string | null>(redis.get(`cart:${userId}`), () => {
+    return await withTimeout<string | null>(redis!.get(`cart:${userId}`), () => {
       // Redis timeout, falling back to memory cache
       // Fallback to memory cache on timeout
       const item = memoryCache.get(`cart:${userId}`);
@@ -93,7 +96,7 @@ export async function setCartInCache(
 
     // Use Redis with timeout
     return await withTimeout<boolean>(
-      redis
+      redis!
         .set(`cart:${userId}`, cartString, {
           ex: expirationSeconds,
         })
@@ -130,7 +133,7 @@ export async function invalidateCartCache(userId: string): Promise<boolean> {
 
     // Use Redis with timeout
     return await withTimeout<boolean>(
-      redis.del(`cart:${userId}`).then(count => count > 0),
+      redis!.del(`cart:${userId}`).then(count => count > 0),
       () => {
         // Redis delete timeout, clearing memory cache
         // Fallback to memory cache on timeout

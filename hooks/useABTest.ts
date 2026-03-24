@@ -79,6 +79,13 @@ export function useABTest(
           throw new Error("Failed to fetch variant");
         }
 
+        // Guard against non-JSON responses (e.g. HTML error pages or auth redirects)
+        const contentType = response.headers.get("content-type");
+        if (!contentType?.includes("application/json")) {
+          setVariant(null);
+          return;
+        }
+
         const data = await response.json();
         setVariant(data);
       } catch (err: any) {

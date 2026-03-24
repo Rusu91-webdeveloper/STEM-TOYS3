@@ -25,10 +25,12 @@ export async function GET(_req: NextRequest) {
       returnThreshold,
     };
 
-    // Set cache headers for static data (5 minutes)
+    // Set cache headers for static data (5 minutes).
+    // ETag is based on content hash so browsers can use 304 Not Modified responses.
+    const etag = `"store-settings-${Buffer.from(JSON.stringify(frontendSettings)).toString("base64").slice(0, 16)}"`;
     const response = NextResponse.json(frontendSettings);
-    response.headers.set("Cache-Control", "public, max-age=300, s-maxage=300"); // 5 minutes
-    response.headers.set("ETag", `store-settings-${Date.now()}`);
+    response.headers.set("Cache-Control", "public, max-age=300, s-maxage=300, stale-while-revalidate=600");
+    response.headers.set("ETag", etag);
 
     return response;
   } catch (error) {

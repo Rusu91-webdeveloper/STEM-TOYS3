@@ -20,13 +20,17 @@ export const TIME = {
 let redis: Redis | null = null;
 
 /**
- * Initialize Redis connection
+ * Initialize Redis connection. Only creates the client when both env vars are
+ * present to avoid Upstash warning logs on cold starts without Redis configured.
  */
-export function initializeRedis(): Redis {
+export function initializeRedis(): Redis | null {
   if (!redis) {
+    if (!process.env.REDIS_URL || !process.env.REDIS_TOKEN) {
+      return null;
+    }
     redis = new Redis({
-      url: process.env.REDIS_URL || "",
-      token: process.env.REDIS_TOKEN || "",
+      url: process.env.REDIS_URL,
+      token: process.env.REDIS_TOKEN,
       automaticDeserialization: true,
     });
 
@@ -37,9 +41,9 @@ export function initializeRedis(): Redis {
 }
 
 /**
- * Get Redis client instance
+ * Get Redis client instance, or null if Redis is not configured.
  */
-export function getRedisClient(): Redis {
+export function getRedisClient(): Redis | null {
   if (!redis) {
     return initializeRedis();
   }
@@ -64,7 +68,7 @@ export interface Cache {
  * Redis cache implementation
  */
 export class RedisCache implements Cache {
-  private client: Redis;
+  private client: Redis | null;
 
   constructor() {
     this.client = getRedisClient();
@@ -75,7 +79,7 @@ export class RedisCache implements Cache {
    */
   async get<T>(key: string): Promise<T | null> {
     try {
-      const value = await this.client.get(key);
+      const value = await this.client!.get(key);
       return value as T | null;
     } catch (error) {
       console.error("Redis get error:", error);
@@ -89,9 +93,9 @@ export class RedisCache implements Cache {
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
     try {
       if (ttl) {
-        await this.client.set(key, value, { ex: ttl });
+        await this.client!.set(key, value, { ex: ttl });
       } else {
-        await this.client.set(key, value);
+        await this.client!.set(key, value);
       }
     } catch (error) {
       console.error("Redis set error:", error);
@@ -103,7 +107,7 @@ export class RedisCache implements Cache {
    */
   async del(key: string): Promise<void> {
     try {
-      await this.client.del(key);
+      await this.client!.del(key);
     } catch (error) {
       console.error("Redis del error:", error);
     }
@@ -114,7 +118,7 @@ export class RedisCache implements Cache {
    */
   async exists(key: string): Promise<boolean> {
     try {
-      const result = await this.client.exists(key);
+      const result = await this.client!.exists(key);
       return result === 1;
     } catch (error) {
       console.error("Redis exists error:", error);
@@ -127,7 +131,7 @@ export class RedisCache implements Cache {
    */
   async expire(key: string, ttl: number): Promise<void> {
     try {
-      await this.client.expire(key, ttl);
+      await this.client!.expire(key, ttl);
     } catch (error) {
       console.error("Redis expire error:", error);
     }
@@ -138,7 +142,7 @@ export class RedisCache implements Cache {
    */
   async ttl(key: string): Promise<number> {
     try {
-      return await this.client.ttl(key);
+      return await this.client!.ttl(key);
     } catch (error) {
       console.error("Redis ttl error:", error);
       return -1;
@@ -150,7 +154,7 @@ export class RedisCache implements Cache {
    */
   async keys(pattern: string): Promise<string[]> {
     try {
-      return await this.client.keys(pattern);
+      return await this.client!.keys(pattern);
     } catch (error) {
       console.error("Redis keys error:", error);
       return [];
@@ -162,7 +166,7 @@ export class RedisCache implements Cache {
    */
   async flush(): Promise<void> {
     try {
-      await this.client.flushall();
+      await this.client!.flushall();
     } catch (error) {
       console.error("Redis flush error:", error);
     }
@@ -173,7 +177,7 @@ export class RedisCache implements Cache {
    */
   async mget<T>(keys: string[]): Promise<(T | null)[]> {
     try {
-      const values = await this.client.mget(...keys);
+      const values = await this.client!.mget(...keys);
       return values.map(value => value as T | null);
     } catch (error) {
       console.error("Redis mget error:", error);
@@ -190,9 +194,9 @@ export class RedisCache implements Cache {
     try {
       for (const { key, value, ttl } of entries) {
         if (ttl) {
-          await this.client.set(key, value, { ex: ttl });
+          await this.client!.set(key, value, { ex: ttl });
         } else {
-          await this.client.set(key, value);
+          await this.client!.set(key, value);
         }
       }
     } catch (error) {
@@ -205,10 +209,10 @@ export class RedisCache implements Cache {
    */
   async incr(key: string, ttl?: number): Promise<number> {
     try {
-      const result = await this.client.incr(key);
+      const result = await this.client!.incr(key);
 
       if (ttl) {
-        await this.client.expire(key, ttl);
+        await this.client!.expire(key, ttl);
       }
 
       return result;
@@ -223,7 +227,7 @@ export class RedisCache implements Cache {
    */
   async sadd(key: string, ...members: string[]): Promise<number> {
     try {
-      return await this.client.sadd(key, ...members);
+      return await this.client!.sadd(key, ...members);
     } catch (error) {
       console.error("Redis sadd error:", error);
       return 0;
@@ -235,7 +239,7 @@ export class RedisCache implements Cache {
    */
   async smembers(key: string): Promise<string[]> {
     try {
-      return await this.client.smembers(key);
+      return await this.client!.smembers(key);
     } catch (error) {
       console.error("Redis smembers error:", error);
       return [];
@@ -247,7 +251,7 @@ export class RedisCache implements Cache {
    */
   async srem(key: string, ...members: string[]): Promise<number> {
     try {
-      return await this.client.srem(key, ...members);
+      return await this.client!.srem(key, ...members);
     } catch (error) {
       console.error("Redis srem error:", error);
       return 0;
@@ -259,7 +263,7 @@ export class RedisCache implements Cache {
    */
   async zadd(key: string, score: number, member: string): Promise<number> {
     try {
-      return await this.client.zadd(key, score, member);
+      return await this.client!.zadd(key, score, member);
     } catch (error) {
       console.error("Redis zadd error:", error);
       return 0;
@@ -277,7 +281,7 @@ export class RedisCache implements Cache {
   ): Promise<string[]> {
     try {
       const options = withScores ? "WITHSCORES" : undefined;
-      return await this.client.zrange(key, start, stop, options);
+      return await this.client!.zrange(key, start, stop, options);
     } catch (error) {
       console.error("Redis zrange error:", error);
       return [];
@@ -289,7 +293,7 @@ export class RedisCache implements Cache {
    */
   async zscore(key: string, member: string): Promise<number | null> {
     try {
-      const score = await this.client.zscore(key, member);
+      const score = await this.client!.zscore(key, member);
       return score ? parseFloat(score) : null;
     } catch (error) {
       console.error("Redis zscore error:", error);
@@ -302,7 +306,7 @@ export class RedisCache implements Cache {
    */
   async hset(key: string, field: string, value: string): Promise<number> {
     try {
-      return await this.client.hset(key, field, value);
+      return await this.client!.hset(key, field, value);
     } catch (error) {
       console.error("Redis hset error:", error);
       return 0;
@@ -311,7 +315,7 @@ export class RedisCache implements Cache {
 
   async hget(key: string, field: string): Promise<string | null> {
     try {
-      return await this.client.hget(key, field);
+      return await this.client!.hget(key, field);
     } catch (error) {
       console.error("Redis hget error:", error);
       return null;
@@ -320,7 +324,7 @@ export class RedisCache implements Cache {
 
   async hgetall(key: string): Promise<Record<string, string>> {
     try {
-      return await this.client.hgetall(key);
+      return await this.client!.hgetall(key);
     } catch (error) {
       console.error("Redis hgetall error:", error);
       return {};
@@ -329,7 +333,7 @@ export class RedisCache implements Cache {
 
   async hdel(key: string, ...fields: string[]): Promise<number> {
     try {
-      return await this.client.hdel(key, ...fields);
+      return await this.client!.hdel(key, ...fields);
     } catch (error) {
       console.error("Redis hdel error:", error);
       return 0;
@@ -341,7 +345,7 @@ export class RedisCache implements Cache {
    */
   async lpush(key: string, ...values: string[]): Promise<number> {
     try {
-      return await this.client.lpush(key, ...values);
+      return await this.client!.lpush(key, ...values);
     } catch (error) {
       console.error("Redis lpush error:", error);
       return 0;
@@ -350,7 +354,7 @@ export class RedisCache implements Cache {
 
   async rpush(key: string, ...values: string[]): Promise<number> {
     try {
-      return await this.client.rpush(key, ...values);
+      return await this.client!.rpush(key, ...values);
     } catch (error) {
       console.error("Redis rpush error:", error);
       return 0;
@@ -359,7 +363,7 @@ export class RedisCache implements Cache {
 
   async lpop(key: string): Promise<string | null> {
     try {
-      return await this.client.lpop(key);
+      return await this.client!.lpop(key);
     } catch (error) {
       console.error("Redis lpop error:", error);
       return null;
@@ -368,7 +372,7 @@ export class RedisCache implements Cache {
 
   async rpop(key: string): Promise<string | null> {
     try {
-      return await this.client.rpop(key);
+      return await this.client!.rpop(key);
     } catch (error) {
       console.error("Redis rpop error:", error);
       return null;
@@ -377,7 +381,7 @@ export class RedisCache implements Cache {
 
   async lrange(key: string, start: number, stop: number): Promise<string[]> {
     try {
-      return await this.client.lrange(key, start, stop);
+      return await this.client!.lrange(key, start, stop);
     } catch (error) {
       console.error("Redis lrange error:", error);
       return [];
@@ -386,7 +390,7 @@ export class RedisCache implements Cache {
 
   async llen(key: string): Promise<number> {
     try {
-      return await this.client.llen(key);
+      return await this.client!.llen(key);
     } catch (error) {
       console.error("Redis llen error:", error);
       return 0;
@@ -398,7 +402,7 @@ export class RedisCache implements Cache {
    */
   async ping(): Promise<string> {
     try {
-      return await this.client.ping();
+      return await this.client!.ping();
     } catch (error) {
       console.error("Redis ping error:", error);
       throw error;
@@ -410,7 +414,7 @@ export class RedisCache implements Cache {
    */
   async info(): Promise<string> {
     try {
-      return await this.client.info();
+      return await this.client!.info();
     } catch (error) {
       console.error("Redis info error:", error);
       return "";
@@ -422,7 +426,7 @@ export class RedisCache implements Cache {
    */
   async close(): Promise<void> {
     try {
-      await this.client.quit();
+      await this.client!.quit();
       redis = null;
     } catch (error) {
       console.error("Redis close error:", error);
