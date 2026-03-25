@@ -63,7 +63,7 @@ const navigation: {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
-  { name: "byAge", href: "/jucarii-stem-dupa-varsta", icon: Boxes },
+  { name: "Jucarii", href: "/products", icon: Boxes },
   { name: "categories", href: "/categories", icon: Grid3X3 },
   { name: "about", href: "/about", icon: Info },
   { name: "contact", href: "/contact", icon: MessageSquare },

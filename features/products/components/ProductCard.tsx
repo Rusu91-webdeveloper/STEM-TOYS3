@@ -251,7 +251,7 @@ export function ProductCard({
             className="object-contain p-3 sm:p-4 transition-transform duration-500 group-hover:scale-[1.04]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             priority={priority}
-            quality={88}
+            quality={90}
           />
         </Link>
 

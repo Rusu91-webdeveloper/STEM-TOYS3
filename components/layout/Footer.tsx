@@ -371,7 +371,7 @@ export default function Footer({
                 secret="156180"
                 aria-hidden="true"
               />
-              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-700">
                 Secure Payment
               </span>
             </Link>
