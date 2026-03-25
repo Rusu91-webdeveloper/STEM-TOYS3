@@ -15,6 +15,15 @@ export const checkoutStepperSurfaceClass = `${checkoutCardClass} shadow-[0_2px_1
 export const checkoutInputSurfaceClass =
   "rounded-lg border border-slate-200 bg-slate-50/80 text-slate-900 placeholder:text-slate-400";
 
-export const checkoutMutedTextClass = "text-slate-500";
+/** Inputs on light cards: high contrast, screenshot-style light gray fill */
+export const checkoutFieldInputClass =
+  "rounded-lg border border-slate-200 bg-slate-100 text-slate-900 shadow-sm placeholder:text-slate-500 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20";
+
+export const checkoutFieldLabelClass = "font-medium text-slate-800";
+
+export const checkoutMutedTextClass = "text-slate-600";
+
+export const checkoutInfoBannerClass =
+  "rounded-lg border border-sky-200 bg-sky-50 px-3 py-2.5 text-sm font-medium text-sky-950";
 
 export const checkoutBorderSubtleClass = "border-slate-200";

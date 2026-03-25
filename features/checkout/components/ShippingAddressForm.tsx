@@ -15,7 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
+import {
+  checkoutCardClass,
+  checkoutFieldInputClass,
+  checkoutFieldLabelClass,
+  checkoutInfoBannerClass,
+} from "@/features/checkout/lib/checkoutTheme";
 import { createFormValidator } from "@/lib/formValidation";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -426,17 +431,27 @@ export function ShippingAddressForm({
         <div
           className={`${checkoutCardClass} p-6 text-slate-900 shadow-sm`}
         >
-        <h2 className="text-xl font-semibold mb-4 text-white">{t("shippingAddress")}</h2>
+        <div className="mb-6">
+          <h2 className="text-xl font-bold tracking-tight text-slate-900">
+            {t("checkoutShippingInfoTitle", "Informații livrare")}
+          </h2>
+          <p className="mt-1.5 text-sm text-slate-600">
+            {t(
+              "checkoutShippingInfoSubtitle",
+              "Introduceți detaliile pentru livrarea comenzii."
+            )}
+          </p>
+        </div>
 
         {!allowInternational && (
-          <div className="mb-4 rounded-md border border-sky-400/40 bg-sky-500/15 p-3 text-sm font-medium text-sky-200">
+          <div className={`${checkoutInfoBannerClass} mb-4`}>
             {t("deliveryOnlyRomania")}
           </div>
         )}
 
         {isLoadingAddresses ? (
           <div className="flex items-center justify-center py-6">
-            <Loader2 className="h-8 w-8 animate-spin text-sky-300" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : savedAddresses.length > 0 ? (
           <div className="mb-6">
@@ -457,14 +472,14 @@ export function ShippingAddressForm({
                     className={cn(
                       "flex items-start gap-3 rounded-xl border p-3 transition-colors duration-200",
                       isSelected
-                        ? "border-sky-400 bg-sky-500/20 shadow-lg shadow-sky-500/20"
-                        : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
+                        ? "border-primary bg-primary/5 shadow-sm shadow-primary/10"
+                        : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white"
                     )}
                   >
                     <RadioGroupItem
                       value={address.id}
                       id={`address-${address.id}`}
-                      className="mt-1 border-white/40 text-sky-300"
+                      className="mt-1 border-slate-300 text-primary"
                     />
                     <div className="flex-1">
                       <Label
@@ -473,7 +488,7 @@ export function ShippingAddressForm({
                       >
                         {address.name}{" "}
                         {address.isDefault && (
-                          <span className="ml-2 rounded border border-sky-400/40 bg-sky-500/15 px-2 py-0.5 text-xs text-sky-100">
+                          <span className="ml-2 rounded border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">
                             Default
                           </span>
                         )}
@@ -497,7 +512,7 @@ export function ShippingAddressForm({
                   </div>
                 );
               })}
-              <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition-colors duration-200 hover:border-white/20 hover:bg-white/10">
+              <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 transition-colors duration-200 hover:border-slate-300 hover:bg-white">
                 <RadioGroupItem value="new" id="address-new" className="mt-1" />
                 <Label
                   htmlFor="address-new"
@@ -513,7 +528,7 @@ export function ShippingAddressForm({
         {(selectedAddressId === "new" || requiresManualAddressDetails) && (
           <div className="space-y-4">
             {selectedAddressId !== "new" && (
-              <div className="rounded-md border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-100">
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-medium text-amber-950">
                 {t(
                   "completeAddressForCourier",
                   "Completează strada și numărul pentru livrare corectă prin curier."
@@ -521,7 +536,7 @@ export function ShippingAddressForm({
               </div>
             )}
             <div>
-              <Label htmlFor="fullName" className="font-medium text-slate-200">
+              <Label htmlFor="fullName" className={checkoutFieldLabelClass}>
                 {t("fullName")}
               </Label>
               <Input
@@ -530,18 +545,18 @@ export function ShippingAddressForm({
                 value={formData.fullName}
                 onChange={handleChange}
                 className={cn(
-                  "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60 focus:ring-sky-400/20",
-                  errors.fullName && "border-red-500"
+                  checkoutFieldInputClass,
+                  errors.fullName && "border-red-500 focus-visible:ring-red-500/20"
                 )}
               />
               {errors.fullName && (
-                <p className="mt-1 text-sm text-red-400">{errors.fullName}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>
               )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="companyName" className="font-medium text-slate-200">
+                <Label htmlFor="companyName" className={checkoutFieldLabelClass}>
                   {t("companyNameOptional", "Company name (optional)")}
                 </Label>
                 <Input
@@ -550,19 +565,19 @@ export function ShippingAddressForm({
                   value={formData.companyName || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
-                    errors.companyName && "border-red-500"
+                    checkoutFieldInputClass,
+                    errors.companyName && "border-red-500 focus-visible:ring-red-500/20"
                   )}
                 />
                 {errors.companyName && (
-                  <p className="mt-1 text-sm text-red-400">
+                  <p className="mt-1 text-sm text-red-600">
                     {errors.companyName}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="cui" className="font-medium text-slate-200">
+                <Label htmlFor="cui" className={checkoutFieldLabelClass}>
                   {t("cuiOptional", "CUI/VAT (optional)")}
                 </Label>
                 <Input
@@ -571,19 +586,19 @@ export function ShippingAddressForm({
                   value={formData.cui || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
-                    errors.cui && "border-red-500"
+                    checkoutFieldInputClass,
+                    errors.cui && "border-red-500 focus-visible:ring-red-500/20"
                   )}
                 />
                 {errors.cui && (
-                  <p className="mt-1 text-sm text-red-400">{errors.cui}</p>
+                  <p className="mt-1 text-sm text-red-600">{errors.cui}</p>
                 )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="street" className="font-medium text-slate-200">
+                <Label htmlFor="street" className={checkoutFieldLabelClass}>
                   {t("streetLabel", "Stradă")}
                 </Label>
                 <Input
@@ -592,17 +607,17 @@ export function ShippingAddressForm({
                   value={formData.street || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
-                    errors.street && "border-red-500"
+                    checkoutFieldInputClass,
+                    errors.street && "border-red-500 focus-visible:ring-red-500/20"
                   )}
                 />
                 {errors.street && (
-                  <p className="mt-1 text-sm text-red-400">{errors.street}</p>
+                  <p className="mt-1 text-sm text-red-600">{errors.street}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="streetNumber" className="font-medium text-slate-200">
+                <Label htmlFor="streetNumber" className={checkoutFieldLabelClass}>
                   {t("streetNumberLabel", "Număr")}
                 </Label>
                 <Input
@@ -611,12 +626,12 @@ export function ShippingAddressForm({
                   value={formData.streetNumber || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
-                    errors.streetNumber && "border-red-500"
+                    checkoutFieldInputClass,
+                    errors.streetNumber && "border-red-500 focus-visible:ring-red-500/20"
                   )}
                 />
                 {errors.streetNumber && (
-                  <p className="mt-1 text-sm text-red-400">
+                  <p className="mt-1 text-sm text-red-600">
                     {errors.streetNumber}
                   </p>
                 )}
@@ -625,7 +640,7 @@ export function ShippingAddressForm({
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <Label htmlFor="block" className="font-medium text-slate-200">
+                <Label htmlFor="block" className={checkoutFieldLabelClass}>
                   {t("blockLabel", "Bloc")}
                 </Label>
                 <Input
@@ -633,12 +648,12 @@ export function ShippingAddressForm({
                   name="block"
                   value={formData.block || ""}
                   onChange={handleChange}
-                  className="border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60"
+                  className={checkoutFieldInputClass}
                 />
               </div>
 
               <div>
-                <Label htmlFor="entrance" className="font-medium text-slate-200">
+                <Label htmlFor="entrance" className={checkoutFieldLabelClass}>
                   {t("entranceLabel", "Scară")}
                 </Label>
                 <Input
@@ -646,12 +661,12 @@ export function ShippingAddressForm({
                   name="entrance"
                   value={formData.entrance || ""}
                   onChange={handleChange}
-                  className="border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60"
+                  className={checkoutFieldInputClass}
                 />
               </div>
 
               <div>
-                <Label htmlFor="floor" className="font-medium text-slate-200">
+                <Label htmlFor="floor" className={checkoutFieldLabelClass}>
                   {t("floorLabel", "Etaj")}
                 </Label>
                 <Input
@@ -659,12 +674,12 @@ export function ShippingAddressForm({
                   name="floor"
                   value={formData.floor || ""}
                   onChange={handleChange}
-                  className="border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60"
+                  className={checkoutFieldInputClass}
                 />
               </div>
 
               <div>
-                <Label htmlFor="apartment" className="font-medium text-slate-200">
+                <Label htmlFor="apartment" className={checkoutFieldLabelClass}>
                   {t("apartmentLabel", "Apartament")}
                 </Label>
                 <Input
@@ -672,13 +687,13 @@ export function ShippingAddressForm({
                   name="apartment"
                   value={formData.apartment || ""}
                   onChange={handleChange}
-                  className="border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60"
+                  className={checkoutFieldInputClass}
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="addressDetails" className="font-medium text-slate-200">
+              <Label htmlFor="addressDetails" className={checkoutFieldLabelClass}>
                 {t("addressDetailsLabel", "Detalii adresă (opțional)")}
               </Label>
               <Input
@@ -690,13 +705,13 @@ export function ShippingAddressForm({
                   "addressDetailsPlaceholder",
                   "Ex: Interfon 23, lângă farmacia X"
                 )}
-                className="border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60"
+                className={checkoutFieldInputClass}
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="city" className="font-medium text-slate-200">
+                <Label htmlFor="city" className={checkoutFieldLabelClass}>
                   {t("city")}
                 </Label>
                 <Input
@@ -705,17 +720,17 @@ export function ShippingAddressForm({
                   value={formData.city}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
-                    errors.city && "border-red-500"
+                    checkoutFieldInputClass,
+                    errors.city && "border-red-500 focus-visible:ring-red-500/20"
                   )}
                 />
                 {errors.city && (
-                  <p className="mt-1 text-sm text-red-400">{errors.city}</p>
+                  <p className="mt-1 text-sm text-red-600">{errors.city}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="state" className="font-medium text-slate-200">
+                <Label htmlFor="state" className={checkoutFieldLabelClass}>
                   {t("state")}
                 </Label>
                 {allowInternational ? (
@@ -725,8 +740,8 @@ export function ShippingAddressForm({
                     value={formData.state}
                     onChange={handleChange}
                     className={cn(
-                      "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
-                      errors.state && "border-red-500"
+                      checkoutFieldInputClass,
+                      errors.state && "border-red-500 focus-visible:ring-red-500/20"
                     )}
                   />
                 ) : (
@@ -736,8 +751,8 @@ export function ShippingAddressForm({
                   >
                     <SelectTrigger
                       className={cn(
-                        "border-white/20 bg-slate-700 text-white",
-                        errors.state && "border-red-500"
+                        checkoutFieldInputClass,
+                        errors.state && "border-red-500 focus-visible:ring-red-500/20"
                       )}
                     >
                       <SelectValue
@@ -758,14 +773,14 @@ export function ShippingAddressForm({
                   </Select>
                 )}
                 {errors.state && (
-                  <p className="mt-1 text-sm text-red-400">{errors.state}</p>
+                  <p className="mt-1 text-sm text-red-600">{errors.state}</p>
                 )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="postalCode" className="font-medium text-slate-200">
+                <Label htmlFor="postalCode" className={checkoutFieldLabelClass}>
                   {t("postalCode")}
                 </Label>
                 <Input
@@ -774,19 +789,19 @@ export function ShippingAddressForm({
                   value={formData.postalCode}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
-                    errors.postalCode && "border-red-500"
+                    checkoutFieldInputClass,
+                    errors.postalCode && "border-red-500 focus-visible:ring-red-500/20"
                   )}
                 />
                 {errors.postalCode && (
-                  <p className="mt-1 text-sm text-red-400">
+                  <p className="mt-1 text-sm text-red-600">
                     {errors.postalCode}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="country" className="font-medium text-slate-200">
+                <Label htmlFor="country" className={checkoutFieldLabelClass}>
                   {t("country")}
                 </Label>
                 {allowInternational ? (
@@ -796,8 +811,8 @@ export function ShippingAddressForm({
                     value={formData.country}
                     onChange={handleChange}
                     className={cn(
-                      "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
-                      errors.country && "border-red-500"
+                      checkoutFieldInputClass,
+                      errors.country && "border-red-500 focus-visible:ring-red-500/20"
                     )}
                   />
                 ) : (
@@ -808,8 +823,8 @@ export function ShippingAddressForm({
                   >
                     <SelectTrigger
                       className={cn(
-                        "border-white/20 bg-slate-700 text-white data-[placeholder]:text-slate-400",
-                        errors.country && "border-red-500"
+                        checkoutFieldInputClass,
+                        errors.country && "border-red-500 focus-visible:ring-red-500/20"
                       )}
                     >
                       <SelectValue
@@ -830,13 +845,13 @@ export function ShippingAddressForm({
                   </Select>
                 )}
                 {errors.country && (
-                  <p className="mt-1 text-sm text-red-400">{errors.country}</p>
+                  <p className="mt-1 text-sm text-red-600">{errors.country}</p>
                 )}
               </div>
             </div>
 
             <div>
-                <Label htmlFor="phone" className="font-medium text-slate-200">
+                <Label htmlFor="phone" className={checkoutFieldLabelClass}>
                   {t("phone")}
                 </Label>
               <Input
@@ -845,12 +860,12 @@ export function ShippingAddressForm({
                 value={formData.phone}
                 onChange={handleChange}
                 className={cn(
-                  "border-white/20 bg-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400/60",
-                  errors.phone && "border-red-500"
+                  checkoutFieldInputClass,
+                  errors.phone && "border-red-500 focus-visible:ring-red-500/20"
                 )}
               />
               {errors.phone && (
-                <p className="mt-1 text-sm text-red-400">{errors.phone}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
               )}
             </div>
           </div>
@@ -860,7 +875,7 @@ export function ShippingAddressForm({
       <div className="flex justify-end">
         <Button
           type="submit"
-          className="px-8 bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25 transition hover:from-sky-400 hover:via-indigo-400 hover:to-purple-400"
+          className="h-11 min-w-[200px] rounded-xl bg-gradient-to-r from-primary via-sky-600 to-indigo-600 px-8 font-semibold text-white shadow-md shadow-primary/25 transition hover:brightness-105"
         >
           {t("continueToShipping")}
         </Button>
