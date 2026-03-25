@@ -18,7 +18,7 @@ import { useCart } from "@/features/cart";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-import { darkGlassCardClass } from "@/features/home/components/homeTheme";
+import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { ShippingMethod } from "../types";
 
 interface PaymentCard {
@@ -306,15 +306,15 @@ const PaymentMethodSelectorComponent = ({
   ) => {
     switch (variant) {
       case "recommended":
-        return "border border-violet-500/30 bg-violet-500/10 text-violet-300";
+        return "border border-violet-200 bg-violet-50 text-violet-800";
       case "popular":
-        return "border border-amber-500/30 bg-amber-500/10 text-amber-300";
+        return "border border-amber-200 bg-amber-50 text-amber-900";
       case "saved":
-        return "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300";
+        return "border border-emerald-200 bg-emerald-50 text-emerald-800";
       case "unavailable":
-        return "border border-rose-500/30 bg-rose-500/10 text-rose-300";
+        return "border border-rose-200 bg-rose-50 text-rose-800";
       default:
-        return "border border-white/10 bg-slate-800 text-slate-300";
+        return "border border-slate-200 bg-slate-100 text-slate-700";
     }
   };
 
@@ -381,13 +381,13 @@ const PaymentMethodSelectorComponent = ({
 
   return (
     <div className="space-y-4">
-      <div className={`${darkGlassCardClass} px-5 py-5`}>
+      <div className={`${checkoutCardClass} px-5 py-5`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <Label className="block text-base font-semibold text-slate-100 sm:text-lg">
+            <Label className="block text-base font-semibold text-slate-900 sm:text-lg">
               {t("selectPaymentMethod", "Selectează metoda de plată")}
             </Label>
-            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-300">
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-600">
               {t(
                 "paymentMethodSubtitle",
                 "Alege varianta potrivită. Dacă selectezi ramburs, îți explicăm pașii clar înainte să continui."
@@ -547,22 +547,22 @@ const PaymentMethodSelectorComponent = ({
               className={cn(
                 "group relative flex gap-4 rounded-3xl border px-5 py-5 transition-all duration-300 ease-out",
                 isDisabled
-                  ? "cursor-not-allowed border-white/5 bg-slate-800/20 opacity-50"
-                  : "cursor-pointer bg-slate-800/80 hover:bg-slate-800 backdrop-blur-sm",
+                  ? "cursor-not-allowed border-slate-200 bg-slate-100 opacity-60"
+                  : "cursor-pointer border-slate-200 bg-white shadow-sm hover:bg-slate-50/80",
                 !isDisabled &&
                   (isSelected
-                    ? providerStyles.borderAndGlow + " scale-[1.01] z-10"
-                    : "border-white/10 hover:border-white/20 hover:scale-[1.005] hover:shadow-lg")
+                    ? providerStyles.borderAndGlow + " z-10 scale-[1.01] shadow-md"
+                    : "hover:scale-[1.005] hover:border-slate-300 hover:shadow-md")
               )}
             >
               <div
                 className={cn(
                   "mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300",
                   isDisabled
-                    ? "border-slate-700 bg-slate-800"
+                    ? "border-slate-300 bg-slate-200"
                     : isSelected
                       ? `${colorConfig.checkBorder} ${colorConfig.checkBg} scale-110 shadow-sm`
-                      : "border-slate-500 bg-transparent group-hover:border-slate-400"
+                      : "border-slate-300 bg-transparent group-hover:border-slate-400"
                 )}
               >
                 {isDisabled ? (
@@ -584,10 +584,10 @@ const PaymentMethodSelectorComponent = ({
                   className={cn(
                     "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 shadow-inner",
                     isDisabled
-                      ? "bg-slate-800 border border-white/5"
+                      ? "border border-slate-200 bg-slate-100"
                       : isSelected
-                        ? colorConfig.bg + " border border-white/10 scale-105"
-                        : "bg-slate-700 border border-white/5 group-hover:bg-slate-600"
+                        ? colorConfig.bg + " scale-105 border border-slate-200/80"
+                        : "border border-slate-200 bg-slate-100 group-hover:bg-slate-200/80"
                   )}
                 >
                   <div
@@ -597,7 +597,7 @@ const PaymentMethodSelectorComponent = ({
                         ? "text-slate-500"
                         : isSelected
                           ? colorConfig.icon + " scale-110"
-                          : "text-slate-400 group-hover:text-slate-300"
+                          : "text-slate-500 group-hover:text-slate-700"
                     )}
                   >
                     {method.icon}
@@ -607,14 +607,14 @@ const PaymentMethodSelectorComponent = ({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <h3 className="text-base font-semibold text-white tracking-tight sm:text-[17px]">
+                      <h3 className="text-base font-semibold tracking-tight text-slate-900 sm:text-[17px]">
                         {method.name}
                       </h3>
                       {(method.description || method.disabledReason) && (
                         <p
                           className={cn(
-                            "mt-1 text-sm leading-relaxed max-w-[95%]",
-                            isDisabled ? "text-slate-500" : "text-slate-400"
+                            "mt-1 max-w-[95%] text-sm leading-relaxed",
+                            isDisabled ? "text-slate-500" : "text-slate-600"
                           )}
                         >
                           {method.disabledReason || method.description}
@@ -622,7 +622,7 @@ const PaymentMethodSelectorComponent = ({
                       )}
                     </div>
                     {method.fee && !isDisabled && (
-                      <span className="inline-flex items-center rounded-lg border border-white/10 bg-slate-700/50 px-2.5 py-1 text-xs font-semibold text-slate-300 backdrop-blur-md">
+                      <span className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
                         {method.fee}
                       </span>
                     )}
@@ -642,7 +642,7 @@ const PaymentMethodSelectorComponent = ({
 
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border border-white/5 backdrop-blur-md shadow-sm",
+                        "inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-sm",
                         providerStyles.bg,
                         providerStyles.text
                       )}
@@ -658,7 +658,7 @@ const PaymentMethodSelectorComponent = ({
         })}
       </RadioGroup>
 
-      <p className="px-1 text-xs leading-relaxed text-slate-400">
+      <p className="px-1 text-xs leading-relaxed text-slate-500">
         {t(
           "paymentMethodsFootnote",
           "Metoda selectată este confirmată în pasul următor. Pentru ramburs, vezi întâi costurile și condițiile aferente."

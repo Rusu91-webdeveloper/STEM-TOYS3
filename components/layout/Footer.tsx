@@ -366,12 +366,12 @@ export default function Footer({
               className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 transition-colors hover:bg-slate-100"
             >
               <NTPLogo
-                color="#1e293b"
+                color="#f8fafc"
                 version="horizontal"
                 secret="156180"
                 aria-hidden="true"
               />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-700">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-900">
                 Secure Payment
               </span>
             </Link>

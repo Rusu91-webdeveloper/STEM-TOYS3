@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { darkGlassCardClass } from "@/features/home/components/homeTheme";
+import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { createFormValidator } from "@/lib/formValidation";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -424,7 +424,7 @@ export function ShippingAddressForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
         <div
-          className={`${darkGlassCardClass} p-6 text-slate-100 shadow-lg shadow-black/20`}
+          className={`${checkoutCardClass} p-6 text-slate-900 shadow-sm`}
         >
         <h2 className="text-xl font-semibold mb-4 text-white">{t("shippingAddress")}</h2>
 
@@ -440,7 +440,7 @@ export function ShippingAddressForm({
           </div>
         ) : savedAddresses.length > 0 ? (
           <div className="mb-6">
-            <Label className="mb-3 block text-base font-semibold text-slate-100">
+            <Label className="mb-3 block text-base font-semibold text-slate-900">
               Select a saved address
             </Label>
             <RadioGroup
@@ -469,7 +469,7 @@ export function ShippingAddressForm({
                     <div className="flex-1">
                       <Label
                         htmlFor={`address-${address.id}`}
-                        className="cursor-pointer font-semibold text-slate-100"
+                        className="cursor-pointer font-semibold text-slate-900"
                       >
                         {address.name}{" "}
                         {address.isDefault && (
@@ -478,7 +478,7 @@ export function ShippingAddressForm({
                           </span>
                         )}
                       </Label>
-                      <div className="mt-1 space-y-0.5 text-sm text-slate-300">
+                      <div className="mt-1 space-y-0.5 text-sm text-slate-600">
                         <div>{address.fullName}</div>
                         {address.companyName && (
                           <div>{address.companyName}</div>
@@ -501,7 +501,7 @@ export function ShippingAddressForm({
                 <RadioGroupItem value="new" id="address-new" className="mt-1" />
                 <Label
                   htmlFor="address-new"
-                  className="cursor-pointer font-semibold text-slate-100"
+                  className="cursor-pointer font-semibold text-slate-900"
                 >
                   Use a new address
                 </Label>

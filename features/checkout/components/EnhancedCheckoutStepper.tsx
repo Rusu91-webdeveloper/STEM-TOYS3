@@ -1,12 +1,13 @@
 "use client";
 
-import { CreditCard, Eye, MapPin, Truck } from "lucide-react";
+import { Check, CreditCard, Eye, MapPin, Truck } from "lucide-react";
 import React from "react";
 
+import { checkoutStepperSurfaceClass } from "@/features/checkout/lib/checkoutTheme";
 import { useTranslation } from "@/lib/i18n";
-import { darkGlassCardClass } from "@/features/home/components/homeTheme";
+import { cn } from "@/lib/utils";
 
-import { CheckoutStep, CheckoutData } from "../types";
+import { CheckoutData, CheckoutStep } from "../types";
 
 interface StepDefinition {
   id: CheckoutStep;
@@ -39,96 +40,65 @@ function EnhancedStep({
   const { t } = useTranslation();
 
   return (
-    <div className="relative flex flex-1 flex-col items-center">
-      {/* Step Circle */}
+    <div className="relative flex min-w-0 flex-1 flex-col items-center">
       <button
+        type="button"
         onClick={onClick}
         disabled={!isClickable}
-        className={`relative flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-200 ${
-          isActive
-            ? "border-sky-400 bg-sky-500/80 text-white shadow-lg shadow-sky-500/20"
-            : isCompleted
-              ? "border-emerald-400 bg-emerald-500/80 text-white shadow-lg shadow-emerald-500/20"
-              : "border-white/25 bg-white/10 text-slate-300"
-        } ${isClickable ? "hover:border-sky-400/80 hover:bg-sky-400/20" : "cursor-not-allowed"}`}
+        className={cn(
+          "relative z-[1] flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200 sm:h-12 sm:w-12",
+          isActive &&
+            "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/25",
+          isCompleted &&
+            !isActive &&
+            "border-emerald-500 bg-emerald-500 text-white shadow-md shadow-emerald-500/20",
+          !isActive &&
+            !isCompleted &&
+            "border-slate-200 bg-white text-slate-400",
+          isClickable && !isActive && "hover:border-primary/50 hover:bg-primary/5"
+        )}
       >
-        {isCompleted ? (
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
+        {isCompleted && !isActive ? (
+          <Check className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.5} />
         ) : (
-          <step.icon className="w-6 h-6" />
+          <step.icon className="h-5 w-5 sm:h-6 sm:w-6" />
         )}
       </button>
 
-      {/* Step Label */}
-      <div className="mt-3 text-center">
+      <div className="mt-2 max-w-[5.5rem] text-center sm:mt-3 sm:max-w-none">
         <h3
-          className={`text-sm font-medium ${
-            isActive
-              ? "text-sky-400"
-              : isCompleted
-                ? "text-emerald-300"
-                : "text-slate-300"
-          }`}
+          className={cn(
+            "text-xs font-semibold sm:text-sm",
+            isActive && "text-primary",
+            isCompleted && !isActive && "text-emerald-700",
+            !isActive && !isCompleted && "text-slate-500"
+          )}
         >
           {t(step.label.toLowerCase().replace(/\s+/g, ""), step.label)}
         </h3>
-        <p className="mt-1 text-xs text-slate-400">{step.description}</p>
+        <p className="mt-0.5 hidden text-[10px] text-slate-500 sm:block sm:text-xs">
+          {t(
+            `checkoutStepDesc_${step.id}`,
+            step.description
+          )}
+        </p>
         {completionInfo && (
-          <p className="mt-1 text-xs font-medium text-emerald-300">
+          <p className="mt-1 line-clamp-2 text-[10px] font-medium text-emerald-700 sm:text-xs">
             {completionInfo}
           </p>
         )}
       </div>
 
-      {/* Connector Line */}
       {stepNumber < totalSteps && (
         <div
-          className={`absolute top-6 left-full h-0.5 w-full transition-colors duration-200 ${
-            isCompleted ? "bg-emerald-400" : "bg-white/15"
-          }`}
-          style={{ width: "calc(100% - 3rem)" }}
+          className={cn(
+            "absolute top-5 left-full z-0 h-0.5 sm:top-6",
+            isCompleted ? "bg-emerald-400" : "bg-slate-200"
+          )}
+          style={{ width: "calc(100% - 2.75rem)" }}
+          aria-hidden
         />
       )}
-    </div>
-  );
-}
-
-interface ProgressBarProps {
-  completedSteps: number;
-  totalSteps: number;
-}
-
-function ProgressBar({ completedSteps, totalSteps }: ProgressBarProps) {
-  const progressPercentage = (completedSteps / totalSteps) * 100;
-
-  return (
-    <div className="mb-6">
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-sm font-medium text-slate-200">
-          Step {completedSteps} of {totalSteps}
-        </span>
-        <span className="text-sm text-slate-400">
-          {Math.round(progressPercentage)}% complete
-        </span>
-      </div>
-      <div className="h-2 w-full rounded-full bg-white/10">
-        <div
-          className="h-2 rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-indigo-400 transition-all duration-300 ease-out"
-          style={{ width: `${progressPercentage}%` }}
-        />
-      </div>
     </div>
   );
 }
@@ -147,26 +117,38 @@ export function EnhancedCheckoutStepper({
   const stepDefinitions: StepDefinition[] = [
     {
       id: "shipping-address",
-      label: t("shippingAddress", "Shipping Address"),
-      description: "Where to send your order",
+      label: t("checkoutStepAddress", "Adresă livrare"),
+      description: t(
+        "checkoutStepDescAddress",
+        "Detalii destinatar"
+      ),
       icon: MapPin,
     },
     {
       id: "shipping-method",
-      label: t("shippingMethod", "Delivery"),
-      description: "How fast you need it",
+      label: t("checkoutStepCourier", "Curier"),
+      description: t(
+        "checkoutStepDescCourier",
+        "Metodă de livrare"
+      ),
       icon: Truck,
     },
     {
       id: "payment",
-      label: t("payment", "Payment"),
-      description: "Secure payment details",
+      label: t("payment", "Plată"),
+      description: t(
+        "checkoutStepDescPayment",
+        "Metodă de plată"
+      ),
       icon: CreditCard,
     },
     {
       id: "review",
-      label: t("review", "Review"),
-      description: "Confirm your order",
+      label: t("checkoutStepConfirm", "Confirmare"),
+      description: t(
+        "checkoutStepDescReview",
+        "Verificare comandă"
+      ),
       icon: Eye,
     },
   ];
@@ -190,7 +172,7 @@ export function EnhancedCheckoutStepper({
     switch (step) {
       case "shipping-address":
         if (checkoutData.shippingAddress) {
-          return `${checkoutData.shippingAddress.city}, ${checkoutData.shippingAddress.country}`;
+          return `${checkoutData.shippingAddress.city}`;
         }
         return undefined;
       case "shipping-method":
@@ -200,7 +182,7 @@ export function EnhancedCheckoutStepper({
         return undefined;
       case "payment":
         if (checkoutData.paymentMethod) {
-          return "Payment method selected";
+          return t("paymentMethodSelected", "Metodă selectată");
         }
         return undefined;
       default:
@@ -209,10 +191,8 @@ export function EnhancedCheckoutStepper({
   };
 
   const isClickable = (step: CheckoutStep): boolean => {
-    // Always allow clicking on completed steps or the current step
     if (step === currentStep || isCompleted(step)) return true;
 
-    // Only allow clicking on the next step if all previous steps are completed
     const stepOrder: CheckoutStep[] = [
       "shipping-address",
       "shipping-method",
@@ -222,31 +202,18 @@ export function EnhancedCheckoutStepper({
     const currentStepIndex = stepOrder.indexOf(currentStep);
     const stepIndex = stepOrder.indexOf(step);
 
-    // Can only go forward if current step is completed
     if (stepIndex > currentStepIndex) {
       return isCompleted(currentStep);
     }
 
-    // Can always go back to previous steps
     return true;
   };
 
-  const completedStepsCount = stepDefinitions.filter(step =>
-    isCompleted(step.id)
-  ).length;
-
   return (
     <div
-      className={`${darkGlassCardClass} mb-6 p-4 text-slate-100 shadow-lg shadow-black/20 sm:mb-8 sm:p-6`}
+      className={`${checkoutStepperSurfaceClass} mb-6 p-4 sm:mb-8 sm:p-6`}
     >
-      {/* Progress Bar */}
-      <ProgressBar
-        completedSteps={completedStepsCount}
-        totalSteps={stepDefinitions.length}
-      />
-
-      {/* Desktop Stepper */}
-      <div className="relative hidden items-start justify-between md:flex">
+      <div className="relative hidden items-start justify-between gap-1 md:flex">
         {stepDefinitions.map((step, index) => (
           <EnhancedStep
             key={step.id}
@@ -254,7 +221,7 @@ export function EnhancedCheckoutStepper({
             isActive={currentStep === step.id}
             isCompleted={isCompleted(step.id)}
             isClickable={isClickable(step.id)}
-            onClick={() => {}} // No step clicking in simplified flow
+            onClick={() => {}}
             stepNumber={index + 1}
             totalSteps={stepDefinitions.length}
             completionInfo={getCompletionInfo(step.id)}
@@ -262,74 +229,103 @@ export function EnhancedCheckoutStepper({
         ))}
       </div>
 
-      {/* Mobile Stepper */}
       <div className="md:hidden">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-                currentStep === "shipping-address"
-                  ? "bg-sky-500 text-white shadow shadow-sky-500/40"
-                  : isCompleted("shipping-address")
-                    ? "bg-emerald-500 text-white shadow shadow-emerald-500/40"
-                    : "bg-white/10 text-slate-300"
-              }`}
-            >
-              {isCompleted("shipping-address") ? "✓" : "1"}
-            </div>
-            <div
-              className={`mx-2 h-1 flex-1 ${
-                isCompleted("shipping-address") ? "bg-emerald-400" : "bg-white/15"
-              }`}
-            />
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-                currentStep === "shipping-method"
-                  ? "bg-sky-500 text-white shadow shadow-sky-500/40"
-                  : isCompleted("shipping-method")
-                    ? "bg-emerald-500 text-white shadow shadow-emerald-500/40"
-                    : "bg-white/10 text-slate-300"
-              }`}
-            >
-              {isCompleted("shipping-method") ? "✓" : "2"}
-            </div>
-            <div
-              className={`mx-2 h-1 flex-1 ${
-                isCompleted("shipping-method") ? "bg-emerald-400" : "bg-white/15"
-              }`}
-            />
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-                currentStep === "payment"
-                  ? "bg-sky-500 text-white shadow shadow-sky-500/40"
-                  : isCompleted("payment")
-                    ? "bg-emerald-500 text-white shadow shadow-emerald-500/40"
-                    : "bg-white/10 text-slate-300"
-              }`}
-            >
-              {isCompleted("payment") ? "✓" : "3"}
-            </div>
-            <div
-              className={`mx-2 h-1 flex-1 ${
-                isCompleted("payment") ? "bg-emerald-400" : "bg-white/15"
-              }`}
-            />
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
-                currentStep === "review"
-                  ? "bg-sky-500 text-white shadow shadow-sky-500/40"
-                  : "bg-white/10 text-slate-300"
-              }`}
-            >
-              4
-            </div>
+        <div className="flex items-center">
+          <div
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+              currentStep === "shipping-address" &&
+                "bg-primary text-primary-foreground shadow-sm",
+              isCompleted("shipping-address") &&
+                currentStep !== "shipping-address" &&
+                "bg-emerald-500 text-white",
+              !isCompleted("shipping-address") &&
+                currentStep !== "shipping-address" &&
+                "border border-slate-200 bg-white text-slate-400"
+            )}
+          >
+            {isCompleted("shipping-address") &&
+            currentStep !== "shipping-address" ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              "1"
+            )}
+          </div>
+          <div
+            className={cn(
+              "mx-1.5 h-0.5 min-w-[8px] flex-1",
+              isCompleted("shipping-address") ? "bg-emerald-400" : "bg-slate-200"
+            )}
+          />
+          <div
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+              currentStep === "shipping-method" &&
+                "bg-primary text-primary-foreground shadow-sm",
+              isCompleted("shipping-method") &&
+                currentStep !== "shipping-method" &&
+                "bg-emerald-500 text-white",
+              !isCompleted("shipping-method") &&
+                currentStep !== "shipping-method" &&
+                "border border-slate-200 bg-white text-slate-400"
+            )}
+          >
+            {isCompleted("shipping-method") &&
+            currentStep !== "shipping-method" ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              "2"
+            )}
+          </div>
+          <div
+            className={cn(
+              "mx-1.5 h-0.5 min-w-[8px] flex-1",
+              isCompleted("shipping-method") ? "bg-emerald-400" : "bg-slate-200"
+            )}
+          />
+          <div
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+              currentStep === "payment" &&
+                "bg-primary text-primary-foreground shadow-sm",
+              isCompleted("payment") &&
+                currentStep !== "payment" &&
+                "bg-emerald-500 text-white",
+              !isCompleted("payment") &&
+                currentStep !== "payment" &&
+                "border border-slate-200 bg-white text-slate-400"
+            )}
+          >
+            {isCompleted("payment") && currentStep !== "payment" ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              "3"
+            )}
+          </div>
+          <div
+            className={cn(
+              "mx-1.5 h-0.5 min-w-[8px] flex-1",
+              isCompleted("payment") ? "bg-emerald-400" : "bg-slate-200"
+            )}
+          />
+          <div
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+              currentStep === "review" &&
+                "bg-primary text-primary-foreground shadow-sm",
+              currentStep !== "review" &&
+                "border border-slate-200 bg-white text-slate-400"
+            )}
+          >
+            4
           </div>
         </div>
-        <div className="mt-3 text-center">
-          <span className="text-sm font-medium text-slate-200">
-            {stepDefinitions.find(step => step.id === currentStep)?.label}
-          </span>
-        </div>
+        <p className="mt-3 text-center text-sm font-semibold text-slate-800">
+          {stepDefinitions.find(s => s.id === currentStep)?.label}
+        </p>
+        <p className="mt-0.5 text-center text-xs text-slate-500">
+          {stepDefinitions.find(s => s.id === currentStep)?.description}
+        </p>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import React from "react";
 
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
-import { darkGlassCardClass } from "@/features/home/components/homeTheme";
+import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 
 interface OrderSummarySectionProps {
   subtotal: number;
@@ -29,8 +29,8 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
   const { t } = useTranslation();
 
   return (
-    <div className={`${darkGlassCardClass} p-4 sm:p-6`}>
-      <h3 className="text-base sm:text-lg font-semibold mb-4">
+    <div className={`${checkoutCardClass} p-4 text-slate-900 sm:p-6`}>
+      <h3 className="mb-4 text-base font-semibold sm:text-lg">
         {t("orderSummary", "Order Summary")}
       </h3>
 
@@ -42,7 +42,7 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
 
         {/* **DISCOUNT LINE** */}
         {discountAmount > 0 && appliedCoupon && (
-          <div className="flex justify-between text-emerald-400 text-sm sm:text-base">
+          <div className="flex justify-between text-sm text-emerald-700 sm:text-base">
             <span className="font-medium truncate">
               {t("discount", "Discount")} ({appliedCoupon.code})
             </span>
@@ -63,13 +63,13 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
           <span>
             {t("shipping", "Shipping")}
             {shippingCost === 0 && (
-              <span className="ml-2 text-xs text-emerald-400 font-medium">
+              <span className="ml-2 text-xs font-medium text-emerald-600">
                 (Transport gratuit!)
               </span>
             )}
           </span>
           <span
-            className={shippingCost === 0 ? "text-emerald-400 font-medium" : ""}
+            className={shippingCost === 0 ? "font-medium text-emerald-600" : ""}
           >
             {shippingCost === 0 ? "GRATUIT" : formatPrice(shippingCost)}
           </span>

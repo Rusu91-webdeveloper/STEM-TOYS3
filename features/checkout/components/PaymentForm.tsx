@@ -1,6 +1,6 @@
 "use client";
 
-import { darkGlassCardClass } from "@/features/home/components/homeTheme";
+import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 
 import {
   Banknote,
@@ -953,22 +953,22 @@ export function PaymentForm({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className={`${darkGlassCardClass} p-4 sm:p-6`}>
-        <div className="mb-5 flex flex-col gap-3 border-b border-white/10 pb-5">
+      <div className={`${checkoutCardClass} p-4 sm:p-6`}>
+        <div className="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full border border-white/10 bg-slate-800 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
               {t("paymentStepLabel", "Pasul 3 din 4")}
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-900/20 px-2.5 py-1 text-[11px] font-medium text-emerald-400">
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-800">
               <ShieldCheck className="h-3.5 w-3.5" />
               {t("securePaymentLabel", "Plată securizată")}
             </span>
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white sm:text-xl">
+            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
               {t("paymentMethod", "Metodă de plată")}
             </h2>
-            <p className="mt-1 text-sm leading-relaxed text-slate-300">
+            <p className="mt-1 text-sm leading-relaxed text-slate-600">
               {t(
                 "paymentStepSubtitle",
                 "Alege cum plătești. Dacă selectezi ramburs, confirmi separat condițiile înainte de verificarea finală."
@@ -1435,13 +1435,13 @@ export function PaymentForm({
           </div>
         )}
 
-        <div className="mt-6 rounded-3xl border border-white/10 bg-slate-800 p-4 shadow-sm">
+        <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-slate-900">
                 {t("paymentNextStepTitle", "Urmează verificarea finală")}
               </p>
-              <p className="mt-1 text-sm text-slate-300">
+              <p className="mt-1 text-sm text-slate-600">
                 {t(
                   "paymentNextStepBody",
                   "Revizuiești comanda, adresele și metoda de plată înainte de plasare."
@@ -1452,13 +1452,13 @@ export function PaymentForm({
               <Button
                 variant="outline"
                 onClick={onBack}
-                className="w-full border-white/20 bg-slate-800 text-sm text-slate-200 hover:bg-slate-700 sm:w-auto sm:text-base"
+                className="w-full border-slate-300 bg-white text-sm text-slate-900 hover:bg-slate-50 sm:w-auto sm:text-base"
               >
                 {t("backToShippingMethod", "Înapoi la metoda de livrare")}
               </Button>
               <Button
                 onClick={handleContinue}
-                className="w-full bg-slate-700 text-sm text-white hover:bg-slate-600 sm:w-auto sm:min-w-[220px] sm:text-base"
+                className="w-full bg-primary text-sm text-primary-foreground hover:bg-primary/90 sm:w-auto sm:min-w-[220px] sm:text-base"
                 disabled={
                   !selectedPaymentMethod ||
                   isCodLimitExceeded ||

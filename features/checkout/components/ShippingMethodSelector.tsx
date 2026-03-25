@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/features/cart";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
-import { darkGlassCardClass } from "@/features/home/components/homeTheme";
+import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { cn } from "@/lib/utils";
 
 import { fetchShippingQuotes, fetchShippingSettings } from "../lib/checkoutApi";
@@ -406,9 +406,9 @@ export function ShippingMethodSelector({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12 text-slate-100">
-        <Loader2 className="h-8 w-8 animate-spin text-sky-300" />
-        <p className="ml-2 text-sky-200">
+      <div className="flex items-center justify-center py-12 text-slate-900">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2 text-slate-700">
           {t("loadingShippingOptions", "Loading shipping options...")}
         </p>
       </div>
@@ -423,16 +423,16 @@ export function ShippingMethodSelector({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Free Shipping Banner */}
       {freeShippingApplied && (
-        <div className="mb-6 rounded-2xl border border-emerald-400/40 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-sky-500/10 p-4 text-emerald-100 shadow-inner shadow-emerald-500/20">
+        <div className="mb-6 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-sky-50 p-4 text-emerald-900 shadow-inner shadow-emerald-100/50">
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
-              <Gift className="h-6 w-6 text-emerald-300" />
+              <Gift className="h-6 w-6 text-emerald-600" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-emerald-100">
+              <h3 className="text-lg font-semibold text-emerald-900">
                 🎉 Transport Gratuit Aplicat!
               </h3>
-              <p className="text-sm text-emerald-100/90">
+              <p className="text-sm text-emerald-800/95">
                 Comanda ta depășește pragul de{" "}
                 {formatPrice(freeShippingThreshold || 100)} - livrarea standard
                 este gratuită! Pentru livrare mai rapidă, poți opta pentru
@@ -444,17 +444,17 @@ export function ShippingMethodSelector({
       )}
 
       {selectedShippingMethod?.isMixedSupplierCart && (
-        <div className="mb-6 rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-rose-500/10 p-4 text-amber-100 shadow-inner shadow-amber-500/10">
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-orange-50/50 to-rose-50 p-4 text-amber-950 shadow-inner shadow-amber-100/40">
           <p className="font-semibold">
             Comandă cu livrare separată în mai multe colete
           </p>
-          <p className="mt-1 text-sm text-amber-100/90">
+          <p className="mt-1 text-sm text-amber-900/95">
             {selectedShippingMethod?.shippingPolicyMessage ||
               shippingPolicyMessage ||
               "Produsele vor fi expediate de furnizori diferiți. Plata ramburs nu este disponibilă pentru această comandă."}
           </p>
           {freeShippingApplied && (
-            <p className="mt-1 text-xs text-amber-200/90">
+            <p className="mt-1 text-xs text-amber-800/90">
               Transportul gratuit se aplică primului colet; taxa suplimentară pentru livrare separată rămâne activă.
             </p>
           )}
@@ -462,11 +462,11 @@ export function ShippingMethodSelector({
       )}
 
       <div
-        className={`${darkGlassCardClass} p-6 text-slate-100 shadow-lg shadow-black/20`}
+        className={`${checkoutCardClass} p-6 text-slate-900 shadow-sm`}
       >
         <div className="mb-4 flex items-center gap-2">
-          <Truck className="h-5 w-5 text-sky-300" />
-          <h2 className="text-xl font-semibold text-slate-100">
+          <Truck className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-semibold text-slate-900">
             {freeShippingApplied
               ? "Alege Viteza de Livrare"
               : t("shippingMethod", "Shipping Method")}
@@ -491,23 +491,23 @@ export function ShippingMethodSelector({
                   className={cn(
                     "flex items-center gap-3 rounded-2xl border p-4 transition-all duration-200",
                     isSelected
-                      ? "border-sky-400 bg-sky-900/80 shadow-lg shadow-sky-500/20"
-                      : "border-white/10 bg-slate-800 hover:border-white/20 hover:bg-slate-700",
+                      ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
+                      : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white",
                     freeShippingApplied && method.id === "priority"
-                      ? "border-amber-400/30 bg-amber-900/60"
+                      ? "border-amber-300 bg-amber-50"
                       : ""
                   )}
                 >
                   <RadioGroupItem
                     value={method.id}
                     id={method.id}
-                    className="border-white/40 text-sky-300"
+                    className="border-slate-300 text-primary"
                   />
                   <div className="flex-1">
                     <div className="flex items-center justify-between gap-3">
                       <Label
                         htmlFor={method.id}
-                        className="flex items-center gap-2 font-semibold text-slate-100"
+                        className="flex items-center gap-2 font-semibold text-slate-900"
                       >
                         <span>{method.name}</span>
                       </Label>
@@ -515,8 +515,8 @@ export function ShippingMethodSelector({
                         className={cn(
                           "font-semibold",
                           method.price === 0
-                            ? "text-emerald-300 text-lg"
-                            : "text-sky-200"
+                            ? "text-lg text-emerald-600"
+                            : "text-primary"
                         )}
                       >
                         {method.price === 0 ? (
@@ -529,22 +529,22 @@ export function ShippingMethodSelector({
                         )}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-300">
+                    <p className="text-sm text-slate-600">
                       {method.description}
                     </p>
-                    <p className="text-sm text-slate-300">
+                    <p className="text-sm text-slate-600">
                       {t("estimatedDelivery", "Estimated delivery")}:{" "}
                       {method.estimatedDelivery}
                     </p>
                     {method.isMixedSupplierCart &&
                       (method.mixedSupplierSurcharge || 0) > 0 && (
-                        <p className="mt-1 text-xs text-amber-200">
+                        <p className="mt-1 text-xs text-amber-800">
                           Include taxă livrare separată:{" "}
                           {formatPrice(method.mixedSupplierSurcharge || 0)}
                         </p>
                       )}
                     {method.price === 0 && freeShippingApplied && (
-                      <p className="mt-1 text-xs text-emerald-300">
+                      <p className="mt-1 text-xs text-emerald-700">
                         Transport gratuit pentru comenzi peste{" "}
                         {formatPrice(freeShippingThreshold || 199)}!
                       </p>
@@ -555,7 +555,7 @@ export function ShippingMethodSelector({
             })}
           </RadioGroup>
         ) : (
-          <p className="py-4 text-center text-slate-300">
+          <p className="py-4 text-center text-slate-600">
             {t(
               "noShippingMethodsAvailable",
               "No shipping methods are currently available."
@@ -564,18 +564,18 @@ export function ShippingMethodSelector({
         )}
 
         {methodRequiresLocker(selectedShippingMethod) && (
-          <div className="mt-4 rounded-xl border border-sky-300/30 bg-sky-500/10 p-4">
-            <Label className="mb-2 block text-sm font-semibold text-sky-100">
+          <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/80 p-4">
+            <Label className="mb-2 block text-sm font-semibold text-sky-900">
               Selectează FANbox pentru adresa ta
             </Label>
 
             {isLoadingFanbox ? (
-              <div className="flex items-center gap-2 text-sm text-sky-200">
+              <div className="flex items-center gap-2 text-sm text-sky-800">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Se încarcă FANbox-urile disponibile...
               </div>
             ) : fanboxError ? (
-              <p className="text-sm text-amber-200">{fanboxError}</p>
+              <p className="text-sm text-amber-800">{fanboxError}</p>
             ) : (
               <FanboxMapPicker
                 points={fanboxPoints}
@@ -592,7 +592,7 @@ export function ShippingMethodSelector({
         )}
 
         {selectionError && (
-          <p className="mt-3 text-sm font-medium text-rose-300">
+          <p className="mt-3 text-sm font-medium text-rose-600">
             {selectionError}
           </p>
         )}
@@ -603,7 +603,7 @@ export function ShippingMethodSelector({
           type="button"
           variant="outline"
           onClick={onBack}
-          className="border-white/20 bg-white/5 text-slate-100 hover:border-white/30 hover:bg-white/10"
+          className="border-slate-300 bg-white text-slate-900 hover:bg-slate-50"
         >
           {t("backToShippingAddress", "Back to Shipping Address")}
         </Button>

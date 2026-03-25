@@ -737,9 +737,9 @@ export function CheckoutFlow() {
   // Show loading state
   if (currentStep === "loading" || status === "loading") {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-slate-100">
-        <Loader2 className="mb-4 h-12 w-12 animate-spin text-sky-300" />
-        <p className="text-lg font-medium text-sky-200">
+      <div className="flex flex-col items-center justify-center py-12 text-slate-900">
+        <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
+        <p className="text-lg font-medium text-slate-700">
           {t("loading", "Loading checkout...")}
         </p>
       </div>
@@ -749,8 +749,8 @@ export function CheckoutFlow() {
   // Show error if no session
   if (!session?.user) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-slate-100">
-        <p className="text-lg font-medium text-rose-300">
+      <div className="flex flex-col items-center justify-center py-12 text-slate-900">
+        <p className="text-lg font-medium text-rose-600">
           {t("loginRequired", "Please log in to continue with checkout")}
         </p>
       </div>
@@ -769,9 +769,9 @@ export function CheckoutFlow() {
       sessionStorage.removeItem("orderId");
       setRedirectToConfirmation(orderId);
       return (
-        <div className="flex flex-col items-center justify-center py-12 text-slate-100">
-          <Loader2 className="mb-4 h-12 w-12 animate-spin text-sky-300" />
-          <p className="text-lg font-medium text-sky-200">
+        <div className="flex flex-col items-center justify-center py-12 text-slate-900">
+          <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
+          <p className="text-lg font-medium text-slate-700">
             {t(
               "redirectingToConfirmation",
               "Redirecting to order confirmation..."
@@ -783,8 +783,8 @@ export function CheckoutFlow() {
 
     // Only show cart empty error if we're not coming from order completion
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-slate-100">
-        <p className="text-lg font-medium text-rose-300">
+      <div className="flex flex-col items-center justify-center py-12 text-slate-900">
+        <p className="text-lg font-medium text-rose-600">
           {t("cartEmpty", "Your cart is empty")}
         </p>
       </div>
@@ -792,34 +792,16 @@ export function CheckoutFlow() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-8 text-slate-100 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-8 text-slate-900 lg:grid-cols-12 lg:items-start">
       {/* Main Checkout Flow */}
-      <div className="lg:col-span-2">
+      <div className="min-w-0 lg:col-span-8">
         <EnhancedCheckoutStepper
           currentStep={currentStep}
           checkoutData={checkoutData}
         />
 
         {/* Step Content */}
-        <div
-          className="mt-8 space-y-6 text-slate-100
-          [&_.bg-white]:!bg-slate-900 [&_.bg-white]:!text-slate-100 [&_.bg-white]:!border-white/10
-          [&_.bg-blue-50]:!bg-sky-900/40 [&_.bg-blue-50]:!text-slate-100
-          [&_.bg-green-50]:!bg-emerald-900/40 [&_.bg-green-50]:!text-slate-100
-          [&_.bg-purple-50]:!bg-purple-900/40 [&_.bg-purple-50]:!text-slate-100
-          [&_.bg-indigo-50]:!bg-sky-900/40 [&_.bg-indigo-50]:!text-slate-100
-          [&_.bg-gray-50]:!bg-white/5 [&_.bg-gray-200]:!bg-white/10
-          [&_.bg-blue-100]:!bg-sky-900/30 [&_.bg-yellow-100]:!bg-amber-900/30 [&_.bg-green-200]:!bg-emerald-900/30
-          [&_.border-gray-200]:!border-white/10 [&_.border-gray-300]:!border-white/15
-          [&_.border-blue-200]:!border-white/10 [&_.border-green-200]:!border-white/10
-          [&_.text-gray-400]:!text-slate-400 [&_.text-gray-500]:!text-slate-300
-          [&_.text-gray-600]:!text-slate-200 [&_.text-gray-700]:!text-slate-100 [&_.text-gray-800]:!text-slate-100
-          [&_.text-indigo-600]:!text-sky-300 [&_.text-indigo-700]:!text-sky-200
-          [&_.text-green-600]:!text-emerald-300 [&_.text-green-700]:!text-emerald-200 [&_.text-green-800]:!text-emerald-100
-          [&_.text-blue-600]:!text-sky-300 [&_.text-blue-700]:!text-sky-200 [&_.text-blue-800]:!text-sky-200
-          [&_.text-purple-700]:!text-purple-200 [&_.text-yellow-800]:!text-amber-200
-          [&_.border]:!border-white/10"
-        >
+        <div className="mt-6 space-y-6 sm:mt-8">
           {currentStep === "shipping-address" && (
             <div className="space-y-6">
               <ShippingAddressForm
@@ -895,7 +877,7 @@ export function CheckoutFlow() {
       </div>
 
       {/* Checkout Summary Sidebar */}
-      <div className="lg:col-span-1">
+      <div className="min-w-0 lg:col-span-4">
         <CheckoutSummary
           onCouponApplied={handleCouponApplied}
           shippingCost={computeShippingCost()}

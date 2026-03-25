@@ -32,9 +32,11 @@ export default function ClientLayout({
       {/* <SessionValidator /> */}
       <AccountLinkingNotice />
       <DatabaseConfigNotice />
-      <Suspense fallback={<div className="h-[72px] w-full" aria-hidden />}>
-        <Header />
-      </Suspense>
+      {!isCheckoutPage && (
+        <Suspense fallback={<div className="h-[72px] w-full" aria-hidden />}>
+          <Header />
+        </Suspense>
+      )}
       <main
         className={`relative flex-grow ${
           isStorefrontSurface

@@ -12,7 +12,7 @@ import { CheckoutData, CheckoutStep } from "../types";
 import { OrderActions } from "./OrderActions";
 import { OrderSummarySection } from "./OrderSummarySection";
 import { usePricingBreakdown } from "./PricingBreakdown";
-import { darkGlassCardClass } from "@/features/home/components/homeTheme";
+import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 
 interface OrderReviewProps {
   checkoutData: CheckoutData;
@@ -100,12 +100,12 @@ export function OrderReview({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className={`${darkGlassCardClass} p-4 sm:p-6`}>
+      <div className={`${checkoutCardClass} p-4 sm:p-6`}>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
           <h2 className="text-lg sm:text-xl font-semibold">
             {t("orderReview", "Order Review")}
           </h2>
-          <p className="text-xs sm:text-sm text-gray-500">
+          <p className="text-xs text-slate-500 sm:text-sm">
             {t(
               "pleaseReviewOrder",
               "Te rugăm să verifici comanda înainte de a o plasa."
@@ -207,7 +207,7 @@ export function OrderReview({
                 {pricingData.shippingCost === 0 ? (
                   <>
                     {checkoutData.shippingMethod.price > 0 && (
-                      <span className="line-through text-gray-400 mr-2">
+                      <span className="mr-2 line-through text-slate-400">
                         {formatPrice(checkoutData.shippingMethod.price)}
                       </span>
                     )}
@@ -272,7 +272,7 @@ export function OrderReview({
                     <p className="font-medium break-words text-amber-100">
                       {paymentMethodLabel}
                     </p>
-                    <p className="mt-1 text-amber-300">
+                    <p className="mt-1 text-amber-800">
                       {isLockerShippingForOrder
                         ? t(
                             "codLockerReviewNotice",
@@ -288,8 +288,8 @@ export function OrderReview({
                     <div
                       className={
                         checkoutData.codConsentAccepted
-                          ? "rounded-xl border border-emerald-400/30 bg-slate-800 px-3 py-2 text-emerald-400"
-                          : "rounded-xl border border-rose-400/30 bg-slate-800 px-3 py-2 text-rose-400"
+                          ? "rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-800"
+                          : "rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-rose-800"
                       }
                     >
                       <p className="text-[11px] font-semibold uppercase tracking-wide">
@@ -310,8 +310,8 @@ export function OrderReview({
                     <div
                       className={
                         checkoutData.codGuaranteePaymentIntentId
-                          ? "rounded-xl border border-emerald-400/30 bg-slate-800 px-3 py-2 text-emerald-400"
-                          : "rounded-xl border border-white/10 bg-slate-800 px-3 py-2 text-slate-300"
+                          ? "rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-800"
+                          : "rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700"
                       }
                     >
                       <p className="text-[11px] font-semibold uppercase tracking-wide">
