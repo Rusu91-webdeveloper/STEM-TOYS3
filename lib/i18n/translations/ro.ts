@@ -524,17 +524,42 @@ export const ro = {
   heroBadgeSubtitle: "Branduri europene, selecție pe vârste",
   heroPrimarySubtitle: "Jucării STEM care fac învățarea irezistibilă",
   heroDescription:
-    "Magazin specializat cu Fischertechnik, Thames & Kosmos, Djeco, 4M și altele: livrare în 1–3 zile, produse alese pe vârste, nu catalog nesfârșit.",
-  heroKicker: "Selecție STEM pentru România",
+    "Cele mai avansate jucării STEM concepute pentru a transforma joaca într-o experiență de învățare revoluționară.",
+  heroKicker: "VIITORUL EDUCAȚIEI",
+  heroPrimaryCta: "EXPLOREAZĂ COLECȚIA",
+  heroSecondaryCta: "Vezi Categorii",
   heroTrust1: "Branduri premium europene",
   heroTrust2: "Livrare 1–3 zile în România",
   heroTrust3: "Selecție curată pe vârste",
 
+  // Age Categories Section
+  shopByAgeTitle: "Alege după Vârstă",
+  shopByAgeSubtitle: "Curatoriat special pentru fiecare etapă a dezvoltării cognitive a copilului tău.",
+  age3to5: "3-5 Ani",
+  age3to5Title: "Explorare Timpurie",
+  age3to5Desc: "Dezvoltarea abilităților senzoriale și a coordonării mână-ochi.",
+  age6to8: "6-8 Ani",
+  age6to8Title: "Gândire Logică",
+  age6to8Desc: "Introducere în bazele programării vizuale și rezolvarea problemelor.",
+  age9to12: "9-12 Ani",
+  age9to12Title: "Logică & Proiecte",
+  age9to12Desc: "Proiecte STEM captivante și concepte științifice aplicate practic.",
+  age13plus: "13+ Ani",
+  age13plusTitle: "Inginerie & Robotică",
+  age13plusDesc: "Construcții avansate, circuite și robotică aplicată pentru inventatori.",
+  viewProducts: "Vezi Produsele",
+
+  // Featured Products Section
+  featuredProductsTitle: "Jucării Care Funcționează",
+  featuredProductsSubtitle: "Cele mai apreciate seturi STEM din colecția noastră.",
+  viewAllProductsText: "Vezi Toate Produsele",
+  addToCartText: "Adaugă în Coș",
+
   // Hormozi Formula Headlines - Outcome focused, not feature focused
   homepageH1:
-    "Jucării STEM educative, alese pentru copii 3–14 ani",
+    "Inspirație. Creație. Viitor.",
   // Short, UI-friendly variants
-  homepageH1Short: "Jucării STEM educative, alese pentru copii 3–14 ani",
+  homepageH1Short: "Inspirație. Creație. Viitor.",
   homepageH1Subtitle:
     "De la 'Nu vreau să învăț!' la 'Mama, pot să fac experimente?' cu jucăriile noastre STEM care fac matematica și știința irezistibile",
   homepageH1SubtitleShort: "Jucării STEM care fac învățarea irezistibilă",
@@ -1267,6 +1292,7 @@ export const ro = {
     "Întrebări frecvente: livrare, vârstă, siguranță, recomandări.",
   pillarNewBadge: "Nou",
   pillarSeeDetails: "Vezi detalii",
+  newsletterFooterDesc: "Fii la curent cu cele mai noi jucării STEM și resurse educaționale.",
 
   // Guide 2025 Page translations
   guide2025Title: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025",

@@ -3,8 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { Star } from "lucide-react";
 
-import { gradientButtonClass } from "@/features/home/components/homeTheme";
+import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import { useCurrency } from "@/lib/currency";
 import type { Product } from "@/types/product";
 
@@ -20,138 +21,198 @@ function getProductImage(product: Product): string {
     : "/placeholder-product.png";
 }
 
+/** Renders 5 stars, filled/half/empty based on a 0-5 rating */
+function StarRating({ rating, count }: { rating: number; count: number }) {
+  const clampedRating = Math.min(5, Math.max(0, rating ?? 0));
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map(star => {
+          const filled = clampedRating >= star;
+          const half = !filled && clampedRating >= star - 0.5;
+          return (
+            <span key={star} className="relative inline-flex h-3.5 w-3.5">
+              {/* Empty star base */}
+              <Star className="absolute inset-0 h-3.5 w-3.5 text-slate-200 fill-slate-200" />
+              {/* Filled overlay */}
+              {(filled || half) && (
+                <span
+                  className="absolute inset-0 overflow-hidden"
+                  style={{ width: filled ? "100%" : "50%" }}
+                >
+                  <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
+                </span>
+              )}
+            </span>
+          );
+        })}
+      </div>
+      {count > 0 && (
+        <span className="text-[11px] text-slate-400 font-medium">
+          ({count} {count === 1 ? "review" : "reviews"})
+        </span>
+      )}
+    </div>
+  );
+}
+
+const ProductCard = ({
+  product,
+  t,
+  index,
+}: {
+  product: Product;
+  t: (k: string, d?: string) => string;
+  index: number;
+}) => {
+  const { formatPrice } = useCurrency();
+  const { addItem } = useShoppingCart();
+
+  const compareAtPrice =
+    typeof product.compareAtPrice === "number" &&
+    product.compareAtPrice > product.price
+      ? product.compareAtPrice
+      : null;
+
+  const isTopRated = index === 0;
+  const isOnSale = !!compareAtPrice;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const variantId =
+      product.variants && product.variants.length === 1
+        ? product.variants[0].id
+        : undefined;
+    addItem(
+      {
+        productId: product.id,
+        variantId,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        image: getProductImage(product),
+        stockQuantity: Math.max(0, product.stockQuantity ?? 0),
+      },
+      1
+    );
+  };
+
+  const rating = typeof product.averageRating === "number" ? product.averageRating : 4;
+  const reviewCount = typeof product.reviewCount === "number" ? product.reviewCount : 0;
+
+  return (
+    <div className="group flex flex-col bg-white rounded-2xl border border-slate-100 shadow-[0_2px_16px_rgba(0,0,0,0.07)] overflow-hidden transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
+      {/* Image */}
+      <Link
+        href={`/products/${product.slug}`}
+        className="relative block w-full overflow-hidden bg-slate-50"
+        style={{ aspectRatio: "4/3" }}
+        tabIndex={0}
+        aria-label={product.name}
+      >
+        <Image
+          src={getProductImage(product)}
+          alt={product.name}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+
+        {/* Badge */}
+        {isTopRated && (
+          <span className="absolute top-3 left-3 z-10 rounded-full bg-[#2563EB] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+            Top Rated
+          </span>
+        )}
+        {!isTopRated && isOnSale && (
+          <span className="absolute top-3 left-3 z-10 rounded-full bg-rose-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+            Sale
+          </span>
+        )}
+      </Link>
+
+      {/* Content */}
+      <div className="flex flex-col flex-1 p-4 sm:p-5">
+        {/* Stars */}
+        <div className="mb-2.5">
+          <StarRating rating={rating} count={reviewCount} />
+        </div>
+
+        {/* Name */}
+        <Link href={`/products/${product.slug}`} className="mb-2 block">
+          <h3 className="text-[1rem] sm:text-[1.05rem] font-bold leading-snug text-slate-800 line-clamp-2 group-hover:text-[#2563EB] transition-colors duration-200">
+            {product.name}
+          </h3>
+        </Link>
+
+        {/* Price */}
+        <div className="mt-auto flex items-baseline gap-2 mb-4">
+          <span className="text-[1.1rem] font-extrabold text-[#2563EB]">
+            {formatPrice(product.price)}
+          </span>
+          {compareAtPrice && (
+            <span className="text-[13px] font-medium text-slate-400 line-through">
+              {formatPrice(compareAtPrice)}
+            </span>
+          )}
+        </div>
+
+        {/* Add to cart */}
+        <button
+          onClick={handleAddToCart}
+          className="w-full rounded-xl bg-slate-100 py-2.5 px-4 text-[13px] font-semibold text-slate-700 transition-colors duration-200 hover:bg-slate-200 active:bg-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+        >
+          {t("addToCartText", "Adaugă în Coș")}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const FeaturedProductsGrid = React.memo(
   ({ products, t, isLoading = false }: FeaturedProductsGridProps) => {
-    const { formatPrice } = useCurrency();
     const showcaseProducts = products.slice(0, 4);
 
     if (isLoading || showcaseProducts.length === 0) {
-      return (
-        <section className="py-4 sm:py-6 md:py-8">
-          <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-[1.5rem] border border-slate-200/80 bg-white/90 p-4 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.16)] backdrop-blur-sm sm:rounded-[2rem] sm:p-6">
-              <div className="mb-5">
-                <span className="inline-flex rounded-full border border-emerald-200/80 bg-emerald-50/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-700">
-                  Editare manuala
-                </span>
-                <h2 className="mt-3 text-[1.6rem] font-black tracking-[-0.04em] text-slate-950 sm:text-[2.25rem]">
-                  {t("featuredProducts", "Produse recomandate")}
-                </h2>
-              </div>
-              <p className="text-center text-sm font-medium text-slate-500">
-                {t(
-                  "noFeaturedProducts",
-                  "Nu am gasit produse recomandate acum."
-                )}
-              </p>
-            </div>
-          </div>
-        </section>
-      );
+      return null;
     }
 
     return (
-      <section className="py-4 sm:py-6 md:py-8">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-[1.5rem] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(247,251,255,0.96)_100%)] p-3.5 shadow-[0_22px_50px_-40px_rgba(15,23,42,0.16)] sm:rounded-[2rem] sm:p-5">
-            <div className="mb-4 sm:mb-5">
-              <span className="inline-flex rounded-full border border-emerald-200/80 bg-emerald-50/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-700">
-                Selectie editor
-              </span>
-              <div className="mt-3 flex items-center gap-3">
-                <h2 className="text-[1.6rem] font-black tracking-[-0.04em] text-slate-950 sm:text-[2.25rem]">
-                  {t("featuredProducts", "Produse recomandate")}
-                </h2>
-                <div className="hidden h-px flex-1 bg-slate-200 sm:block" />
-              </div>
-              <p className="mt-2 max-w-2xl text-[13px] leading-5 text-slate-600 sm:text-base sm:leading-6">
-                Produse cu cerere buna, valoare educationala clara si selectie
-                usoara pentru parinti.
+      <section className="py-10 sm:py-14 lg:py-16 bg-[#F8FAFC]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-3">
+            <div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 mb-1.5">
+                {t("featuredProductsTitle", "Jucării Care Funcționează")}
+              </h2>
+              <p className="text-sm sm:text-base text-slate-500">
+                {t(
+                  "featuredProductsSubtitle",
+                  "Cele mai apreciate seturi STEM din colecția noastră."
+                )}
               </p>
             </div>
+            <Link
+              href="/products"
+              className="self-start sm:self-auto text-sm font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors whitespace-nowrap pb-0.5 border-b border-[#2563EB]/30 hover:border-[#2563EB]"
+            >
+              {t("viewAllProductsText", "Vezi Toate Produsele")}
+            </Link>
+          </div>
 
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-5">
-              <Link
-                href="/products?bundleView=bundles"
-                className="group relative col-span-2 overflow-hidden rounded-[1.2rem] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(15,118,110,0.96)_0%,rgba(3,105,161,0.96)_100%)] p-3.5 text-white shadow-[0_20px_38px_-24px_rgba(14,116,144,0.42)] sm:rounded-[1.55rem] sm:p-4 lg:col-span-1"
-              >
-                <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-white/15 blur-xl" />
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-white/75">
-                  Pachet avantajos
-                </p>
-                <h3 className="mt-2 text-[1.45rem] font-black leading-tight tracking-[-0.03em] sm:text-2xl">
-                  Economisesti 10%
-                </h3>
-                <p className="mt-1 text-[13px] font-semibold text-white/80 sm:text-sm">
-                  la bundle-urile STEM
-                </p>
-                <p className="mt-3 line-clamp-2 text-[11px] leading-4 text-white/80 sm:text-xs sm:leading-5">
-                  Pachete pregatite pentru selectie rapida si pret mai bun decat
-                  separat.
-                </p>
-                <span className="mt-4 inline-flex items-center justify-center rounded-xl bg-white/14 px-3.5 py-2 text-[13px] font-bold text-white ring-1 ring-white/20 transition group-hover:bg-white/20 sm:px-4 sm:text-sm">
-                  {t("ctaShopNow", "Vezi pachetele")}
-                </span>
-              </Link>
-
-              {showcaseProducts.map(product => {
-                const compareAtPrice =
-                  typeof product.compareAtPrice === "number" &&
-                  product.compareAtPrice > product.price
-                    ? product.compareAtPrice
-                    : null;
-
-                return (
-                  <Link
-                    key={product.id}
-                    href={`/products/${product.slug}`}
-                    className="group overflow-hidden rounded-[1.2rem] border border-slate-200/90 bg-white/98 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_22px_40px_-30px_rgba(15,23,42,0.22)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 sm:rounded-[1.45rem]"
-                  >
-                    <div className="relative h-24 overflow-hidden sm:h-32 lg:h-36">
-                      <Image
-                        src={getProductImage(product)}
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-                        className="object-cover transition duration-500 group-hover:scale-105"
-                      />
-                    </div>
-
-                    <div className="px-2.5 py-2.5 sm:px-4 sm:py-3">
-                      <h3 className="line-clamp-2 min-h-[2.15rem] text-[13px] font-black leading-tight tracking-[-0.02em] text-slate-950 sm:min-h-[2.4rem] sm:text-sm">
-                        {product.name}
-                      </h3>
-
-                      <div className="mt-1.5 flex items-end justify-between gap-2 sm:mt-2">
-                        <div className="min-w-0">
-                          <p className="text-base font-black text-slate-950 sm:text-lg">
-                            {formatPrice(product.price)}
-                          </p>
-                          {compareAtPrice && (
-                            <p className="text-[10px] text-slate-400 line-through sm:text-xs">
-                              {formatPrice(compareAtPrice)}
-                            </p>
-                          )}
-                        </div>
-
-                        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-700 sm:px-2.5 sm:text-[10px] sm:tracking-[0.14em]">
-                          {t("viewDetails", "Vezi")}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-
-            <div className="mt-5 text-center">
-              <Link
-                href="/products"
-                className={`${gradientButtonClass} inline-flex items-center justify-center rounded-[1rem] px-5 py-2.5 text-sm font-bold sm:rounded-2xl`}
-              >
-                {t("viewAllProducts", "Vezi toate produsele")}
-              </Link>
-            </div>
+          {/* Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+            {showcaseProducts.map((product, index) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                t={t}
+                index={index}
+              />
+            ))}
           </div>
         </div>
       </section>

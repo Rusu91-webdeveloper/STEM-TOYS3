@@ -257,7 +257,7 @@ export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
   return (
     <section
       aria-label="TechTots Pillars"
-      className="hidden lg:block relative py-4 sm:py-6 md:py-8 lg:py-10"
+      className="relative py-4 sm:py-6 md:py-8 lg:py-10"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div

@@ -21,7 +21,7 @@ import {
 
 const HERO_HEADLINE_TEST_NAME = "homepage_hero_headline";
 const HERO_CTA_TEST_NAME = "homepage_hero_cta";
-const HERO_IMAGE_SRC = "/images/optimized/homepage_hero_banner_01_fallback.jpg";
+const HERO_IMAGE_SRC = "/hero10.png";
 
 interface HeroSectionProps {
   t: (key: string, defaultValue?: string) => string;
@@ -78,28 +78,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
       label: t("heroTrust3", "Selecție curată pe vârste"),
     },
   ];
-  const ageQuickLinks = [
-    {
-      label: "3-5 ani",
-      hint: "Prima explorare",
-      href: "/products?ageGroup=PRESCHOOL_3_5",
-    },
-    {
-      label: "6-8 ani",
-      hint: "Invatare activa",
-      href: "/products?ageGroup=ELEMENTARY_6_8",
-    },
-    {
-      label: "9-12 ani",
-      hint: "Logica si proiecte",
-      href: "/products?ageGroup=MIDDLE_SCHOOL_9_12",
-    },
-    {
-      label: "13+ ani",
-      hint: "Provocari smart",
-      href: "/products?ageGroup=TEENS_13_PLUS",
-    },
-  ];
+
 
   useEffect(() => {
     if (headlineVariantLoading || ctaVariantLoading) return;
@@ -122,22 +101,11 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
   ]);
 
   const getHeadline = () => {
-    if (headlineVariantKey.includes("variant_a")) {
-      return "STEM acasă: seturi alese pe vârste";
-    }
-
-    if (headlineVariantKey.includes("variant_b")) {
-      return "Alege rapid după vârstă.";
-    }
-
-    return t(
-      "homepageH1",
-      "Jucării STEM educative, alese pentru copii 3–14 ani"
-    );
+    return t("homepageH1Short", "Inspirație. Creație. Viitor.");
   };
 
-  const primaryCtaText = "Vezi jucăriile STEM";
-  const secondaryCtaText = "Alege după vârstă";
+  const primaryCtaText = t("heroPrimaryCta", "EXPLOREAZĂ COLECȚIA");
+  const secondaryCtaText = t("heroSecondaryCta", "Vezi Categorii");
 
   return (
     <section
@@ -177,7 +145,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
         <div className="animate-in slide-in-from-bottom-8 fade-in flex w-full flex-col text-left duration-1000 fill-mode-forwards">
           <div className="max-w-4xl">
             <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.26em] text-white/92 backdrop-blur-md sm:px-4 sm:py-1.5 sm:text-[0.68rem] sm:tracking-[0.3em]">
-              {t("heroKicker", "Selecție STEM pentru România")}
+              {t("heroKicker", "VIITORUL EDUCAȚIEI")}
             </span>
           </div>
 
@@ -188,7 +156,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
           <p className="mt-3 max-w-[34rem] text-[0.95rem] font-medium leading-6 text-white/95 [text-shadow:0_2px_14px_rgba(15,23,42,0.5)] sm:mt-4 sm:text-base sm:leading-7 lg:max-w-4xl lg:text-xl">
             {t(
               "heroDescription",
-              "Jucarii educative, robotica si seturi STEM selectate clar pentru acasa, cadouri si invatare aplicata."
+              "Cele mai avansate jucării STEM concepute pentru a transforma joaca într-o experiență de învățare revoluționară."
             )}
           </p>
 
@@ -225,11 +193,8 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
                 aria-hidden
                 className="absolute inset-y-0 -left-10 w-16 skew-x-[-20deg] bg-white/25 blur-sm transition-transform duration-700 group-hover:translate-x-[18rem]"
               />
-              <span className="relative z-10 flex flex-col">
-                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/70 sm:text-[11px] sm:tracking-[0.18em]">
-                  Catalog complet
-                </span>
-                <span className="mt-0.5 text-[0.95rem] font-black text-white sm:text-[1.05rem]">
+              <span className="relative z-10 flex flex-col justify-center">
+                <span className="text-[0.95rem] font-black uppercase text-white sm:text-[1.05rem]">
                   {primaryCtaText}
                 </span>
               </span>
@@ -266,11 +231,8 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
               }"}`}
               className="group inline-flex min-h-[3.6rem] w-full items-center justify-between gap-3 rounded-[1.15rem] border border-white/55 bg-white/90 px-4 py-2.5 text-left text-slate-900 shadow-[0_14px_30px_-18px_rgba(15,23,42,0.45)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white sm:min-h-[4.25rem] sm:min-w-[290px] sm:gap-4 sm:rounded-[1.35rem] sm:px-6 sm:py-3"
             >
-              <span className="flex flex-col">
-                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 sm:text-[11px] sm:tracking-[0.18em]">
-                  Selectie rapida
-                </span>
-                <span className="mt-0.5 text-[0.95rem] font-black text-slate-950 sm:text-[1.05rem]">
+              <span className="flex flex-col justify-center">
+                <span className="text-[0.95rem] font-black uppercase text-slate-950 sm:text-[1.05rem]">
                   {secondaryCtaText}
                 </span>
               </span>
@@ -301,22 +263,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
             })}
           </div>
 
-          <div className="mt-4 grid w-full max-w-5xl grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-3 lg:max-w-6xl">
-            {ageQuickLinks.map(link => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="group flex flex-col items-start justify-center rounded-[1rem] border border-white/22 bg-white/10 px-3 py-2.5 text-left text-white shadow-[0_12px_20px_-18px_rgba(15,23,42,0.65)] backdrop-blur-md transition hover:-translate-y-0.5 hover:border-white/35 hover:bg-white/16 sm:rounded-2xl sm:px-4 sm:py-3"
-              >
-                <span className="text-[0.95rem] font-black tracking-tight sm:text-sm">
-                  {link.label}
-                </span>
-                <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.12em] text-white/70 sm:text-[11px] sm:tracking-[0.14em]">
-                  {link.hint}
-                </span>
-              </Link>
-            ))}
-          </div>
+
         </div>
       </div>
 

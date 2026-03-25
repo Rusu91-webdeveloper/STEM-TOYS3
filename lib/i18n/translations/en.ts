@@ -435,17 +435,42 @@ export const en = {
   heroBadgeSubtitle: "European brands, age-curated selection",
   heroPrimarySubtitle: "STEM toys that make learning irresistible",
   heroDescription:
-    "A specialized shop featuring Fischertechnik, Thames & Kosmos, Djeco, 4M, and more: delivery in 1–3 days, age-picked products—not an endless catalog.",
-  heroKicker: "STEM selection for Romania",
+    "The most advanced STEM toys designed to transform play into a revolutionary learning experience.",
+  heroKicker: "THE FUTURE OF EDUCATION",
+  heroPrimaryCta: "EXPLORE COLLECTION",
+  heroSecondaryCta: "View Categories",
   heroTrust1: "Premium European brands",
   heroTrust2: "Delivery in 1–3 days across Romania",
   heroTrust3: "Age-curated selection",
 
+  // Age Categories Section
+  shopByAgeTitle: "Shop by Age",
+  shopByAgeSubtitle: "Specially curated for every stage of your child's cognitive development.",
+  age3to5: "3-5 Years",
+  age3to5Title: "Early Exploration",
+  age3to5Desc: "Development of sensory skills and hand-eye coordination.",
+  age6to8: "6-8 Years",
+  age6to8Title: "Logical Thinking",
+  age6to8Desc: "Introduction to visual programming and problem solving.",
+  age9to12: "9-12 Years",
+  age9to12Title: "Logic & Projects",
+  age9to12Desc: "Engaging STEM projects and practically applied scientific concepts.",
+  age13plus: "13+ Years",
+  age13plusTitle: "Engineering & Robotics",
+  age13plusDesc: "Advanced constructions, circuits and applied robotics for inventors.",
+  viewProducts: "View Products",
+
+  // Featured Products Section
+  featuredProductsTitle: "Toys That Work",
+  featuredProductsSubtitle: "The most appreciated STEM sets in our collection.",
+  viewAllProductsText: "View All Products",
+  addToCartText: "Add to Cart",
+
   // Hormozi Formula Headlines - Outcome focused, not feature focused
   homepageH1:
-    "Educational STEM toys, curated for ages 3–14",
+    "Inspiration. Creation. Future.",
   // Short, UI-friendly variants
-  homepageH1Short: "Educational STEM toys, curated for ages 3–14",
+  homepageH1Short: "Inspiration. Creation. Future.",
   homepageH1Subtitle:
     "From 'I don't want to learn!' to 'Mom, can I do experiments?' with our STEM toys that make math and science irresistible",
   homepageH1SubtitleShort: "STEM toys that make learning irresistible",

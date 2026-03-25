@@ -5,11 +5,12 @@ import {
   Atom,
   Microscope,
   ShieldQuestion,
-  Star,
-  Sparkles,
+  // Star,
+  // Sparkles,
   Rocket,
   Brain,
   LucideIcon,
+  ChevronRight,
 } from "lucide-react";
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -18,6 +19,7 @@ import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
 import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import type { Product } from "@/types/product";
+import Link from "next/link";
 import { ProductsPagination } from "./ProductsPagination";
 
 import { useProductFilters } from "../hooks/useProductFilters";
@@ -29,7 +31,6 @@ import {
   ProductFiltersErrorBoundary,
   ProductGridErrorBoundary,
 } from "./ProductsErrorBoundary";
-import { ProductsHeroSection } from "./ProductsHeroSection";
 import { MobileFilterBar } from "./MobileFilterBar";
 import MobileAgeBar from "./MobileAgeBar";
 import { MobileProductsBar } from "./MobileProductsBar";
@@ -38,8 +39,6 @@ import { ProductsSidebar } from "./ProductsSidebar";
 import {
   productsBackgroundClass,
   productsContentWrapperClass,
-  productsOverlayBottomClass,
-  productsOverlayTopClass,
 } from "./productsTheme";
 
 interface CategoryIconInfo {
@@ -180,7 +179,7 @@ function ClientProductsPageContent({
   const { state, actions, initFromSearchParams, updateURL } =
     useProductFilters();
   const [products] = useState<ProductData[]>(initialProducts);
-  const [isHydrated, setIsHydrated] = useState(true); // Start as hydrated to prevent CLS
+  // const [isHydrated, setIsHydrated] = useState(true); // Start as hydrated to prevent CLS
   const urlSearchParams = useSearchParams();
   const PAGE_SIZE = 12;
 
@@ -598,31 +597,13 @@ function ClientProductsPageContent({
     return null;
   }, [state.selectedCategories, t]);
 
-  const activeCategoryInfo =
-    activeCategory && categoryInfo[activeCategory.id]
-      ? categoryInfo[activeCategory.id]
-      : categoryInfo.science;
+  // const activeCategoryInfo =
+  //   activeCategory && categoryInfo[activeCategory.id]
+  //     ? categoryInfo[activeCategory.id]
+  //     : categoryInfo.science;
 
-  // Helper functions for hero section
-  const getCategoryImagePath = () => {
-    if (!activeCategory) {
-      return "/images/optimized/homepage_hero_banner_01_fallback.jpg";
-    }
-
-    // Map category IDs to actual image file names
-    const imageMap: Record<string, string> = {
-      mathematics: "/Mathematic.png",
-      science: "/Science.png",
-      technology: "/Technology.png",
-      engineering: "/Engineering.png",
-      "educational-books": "/images/category_banner_books_01.jpg",
-    };
-
-    return (
-      imageMap[activeCategory.id] ||
-      "/images/optimized/homepage_hero_banner_01_fallback.jpg"
-    );
-  };
+  // Helper functions (retained for ProductsMainDisplay / future use)
+  // const getCategoryImagePath = () => { ... };
 
   const getCategoryTitle = () => {
     if (!activeCategory) {
@@ -751,146 +732,162 @@ function ClientProductsPageContent({
   const content = (
     <ProductsErrorBoundary>
       <ProductVariantProvider>
-        <div className="flex flex-col">
-          <section className="order-2 mt-6 mb-4 sm:mb-6 md:order-1 md:mt-0 lg:mb-8 xl:mb-10">
-            <ProductsHeroSection
-              categoryImagePath={getCategoryImagePath()}
-              activeCategory={activeCategory}
-              activeCategoryInfo={activeCategoryInfo}
-              getCategoryTitle={getCategoryTitle}
-              getCategoryDescription={getCategoryDescription}
+        <div className="w-full">
+          {/* Page header — breadcrumb + title */}
+          <div className="border-b border-slate-100 bg-white">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+              {/* Breadcrumb */}
+              <nav className="flex items-center gap-1.5 text-sm text-slate-500 mb-4">
+                <Link href="/" className="hover:text-slate-800 transition-colors">
+                  {t("home", "Home")}
+                </Link>
+                <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
+                <span className="text-slate-800 font-medium">
+                  {t("allProducts", "Toate Produsele")}
+                </span>
+              </nav>
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                <div>
+                  <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+                    {getCategoryTitle()}
+                  </h1>
+                  <p className="mt-1.5 text-sm sm:text-base text-slate-500 max-w-xl leading-relaxed">
+                    {getCategoryDescription()}
+                  </p>
+                </div>
+                <p className="text-sm text-slate-500 shrink-0">
+                  {t("showing", "Afișăm")}{" "}
+                  <span className="font-semibold text-slate-700">
+                    {bundleFilteredProducts.length}
+                  </span>{" "}
+                  {t("outOf", "din")}{" "}
+                  <span className="font-semibold text-slate-700">
+                    {products.length}
+                  </span>{" "}
+                  {t("productsLabel", "produse")}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Filter Bar */}
+          <div className="xl:hidden bg-white border-b border-slate-100">
+            <MobileFilterBar
+              activeFilterCount={
+                state.selectedCategories.length +
+                Object.values(state.selectedFilters).flat().length +
+                state.selectedLearningOutcomes.length +
+                (state.selectedProductType && state.selectedProductType !== "all" ? 1 : 0) +
+                state.selectedSpecialCategories.length +
+                (bundleViewMode !== "all" ? 1 : 0) +
+                (!state.noPriceFilter &&
+                (state.priceRangeFilter[0] !== 0 || state.priceRangeFilter[1] !== 1000)
+                  ? 1
+                  : 0)
+              }
+              selectedCategories={state.selectedCategories}
+              selectedPriceRange={state.priceRangeFilter}
+              onCategoryQuickSelect={handleCategoryQuickSelect}
+              onPriceQuickSelect={handlePriceQuickSelect}
+              onOpenFilters={() => actions.setMobileFiltersOpen(true)}
+              onClearFilters={handleClearFilters}
               t={t}
             />
-          </section>
+            <MobileAgeBar
+              selectedAgeGroup={state.selectedAgeGroup}
+              onSelectAgeGroup={age => actions.setAgeGroup(age)}
+              t={t}
+            />
+            <MobileProductsBar
+              bundleViewMode={bundleViewMode}
+              onBundleViewModeChange={setBundleViewMode}
+              bundleCount={filteredProducts.filter(p => p?.isBundle === true).length}
+              regularCount={filteredProducts.filter(p => p?.isBundle !== true).length}
+              totalCount={filteredProducts.length}
+              sortOption={sortOption}
+              onSortChange={handleSortChange}
+              viewMode={state.viewMode}
+              onViewModeChange={handleViewModeChange}
+              searchQuery={state.searchQuery}
+              onSearchQueryChange={handleSearchQueryChange}
+              onClearSearch={handleSearchClear}
+              t={t}
+            />
+          </div>
 
-          <div className="order-1 md:order-2">
-            {/* Removed redundant category quick buttons to avoid duplication with sidebar and mobile filters */}
+          {/* Main content — sidebar + products grid */}
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="flex flex-col xl:flex-row gap-8 items-start">
+              <ProductFiltersErrorBoundary
+                onError={() => {
+                  handleClearFilters();
+                }}
+              >
+                <ProductsSidebar
+                  categoryFilter={categoryFilter}
+                  dynamicFilters={dynamicFilters}
+                  priceRangeFilter={state.priceRangeFilter}
+                  products={products}
+                  selectedCategories={state.selectedCategories}
+                  selectedFilters={state.selectedFilters}
+                  noPriceFilter={state.noPriceFilter}
+                  selectedLearningOutcomes={state.selectedLearningOutcomes}
+                  selectedProductType={state.selectedProductType}
+                  selectedSpecialCategories={state.selectedSpecialCategories}
+                  selectedAgeGroup={state.selectedAgeGroup}
+                  handleCategoryChange={handleCategoryChange}
+                  handleFilterChange={handleFilterChange}
+                  handlePriceChange={handlePriceChange}
+                  handleNoPriceFilterChange={handleNoPriceFilterChange}
+                  setSelectedLearningOutcomes={actions.setLearningOutcomes}
+                  setSelectedProductType={actions.setProductType}
+                  setSelectedSpecialCategories={actions.setSpecialCategories}
+                  setSelectedAgeGroup={age => actions.setAgeGroup(age)}
+                  handleClearFilters={handleClearFilters}
+                  setMobileFiltersOpen={actions.setMobileFiltersOpen}
+                  t={t}
+                />
+              </ProductFiltersErrorBoundary>
 
-            {/* Premium Mobile Filter Bar - Optimized for Performance */}
-            <div className="xl:hidden">
-              <MobileFilterBar
-                activeFilterCount={
-                  state.selectedCategories.length +
-                  Object.values(state.selectedFilters).flat().length +
-                  state.selectedLearningOutcomes.length +
-                  (state.selectedProductType && state.selectedProductType !== "all"
-                    ? 1
-                    : 0) +
-                  state.selectedSpecialCategories.length +
-                  (bundleViewMode !== "all" ? 1 : 0) +
-                  (!state.noPriceFilter &&
-                  (state.priceRangeFilter[0] !== 0 ||
-                    state.priceRangeFilter[1] !== 1000)
-                    ? 1
-                    : 0)
-                }
-                selectedCategories={state.selectedCategories}
-                selectedPriceRange={state.priceRangeFilter}
-                onCategoryQuickSelect={handleCategoryQuickSelect}
-                onPriceQuickSelect={handlePriceQuickSelect}
-                onOpenFilters={() => actions.setMobileFiltersOpen(true)}
-                onClearFilters={handleClearFilters}
-                t={t}
-              />
-              <MobileAgeBar
-                selectedAgeGroup={state.selectedAgeGroup}
-                onSelectAgeGroup={age => actions.setAgeGroup(age)}
-                t={t}
-              />
-              <MobileProductsBar
-                bundleViewMode={bundleViewMode}
-                onBundleViewModeChange={setBundleViewMode}
-                bundleCount={filteredProducts.filter(p => p?.isBundle === true).length}
-                regularCount={filteredProducts.filter(p => p?.isBundle !== true).length}
-                totalCount={filteredProducts.length}
-                sortOption={sortOption}
-                onSortChange={handleSortChange}
-                viewMode={state.viewMode}
-                onViewModeChange={handleViewModeChange}
-                searchQuery={state.searchQuery}
-                onSearchQueryChange={handleSearchQueryChange}
-                onClearSearch={handleSearchClear}
-                t={t}
-              />
-            </div>
-
-            <div className="w-full max-w-full overflow-x-hidden bg-transparent">
-              <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-2 pb-4 sm:py-6 md:py-8 lg:py-10 relative z-10">
-                <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 xl:gap-8 items-stretch">
-                  <ProductFiltersErrorBoundary
-                    onError={() => {
-                      // Fallback: clear filters and reload
-                      handleClearFilters();
-                    }}
-                  >
-                    <ProductsSidebar
-                      categoryFilter={categoryFilter}
-                      dynamicFilters={dynamicFilters}
-                      priceRangeFilter={state.priceRangeFilter}
-                      products={products}
-                      selectedCategories={state.selectedCategories}
-                      selectedFilters={state.selectedFilters}
-                      noPriceFilter={state.noPriceFilter}
-                      selectedLearningOutcomes={state.selectedLearningOutcomes}
-                      selectedProductType={state.selectedProductType}
-                      selectedSpecialCategories={state.selectedSpecialCategories}
-                      selectedAgeGroup={state.selectedAgeGroup}
-                      handleCategoryChange={handleCategoryChange}
-                      handleFilterChange={handleFilterChange}
-                      handlePriceChange={handlePriceChange}
-                      handleNoPriceFilterChange={handleNoPriceFilterChange}
-                      setSelectedLearningOutcomes={actions.setLearningOutcomes}
-                      setSelectedProductType={actions.setProductType}
-                      setSelectedSpecialCategories={actions.setSpecialCategories}
-                      setSelectedAgeGroup={age => actions.setAgeGroup(age)}
-                      handleClearFilters={handleClearFilters}
-                      setMobileFiltersOpen={actions.setMobileFiltersOpen}
-                      t={t}
-                    />
-                  </ProductFiltersErrorBoundary>
-
-                  <ProductGridErrorBoundary
-                    onRetry={() => {
-                      // Retry by clearing filters and resetting state
-                      handleClearFilters();
-                      window.location.reload();
-                    }}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <ProductsMainDisplay
-                        activeCategory={activeCategory}
-                        categoryInfo={categoryInfo}
-                        filteredProducts={filteredProducts}
-                        visibleProductsCount={bundleFilteredProducts.length}
-                        displayedProducts={displayedProducts}
-                        viewMode={state.viewMode}
-                        sortOption={sortOption}
-                        onSortChange={handleSortChange}
-                        searchQuery={state.searchQuery}
-                        onSearchQueryChange={handleSearchQueryChange}
-                        onClearSearch={handleSearchClear}
-                        bundleViewMode={bundleViewMode}
-                        onBundleViewModeChange={setBundleViewMode}
-                        getLearningTitle={getLearningTitle}
-                        getLearningDescription={getLearningDescription}
-                        getProductCardContent={getProductCardContent}
-                        t={t}
+              <ProductGridErrorBoundary
+                onRetry={() => {
+                  handleClearFilters();
+                  window.location.reload();
+                }}
+              >
+                <div className="flex-1 min-w-0">
+                  <ProductsMainDisplay
+                    activeCategory={activeCategory}
+                    categoryInfo={categoryInfo}
+                    filteredProducts={filteredProducts}
+                    visibleProductsCount={bundleFilteredProducts.length}
+                    displayedProducts={displayedProducts}
+                    viewMode={state.viewMode}
+                    sortOption={sortOption}
+                    onSortChange={handleSortChange}
+                    searchQuery={state.searchQuery}
+                    onSearchQueryChange={handleSearchQueryChange}
+                    onClearSearch={handleSearchClear}
+                    bundleViewMode={bundleViewMode}
+                    onBundleViewModeChange={setBundleViewMode}
+                    getLearningTitle={getLearningTitle}
+                    getLearningDescription={getLearningDescription}
+                    getProductCardContent={getProductCardContent}
+                    t={t}
+                  />
+                  {bundleFilteredProducts.length > 0 && (
+                    <div className="mt-8">
+                      <ProductsPagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        baseUrl="/products"
+                        searchParams={paginationSearchParams}
+                        totalItems={bundleFilteredProducts.length}
                       />
-                      {bundleFilteredProducts.length > 0 && (
-                        <div className="mt-6">
-                          <ProductsPagination
-                            currentPage={page}
-                            totalPages={totalPages}
-                            baseUrl="/products"
-                            searchParams={paginationSearchParams}
-                            totalItems={bundleFilteredProducts.length}
-                          />
-                        </div>
-                      )}
                     </div>
-                  </ProductGridErrorBoundary>
+                  )}
                 </div>
-              </div>
+              </ProductGridErrorBoundary>
             </div>
           </div>
         </div>
@@ -952,8 +949,6 @@ function ClientProductsPageContent({
 
   return (
     <div className={productsBackgroundClass}>
-      <div className={productsOverlayTopClass} aria-hidden />
-      <div className={productsOverlayBottomClass} aria-hidden />
       <div className={productsContentWrapperClass}>{content}</div>
     </div>
   );

@@ -6,11 +6,9 @@ import Link from "next/link";
 import React, { Suspense } from "react";
 
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
-import { BundlesShowcaseSection } from "@/features/home/components/BundlesShowcaseSection";
-import { CategoriesSection } from "@/features/home/components/CategoriesSection";
 import { FeaturedProductsGrid } from "@/features/home/components/FeaturedProductsGrid";
 import { HeroSection } from "@/features/home/components/HeroSection";
-import PillarSection from "@/features/home/components/PillarSection";
+import { AgeCategoriesSection } from "@/features/home/components/AgeCategoriesSection";
 import type { HomeBundle } from "@/features/home/types";
 import { publicConfig } from "@/lib/config/app-config";
 import { useCurrency } from "@/lib/currency";
@@ -18,24 +16,9 @@ import { useTranslation } from "@/lib/i18n";
 import { getBaseUrl } from "@/lib/site";
 import type { Product } from "@/types/product";
 
+import { PillarSection } from "@/features/home/components/PillarSection";
+
 // Code-split below-the-fold sections with better loading strategy
-const ValuePropositionSection = dynamic(
-  () => import("@/features/home/components/ValuePropositionSection"),
-  {
-    loading: () => null,
-    ssr: false, // Disable SSR for better LCP
-  }
-);
-const SupplierBanner = dynamic(
-  () =>
-    import("@/features/home/components/SupplierBanner").then(
-      m => m.SupplierBanner
-    ),
-  {
-    loading: () => null,
-    ssr: false, // Disable SSR for better LCP
-  }
-);
 const MobileConversionOptimizer = dynamic(
   () => import("@/features/home/components/MobileConversionOptimizer"),
   {
@@ -44,45 +27,7 @@ const MobileConversionOptimizer = dynamic(
   }
 );
 
-// Define categories data
-const categories = [
-  {
-    name: "Coding si robotica",
-    description: "Roboti, coding si kituri programabile pentru joaca aplicata",
-    slug: "coding-robotics",
-    image: "/images/home/category-coding-kits.svg",
-    productFilterCategory: "technology",
-  },
-  {
-    name: "Stiinta si experimente",
-    description: "Experimente practice si seturi care deschid curiozitatea",
-    slug: "science-experiments",
-    image: "/images/home/category-science-kits.svg",
-    productFilterCategory: "science",
-  },
-  {
-    name: "Constructie si inginerie",
-    description:
-      "Jucarii de construit pentru spatialitate si proiecte creative",
-    slug: "magnetic-building",
-    image: "/images/home/category-engineering.svg",
-    productFilterCategory: "engineering",
-  },
-  {
-    name: "Tehnologie",
-    description: "Instrumente smart si jucarii tech pentru copii curiosi",
-    slug: "technology",
-    image: "/images/home/category-robotics.svg",
-    productFilterCategory: "technology",
-  },
-  {
-    name: "Matematica si logica",
-    description: "Jocuri de logica si activitati care fac matematica mai clara",
-    slug: "mathematics",
-    image: "/Mathematic.png",
-    productFilterCategory: "mathematics",
-  },
-];
+
 
 const homePageShellClass =
   "relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f6fbff_0%,#ffffff_45%,#f1f8ff_100%)] text-slate-900";
@@ -276,16 +221,9 @@ export default function HomePageClient({
         {/* **PERFORMANCE**: Hero Section - Critical for FCP */}
         <HeroSection t={t} />
 
-        {/* Shop by Category - first shopping section under hero */}
-        <Suspense
-          fallback={
-            <div className="mx-4 max-w-7xl animate-pulse rounded-2xl bg-white/70 shadow-sm sm:mx-6 lg:mx-8"></div>
-          }
-        >
-          <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <CategoriesSection categories={categories} t={t} />
-          </div>
-        </Suspense>
+        <AgeCategoriesSection t={t} />
+
+
 
         {/* Featured Products - second section (as in screenshot) */}
         <Suspense fallback={<FeaturedProductsLoader />}>
@@ -296,64 +234,12 @@ export default function HomePageClient({
           />
         </Suspense>
 
-        {/* Bundle promo strip + Bundles - directly under featured products */}
-        <section className="px-4 sm:px-6 lg:px-8">
-          <div className="container mx-auto max-w-7xl">
-            <div className="relative overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.94)_0%,rgba(240,249,255,0.98)_56%,rgba(236,253,245,0.95)_100%)] px-4 py-4 text-slate-900 shadow-[0_22px_50px_-38px_rgba(15,23,42,0.2)] sm:rounded-[2rem] sm:px-7 sm:py-6">
-              <div className="pointer-events-none absolute -left-8 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-sky-200/40 blur-3xl" />
-              <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-emerald-200/35 blur-3xl" />
-              <div className="relative flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-                <div>
-                  <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-sky-700">
-                    Pachete STEM
-                  </p>
-                  <h2 className="mt-1 text-[1.45rem] font-black leading-tight tracking-[-0.03em] text-slate-950 sm:text-3xl">
-                    Economisesti 10% cand alegi un bundle gata construit
-                  </h2>
-                  <p className="mt-1 max-w-2xl text-[13px] text-slate-600 sm:text-base">
-                    Pachetele combina produse care functioneaza bine impreuna si
-                    reduc timpul de selectie.
-                  </p>
-                </div>
-                <Link
-                  href="/products?bundleView=bundles"
-                  className="inline-flex h-10 items-center justify-center rounded-[1rem] border border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 shadow-[0_16px_34px_-28px_rgba(15,23,42,0.25)] transition hover:border-slate-300 hover:text-slate-950 sm:h-11 sm:rounded-2xl sm:px-5"
-                >
-                  Vezi pachetele
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        {/* Bundles Showcase - High-conversion section for package deals */}
-        <BundlesShowcaseSection
-          bundles={initialBundles}
-          formatPrice={formatPrice}
-        />
 
-        {/* Supporting content below the main storefront sections */}
-        <Suspense
-          fallback={
-            <div className="mx-4 max-w-7xl animate-pulse rounded-2xl bg-white/70 shadow-sm sm:mx-6 lg:mx-8"></div>
-          }
-        >
-          <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <ValuePropositionSection t={t} />
-          </div>
-        </Suspense>
+        {/* Pillar Section - Explorează temele noastre cheie */}
+        <PillarSection />
 
-        {/* **PERFORMANCE**: Defer non-critical sections below the fold */}
-        <Suspense
-          fallback={
-            <div className="mx-4 max-w-7xl animate-pulse rounded-2xl bg-white/70 shadow-sm sm:mx-6 lg:mx-8"></div>
-          }
-        >
-          <PillarSection />
-        </Suspense>
 
-        {/* Supplier Banner - Only visible on Home page */}
-        <SupplierBanner t={t} />
 
         {/* Mobile Conversion Optimizer - Sticky CTAs, trust indicators, etc. */}
         <MobileConversionOptimizer t={t} />
