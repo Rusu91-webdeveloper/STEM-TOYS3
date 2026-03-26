@@ -124,6 +124,12 @@ self.addEventListener('fetch', (event) => {
   if (!url.protocol.startsWith('http')) {
     return;
   }
+
+  // CRITICAL: Never intercept Stripe domains.
+  // Let the browser talk to Stripe directly to avoid payment script failures.
+  if (isStripeDomain(url.hostname)) {
+    return;
+  }
   
   // FIXED: Skip external domains (like utfs.io, vercel.live, etc.) to prevent image loading issues
   if (isExternalDomain(url.hostname)) {
@@ -505,6 +511,21 @@ function isMapTileDomain(hostname) {
   ];
 
   return mapDomains.some(domain => hostname.includes(domain));
+}
+
+function isStripeDomain(hostname) {
+  const stripeDomains = [
+    'stripe.com',
+    'js.stripe.com',
+    'api.stripe.com',
+    'm.stripe.com',
+    'hooks.stripe.com',
+    'checkout.stripe.com',
+    'stripe.network',
+    'm.stripe.network',
+  ];
+
+  return stripeDomains.some(domain => hostname === domain || hostname.endsWith(`.${domain}`));
 }
 
 function isAuthRequest(pathname) {

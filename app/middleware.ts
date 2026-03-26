@@ -754,6 +754,8 @@ function getContentSecurityPolicy(nonce: string) {
       "uploadthing.com",
       "utfs.io",
       "https://api.stripe.com",
+      "https://*.stripe.com",
+      "https://*.stripe.network",
       "https://m.stripe.com",
       "https://checkout.stripe.com",
       "https://api.fancourier.ro",
