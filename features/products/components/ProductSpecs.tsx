@@ -125,12 +125,15 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
       </h3>
       <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
         {visible.map((e, idx) => (
-          <div key={idx} className="flex items-start justify-between gap-3">
+          <div
+            key={idx}
+            className="flex min-w-0 flex-col items-start gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
+          >
             <span className={`${productMutedTextClass} text-xs sm:text-sm`}>
               {e.label}
             </span>
             <span
-              className={`${productBodyTextClass} text-right text-xs sm:text-sm`}
+              className={`${productBodyTextClass} break-words text-left text-xs sm:text-right sm:text-sm`}
             >
               {e.value as any}
             </span>

@@ -110,7 +110,7 @@ export async function sendDigitalBookDeliveryEmail({
       <h3 style="color: #92400e; margin: 0 0 12px 0;">⚠️ Informații importante despre descărcarea fișierelor:</h3>
       <ul style="margin: 0; padding-left: 20px; color: #92400e;">
         <li style="margin-bottom: 8px;"><strong>Link-urile vor expira în 30 de zile</strong> de la data acestui email</li>
-        <li style="margin-bottom: 8px;">Poți descărca fiecare fișier de <strong>maksimum 5 ori</strong></li>
+        <li style="margin-bottom: 8px;">Poți descărca fiecare fișier de <strong>maximum 5 ori</strong></li>
         <li style="margin-bottom: 8px;">Fișierele sunt compatibile cu majoritatea dispozitivelor și aplicațiilor de citire</li>
         <li style="margin-bottom: 8px;">Păstrează o copie de rezervă a fișierelor după descărcare</li>
       </ul>
