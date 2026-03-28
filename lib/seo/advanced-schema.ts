@@ -38,7 +38,7 @@ function getAgeLandingUrl(ageGroup?: string): string {
   const ageRoutes = {
     TODDLERS_1_3: "https://www.techtots.ro/jucarii-stem-dupa-varsta",
     PRESCHOOL_3_5: "https://www.techtots.ro/jucarii-stem-dupa-varsta",
-    ELEMENTARY_6_8: "https://www.techtots.ro/jucarii-stem-copii-6-8-ani",
+    ELEMENTARY_6_8: "https://www.techtots.ro/jucarii-stem-dupa-varsta",
     MIDDLE_SCHOOL_9_12: "https://www.techtots.ro/jucarii-stem-dupa-varsta",
     TEENS_13_PLUS: "https://www.techtots.ro/jucarii-stem-dupa-varsta",
   };

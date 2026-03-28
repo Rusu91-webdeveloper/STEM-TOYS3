@@ -3,6 +3,15 @@ import { DualProviderProductEnhancementService } from "@/lib/ai/dual-provider-pr
 import { EnhancedProductProcessor } from "@/lib/ai/enhanced-product-processor";
 import { db } from "@/lib/db";
 
+function normalizeSlug(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
 // Helper function to validate and correct product data
 function validateAndCorrectProduct(
   product: any,
@@ -107,6 +116,8 @@ export const bulkUploadProductsJob = inngest.createFunction(
     const result = await step.run("process-bulk-upload", async () => {
       const results = {
         success: 0,
+        created: 0,
+        updated: 0,
         failed: 0,
         errors: [] as any[],
         warnings: [] as any[],
@@ -156,7 +167,6 @@ export const bulkUploadProductsJob = inngest.createFunction(
         {
           includeAIEnhancement: false, // Already enhanced
           applyRomanianDefaults: true,
-          applyCurrencyConversion: true,
         }
       );
 
@@ -170,6 +180,8 @@ export const bulkUploadProductsJob = inngest.createFunction(
             results
           );
           if (validated) {
+            const slug = validated.slug || normalizeSlug(validated.name);
+
             // Find or create category
             let category = await db.category.findFirst({
               where: {
@@ -192,31 +204,65 @@ export const bulkUploadProductsJob = inngest.createFunction(
               });
             }
 
-            // Create product
-            await db.product.create({
-              data: {
-                name: validated.name,
-                slug:
-                  validated.slug ||
-                  validated.name.toLowerCase().replace(/\s+/g, "-"),
-                description: validated.description,
-                price: validated.price,
-                compareAtPrice: validated.compareAtPrice,
-                sku: validated.sku,
-                images: validated.images || [],
-                categoryId: category.id,
-                tags: validated.tags || [],
-                attributes: validated.attributes || {},
-                metadata: validated.metadata || {},
-                isActive: validated.isActive ?? true,
-                featured: validated.featured ?? false,
-                stockQuantity: validated.stockQuantity || 0,
-                weight: validated.weight,
-                ageGroup: validated.ageGroup,
-                stemDiscipline: validated.stemDiscipline || "GENERAL",
-                status: "APPROVED",
-              },
+            const existingBySku = validated.sku
+              ? await db.product.findUnique({
+                  where: { sku: validated.sku },
+                  select: { id: true, sku: true, slug: true },
+                })
+              : null;
+            const existingBySlug = await db.product.findUnique({
+              where: { slug },
+              select: { id: true, sku: true, slug: true },
             });
+
+            if (
+              existingBySku &&
+              existingBySlug &&
+              existingBySku.id !== existingBySlug.id
+            ) {
+              results.failed++;
+              results.errors.push({
+                row: index + 1,
+                error:
+                  "Conflicting existing products found for this SKU and slug",
+              });
+              continue;
+            }
+
+            const existingProduct = existingBySku || existingBySlug;
+            const productData = {
+              name: validated.name,
+              slug,
+              description: validated.description,
+              price: validated.price,
+              compareAtPrice: validated.compareAtPrice,
+              sku: validated.sku,
+              images: validated.images || [],
+              categoryId: category.id,
+              tags: validated.tags || [],
+              attributes: validated.attributes || {},
+              metadata: validated.metadata || {},
+              isActive: validated.isActive ?? true,
+              featured: validated.featured ?? false,
+              stockQuantity: validated.stockQuantity || 0,
+              weight: validated.weight,
+              ageGroup: validated.ageGroup,
+              stemDiscipline: validated.stemDiscipline || "GENERAL",
+              status: "APPROVED" as const,
+            };
+
+            if (existingProduct) {
+              await db.product.update({
+                where: { id: existingProduct.id },
+                data: productData,
+              });
+              results.updated++;
+            } else {
+              await db.product.create({
+                data: productData,
+              });
+              results.created++;
+            }
             results.success++;
           } else {
             results.failed++;
@@ -244,7 +290,7 @@ export const bulkUploadProductsJob = inngest.createFunction(
           status: result.success ? "COMPLETED" : "FAILED",
           result: JSON.stringify(result),
           completedAt: new Date(),
-          error: result.error || null,
+          error: null,
         },
       });
     });

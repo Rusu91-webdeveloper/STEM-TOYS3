@@ -243,7 +243,7 @@ function getAgeGroupLandingPageUrl(ageGroup: string): string {
   const urlMap = {
     TODDLERS_1_3: "/jucarii-stem-dupa-varsta",
     PRESCHOOL_3_5: "/jucarii-stem-dupa-varsta",
-    ELEMENTARY_6_8: "/jucarii-stem-copii-6-8-ani",
+    ELEMENTARY_6_8: "/jucarii-stem-dupa-varsta",
     MIDDLE_SCHOOL_9_12: "/jucarii-stem-dupa-varsta",
     TEENS_13_PLUS: "/jucarii-stem-dupa-varsta",
   };
@@ -252,9 +252,9 @@ function getAgeGroupLandingPageUrl(ageGroup: string): string {
 
 function getStemDisciplineLandingPageUrl(discipline: string): string {
   const disciplineMap = {
-    SCIENCE: "/categories/science-experiments",
+    SCIENCE: "/jucarii-stem",
     TECHNOLOGY: "/robotica-pentru-copii",
-    ENGINEERING: "/categories/magnetic-building",
+    ENGINEERING: "/jucarii-stem",
     MATHEMATICS: "/jucarii-inteligente",
     GENERAL: "/jucarii-stem",
   };

@@ -120,13 +120,13 @@ export default function EducationalToysLandingPage() {
       }}
       clusters={[
         {
-          href: "/categories/science-experiments",
+          href: "/jucarii-stem",
           label: "Știință și experimente",
           description:
             "Copilul urmează pașii, pune întrebări și vede ce se întâmplă când schimbă ceva — nu doar citește despre fenomen.",
         },
         {
-          href: "/categories/magnetic-building",
+          href: "/jucarii-stem",
           label: "Construcții și logică",
           description:
             "Asamblează, încearcă variante și înțelege cum stă în picioare o structură — spațialitate și gândire ordonată, nu doar „legat de piese”.",

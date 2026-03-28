@@ -23,23 +23,43 @@ export function ProductImageGallery({
 }: ProductImageGalleryProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  const [failedImageIndexes, setFailedImageIndexes] = useState<number[]>([]);
 
-  // Handle thumbnail click
+  const visibleImages = images
+    .map((image, index) => ({
+      image,
+      originalIndex: index,
+      meta: metadata?.[index],
+    }))
+    .filter(entry => !failedImageIndexes.includes(entry.originalIndex));
+
+  const isRemoteImage = (src: string) =>
+    typeof src === "string" && /^https?:\/\//i.test(src);
+
   const handleThumbnailClick = (index: number) => {
     setCurrentImageIndex(index);
   };
 
-  // Navigate to previous image
   const handlePrevImage = () => {
-    setCurrentImageIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
+    setCurrentImageIndex(prev =>
+      prev === 0 ? visibleImages.length - 1 : prev - 1
+    );
   };
 
-  // Navigate to next image
   const handleNextImage = () => {
-    setCurrentImageIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
+    setCurrentImageIndex(prev =>
+      prev === visibleImages.length - 1 ? 0 : prev + 1
+    );
   };
+
   const openFullscreen = () => setIsFullscreenOpen(true);
   const closeFullscreen = () => setIsFullscreenOpen(false);
+
+  const handleImageError = (originalIndex: number) => {
+    setFailedImageIndexes(prev =>
+      prev.includes(originalIndex) ? prev : [...prev, originalIndex]
+    );
+  };
 
   useEffect(() => {
     if (!isFullscreenOpen) return;
@@ -50,9 +70,9 @@ export function ProductImageGallery({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         closeFullscreen();
-      } else if (images.length > 1 && event.key === "ArrowLeft") {
+      } else if (visibleImages.length > 1 && event.key === "ArrowLeft") {
         handlePrevImage();
-      } else if (images.length > 1 && event.key === "ArrowRight") {
+      } else if (visibleImages.length > 1 && event.key === "ArrowRight") {
         handleNextImage();
       }
     };
@@ -62,9 +82,20 @@ export function ProductImageGallery({
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
     };
-  }, [images.length, isFullscreenOpen]);
+  }, [isFullscreenOpen, visibleImages.length]);
 
-  if (!images || images.length === 0) {
+  useEffect(() => {
+    setFailedImageIndexes([]);
+    setCurrentImageIndex(0);
+  }, [images, metadata]);
+
+  useEffect(() => {
+    if (currentImageIndex >= visibleImages.length) {
+      setCurrentImageIndex(0);
+    }
+  }, [currentImageIndex, visibleImages.length]);
+
+  if (!visibleImages || visibleImages.length === 0) {
     return (
       <div className={cn("relative aspect-square w-full bg-muted", className)}>
         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
@@ -75,14 +106,13 @@ export function ProductImageGallery({
   }
 
   const getAlt = (index: number) => {
-    const metaAlt = metadata?.[index]?.alt;
+    const metaAlt = visibleImages[index]?.meta?.alt;
     if (metaAlt && metaAlt.trim().length > 0) return metaAlt;
     return `${alt} - Image ${index + 1}`;
   };
 
   return (
     <div className={cn("space-y-3 sm:space-y-4", className)}>
-      {/* Main image */}
       <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/10 bg-slate-950/40">
         <button
           type="button"
@@ -93,16 +123,21 @@ export function ProductImageGallery({
           <span className="sr-only">Open image in full screen</span>
         </button>
         <Image
-          src={images[currentImageIndex] || "/placeholder-product.png"}
+          src={visibleImages[currentImageIndex]?.image || "/placeholder-product.png"}
           alt={getAlt(currentImageIndex)}
           fill
           priority={currentImageIndex === 0}
+          unoptimized={isRemoteImage(visibleImages[currentImageIndex]?.image || "")}
+          onError={() =>
+            handleImageError(
+              visibleImages[currentImageIndex]?.originalIndex ?? currentImageIndex
+            )
+          }
           className="object-contain bg-white p-2 transition-opacity sm:p-3"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
 
-        {/* Navigation arrows - visible on all screen sizes but smaller on mobile */}
-        {images.length > 1 && (
+        {visibleImages.length > 1 && (
           <>
             <Button
               variant="ghost"
@@ -144,20 +179,18 @@ export function ProductImageGallery({
           View full
         </Button>
 
-        {/* Image counter */}
-        {images.length > 1 && (
+        {visibleImages.length > 1 && (
           <div className="absolute bottom-1 right-1 z-20 rounded-full border border-white/10 bg-slate-950/70 px-1.5 py-0.5 text-xs text-slate-100 backdrop-blur sm:bottom-2 sm:right-2 sm:px-2 sm:py-1">
-            {currentImageIndex + 1} / {images.length}
+            {currentImageIndex + 1} / {visibleImages.length}
           </div>
         )}
       </div>
 
-      {/* Thumbnails */}
-      {images.length > 1 && (
+      {visibleImages.length > 1 && (
         <div className="flex space-x-1.5 sm:space-x-2 overflow-x-auto pb-1">
-          {images.map((image, index) => (
+          {visibleImages.map(({ image, originalIndex }, index) => (
             <button
-              key={index}
+              key={originalIndex}
               type="button"
               className={cn(
                 "relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-white/10 transition-all duration-200 sm:h-16 sm:w-16",
@@ -171,6 +204,8 @@ export function ProductImageGallery({
                 src={image}
                 alt={getAlt(index)}
                 fill
+                unoptimized={isRemoteImage(image)}
+                onError={() => handleImageError(originalIndex)}
                 className="object-cover"
                 sizes="(max-width: 640px) 48px, 64px"
               />
@@ -187,7 +222,6 @@ export function ProductImageGallery({
           className="fixed inset-0 z-[90] bg-black/95"
           onClick={closeFullscreen}
         >
-          {/* Top-right X — large and always visible */}
           <button
             type="button"
             onClick={event => {
@@ -200,12 +234,11 @@ export function ProductImageGallery({
             <X className="h-6 w-6" />
           </button>
 
-          {/* Image + nav — stop propagation so only X / bottom button close */}
           <div
             className="relative mx-auto flex h-full w-full max-w-6xl items-center justify-center pb-24 sm:pb-16 sm:px-16"
             onClick={event => event.stopPropagation()}
           >
-            {images.length > 1 && (
+            {visibleImages.length > 1 && (
               <Button
                 type="button"
                 variant="ghost"
@@ -220,16 +253,23 @@ export function ProductImageGallery({
 
             <div className="relative h-full w-full">
               <Image
-                src={images[currentImageIndex] || "/placeholder-product.png"}
+                src={visibleImages[currentImageIndex]?.image || "/placeholder-product.png"}
                 alt={getAlt(currentImageIndex)}
                 fill
                 priority
+                unoptimized={isRemoteImage(visibleImages[currentImageIndex]?.image || "")}
+                onError={() =>
+                  handleImageError(
+                    visibleImages[currentImageIndex]?.originalIndex ??
+                      currentImageIndex
+                  )
+                }
                 className="object-contain"
                 sizes="100vw"
               />
             </div>
 
-            {images.length > 1 && (
+            {visibleImages.length > 1 && (
               <Button
                 type="button"
                 variant="ghost"
@@ -242,15 +282,13 @@ export function ProductImageGallery({
               </Button>
             )}
 
-            {/* Image counter */}
-            {images.length > 1 && (
+            {visibleImages.length > 1 && (
               <div className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/25 bg-black/70 px-3 py-1 text-xs font-medium text-white">
-                {currentImageIndex + 1} / {images.length}
+                {currentImageIndex + 1} / {visibleImages.length}
               </div>
             )}
           </div>
 
-          {/* Bottom close pill — thumb-friendly, impossible to miss on mobile */}
           <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center sm:bottom-8">
             <button
               type="button"

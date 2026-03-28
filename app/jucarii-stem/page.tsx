@@ -201,18 +201,6 @@ export default function StemToysLandingPage() {
             "Kituri, programare vizuală și proiecte în care copilul vede rezultatul în mișcare.",
         },
         {
-          href: "/categories/science-experiments",
-          label: "Experimente științifice",
-          description:
-            "Seturi pentru curiozitate, descoperire și încercări practice.",
-        },
-        {
-          href: "/categories/magnetic-building",
-          label: "Construcții și inginerie",
-          description:
-            "Magnetice, structuri și proiecte care combină creativitatea cu spațialitatea.",
-        },
-        {
           href: "/ghid-educatie-stem-romania",
           label: "Ghid STEM România",
           description:

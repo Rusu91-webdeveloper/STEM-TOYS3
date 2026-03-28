@@ -338,10 +338,10 @@ export function getBlogCommercialRoutes(
 ): SearchRouteCard[] {
   const primaryRoute = {
     SCIENCE: {
-      href: "/categories/science-experiments",
-      label: "Experimente stiintifice",
+      href: "/jucarii-stem",
+      label: "Jucarii STEM",
       description:
-        "Categorie cu intentie comerciala pentru copii atrasi de descoperire, observatie si joc practic.",
+        "Ruta comerciala larga pentru copii atrasi de descoperire, observatie si joc practic.",
     },
     TECHNOLOGY: {
       href: "/robotica-pentru-copii",
@@ -350,7 +350,7 @@ export function getBlogCommercialRoutes(
         "Hub comercial pentru coding, roboti si produse cu componenta tehnologica puternica.",
     },
     ENGINEERING: {
-      href: "/categories/magnetic-building",
+      href: "/jucarii-stem",
       label: "Constructii si inginerie",
       description:
         "Pentru seturi care dezvolta spatialitatea, proiectarea si rezolvarea de probleme.",

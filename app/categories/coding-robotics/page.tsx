@@ -176,8 +176,8 @@ export default async function CodingRoboticsPage() {
                   </Link>
                   . Daca vrei filtrare dupa varsta, mergi in
                   {" "}
-                  <Link href="/jucarii-stem-copii-6-8-ani" className="text-cyan-300 underline underline-offset-4">
-                    selectia 6-8 ani
+                  <Link href="/jucarii-stem-dupa-varsta" className="text-cyan-300 underline underline-offset-4">
+                    selectia dupa varsta
                   </Link>
                   .
                 </p>

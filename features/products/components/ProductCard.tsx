@@ -2,7 +2,7 @@
 
 import { Heart, Package, ShoppingCart, StarIcon } from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
@@ -32,6 +32,7 @@ export function ProductCard({
   const { addItem } = useShoppingCart();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   if (!product || !product.id) return null;
 
@@ -55,10 +56,11 @@ export function ProductCard({
   const isOutOfStock = stockQuantity <= 0;
   const isLowStock = stockQuantity > 0 && stockQuantity < 4;
 
-  const imageUrl =
-    product.images && product.images.length > 0
-      ? product.images[0]
-      : "/placeholder-product.png";
+  const productImages =
+    Array.isArray(product.images) && product.images.length > 0
+      ? product.images.filter(Boolean)
+      : [];
+  const imageUrl = productImages[activeImageIndex] || "/placeholder-product.png";
 
   const isBook = Boolean(
     product.isBook ||
@@ -72,6 +74,16 @@ export function ProductCard({
     ? product.stemDiscipline
     : (product.category as any)?.name || (product.category as any)?.slug;
 
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [product.id, productImages.length]);
+
+  const handleImageError = () => {
+    setActiveImageIndex(prev =>
+      prev < productImages.length - 1 ? prev + 1 : productImages.length
+    );
+  };
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -84,7 +96,7 @@ export function ProductCard({
           productId: product.id,
           name: product.name,
           price: product.price,
-          image: product.images[0],
+          image: imageUrl,
           quantity: 1,
           stockQuantity,
           isBook,
@@ -103,7 +115,7 @@ export function ProductCard({
   };
 
   const renderRating = () => {
-    if (!product.rating) return null;
+    if (!product.averageRating) return null;
     return (
       <div className="flex items-center gap-1">
         <div className="flex text-amber-400">
@@ -112,7 +124,9 @@ export function ProductCard({
               key={i}
               className={cn(
                 "h-3 w-3",
-                i < Math.floor(product.rating || 0) ? "fill-current" : "text-slate-200 fill-slate-200"
+                i < Math.floor(product.averageRating || 0)
+                  ? "fill-current"
+                  : "text-slate-200 fill-slate-200"
               )}
             />
           ))}
@@ -139,6 +153,7 @@ export function ProductCard({
               src={imageUrl}
               alt={product.name}
               fill
+              onError={handleImageError}
               className="object-contain p-3 sm:p-4 transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 640px) 100vw, (max-width: 768px) 44vw, 320px"
               priority={priority}
@@ -355,7 +370,7 @@ export function ProductCard({
       {/* Product info */}
       <div className="flex flex-1 flex-col gap-1.5 p-3 sm:p-3.5">
         {/* Rating */}
-        {product.rating ? (
+        {product.averageRating ? (
           <div className="flex items-center gap-1 mt-0.5">
             {renderRating()}
           </div>

@@ -176,27 +176,11 @@ export default function HomePageClient({
         itemListElement: [
           {
             "@type": "OfferCatalog",
-            name: "Experimente stiintifice pentru copii",
-            url: `${baseUrl}/categories/science-experiments`,
-            category: "Stiinta",
-            description:
-              "Experimente si kituri stiintifice pentru joaca practica si invatare aplicata.",
-          },
-          {
-            "@type": "OfferCatalog",
             name: "Robotica pentru copii",
             url: `${baseUrl}/robotica-pentru-copii`,
             category: "Tehnologie",
             description:
               "Roboti educativi, coding si kituri interactive pentru copii curiosi.",
-          },
-          {
-            "@type": "OfferCatalog",
-            name: "Constructii si inginerie",
-            url: `${baseUrl}/categories/magnetic-building`,
-            category: "Inginerie",
-            description:
-              "Seturi de constructie pentru spatialitate, logica si proiecte creative.",
           },
           {
             "@type": "OfferCatalog",

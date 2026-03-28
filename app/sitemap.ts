@@ -47,16 +47,6 @@ const staticRoutes: MetadataRoute.Sitemap = [
     priority: 0.86,
   },
   {
-    url: `${baseUrl}/categories/science-experiments`,
-    changeFrequency: "weekly",
-    priority: 0.88,
-  },
-  {
-    url: `${baseUrl}/categories/magnetic-building`,
-    changeFrequency: "weekly",
-    priority: 0.84,
-  },
-  {
     url: `${baseUrl}/blog`,
     changeFrequency: "weekly",
     priority: 0.82,
@@ -65,11 +55,6 @@ const staticRoutes: MetadataRoute.Sitemap = [
     url: `${baseUrl}/jucarii-stem-dupa-varsta`,
     changeFrequency: "weekly",
     priority: 0.82,
-  },
-  {
-    url: `${baseUrl}/jucarii-stem-copii-6-8-ani`,
-    changeFrequency: "weekly",
-    priority: 0.8,
   },
   {
     url: `${baseUrl}/beneficiile-jucariilor-stem`,

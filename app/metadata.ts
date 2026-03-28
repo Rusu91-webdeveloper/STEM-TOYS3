@@ -94,11 +94,6 @@ const onlineStoreSchema = {
         name: "Robotica pentru copii",
         url: `${baseUrl}/robotica-pentru-copii`,
       },
-      {
-        "@type": "OfferCatalog",
-        name: "Experimente stiintifice pentru copii",
-        url: `${baseUrl}/categories/science-experiments`,
-      },
     ],
   },
 };

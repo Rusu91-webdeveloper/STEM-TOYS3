@@ -76,6 +76,8 @@ interface ValidationError {
 
 interface UploadResult {
   success: number;
+  created?: number;
+  updated?: number;
   failed: number;
   errors: ValidationError[];
   warnings: Array<{ row: number; field: string; message: string }>;
@@ -107,6 +109,27 @@ type UploadStep =
   | "preview"
   | "uploading"
   | "complete";
+
+const sleep = (ms: number) =>
+  new Promise(resolve => {
+    window.setTimeout(resolve, ms);
+  });
+
+const toBasicProduct = (product: ProductRow): BasicProduct => ({
+  name: product.name,
+  price: product.price,
+  category: product.category,
+  images: product.images
+    ? product.images.split(",").map(image => image.trim()).filter(Boolean)
+    : [],
+  description: product.description,
+  sku: product.sku,
+  stockQuantity: product.stockQuantity,
+  weight: product.weight,
+  tags: product.tags
+    ? product.tags.split(",").map(tag => tag.trim()).filter(Boolean)
+    : [],
+});
 
 export function EnhancedAdminBulkUpload() {
   const router = useRouter();
@@ -509,13 +532,79 @@ export function EnhancedAdminBulkUpload() {
         throw new Error("Upload failed");
       }
 
-      const result: UploadResult = await response.json();
+      const queuedJob = await response.json();
+      const jobId = queuedJob.jobId;
+
+      if (!jobId) {
+        throw new Error("Upload job did not return an ID");
+      }
+
+      setUploadProgress(10);
+
+      let pollCount = 0;
+      const maxPolls = 120;
+      let result: UploadResult | null = null;
+
+      while (pollCount < maxPolls) {
+        await sleep(2000);
+        pollCount++;
+
+        const statusResponse = await fetch(`/api/admin/ai-jobs/status/${jobId}`);
+        if (!statusResponse.ok) {
+          throw new Error("Failed to fetch upload status");
+        }
+
+        const statusData = await statusResponse.json();
+
+        if (
+          statusData.status === "PENDING" ||
+          statusData.status === "PROCESSING"
+        ) {
+          setUploadProgress(current => Math.min(current + 5, 90));
+          continue;
+        }
+
+        if (statusData.status === "FAILED") {
+          throw new Error(statusData.error || "Bulk upload failed");
+        }
+
+        if (statusData.status === "COMPLETED") {
+          const jobResults = statusData.result?.results;
+          const successCount = Number(jobResults?.success ?? 0);
+          const failedCount = Number(jobResults?.failed ?? 0);
+          const total = successCount + failedCount;
+
+          result = {
+            success: successCount,
+            created: Number(jobResults?.created ?? 0),
+            updated: Number(jobResults?.updated ?? 0),
+            failed: failedCount,
+            errors: jobResults?.errors || [],
+            warnings: jobResults?.warnings || [],
+            processingTime: 0,
+            summary: {
+              total,
+              success: successCount,
+              failed: failedCount,
+              successRate:
+                total > 0 ? `${((successCount / total) * 100).toFixed(1)}%` : "0.0%",
+              processingTime: "Async job",
+            },
+          };
+          break;
+        }
+      }
+
+      if (!result) {
+        throw new Error("Bulk upload timed out before completion");
+      }
+
       setUploadResult(result);
 
       if (result.success > 0) {
         toast({
           title: "Upload successful",
-          description: `Successfully uploaded ${result.success} products. ${result.failed} failed.`,
+          description: `Processed ${result.success} products. ${result.failed} failed.`,
         });
       } else {
         toast({
@@ -858,7 +947,7 @@ export function EnhancedAdminBulkUpload() {
             </div>
 
             <AIEnhancementPreview
-              originalProduct={products[currentPreviewIndex]}
+              originalProduct={toBasicProduct(products[currentPreviewIndex])}
               enhancedProduct={enhancedProducts[currentPreviewIndex]}
               onAccept={() => {
                 // Accept the enhancement

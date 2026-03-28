@@ -53,7 +53,7 @@ export const HIGH_PRIORITY_KEYWORDS: KeywordTarget[] = [
     difficulty: 35,
     intent: "commercial",
     priority: "high",
-    targetPage: "/jucarii-stem-copii-6-8-ani",
+    targetPage: "/jucarii-stem-dupa-varsta",
     competitorGap: true
   },
   {
