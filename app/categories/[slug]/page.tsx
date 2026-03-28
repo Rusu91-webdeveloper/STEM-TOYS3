@@ -53,6 +53,7 @@ import {
 import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
@@ -71,6 +72,7 @@ import { getCategoryName } from "@/lib/services/categories-service";
 
 // Enable ISR with 10 minutes revalidation
 export const revalidate = 600;
+export const dynamicParams = false;
 
 const KNOWN_SLUGS = [
   "science",
@@ -80,6 +82,10 @@ const KNOWN_SLUGS = [
   "educational-books",
 ] as const;
 type KnownSlug = (typeof KNOWN_SLUGS)[number];
+
+function isKnownSlug(slug: string): slug is KnownSlug {
+  return KNOWN_SLUGS.includes(slug as KnownSlug);
+}
 
 function slugToStemCategory(
   slug: string
@@ -105,7 +111,11 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: slugParam } = await params;
+  const slug = slugParam.toLowerCase();
+  if (!isKnownSlug(slug)) {
+    notFound();
+  }
   const cookieStore = await cookies();
   const locale = cookieStore.get("locale")?.value ?? "ro";
   const title = `${getCategoryName(slug, locale)} | STEM Categories`;
@@ -971,6 +981,9 @@ export default async function CategoryDetailPage({
   const cookieStore = await cookies();
   const locale = cookieStore.get("locale")?.value ?? "ro";
   const slug = slugParam.toLowerCase();
+  if (!isKnownSlug(slug)) {
+    notFound();
+  }
   const _t = getTranslation(locale);
 
   const headerImageBySlug: Record<string, string> = {
