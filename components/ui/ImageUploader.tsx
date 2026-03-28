@@ -39,9 +39,6 @@ export function ImageUploader({
 }: ImageUploaderProps) {
   const [images, setImages] = useState<string[]>(initialImages);
 
-  const isRemoteImage = (src: string) =>
-    typeof src === "string" && /^https?:\/\//i.test(src);
-
   const handleUploadComplete = (res: { url: string }[]) => {
     const newImageUrls = res.map(file => file.url);
     const updatedImages = [...images, ...newImageUrls].slice(0, maxImages);
@@ -138,7 +135,6 @@ export function ImageUploader({
                   src={image}
                   alt={`Product image ${index + 1}`}
                   fill
-                  unoptimized={isRemoteImage(image)}
                   className="object-cover"
                 />
 

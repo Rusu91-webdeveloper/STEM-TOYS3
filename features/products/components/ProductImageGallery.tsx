@@ -33,9 +33,6 @@ export function ProductImageGallery({
     }))
     .filter(entry => !failedImageIndexes.includes(entry.originalIndex));
 
-  const isRemoteImage = (src: string) =>
-    typeof src === "string" && /^https?:\/\//i.test(src);
-
   const handleThumbnailClick = (index: number) => {
     setCurrentImageIndex(index);
   };
@@ -127,7 +124,6 @@ export function ProductImageGallery({
           alt={getAlt(currentImageIndex)}
           fill
           priority={currentImageIndex === 0}
-          unoptimized={isRemoteImage(visibleImages[currentImageIndex]?.image || "")}
           onError={() =>
             handleImageError(
               visibleImages[currentImageIndex]?.originalIndex ?? currentImageIndex
@@ -204,7 +200,6 @@ export function ProductImageGallery({
                 src={image}
                 alt={getAlt(index)}
                 fill
-                unoptimized={isRemoteImage(image)}
                 onError={() => handleImageError(originalIndex)}
                 className="object-cover"
                 sizes="(max-width: 640px) 48px, 64px"
@@ -257,7 +252,6 @@ export function ProductImageGallery({
                 alt={getAlt(currentImageIndex)}
                 fill
                 priority
-                unoptimized={isRemoteImage(visibleImages[currentImageIndex]?.image || "")}
                 onError={() =>
                   handleImageError(
                     visibleImages[currentImageIndex]?.originalIndex ??

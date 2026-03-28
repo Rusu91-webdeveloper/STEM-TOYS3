@@ -105,7 +105,6 @@ export function OptimizedProductImage({
 
   const optimizedSrc = getOptimizedSrc(src);
   const fallbackBlurDataURL = blurDataURL ?? DEFAULT_BLUR_DATA_URL;
-  const isRemoteImage = typeof optimizedSrc === "string" && optimizedSrc.startsWith("http");
 
   useEffect(() => {
     setImageError(false);
@@ -145,7 +144,6 @@ export function OptimizedProductImage({
     priority,
     quality,
     sizes,
-    unoptimized: isRemoteImage,
     onLoad: handleLoad,
     onError: handleError,
     placeholder: placeholder as "blur" | "empty",
