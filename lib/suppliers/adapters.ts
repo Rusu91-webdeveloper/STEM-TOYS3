@@ -1,12 +1,13 @@
+import * as fs from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
+
 import {
   SupplierAuthType,
   SupplierFeed,
   SupplierFeedType,
 } from "@prisma/client";
-import * as fs from "fs";
-import * as path from "path";
 import * as XLSX from "xlsx";
-import { fileURLToPath } from "url";
 
 import {
   FieldMapping,
@@ -92,6 +93,12 @@ function normalizeMapping(raw: unknown): FieldMapping {
     categoryPath: mapping.categoryPath || mapping.CategoryPath,
     allowedSkus: Array.isArray(mapping.allowedSkus) ? mapping.allowedSkus : undefined,
     blockedSkus: Array.isArray(mapping.blockedSkus) ? mapping.blockedSkus : undefined,
+    autoCreateProducts:
+      typeof mapping.autoCreateProducts === "boolean"
+        ? mapping.autoCreateProducts
+        : typeof mapping.auto_create_products === "boolean"
+          ? mapping.auto_create_products
+          : undefined,
   };
 }
 

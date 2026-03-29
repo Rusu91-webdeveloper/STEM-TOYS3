@@ -28,6 +28,7 @@ export type FieldMapping = {
   categoryPath?: string | string[];
   allowedSkus?: string[];
   blockedSkus?: string[];
+  autoCreateProducts?: boolean;
 };
 
 export type SupplierAuthConfig = {

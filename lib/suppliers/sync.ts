@@ -6,7 +6,9 @@ import {
   SupplierSyncStatus,
 } from "@prisma/client";
 
+import { recomputeBundles } from "@/lib/bundles/recompute";
 import { db } from "@/lib/db";
+import { calculateDropshippingPrice } from "@/lib/pricing/dropshipping-pricing";
 import {
   createAppAdapter,
   createBaseLinkerCsvAdapter,
@@ -14,10 +16,8 @@ import {
   createGenericApiAdapter,
 } from "@/lib/suppliers/adapters";
 import { FieldMapping, ProductFeedItem } from "@/lib/suppliers/types";
-import { recomputeBundles } from "@/lib/bundles/recompute";
-import { calculateDropshippingPrice } from "@/lib/pricing/dropshipping-pricing";
-import { calculateProfitMargin } from "@/lib/utils/unit-economics";
 import { slugify } from "@/lib/utils";
+import { calculateProfitMargin } from "@/lib/utils/unit-economics";
 
 type RunSyncParams = {
   feedId?: string;
@@ -167,6 +167,10 @@ export async function runSupplierFeedSync(
         mapping.enforceAllowedSkus ??
           (mapping as Record<string, unknown>).enforce_allowed_skus
       );
+      const autoCreateProducts = Boolean(
+        mapping.autoCreateProducts ??
+          (mapping as Record<string, unknown>).auto_create_products
+      );
       const allowSet = allowList.length > 0 ? new Set(allowList) : null;
       const blockSet = blockList.length > 0 ? new Set(blockList) : null;
 
@@ -190,6 +194,7 @@ export async function runSupplierFeedSync(
         requiredFields,
         enforceAllowedSkus,
         allowSet,
+        autoCreateProducts,
       });
 
       await db.supplierSyncJob.update({
@@ -316,12 +321,14 @@ async function upsertProducts(
     requiredFields?: string[];
     enforceAllowedSkus?: boolean;
     allowSet?: Set<string> | null;
+    autoCreateProducts?: boolean;
   }
 ) {
   let imported = 0;
   let updated = 0;
   let failed = 0;
   const requiredFields = options?.requiredFields ?? [];
+  const autoCreateProducts = options?.autoCreateProducts ?? false;
 
   // Get supplier configuration for margin settings
   const supplier = await db.supplier.findUnique({
@@ -492,6 +499,8 @@ async function upsertProducts(
           ? (retailPrice as number)
           : 0;
 
+    let unmatchedReason: string | null = null;
+
     if (!productId && item.name) {
       const categoryName = item.categoryPath?.[0];
       const category = await ensureCategory(categoryName);
@@ -500,19 +509,39 @@ async function upsertProducts(
         "-"
       )}`;
 
-      const existingProduct = await db.product.findFirst({
+      const existingBySku = await db.product.findFirst({
         where: {
           isBundle: false,
-          OR: [
-            { slug: baseSlug },
-            { supplierId: feed.supplierId, name: item.name },
-          ],
+          sku: item.supplierSku,
         },
       });
 
+      const existingBySlug = existingBySku
+        ? null
+        : await db.product.findFirst({
+            where: {
+              isBundle: false,
+              slug: baseSlug,
+            },
+          });
+
+      const existingBySupplierName =
+        existingBySku || existingBySlug
+          ? null
+          : await db.product.findFirst({
+              where: {
+                isBundle: false,
+                supplierId: feed.supplierId,
+                name: item.name,
+              },
+            });
+
+      const existingProduct =
+        existingBySku ?? existingBySlug ?? existingBySupplierName;
+
       if (existingProduct) {
         productId = existingProduct.id;
-      } else {
+      } else if (autoCreateProducts) {
         const tags = [
           categoryName?.trim(),
           item.attributes?.stemDiscipline as string | undefined,
@@ -547,6 +576,9 @@ async function upsertProducts(
         });
 
         productId = product.id;
+      } else {
+        unmatchedReason =
+          "Feed item did not match an approved catalog product and automatic product creation is disabled for this feed.";
       }
     }
 
@@ -566,12 +598,12 @@ async function upsertProducts(
       lastSyncAt: new Date(),
       productId,
       status:
-        supplierCost > 0 && item.name
+        supplierCost > 0 && item.name && productId
           ? SupplierProductStatus.MAPPED
           : SupplierProductStatus.PENDING,
       lastError: marginTooLow
         ? `Margin too low: ${marginPercentage.toFixed(2)}% (minimum: ${(minimumMargin * 100).toFixed(2)}%)`
-        : null,
+        : unmatchedReason,
     };
 
     let supplierProduct;

@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
-  RefreshCw,
-  Plus,
-  Save,
-  Loader2,
-  Shield,
   AlertCircle,
   Database,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Save,
+  Shield,
 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,6 +62,8 @@ type SupplierFeedRow = {
   lastSyncAt: string | null;
   lastError: string | null;
   pollingIntervalMinutes: number | null;
+  mapping?: Record<string, unknown> | null;
+  headers?: Record<string, unknown> | null;
   supplier?: SupplierOption;
 };
 
@@ -76,6 +77,7 @@ const defaultMapping = JSON.stringify(
     price: "Price",
     stock: "Stock",
     images: "Images",
+    autoCreateProducts: false,
   },
   null,
   2
@@ -103,6 +105,10 @@ export function AdminSupplierFeeds() {
     password: "",
     headers: "{}",
     mapping: defaultMapping,
+    autoCreateProducts: false,
+    enforceAllowedSkus: false,
+    allowedSkus: "",
+    blockedSkus: "",
     pollingIntervalMinutes: "60",
     isActive: true,
   });
@@ -146,6 +152,10 @@ export function AdminSupplierFeeds() {
       password: "",
       headers: "{}",
       mapping: defaultMapping,
+      autoCreateProducts: false,
+      enforceAllowedSkus: false,
+      allowedSkus: "",
+      blockedSkus: "",
       pollingIntervalMinutes: "60",
       isActive: true,
     });
@@ -157,6 +167,7 @@ export function AdminSupplierFeeds() {
   };
 
   const openEdit = (feed: SupplierFeedRow) => {
+    const mappingObject = safeObject(feed.mapping);
     setEditing(feed);
     setForm({
       supplierId: feed.supplierId,
@@ -168,8 +179,16 @@ export function AdminSupplierFeeds() {
       authHeader: "X-API-Key",
       username: "",
       password: "",
-      headers: "{}",
-      mapping: defaultMapping,
+      headers: JSON.stringify(safeObject(feed.headers), null, 2),
+      mapping: JSON.stringify(mappingObject, null, 2),
+      autoCreateProducts: Boolean(mappingObject.autoCreateProducts),
+      enforceAllowedSkus: Boolean(mappingObject.enforceAllowedSkus),
+      allowedSkus: Array.isArray(mappingObject.allowedSkus)
+        ? mappingObject.allowedSkus.join("\n")
+        : "",
+      blockedSkus: Array.isArray(mappingObject.blockedSkus)
+        ? mappingObject.blockedSkus.join("\n")
+        : "",
       pollingIntervalMinutes: String(feed.pollingIntervalMinutes ?? 60),
       isActive: feed.isActive,
     });
@@ -180,6 +199,12 @@ export function AdminSupplierFeeds() {
     try {
       setSaving(true);
       setError(null);
+
+      const mappingObject = safeObject(safeJson(form.mapping, {}));
+      mappingObject.autoCreateProducts = form.autoCreateProducts;
+      mappingObject.enforceAllowedSkus = form.enforceAllowedSkus;
+      mappingObject.allowedSkus = parseLines(form.allowedSkus);
+      mappingObject.blockedSkus = parseLines(form.blockedSkus);
 
       const payload = {
         supplierId: form.supplierId || undefined,
@@ -192,7 +217,7 @@ export function AdminSupplierFeeds() {
         username: form.username || undefined,
         password: form.password || undefined,
         headers: safeJson(form.headers, {}),
-        mapping: safeJson(form.mapping, {}),
+        mapping: mappingObject,
         pollingIntervalMinutes: Number(form.pollingIntervalMinutes || 60),
         isActive: form.isActive,
       };
@@ -270,6 +295,7 @@ export function AdminSupplierFeeds() {
         items: [
           "CSV/XML from BaseLinker usually works with simple mappings.",
           "For API feeds, mapping keys must match JSON fields.",
+          "Keep auto-create off unless you explicitly want this feed to add brand new products to the catalog.",
           "If a sync fails, check the last error column.",
         ],
       },
@@ -554,12 +580,64 @@ export function AdminSupplierFeeds() {
               </p>
             </div>
             <div className="space-y-2">
+              <Label>Allowed SKUs</Label>
+              <Textarea
+                className="min-h-[140px]"
+                placeholder="One SKU per line"
+                value={form.allowedSkus}
+                onChange={e => setForm(f => ({ ...f, allowedSkus: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional allowlist for approved catalog items from this feed.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Blocked SKUs</Label>
+              <Textarea
+                className="min-h-[140px]"
+                placeholder="One SKU per line"
+                value={form.blockedSkus}
+                onChange={e => setForm(f => ({ ...f, blockedSkus: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional denylist for items that should never sync.
+              </p>
+            </div>
+            <div className="space-y-2">
               <Label>Polling interval (minutes)</Label>
               <Input
                 type="number"
                 min={5}
                 value={form.pollingIntervalMinutes}
                 onChange={e => setForm(f => ({ ...f, pollingIntervalMinutes: e.target.value }))}
+              />
+            </div>
+            <div className="flex items-center justify-between space-y-2 rounded-md border p-3">
+              <div className="space-y-1">
+                <Label>Auto-create catalog products</Label>
+                <p className="text-xs text-muted-foreground">
+                  Safer when off. Existing linked or matched products still update, but unmatched feed items do not create new catalog rows.
+                </p>
+              </div>
+              <Switch
+                checked={form.autoCreateProducts}
+                onCheckedChange={checked =>
+                  setForm(f => ({ ...f, autoCreateProducts: checked }))
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between space-y-2 rounded-md border p-3">
+              <div className="space-y-1">
+                <Label>Restrict sync to allowed SKUs</Label>
+                <p className="text-xs text-muted-foreground">
+                  When on, only SKUs listed above are processed by this feed.
+                </p>
+              </div>
+              <Switch
+                checked={form.enforceAllowedSkus}
+                onCheckedChange={checked =>
+                  setForm(f => ({ ...f, enforceAllowedSkus: checked }))
+                }
               />
             </div>
             <div className="flex items-center justify-between space-y-2 rounded-md border p-3">
@@ -597,4 +675,19 @@ function safeJson<T>(value: string, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function safeObject(value: unknown): Record<string, any> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return { ...(value as Record<string, any>) };
+}
+
+function parseLines(value: string): string[] {
+  return value
+    .split(/\r?\n|,/)
+    .map(item => item.trim())
+    .filter(Boolean);
 }
