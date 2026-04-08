@@ -7,6 +7,7 @@ import { NextRequest } from "next/server";
 const mockCreate = jest.fn();
 const mockUpdate = jest.fn();
 const mockRetrieve = jest.fn();
+const mockResolveCheckoutPricing = jest.fn();
 
 jest.mock("stripe", () => {
   return jest.fn().mockImplementation(() => ({
@@ -24,8 +25,29 @@ jest.mock("@/lib/auth", () => ({
   }),
 }));
 
+jest.mock("@/lib/checkout/authoritative-pricing", () => ({
+  CheckoutPricingError: class CheckoutPricingError extends Error {
+    code: string;
+    status: number;
+    details?: Record<string, unknown>;
+
+    constructor(
+      code: string,
+      message: string,
+      status = 400,
+      details?: Record<string, unknown>
+    ) {
+      super(message);
+      this.code = code;
+      this.status = status;
+      this.details = details;
+    }
+  },
+  resolveCheckoutPricing: mockResolveCheckoutPricing,
+}));
+
 describe("POST /api/stripe/create-payment-intent", () => {
-  let handler: typeof import("@/app/api/stripe/create-payment-intent/route")["POST"];
+  let handler: (typeof import("@/app/api/stripe/create-payment-intent/route"))["POST"];
 
   beforeEach(async () => {
     jest.resetModules();
@@ -44,9 +66,12 @@ describe("POST /api/stripe/create-payment-intent", () => {
       currency: "ron",
       status: "requires_payment_method",
     });
-    handler = (
-      await import("@/app/api/stripe/create-payment-intent/route")
-    ).POST;
+    mockResolveCheckoutPricing.mockResolvedValue({
+      orderTotal: 321.45,
+      codGuaranteeAmount: 18,
+    });
+    handler = (await import("@/app/api/stripe/create-payment-intent/route"))
+      .POST;
   });
 
   afterEach(() => {
@@ -84,6 +109,7 @@ describe("POST /api/stripe/create-payment-intent", () => {
       success: true,
       clientSecret: "cs_test_123",
       paymentIntentId: "pi_test_123",
+      amount: 12345,
     });
   });
 
@@ -119,6 +145,58 @@ describe("POST /api/stripe/create-payment-intent", () => {
       success: true,
       clientSecret: "cs_test_existing",
       paymentIntentId: "pi_existing",
+      amount: 5000,
+    });
+  });
+
+  it("uses authoritative checkout pricing when checkout context is provided", async () => {
+    const request = new NextRequest(
+      "http://localhost/api/stripe/create-payment-intent",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          amount: 100,
+          checkoutContext: {
+            items: [
+              {
+                productId: "prod_1",
+                quantity: 2,
+              },
+            ],
+            shippingMethodId: "fancourier:home",
+            couponCode: "WELCOME10",
+            paymentMethod: "stripe_new",
+          },
+        }),
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    const response = await handler(request);
+    const payload = await response.json();
+
+    expect(mockResolveCheckoutPricing).toHaveBeenCalledWith({
+      userId: "user_123",
+      items: [
+        {
+          productId: "prod_1",
+          quantity: 2,
+        },
+      ],
+      shippingMethodId: "fancourier:home",
+      couponCode: "WELCOME10",
+      paymentMethod: "stripe_new",
+    });
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(mockCreate.mock.calls[0][0]).toMatchObject({
+      amount: 32145,
+      currency: "ron",
+    });
+    expect(payload).toEqual({
+      success: true,
+      clientSecret: "cs_test_123",
+      paymentIntentId: "pi_test_123",
+      amount: 32145,
     });
   });
 });

@@ -72,7 +72,9 @@ export const POST = withRateLimit(
       const rawBody = await request.text();
       if (!rawBody) {
         SESSION_CART_STORAGE.set(cartId, []);
-        console.warn("⚠️ [POST] Empty cart payload received; cleared session cart");
+        console.warn(
+          "⚠️ [POST] Empty cart payload received; cleared session cart"
+        );
 
         return NextResponse.json({
           success: true,
@@ -141,7 +143,9 @@ export const POST = withRateLimit(
 
       // Create lookup maps for O(1) access
       const bookMap = new Map(books.map(book => [book.id, book]));
-      const productMap = new Map(products.map(product => [product.id, product]));
+      const productMap = new Map(
+        products.map(product => [product.id, product])
+      );
 
       // Add IDs to cart items and validate existence
       const cartWithIds: CartItem[] = [];
@@ -163,16 +167,18 @@ export const POST = withRateLimit(
         // Enforce stock for physical products when cart is synced.
         if (!item.isBook) {
           const productEntity = productMap.get(item.productId);
-          const availableStock = Math.max(0, productEntity?.stockQuantity ?? 0);
+          const rawStock = productEntity?.stockQuantity;
+          const availableStock =
+            typeof rawStock === "number" ? Math.max(0, rawStock) : null;
 
-          if (availableStock <= 0) {
+          if (availableStock !== null && availableStock <= 0) {
             console.warn(
               `Product ${item.productId} is out of stock. Removing from cart sync payload.`
             );
             continue;
           }
 
-          if (effectiveQuantity > availableStock) {
+          if (availableStock !== null && effectiveQuantity > availableStock) {
             console.warn(
               `Product ${item.productId} quantity reduced from ${effectiveQuantity} to ${availableStock} due to stock limits.`
             );

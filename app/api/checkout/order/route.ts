@@ -3,20 +3,21 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { z } from "zod";
 
-import type { CartItem } from "@/features/cart/context/CartContext";
 import { auth } from "@/lib/auth";
 import { shouldSendImmediateAdminOrderNotification } from "@/lib/checkout/admin-order-notifications";
+import {
+  CheckoutPricingError,
+  deriveInitialPaymentStatus,
+  resolveCheckoutPricing,
+} from "@/lib/checkout/authoritative-pricing";
 import { COD_CONSENT_VERSION } from "@/lib/checkout/cod-consent";
 import { formatCodGuaranteeAuthorizationNote } from "@/lib/checkout/cod-guarantee";
 import {
   evaluateCodGuaranteePolicy,
   isLockerShippingMethodId,
 } from "@/lib/checkout/cod-guarantee-policy";
+import { compensateFailedOrder } from "@/lib/checkout/payment-failure-compensation";
 import { getCodGuaranteeUserStats } from "@/lib/checkout/cod-guarantee-risk";
-import {
-  analyzeSupplierCartComposition,
-  applyMixedSupplierShippingRules,
-} from "@/lib/checkout/supplier-cart-rules";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
 import { AdminNotificationService } from "@/lib/email/admin-notification-service";
@@ -25,16 +26,7 @@ import {
   getCodThreshold,
   getRecipientType,
 } from "@/lib/shipping/cod-thresholds";
-import {
-  DEFAULT_COURIERS,
-  parseShippingMethodId,
-} from "@/lib/shipping/couriers";
 import { calculateDeclaredValue } from "@/lib/shipping/declared-value";
-import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
-import {
-  calculateShippingQuote,
-  resolveShippingService,
-} from "@/lib/shipping/shipping-pricing";
 import { getStripeApiVersion, getStripeCurrency } from "@/lib/stripe-config";
 import {
   shouldAutoFulfillOrder,
@@ -47,10 +39,6 @@ import {
   shouldAlertHighValueOrder,
   getNotificationSettings,
 } from "@/lib/utils/order-processing";
-import {
-  getShippingSettings,
-  getTaxSettings,
-} from "@/lib/utils/store-settings";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripeClient = stripeSecretKey
@@ -264,110 +252,28 @@ const normalizeCheckoutAddress = (input: CheckoutAddressInput) => {
   };
 };
 
-const roundMoney = (value: number) => Math.round(value * 100) / 100;
-
 const appendOrderNote = (
   currentNotes: string | null | undefined,
   nextNote: string
 ) => [currentNotes, nextNote].filter(Boolean).join(" | ");
 
-async function compensateFailedStripeOrder(input: {
-  orderId: string;
-  paymentIntentId: string;
-  reason: string;
-}) {
-  const failureTimestamp = new Date().toISOString();
-  const financeReviewReason =
-    "Stripe capture failed after order creation. Manual finance review required.";
-  const failureNote = `Stripe capture failed at ${failureTimestamp} - PI: ${input.paymentIntentId} - ${input.reason}`;
+class OrderPlacementError extends Error {
+  code: string;
+  status: number;
+  details?: Record<string, unknown>;
 
-  await db.$transaction(async tx => {
-    const order = await tx.order.findUnique({
-      where: { id: input.orderId },
-      include: {
-        items: {
-          select: {
-            productId: true,
-            quantity: true,
-            isDigital: true,
-          },
-        },
-      },
-    });
-
-    if (!order) {
-      return;
-    }
-
-    if (
-      order.paymentStatus === "FAILED" &&
-      order.status === "CANCELLED" &&
-      order.notes?.includes(failureNote)
-    ) {
-      return;
-    }
-
-    for (const item of order.items) {
-      if (!item.productId || item.isDigital === true) {
-        continue;
-      }
-
-      await tx.product.update({
-        where: { id: item.productId },
-        data: {
-          stockQuantity: {
-            increment: item.quantity,
-          },
-          reservedQuantity: {
-            decrement: item.quantity,
-          },
-        },
-      });
-    }
-
-    const couponUsages = await tx.couponUsage.findMany({
-      where: { orderId: input.orderId },
-      select: {
-        couponId: true,
-      },
-    });
-
-    if (couponUsages.length > 0) {
-      await tx.couponUsage.deleteMany({
-        where: { orderId: input.orderId },
-      });
-
-      const usageCounts = couponUsages.reduce<Map<string, number>>(
-        (acc, usage) => {
-          acc.set(usage.couponId, (acc.get(usage.couponId) || 0) + 1);
-          return acc;
-        },
-        new Map()
-      );
-
-      for (const [couponId, count] of usageCounts.entries()) {
-        await tx.coupon.update({
-          where: { id: couponId },
-          data: {
-            currentUses: {
-              decrement: count,
-            },
-          },
-        });
-      }
-    }
-
-    await tx.order.update({
-      where: { id: input.orderId },
-      data: {
-        paymentStatus: "FAILED",
-        status: "CANCELLED",
-        manualShippingReviewRequired: true,
-        shippingReviewReason: financeReviewReason,
-        notes: appendOrderNote(order.notes, failureNote),
-      },
-    });
-  });
+  constructor(
+    code: string,
+    message: string,
+    status = 400,
+    details?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = "OrderPlacementError";
+    this.code = code;
+    this.status = status;
+    this.details = details;
+  }
 }
 
 // POST /api/checkout/order - Create a new order
@@ -640,94 +546,50 @@ export async function POST(request: Request) {
       );
     }
 
-    const items = orderData.items as CartItem[];
+    let pricing;
+    try {
+      pricing = await resolveCheckoutPricing({
+        userId: user.id,
+        items: orderData.items,
+        shippingMethodId: orderData.shippingMethod?.id,
+        couponCode: orderData.couponCode,
+        paymentMethod: requestedPaymentMethod,
+      });
+    } catch (error) {
+      if (error instanceof CheckoutPricingError) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: error.message,
+            error: error.code,
+            details: error.details,
+          },
+          { status: error.status }
+        );
+      }
+      throw error;
+    }
+
+    const items = pricing.items;
 
     // Generate order information
     const orderId = Math.random().toString(36).substring(2, 12).toUpperCase();
     const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    // Calculate subtotal from cart items if not provided
-    const subtotal = roundMoney(
-      items.reduce((total, item) => total + item.price * item.quantity, 0)
-    );
-
-    // Default shipping fallback values
-    let finalShippingCost = 0;
-    let shippingBasePrice = 0;
-    let shippingTotalEstimate = 0;
-    let pricingVersion: string | null = null;
-
-    // Detect if the order contains only digital items (books)
-    let hasPhysicalItems = items.some(item => item.isBook === false);
-    if (!hasPhysicalItems) {
-      const itemsNeedingTypeCheck = items.filter(
-        item => item.isBook === undefined
-      );
-
-      if (itemsNeedingTypeCheck.length > 0) {
-        try {
-          const potentialBookIds = itemsNeedingTypeCheck.map(
-            item => item.productId
-          );
-          const books = await db.book.findMany({
-            where: { id: { in: potentialBookIds } },
-            select: { id: true },
-          });
-          const bookIdSet = new Set(books.map(book => book.id));
-          hasPhysicalItems = itemsNeedingTypeCheck.some(
-            item => !bookIdSet.has(item.productId)
-          );
-        } catch (error) {
-          console.error("Failed to verify digital items for shipping:", error);
-          hasPhysicalItems = true; // Fall back to charging shipping if uncertain
-        }
-      }
-    }
-    const isDigitalOnlyOrder = items.length > 0 && !hasPhysicalItems;
-
-    let supplierCartAnalysis = {
-      isMixedSupplierCart: false,
-      supplierCount: 0,
-      supplierNames: [] as string[],
-      fulfillmentSourceIds: [] as string[],
-      requiresPrepaid: false,
-      mixedSupplierExtraShipments: 0,
-    };
-
-    if (!isDigitalOnlyOrder) {
-      const physicalIdsForSupplierAnalysis = items
-        .filter(item => item.isBook !== true && item.productId)
-        .map(item => item.productId) as string[];
-
-      if (physicalIdsForSupplierAnalysis.length > 0) {
-        try {
-          const supplierProducts = await db.product.findMany({
-            where: { id: { in: physicalIdsForSupplierAnalysis } },
-            select: {
-              id: true,
-              supplierId: true,
-              supplier: {
-                select: {
-                  id: true,
-                  name: true,
-                  companyName: true,
-                },
-              },
-            },
-          });
-
-          supplierCartAnalysis = analyzeSupplierCartComposition(
-            items,
-            supplierProducts
-          );
-        } catch (supplierAnalysisError) {
-          console.error(
-            "Failed to analyze supplier composition for checkout order:",
-            supplierAnalysisError
-          );
-        }
-      }
-    }
+    const subtotal = pricing.subtotal;
+    const isDigitalOnlyOrder = pricing.isDigitalOnlyOrder;
+    const supplierCartAnalysis = pricing.supplierCartAnalysis;
+    const finalShippingCost = pricing.finalShippingCost;
+    const shippingBasePrice = pricing.shippingBasePrice;
+    const shippingTotalEstimate = pricing.shippingTotalEstimate;
+    const pricingVersion = pricing.pricingVersion;
+    const tax = pricing.tax;
+    const taxRatePercentage = pricing.taxRatePercentage;
+    const appliedCoupon = pricing.appliedCoupon;
+    const discountAmount = pricing.discountAmount;
+    const codFee = pricing.codFee;
+    let codAmount = isCODPayment ? pricing.orderTotal : 0;
+    const orderTotal = pricing.orderTotal;
 
     if (isCODPayment && supplierCartAnalysis.requiresPrepaid) {
       return NextResponse.json(
@@ -743,328 +605,6 @@ export async function POST(request: Request) {
         },
         { status: 400 }
       );
-    }
-
-    if (!isDigitalOnlyOrder && !orderData.shippingMethod?.id) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "A valid shipping method is required for physical products.",
-          error: "SHIPPING_METHOD_REQUIRED",
-        },
-        { status: 400 }
-      );
-    }
-
-    const requestedShippingCost = isDigitalOnlyOrder
-      ? 0
-      : typeof orderData.shippingMethod?.price === "number"
-        ? orderData.shippingMethod.price
-        : Number(orderData.shippingMethod?.price || 0);
-
-    shippingBasePrice = roundMoney(Math.max(0, requestedShippingCost));
-    shippingTotalEstimate = shippingBasePrice;
-    finalShippingCost = shippingBasePrice;
-
-    // Keep checkout/order API in sync with /api/checkout/shipping-quote:
-    // if a courier service has priceOverride configured, it must win.
-    let selectedAdminShippingPrice: number | null = null;
-    let shippingSettingsForPricing: unknown = null;
-    if (!isDigitalOnlyOrder && orderData.shippingMethod?.id) {
-      try {
-        const shippingSettings = await getShippingSettings();
-        shippingSettingsForPricing = shippingSettings;
-        const configuredCouriers =
-          (shippingSettings as any)?.couriers &&
-          Array.isArray((shippingSettings as any).couriers)
-            ? (shippingSettings as any).couriers
-            : DEFAULT_COURIERS;
-
-        const { courierId, serviceId } = parseShippingMethodId(
-          orderData.shippingMethod.id
-        );
-        const selectedCourier = configuredCouriers.find(
-          (courier: any) =>
-            courier.id === courierId && courier.enabled !== false
-        );
-        const selectedService = selectedCourier?.services?.find(
-          (service: any) =>
-            service.id === serviceId && service.enabled !== false
-        );
-        const legacyDeliveryPrice =
-          (shippingSettings as any)?.deliveryPrice?.active === true
-            ? Number((shippingSettings as any)?.deliveryPrice?.price)
-            : null;
-
-        const overrideRaw = selectedService?.priceOverride;
-        if (
-          overrideRaw !== undefined &&
-          overrideRaw !== null &&
-          overrideRaw !== ""
-        ) {
-          const parsedOverride = Number(overrideRaw);
-          if (Number.isFinite(parsedOverride)) {
-            selectedAdminShippingPrice = parsedOverride;
-          }
-        }
-
-        if (
-          selectedAdminShippingPrice === null &&
-          legacyDeliveryPrice !== null &&
-          Number.isFinite(legacyDeliveryPrice)
-        ) {
-          selectedAdminShippingPrice = legacyDeliveryPrice;
-        }
-      } catch (shippingSettingsError) {
-        console.error(
-          "Failed to resolve admin shipping price override:",
-          shippingSettingsError
-        );
-      }
-    }
-
-    if (!isDigitalOnlyOrder) {
-      const productIds = items
-        .filter(item => item.isBook !== true)
-        .map(item => item.productId);
-
-      if (productIds.length > 0) {
-        const products = await db.product.findMany({
-          where: { id: { in: productIds } },
-          select: { id: true, weight: true, dimensions: true },
-        });
-        const productMap = new Map(
-          products.map(product => [product.id, product])
-        );
-
-        const shippingItems = items
-          .filter(item => item.isBook !== true)
-          .map(item => {
-            const product = productMap.get(item.productId);
-            if (!product) return null;
-            return {
-              quantity: item.quantity,
-              weightKg: product.weight,
-              dimensions: product.dimensions as Record<string, unknown>,
-            };
-          })
-          .filter(Boolean) as Array<{
-          quantity: number;
-          weightKg?: number | null;
-          dimensions?: Record<string, unknown>;
-        }>;
-
-        const service = resolveShippingService(orderData.shippingMethod?.id);
-        if (!service) {
-          return NextResponse.json(
-            {
-              success: false,
-              message:
-                "Selected shipping method is invalid. Refresh checkout and choose a delivery option again.",
-              error: "INVALID_SHIPPING_METHOD",
-            },
-            { status: 400 }
-          );
-        }
-
-        if (service && shippingItems.length > 0) {
-          const quote = calculateShippingQuote(service, shippingItems);
-          shippingBasePrice = quote.basePrice;
-          shippingTotalEstimate = quote.totalPrice;
-          pricingVersion = quote.pricingVersion;
-
-          // Priority:
-          // 1. Per-service admin priceOverride
-          // 2. Admin deliveryPrice (legacy/global UI control)
-          // 3. Frontend price shown at checkout
-          // 4. Server-calculated quote as a safety fallback
-          if (selectedAdminShippingPrice !== null) {
-            finalShippingCost = selectedAdminShippingPrice;
-          } else if (requestedShippingCost > 0) {
-            finalShippingCost = requestedShippingCost;
-          } else {
-            finalShippingCost = quote.totalPrice;
-          }
-        }
-      }
-    }
-
-    if (isDigitalOnlyOrder) {
-      finalShippingCost = 0;
-      shippingBasePrice = 0;
-      shippingTotalEstimate = 0;
-    }
-
-    if (!isDigitalOnlyOrder) {
-      let freeShippingEligible = false;
-      try {
-        if (!shippingSettingsForPricing) {
-          shippingSettingsForPricing = await getShippingSettings();
-        }
-        freeShippingEligible = checkFreeShipping(
-          subtotal,
-          shippingSettingsForPricing
-        );
-      } catch (shippingRulesError) {
-        console.error(
-          "Failed to evaluate free shipping rules:",
-          shippingRulesError
-        );
-      }
-
-      const shippingRuleResult = applyMixedSupplierShippingRules({
-        singleShipmentPrice:
-          selectedAdminShippingPrice !== null
-            ? selectedAdminShippingPrice
-            : shippingTotalEstimate,
-        freeShippingEligible,
-        analysis: supplierCartAnalysis,
-      });
-
-      finalShippingCost = shippingRuleResult.finalShippingCost;
-      shippingTotalEstimate = shippingRuleResult.finalShippingCost;
-    }
-
-    // Get tax settings from the database (dynamic from admin)
-    let taxRate = 0;
-    let applyTax = false;
-    let taxRatePercentage = "0";
-    let includeInPrice = true;
-
-    try {
-      const taxSettings = (await getTaxSettings()) as any;
-      const isTaxEnabled = taxSettings?.active === true;
-
-      if (isTaxEnabled && taxSettings.rate) {
-        taxRatePercentage = taxSettings.rate;
-        taxRate = parseFloat(taxSettings.rate) / 100;
-      }
-      applyTax = isTaxEnabled;
-      includeInPrice = taxSettings?.includeInPrice !== false;
-    } catch (error) {
-      console.error("Error fetching store settings:", error);
-    }
-
-    let tax = 0;
-    if (applyTax && taxRate > 0) {
-      if (includeInPrice) {
-        // Tax is included in prices - calculate backwards
-        const subtotalExcludingVAT = subtotal / (1 + taxRate);
-        tax = subtotal - subtotalExcludingVAT;
-      } else {
-        // Tax is not included - add it to subtotal
-        tax = subtotal * taxRate;
-      }
-    }
-
-    // Handle coupon application (one-discount-per-order with best selection)
-    let appliedCoupon = null;
-    let discountAmount = 0;
-
-    try {
-      const { AutoDiscountService } = await import(
-        "@/lib/services/discount-service"
-      );
-
-      // 1) Compute welcome discount eligibility for NEW users
-      const welcome = user?.id
-        ? await AutoDiscountService.getNewUserDiscount(user.id, subtotal)
-        : null;
-
-      // 2) If manual coupon provided, validate it
-      let manualCoupon: any = null;
-      if (orderData.couponCode) {
-        const candidate = await db.coupon.findUnique({
-          where: { code: (orderData.couponCode || "").toUpperCase() },
-          include: {
-            _count: {
-              select: {
-                usages: {
-                  where: { userId: user?.id || "" },
-                },
-              },
-            },
-          },
-        });
-
-        if (candidate && candidate.isActive) {
-          const now = new Date();
-          const isValidTime =
-            (!candidate.startsAt || now >= candidate.startsAt) &&
-            (!candidate.expiresAt || now <= candidate.expiresAt);
-          const hasUsesLeft =
-            !candidate.maxUses || candidate.currentUses < candidate.maxUses;
-          const userCanUse =
-            !candidate.maxUsesPerUser ||
-            (candidate._count?.usages || 0) < candidate.maxUsesPerUser;
-          const meetsMinimum =
-            !candidate.minimumOrderValue ||
-            subtotal >= candidate.minimumOrderValue;
-          if (isValidTime && hasUsesLeft && userCanUse && meetsMinimum) {
-            manualCoupon = candidate;
-          }
-        }
-      }
-
-      // 3) Compare and select best discount
-      const selected = AutoDiscountService.compareDiscounts(
-        welcome,
-        manualCoupon,
-        subtotal
-      );
-      if (selected) {
-        appliedCoupon = selected.selectedCoupon;
-        discountAmount = roundMoney(selected.discountAmount);
-      }
-    } catch (couponError) {
-      console.error("Error selecting discounts:", couponError);
-      // Continue without discount if there's an error
-    }
-
-    // Calculate COD fee if COD payment method
-    let codFee = 0;
-    let codAmount = 0;
-    if (isCODPayment) {
-      // Always calculate COD fee server-side using current settings
-      const { getCODSettings } = await import("@/lib/utils/store-settings");
-      const { calculateCODFee } = await import(
-        "@/lib/pricing/cod-fee-calculator"
-      );
-      const orderTotalBeforeCOD = Math.max(
-        0,
-        subtotal + tax + finalShippingCost - discountAmount
-      );
-
-      let codConfig = undefined;
-      try {
-        const codSettings = await getCODSettings();
-        if (codSettings?.active) {
-          codConfig = {
-            percentage: parseFloat(codSettings.percentage || "3") / 100,
-            fixedFee: lockerRequired
-              ? 0
-              : parseFloat(codSettings.fixedFee || "5.00"),
-          };
-        }
-      } catch (error) {
-        console.error("Error fetching COD settings, using default:", error);
-      }
-
-      const codFeeResult = calculateCODFee(
-        orderTotalBeforeCOD,
-        codConfig || (lockerRequired ? { fixedFee: 0 } : undefined)
-      );
-      codFee = codFeeResult.fee;
-    }
-
-    // Calculate total including shipping, tax, discount, and COD fee
-    const orderTotal = roundMoney(
-      Math.max(0, subtotal + tax + finalShippingCost - discountAmount + codFee)
-    );
-
-    // Store COD amount (total to collect on delivery)
-    if (isCODPayment) {
-      codAmount = orderTotal;
     }
 
     const requiresOnlineAuthorization =
@@ -1634,7 +1174,11 @@ export async function POST(request: Request) {
     }
 
     // Create order and items in a single database transaction
-    let dbOrder;
+    let dbOrder: {
+      id: string;
+      orderNumber: string;
+      paymentStatus: string;
+    } | null = null;
     const operationalNotes: string[] = [];
     if (supplierCartAnalysis.isMixedSupplierCart) {
       operationalNotes.push(
@@ -1709,11 +1253,11 @@ export async function POST(request: Request) {
             // payment success or failure. The actual payment lifecycle
             // is represented by paymentStatus = PENDING/PAID/FAILED.
             status: isNetopiaPayment ? "PENDING_REVIEW" : "PROCESSING",
-            paymentStatus:
-              (orderData.paymentStatus as any) ??
-              (isCODPayment || isNetopiaPayment || requiresOnlineAuthorization
-                ? "PENDING"
-                : "PAID"),
+            paymentStatus: deriveInitialPaymentStatus({
+              isCODPayment,
+              isNetopiaPayment,
+              requiresOnlineAuthorization,
+            }),
             shippingAddressId,
             billingAddressId,
             stripePaymentIntentId: orderData.stripePaymentIntentId || null,
@@ -1845,12 +1389,6 @@ export async function POST(request: Request) {
             // For books, the item.productId is actually the book ID
             console.log(`Processing book item: ${item.name}`);
 
-            // Check if this is a deleted book (contains "Deleted" in name)
-            if (item.name.includes("(Deleted)")) {
-              console.log(`Skipping deleted book: ${item.name}`);
-              continue; // Skip this item, don't create an order item for it
-            }
-
             // Validate the book exists and is active (item.productId is the book ID)
             const book = await tx.book.findUnique({
               where: { id: item.productId },
@@ -1858,17 +1396,21 @@ export async function POST(request: Request) {
             });
 
             if (!book) {
-              console.log(
-                `Book ${item.productId} not found, skipping item: ${item.name}`
+              throw new OrderPlacementError(
+                "BOOK_NOT_AVAILABLE",
+                `Book "${item.name}" is no longer available. Please refresh your cart and try again.`,
+                409,
+                { productId: item.productId }
               );
-              continue; // Skip this item instead of throwing error
             }
 
             if (!book.isActive) {
-              console.log(
-                `Book ${book.name} is inactive, skipping item: ${item.name}`
+              throw new OrderPlacementError(
+                "BOOK_NOT_AVAILABLE",
+                `Book "${book.name}" is no longer available. Please refresh your cart and try again.`,
+                409,
+                { productId: item.productId }
               );
-              continue; // Skip this item instead of throwing error
             }
 
             // For books, productId is already the book ID
@@ -1878,26 +1420,81 @@ export async function POST(request: Request) {
             // For regular products, validate the product exists
             const product = await tx.product.findUnique({
               where: { id: item.productId },
-              select: { id: true, name: true, isActive: true },
+              select: {
+                id: true,
+                name: true,
+                isActive: true,
+                stockQuantity: true,
+              },
             });
 
             if (!product) {
-              console.log(
-                `Product ${item.productId} not found, skipping item: ${item.name}`
+              throw new OrderPlacementError(
+                "PRODUCT_NOT_AVAILABLE",
+                `Product "${item.name}" is no longer available. Please refresh your cart and try again.`,
+                409,
+                { productId: item.productId }
               );
-              continue; // Skip this item instead of throwing error
             }
 
             if (!product.isActive) {
-              console.log(
-                `Product ${product.name} is inactive, skipping item: ${item.name}`
+              throw new OrderPlacementError(
+                "PRODUCT_NOT_AVAILABLE",
+                `Product "${product.name}" is no longer available. Please refresh your cart and try again.`,
+                409,
+                { productId: item.productId }
               );
-              continue; // Skip this item instead of throwing error
             }
 
             console.log(
               `Validated product: ${product.name} (ID: ${productId})`
             );
+
+            const reservationResult = await tx.product.updateMany({
+              where: {
+                id: productId,
+                isActive: true,
+                stockQuantity: {
+                  gte: item.quantity,
+                },
+              },
+              data: {
+                stockQuantity: { decrement: item.quantity },
+                reservedQuantity: { increment: item.quantity },
+              },
+            });
+
+            if (reservationResult.count !== 1) {
+              const latestProductState = await tx.product.findUnique({
+                where: { id: productId },
+                select: {
+                  id: true,
+                  name: true,
+                  isActive: true,
+                  stockQuantity: true,
+                },
+              });
+
+              if (!latestProductState || !latestProductState.isActive) {
+                throw new OrderPlacementError(
+                  "PRODUCT_NOT_AVAILABLE",
+                  `Product "${item.name}" is no longer available. Please refresh your cart and try again.`,
+                  409,
+                  { productId: item.productId }
+                );
+              }
+
+              throw new OrderPlacementError(
+                "INSUFFICIENT_STOCK",
+                "Insufficient stock",
+                409,
+                {
+                  productName: latestProductState.name,
+                  requested: item.quantity,
+                  available: latestProductState.stockQuantity ?? 0,
+                }
+              );
+            }
           }
 
           // Create the order item with book-specific fields if it's a book
@@ -1932,23 +1529,6 @@ export async function POST(request: Request) {
           console.log(
             `Created order item: ${orderItem.id} for ${isBook ? "book" : "product"} ${productId}${isBook ? " (digital)" : ""}${item.selectedLanguage ? ` in ${item.selectedLanguage}` : ""}`
           );
-
-          // --- INVENTORY UPDATE LOGIC ---
-          if (!isBook && productId) {
-            await tx.product.update({
-              where: { id: productId },
-              data: {
-                stockQuantity: { decrement: item.quantity },
-                reservedQuantity: { increment: item.quantity },
-                // Optionally, increment totalSold here if you want to count as sold immediately:
-                // totalSold: { increment: item.quantity },
-              },
-            });
-            console.log(
-              `Updated inventory for product ${productId}: -${item.quantity} stock, +${item.quantity} reserved.`
-            );
-          }
-          // --- END INVENTORY UPDATE LOGIC ---
         }
 
         return newOrder;
@@ -2009,10 +1589,11 @@ export async function POST(request: Request) {
             `Failed to update/capture payment intent ${orderData.stripePaymentIntentId}:`,
             stripeError
           );
-          await compensateFailedStripeOrder({
+          await compensateFailedOrder({
             orderId: dbOrder.id,
             paymentIntentId: orderData.stripePaymentIntentId,
             reason: captureFailureMessage,
+            source: "stripe_capture_failed",
           });
           throw new Error(
             "Card payment capture failed after order creation. The order was cancelled and inventory was restored."
@@ -2067,14 +1648,15 @@ export async function POST(request: Request) {
           });
 
         if (shouldSendAdminNewOrderNotification && dbOrder?.id) {
-          AdminNotificationService.sendNewOrderNotification(dbOrder.id).catch(
-            err => {
-              console.error(
-                `Failed to send admin new order notification for ${dbOrder.id}:`,
-                err
-              );
-            }
-          );
+          const adminNotificationOrderId = dbOrder.id;
+          AdminNotificationService.sendNewOrderNotification(
+            adminNotificationOrderId
+          ).catch(err => {
+            console.error(
+              `Failed to send admin new order notification for ${adminNotificationOrderId}:`,
+              err
+            );
+          });
         } else if (dbOrder?.id) {
           console.log(
             `ℹ️ Order ${dbOrder.id}: deferring admin new order notification until payment is verified`
@@ -2304,14 +1886,15 @@ export async function POST(request: Request) {
               },
             });
             // Notify admin that this order needs manual supplier/shipping review
+            const manualReviewOrderId = dbOrder.id;
             AdminNotificationService.sendOrderIssueNotification(
-              dbOrder.id,
+              manualReviewOrderId,
               "MANUAL_SHIPPING_REVIEW_REQUIRED",
               reason,
               "HIGH"
             ).catch(err => {
               console.error(
-                `[CHECKOUT][COD] Failed to send manual shipping review notification for order ${dbOrder.id}:`,
+                `[CHECKOUT][COD] Failed to send manual shipping review notification for order ${manualReviewOrderId}:`,
                 err
               );
             });
@@ -2355,6 +1938,18 @@ export async function POST(request: Request) {
         }
       }
     } catch (dbError) {
+      if (dbError instanceof OrderPlacementError) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: dbError.message,
+            error: dbError.code,
+            details: dbError.details,
+          },
+          { status: dbError.status }
+        );
+      }
+
       console.error("Failed to create order in database:", dbError);
       console.error("Error details:", {
         message: dbError instanceof Error ? dbError.message : "Unknown error",
@@ -2388,10 +1983,14 @@ export async function POST(request: Request) {
         requestedPaymentMethod === "cash_on_delivery" ||
         emailPaymentProvider === "cod";
       const stripeSucceeded = stripePaymentIntent?.status === "succeeded";
+      const effectivePaymentStatus = stripeSucceeded
+        ? "PAID"
+        : dbOrder?.paymentStatus || "PENDING";
       const paymentPending =
-        orderData.paymentStatus === "PENDING" ||
-        (isNetopia && !stripeSucceeded) ||
-        (isStripe && !stripeSucceeded);
+        effectivePaymentStatus !== "PAID" &&
+        ((isNetopia && !stripeSucceeded) ||
+          (isStripe && !stripeSucceeded) ||
+          (!isCOD && effectivePaymentStatus === "PENDING"));
 
       // For COD orders, send email immediately even though payment is pending
       // COD orders are confirmed - we just collect payment on delivery

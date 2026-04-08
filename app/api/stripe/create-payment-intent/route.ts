@@ -22,9 +22,22 @@ const createRequestSchema = z.object({
   paymentIntentId: z.string().optional(),
   checkoutAttemptId: z.string().min(1).optional(),
   currency: z.string().optional(),
-  metadata: z
-    .record(z.union([z.string(), z.number(), z.boolean()]))
+  checkoutContext: z
+    .object({
+      items: z.array(
+        z.object({
+          productId: z.string(),
+          quantity: z.number().int().positive(),
+          isBook: z.boolean().optional(),
+          selectedLanguage: z.string().optional(),
+        })
+      ),
+      shippingMethodId: z.string().optional(),
+      couponCode: z.string().nullable().optional(),
+      paymentMethod: z.string().optional(),
+    })
     .optional(),
+  metadata: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
 });
 
 const REUSABLE_STATUSES: Stripe.PaymentIntent.Status[] = [
@@ -38,7 +51,6 @@ const REUSABLE_STATUSES: Stripe.PaymentIntent.Status[] = [
 const TERMINAL_STATUSES: Stripe.PaymentIntent.Status[] = [
   "succeeded",
   "canceled",
-  "payment_failed",
 ];
 
 export async function POST(request: NextRequest) {
@@ -86,8 +98,65 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { amount, paymentIntentId, metadata, checkoutAttemptId } =
-      parsedBody.data;
+    const {
+      amount,
+      paymentIntentId,
+      metadata,
+      checkoutAttemptId,
+      checkoutContext,
+    } = parsedBody.data;
+
+    let resolvedAmount = amount;
+    if (checkoutContext) {
+      const { CheckoutPricingError, resolveCheckoutPricing } = await import(
+        "@/lib/checkout/authoritative-pricing"
+      );
+
+      try {
+        const pricing = await resolveCheckoutPricing({
+          userId: session.user.id,
+          items: checkoutContext.items,
+          shippingMethodId: checkoutContext.shippingMethodId,
+          couponCode: checkoutContext.couponCode || undefined,
+          paymentMethod: checkoutContext.paymentMethod,
+        });
+
+        const paymentFlow =
+          typeof metadata?.paymentFlow === "string"
+            ? metadata.paymentFlow
+            : null;
+        resolvedAmount = Math.round(
+          (paymentFlow === "cod_guarantee"
+            ? pricing.codGuaranteeAmount
+            : pricing.orderTotal) * 100
+        );
+      } catch (error) {
+        if (error instanceof CheckoutPricingError) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: error.code,
+              message: error.message,
+              details: error.details,
+            },
+            { status: error.status }
+          );
+        }
+        throw error;
+      }
+    }
+
+    if (resolvedAmount <= 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "INVALID_PAYMENT_AMOUNT",
+          message:
+            "Payment amount must be greater than zero for this checkout flow.",
+        },
+        { status: 400 }
+      );
+    }
 
     const baseMetadata = {
       ...sanitizeMetadata(metadata),
@@ -105,7 +174,7 @@ export async function POST(request: NextRequest) {
             .digest("hex");
 
     const createParams: Stripe.PaymentIntentCreateParams = {
-      amount,
+      amount: resolvedAmount,
       currency: normalizedCurrency,
       automatic_payment_methods: {
         enabled: true,
@@ -126,7 +195,7 @@ export async function POST(request: NextRequest) {
         stripe,
         normalizedCurrency,
         paymentIntentId,
-        amount,
+        resolvedAmount,
         baseMetadata,
         createParams,
         idempotencyKey,
@@ -142,6 +211,7 @@ export async function POST(request: NextRequest) {
       success: true,
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
+      amount: resolvedAmount,
     });
   } catch (error) {
     console.error("Error creating payment intent:", error);

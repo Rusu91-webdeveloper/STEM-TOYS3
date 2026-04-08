@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import { compensateFailedOrder } from "@/lib/checkout/payment-failure-compensation";
 import { DatabaseTemplateService } from "@/lib/email/database-template-service";
 import { initiateNetopiaOrderPayment } from "@/lib/payments/netopia-order-payment";
 
@@ -70,8 +71,7 @@ export async function POST(request: Request) {
     console.log(`   Payment URL: ${paymentResult.paymentUrl}`);
     console.log(`   Transaction ID: ${paymentResult.transactionId}`);
 
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const recipientEmail = customerData?.email || order.user?.email;
 
     if (recipientEmail) {
@@ -104,9 +104,13 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("");
-    console.error("═══════════════════════════════════════════════════════════");
+    console.error(
+      "═══════════════════════════════════════════════════════════"
+    );
     console.error("❌ [API] Netopia Payment Creation FAILED");
-    console.error("═══════════════════════════════════════════════════════════");
+    console.error(
+      "═══════════════════════════════════════════════════════════"
+    );
     console.error("Error details:", error);
     console.error("");
 
@@ -133,13 +137,10 @@ export async function POST(request: Request) {
 
 async function markOrderFailed(orderId: string, reason: string) {
   try {
-    const { db } = await import("@/lib/db");
-    await db.order.update({
-      where: { id: orderId },
-      data: {
-        paymentStatus: "FAILED",
-        status: "CANCELLED",
-      },
+    await compensateFailedOrder({
+      orderId,
+      reason,
+      source: "netopia_payment_creation_failed",
     });
     console.warn(
       `⚠️ [API] Order ${orderId} marked as FAILED/CANCELLED (${reason})`

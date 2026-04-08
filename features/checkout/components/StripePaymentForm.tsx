@@ -4,8 +4,8 @@ import {
   PaymentElement,
   useStripe,
   useElements,
-  type StripePaymentElementOptions,
 } from "@stripe/react-stripe-js";
+import type { StripePaymentElementOptions } from "@stripe/stripe-js";
 import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 

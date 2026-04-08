@@ -10,7 +10,13 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -174,6 +180,21 @@ export function PaymentForm({
   const [isResolvingCodGuaranteePolicy, setIsResolvingCodGuaranteePolicy] =
     useState(false);
 
+  const buildCheckoutIntentContext = useCallback(
+    (paymentMethod: string) => ({
+      items: cartItems.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        isBook: item.isBook,
+        selectedLanguage: item.selectedLanguage,
+      })),
+      shippingMethodId: shippingMethod?.id,
+      couponCode: appliedCoupon?.code || null,
+      paymentMethod,
+    }),
+    [appliedCoupon?.code, cartItems, shippingMethod?.id]
+  );
+
   const isNetopia = useMemo(
     () => selectedPaymentMethod.startsWith("netopia_"),
     [selectedPaymentMethod]
@@ -187,7 +208,10 @@ export function PaymentForm({
   }, [shippingMethod]);
   const recipientType = useMemo(() => {
     const billing = useSameAddress ? shippingAddress : currentBillingAddress;
-    return getRecipientType([shippingAddress, billing]);
+    return getRecipientType([
+      shippingAddress as Record<string, unknown> | undefined,
+      billing as Record<string, unknown> | undefined,
+    ]);
   }, [shippingAddress, currentBillingAddress, useSameAddress]);
   const codThreshold = useMemo(
     () => getCodThreshold(recipientType),
@@ -217,8 +241,7 @@ export function PaymentForm({
     }
   }, [selectedPaymentMethod, totalAmount, codConfig, isLockerShippingMethod]);
   const isCodLimitExceeded =
-    selectedPaymentMethod === "cash_on_delivery" &&
-    totalAmount > codThreshold;
+    selectedPaymentMethod === "cash_on_delivery" && totalAmount > codThreshold;
   const codGuaranteeAmount = useMemo(() => {
     if (selectedPaymentMethod !== "cash_on_delivery") {
       return 0;
@@ -456,6 +479,7 @@ export function PaymentForm({
         const payload: Record<string, unknown> = {
           amount: amountInMinorUnits,
           checkoutAttemptId,
+          checkoutContext: buildCheckoutIntentContext("stripe_new"),
           metadata: {
             checkoutStep: "payment",
             shippingCountry: shippingAddress?.country || "",
@@ -486,7 +510,7 @@ export function PaymentForm({
 
         setStripeClientSecret(data.clientSecret);
         setStripePaymentIntentId(data.paymentIntentId);
-        setStripeIntentAmount(amountInMinorUnits);
+        setStripeIntentAmount(data.amount ?? amountInMinorUnits);
         setStripeIntentError(null);
       } catch (error) {
         if (!isActive) {
@@ -522,6 +546,7 @@ export function PaymentForm({
     stripeClientSecret,
     stripeIntentAmount,
     stripePaymentIntentId,
+    buildCheckoutIntentContext,
   ]);
 
   useEffect(() => {
@@ -584,6 +609,7 @@ export function PaymentForm({
         const payload: Record<string, unknown> = {
           amount: amountInMinorUnits,
           checkoutAttemptId,
+          checkoutContext: buildCheckoutIntentContext("cash_on_delivery"),
           metadata: {
             checkoutStep: "payment",
             paymentFlow: "cod_guarantee",
@@ -615,7 +641,7 @@ export function PaymentForm({
 
         setCodGuaranteeClientSecret(data.clientSecret);
         setCodGuaranteePaymentIntentId(data.paymentIntentId);
-        setCodGuaranteeIntentAmount(amountInMinorUnits);
+        setCodGuaranteeIntentAmount(data.amount ?? amountInMinorUnits);
         setCodGuaranteeAuthorized(false);
         setCodGuaranteeIntentError(null);
       } catch (error) {
@@ -654,6 +680,7 @@ export function PaymentForm({
     codGuaranteeClientSecret,
     codGuaranteeIntentAmount,
     codGuaranteePaymentIntentId,
+    buildCheckoutIntentContext,
   ]);
 
   const showBillingForm = !useSameAddress;
@@ -683,6 +710,10 @@ export function PaymentForm({
 
   const submitCODOrder = (guaranteePaymentIntentId?: string) => {
     const codConsentAcceptedAt = new Date().toISOString();
+    const resolvedCodGuaranteeAmount =
+      guaranteePaymentIntentId && codGuaranteeIntentAmount
+        ? codGuaranteeIntentAmount / 100
+        : codGuaranteeAmount;
     onSubmit({
       paymentMethod: "cash_on_delivery",
       billingAddressSameAsShipping: useSameAddress,
@@ -694,7 +725,7 @@ export function PaymentForm({
       codConsentText: COD_CONSENT_TEXT,
       codGuaranteePaymentIntentId: guaranteePaymentIntentId,
       codGuaranteeAmount: guaranteePaymentIntentId
-        ? codGuaranteeAmount
+        ? resolvedCodGuaranteeAmount
         : undefined,
     });
   };
@@ -1018,7 +1049,10 @@ export function PaymentForm({
               </div>
               <div>
                 <p className="text-sm font-semibold text-rose-950">
-                  {t("codLimitExceededTitle", "Ramburs indisponibil pentru această valoare")}
+                  {t(
+                    "codLimitExceededTitle",
+                    "Ramburs indisponibil pentru această valoare"
+                  )}
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-rose-800">
                   {t(
@@ -1046,7 +1080,10 @@ export function PaymentForm({
                   </span>
                 </div>
                 <p className="mt-2 text-base font-semibold text-amber-950">
-                  {t("codConsentCardTitle", "Confirmă condițiile pentru plata ramburs")}
+                  {t(
+                    "codConsentCardTitle",
+                    "Confirmă condițiile pentru plata ramburs"
+                  )}
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-amber-900">
                   {t(
@@ -1130,7 +1167,10 @@ export function PaymentForm({
 
             <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-700">
               <summary className="cursor-pointer font-medium text-slate-900">
-                {t("codConsentFullTextToggle", "Vezi textul complet al acordului COD")}
+                {t(
+                  "codConsentFullTextToggle",
+                  "Vezi textul complet al acordului COD"
+                )}
               </summary>
               <p className="mt-3 text-sm leading-6 text-slate-600">
                 {t("codConsentBody", COD_CONSENT_TEXT)}
@@ -1188,7 +1228,10 @@ export function PaymentForm({
                           {t("codStepTwo", "Pasul 2")}
                         </span>
                         <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-700">
-                          {t("temporaryAuthorizationLabel", "Autorizare temporară")}
+                          {t(
+                            "temporaryAuthorizationLabel",
+                            "Autorizare temporară"
+                          )}
                         </span>
                       </div>
                       <p className="mt-2 text-base font-semibold text-slate-950">
@@ -1292,12 +1335,18 @@ export function PaymentForm({
                     onSuccess={handleCODGuaranteeSuccess}
                     onError={handleCODGuaranteeError}
                     billingDetails={getBillingDetails()}
-                    amount={Math.round(codGuaranteeAmount * 100)}
+                    amount={
+                      codGuaranteeIntentAmount ??
+                      Math.round(codGuaranteeAmount * 100)
+                    }
                     isCalculatingTotal={isCalculatingTotal}
                     submitButtonClassName="cod-guarantee-submit-button"
                     submitLabel={t(
                       "authorizeCodGuarantee",
-                      `Autorizează ${formatPrice(codGuaranteeAmount)}`
+                      `Autorizează ${formatPrice(
+                        (codGuaranteeIntentAmount ??
+                          Math.round(codGuaranteeAmount * 100)) / 100
+                      )}`
                     )}
                   />
                 </StripeProvider>
@@ -1314,7 +1363,10 @@ export function PaymentForm({
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-950">
-                    {t("codGuaranteeNotRequiredTitle", "Nu este necesară garanția pe card")}
+                    {t(
+                      "codGuaranteeNotRequiredTitle",
+                      "Nu este necesară garanția pe card"
+                    )}
                   </p>
                   <p className="mt-1 text-sm leading-relaxed text-slate-600">
                     {t(
@@ -1334,7 +1386,10 @@ export function PaymentForm({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-rose-950">
-                      {t("stripeLoadErrorTitle", "Nu am putut pregăti plata cu cardul")}
+                      {t(
+                        "stripeLoadErrorTitle",
+                        "Nu am putut pregăti plata cu cardul"
+                      )}
                     </p>
                     <p className="mt-1 text-sm text-rose-700">
                       {stripeIntentError}
@@ -1367,7 +1422,10 @@ export function PaymentForm({
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-slate-950">
-                      {t("initializingStripeTitle", "Pregătim plata securizată")}
+                      {t(
+                        "initializingStripeTitle",
+                        "Pregătim plata securizată"
+                      )}
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
                       {t(
@@ -1406,9 +1464,10 @@ export function PaymentForm({
                     onError={handlePaymentError}
                     billingDetails={getBillingDetails()}
                     amount={
-                      isCalculatingTotal
+                      stripeIntentAmount ??
+                      (isCalculatingTotal
                         ? getCartTotal() * 100
-                        : totalAmount * 100
+                        : totalAmount * 100)
                     }
                     isCalculatingTotal={isCalculatingTotal}
                   />
