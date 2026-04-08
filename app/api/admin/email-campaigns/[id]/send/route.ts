@@ -70,6 +70,10 @@ export async function POST(
           }
         );
 
+        if (!emailResult.success) {
+          throw new Error(emailResult.error || "Email sending failed");
+        }
+
         // Record email event
         const emailEvent = await prisma.emailEvent.create({
           data: {

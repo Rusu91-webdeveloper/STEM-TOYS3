@@ -23,7 +23,11 @@ export async function sendNewsletterWelcomeEmail({
   const storeSettings = await getStoreSettings();
   const baseUrl = getBaseUrl();
 
-  const { generateProfessionalEmail, generatePreviewText } = await import(
+  const {
+    generateProfessionalEmail,
+    generatePreviewText,
+    generateUnsubscribeLink,
+  } = await import(
     "./base"
   );
 
@@ -208,7 +212,8 @@ export async function sendNewsletterWelcomeEmail({
     content,
     storeSettings,
     "Newsletter abonare",
-    previewText
+    previewText,
+    { unsubscribeUrl: generateUnsubscribeLink(to) }
   );
 
   return sendEmailWithBrevo({
@@ -233,7 +238,11 @@ export async function sendNewsletterResubscribeEmail({
   const storeSettings = await getStoreSettings();
   const baseUrl = getBaseUrl();
 
-  const { generateProfessionalEmail, generatePreviewText } = await import(
+  const {
+    generateProfessionalEmail,
+    generatePreviewText,
+    generateUnsubscribeLink,
+  } = await import(
     "./base"
   );
 
@@ -357,7 +366,8 @@ export async function sendNewsletterResubscribeEmail({
     content,
     storeSettings,
     "Newsletter resubscribe",
-    previewText
+    previewText,
+    { unsubscribeUrl: generateUnsubscribeLink(to) }
   );
 
   return sendEmailWithBrevo({
@@ -391,7 +401,11 @@ export async function sendNewsletterNotificationEmail({
   const storeSettings = await getStoreSettings();
   const baseUrl = getBaseUrl();
 
-  const { generateProfessionalEmail, generatePreviewText } = await import(
+  const {
+    generateProfessionalEmail,
+    generatePreviewText,
+    generateUnsubscribeLink,
+  } = await import(
     "./base"
   );
 
@@ -538,7 +552,8 @@ export async function sendNewsletterNotificationEmail({
     content,
     storeSettings,
     "Articol nou pe blog",
-    previewText
+    previewText,
+    { unsubscribeUrl: generateUnsubscribeLink(to) }
   );
 
   return sendEmailWithBrevo({

@@ -1,5 +1,6 @@
 import { getAppConfig } from "@/lib/config/app-config";
 import { prisma } from "@/lib/prisma";
+import { generateUnsubscribeLink } from "./base";
 import { EMAIL_TEMPLATES } from "./template-library";
 
 export interface DatabaseEmailTemplate {
@@ -670,7 +671,7 @@ export class DatabaseTemplateService {
       data: {
         firstName: data?.firstName || "",
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        unsubscribeUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/newsletter/unsubscribe?email=${encodeURIComponent(to)}`,
+        unsubscribeUrl: generateUnsubscribeLink(to),
       },
     });
   }

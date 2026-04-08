@@ -56,7 +56,11 @@ export async function sendSeasonalCampaignEmail({
   const storeSettings = await getStoreSettings();
   const baseUrl = getBaseUrl();
 
-  const { generateProfessionalEmail, generatePreviewText } = await import(
+  const {
+    generateProfessionalEmail,
+    generatePreviewText,
+    generateUnsubscribeLink,
+  } = await import(
     "./base"
   );
 
@@ -360,7 +364,8 @@ export async function sendSeasonalCampaignEmail({
     content,
     storeSettings,
     `Campanie ${campaign.theme}`,
-    previewText
+    previewText,
+    { unsubscribeUrl: generateUnsubscribeLink(to) }
   );
 
   return sendEmailViaUnifiedSystem({
@@ -391,7 +396,11 @@ export async function sendProductLaunchEmail({
   const storeSettings = await getStoreSettings();
   const baseUrl = getBaseUrl();
 
-  const { generateProfessionalEmail, generatePreviewText } = await import(
+  const {
+    generateProfessionalEmail,
+    generatePreviewText,
+    generateUnsubscribeLink,
+  } = await import(
     "./base"
   );
 
@@ -561,7 +570,8 @@ export async function sendProductLaunchEmail({
     content,
     storeSettings,
     "Lansare produs nou",
-    previewText
+    previewText,
+    { unsubscribeUrl: generateUnsubscribeLink(to) }
   );
 
   return sendEmailViaUnifiedSystem({

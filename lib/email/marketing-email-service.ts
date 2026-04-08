@@ -3,13 +3,12 @@
  * Integrates marketing settings with actual email functionality
  */
 
-import { appConfig } from "@/lib/config/app-config";
 import {
-  getMarketingSettings,
   getEmailMarketingConfig,
   getEmailTemplate,
   isEmailMarketingEnabled,
 } from "@/lib/utils/marketing-settings";
+import { sendEmailWithBrevo } from "@/lib/brevo";
 import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 
 export interface MarketingEmailRequest {
@@ -148,24 +147,26 @@ export class MarketingEmailService {
     attachments?: any[];
   }): Promise<MarketingEmailResponse> {
     try {
-      const recipients = Array.isArray(params.to)
-        ? params.to.map(email => ({ email }))
-        : [{ email: params.to }];
-
-      const result = await sendEmailViaUnifiedSystem({
-        to: recipients,
+      const result = await sendEmailWithBrevo({
+        to: params.to,
         subject: params.subject,
-        htmlContent: params.content,
-        from: {
-          email: params.config.fromEmail,
-          name: params.config.fromName,
-        },
+        html: params.content,
+        from: params.config.fromEmail,
+        fromName: params.config.fromName,
         attachments: params.attachments || [],
       });
 
+      if (!result.success) {
+        return {
+          success: false,
+          error: "Brevo send failed",
+          provider: "brevo",
+        };
+      }
+
       return {
         success: true,
-        messageId: result.messageId,
+        messageId: result.messageId || undefined,
         provider: "brevo",
       };
     } catch (error) {

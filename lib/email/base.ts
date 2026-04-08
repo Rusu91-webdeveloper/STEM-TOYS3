@@ -165,7 +165,8 @@ export function generateProfessionalEmail(
   content: string,
   storeSettings: StoreSettings,
   title: string,
-  previewText?: string
+  previewText?: string,
+  options?: { unsubscribeUrl?: string }
 ): string {
   const baseUrl = getBaseUrl();
 
@@ -174,7 +175,11 @@ export function generateProfessionalEmail(
     <div style="padding: ${spacing.xl};">
       ${content}
     </div>
-    ${createProfessionalFooter(storeSettings, baseUrl)}
+    ${createProfessionalFooter(
+      storeSettings,
+      baseUrl,
+      options?.unsubscribeUrl
+    )}
   `;
 
   return generateEmailHTML(fullContent, storeSettings, title, previewText);
@@ -212,7 +217,11 @@ export function generateUnsubscribeLink(
   listId?: string
 ): string {
   const baseUrl = getBaseUrl();
-  const params = new URLSearchParams({ email });
+  const params = new URLSearchParams({
+    token: Buffer.from(
+      `${email}:${Date.now().toString()}:${Math.random().toString(36).substring(2)}`
+    ).toString("base64"),
+  });
   if (listId) params.append("list", listId);
   return `${baseUrl}/unsubscribe?${params.toString()}`;
 }

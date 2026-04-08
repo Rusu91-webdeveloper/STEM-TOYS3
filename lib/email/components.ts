@@ -349,9 +349,11 @@ export function createTestimonial(
 // Professional Footer Component - Enhanced with modern design
 export function createProfessionalFooter(
   storeSettings: any,
-  baseUrl: string
+  baseUrl: string,
+  unsubscribeUrl?: string
 ): string {
   const year = new Date().getFullYear();
+  const finalUnsubscribeUrl = unsubscribeUrl || `${baseUrl}/unsubscribe`;
 
   return `
     <div style="background: linear-gradient(135deg, ${colors.neutral[900]} 0%, ${colors.neutral[800]} 100%); color: white; padding: ${spacing["2xl"]} ${spacing.xl}; border-radius: 0 0 ${borderRadius.xl} ${borderRadius.xl}; margin-top: ${spacing["2xl"]}; box-shadow: ${shadows.xl}; position: relative; overflow: hidden;">
@@ -391,7 +393,7 @@ export function createProfessionalFooter(
               Termeni și Condiții
             </a>
             <span style="color: ${colors.neutral[600]}; font-size: ${typography.fontSize.sm};">•</span>
-            <a href="${baseUrl}/unsubscribe" style="color: ${colors.neutral[300]}; text-decoration: none; font-size: ${typography.fontSize.sm}; font-weight: ${typography.fontWeight.medium}; transition: color 0.2s;">
+            <a href="${finalUnsubscribeUrl}" style="color: ${colors.neutral[300]}; text-decoration: none; font-size: ${typography.fontSize.sm}; font-weight: ${typography.fontWeight.medium}; transition: color 0.2s;">
               Dezabonare
             </a>
           </div>
