@@ -1,3 +1,5 @@
 ALTER TABLE "Supplier"
-ADD COLUMN "useSupplierRetailPriceAsBase" BOOLEAN NOT NULL DEFAULT false,
-ADD COLUMN "plannedPromoDiscountPercentage" DOUBLE PRECISION DEFAULT 0;
+ADD COLUMN IF NOT EXISTS "useSupplierRetailPriceAsBase" BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE "Supplier"
+ADD COLUMN IF NOT EXISTS "plannedPromoDiscountPercentage" DOUBLE PRECISION DEFAULT 0;
