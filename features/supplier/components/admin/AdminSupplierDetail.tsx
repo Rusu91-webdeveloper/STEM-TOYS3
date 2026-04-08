@@ -95,6 +95,8 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
     defaultMargin: "",
     minimumMarginPercentage: "",
     priceChangeThreshold: "",
+    plannedPromoDiscountPercentage: "",
+    useSupplierRetailPriceAsBase: false,
   });
   const [isSavingMargins, setIsSavingMargins] = useState(false);
   const [pickupForm, setPickupForm] = useState({
@@ -122,6 +124,11 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
       defaultMargin: toPercent(supplier.defaultMargin),
       minimumMarginPercentage: toPercent(supplier.minimumMarginPercentage),
       priceChangeThreshold: toPercent(supplier.priceChangeThreshold),
+      plannedPromoDiscountPercentage: toPercent(
+        supplier.plannedPromoDiscountPercentage
+      ),
+      useSupplierRetailPriceAsBase:
+        supplier.useSupplierRetailPriceAsBase ?? false,
     });
     setPickupForm({
       businessAddress: supplier.businessAddress || "",
@@ -231,6 +238,11 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
         defaultMargin: parsePercent(marginForm.defaultMargin),
         minimumMarginPercentage: parsePercent(marginForm.minimumMarginPercentage),
         priceChangeThreshold: parsePercent(marginForm.priceChangeThreshold),
+        plannedPromoDiscountPercentage: parsePercent(
+          marginForm.plannedPromoDiscountPercentage
+        ),
+        useSupplierRetailPriceAsBase:
+          marginForm.useSupplierRetailPriceAsBase,
       };
 
       const response = await fetch(`/api/admin/suppliers/${supplierId}`, {
@@ -892,9 +904,31 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                   Pricing & Margin (applied on next feed sync)
                 </div>
                 <div className="grid grid-cols-1 gap-3">
+                  <div className="rounded-md border border-gray-200 p-3 bg-gray-50">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300"
+                        checked={marginForm.useSupplierRetailPriceAsBase}
+                        onChange={e =>
+                          setMarginForm(prev => ({
+                            ...prev,
+                            useSupplierRetailPriceAsBase: e.target.checked,
+                          }))
+                        }
+                      />
+                      Use Supplier B2C As Base Price
+                    </label>
+                    <p className="mt-2 text-xs text-gray-500">
+                      When enabled, feed sync starts from supplier retail/B2C
+                      price, adds your extra buffer on top, and can optionally
+                      raise catalog price further to support planned coupon
+                      campaigns.
+                    </p>
+                  </div>
                   <div>
                     <label className="text-xs text-gray-600">
-                      Default Margin (%)
+                      Extra Buffer Above Supplier B2C (%)
                     </label>
                     <Input
                       type="number"
@@ -909,6 +943,28 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                         }))
                       }
                     />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">
+                      Planned Promo Discount (%)
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={marginForm.plannedPromoDiscountPercentage}
+                      onChange={e =>
+                        setMarginForm(prev => ({
+                          ...prev,
+                          plannedPromoDiscountPercentage: e.target.value,
+                        }))
+                      }
+                    />
+                    <p className="mt-1 text-[11px] text-gray-500">
+                      Example: supplier B2C 30, extra buffer 20%, planned promo
+                      10% saves a sync price of 40 so a 10% coupon lands at 36.
+                    </p>
                   </div>
                   <div>
                     <label className="text-xs text-gray-600">
@@ -951,7 +1007,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                     onClick={handleMarginUpdate}
                     disabled={isSavingMargins}
                   >
-                    {isSavingMargins ? "Saving..." : "Save Margin Settings"}
+                    {isSavingMargins ? "Saving..." : "Save Pricing Settings"}
                   </Button>
                 </div>
               </div>

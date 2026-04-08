@@ -31,6 +31,8 @@ export interface Supplier {
   defaultMargin?: number;
   minimumMarginPercentage?: number;
   priceChangeThreshold?: number;
+  useSupplierRetailPriceAsBase?: boolean;
+  plannedPromoDiscountPercentage?: number;
   logo?: string;
   catalogUrl?: string;
   termsAccepted: boolean;

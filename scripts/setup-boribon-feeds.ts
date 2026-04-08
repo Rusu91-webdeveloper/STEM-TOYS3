@@ -154,6 +154,8 @@ async function main() {
       defaultMargin: 0.4,
       minimumMarginPercentage: 0.2,
       priceChangeThreshold: 0.1,
+      useSupplierRetailPriceAsBase: true,
+      plannedPromoDiscountPercentage: 0.1,
     },
     create: {
       name: "Boribon",
@@ -165,6 +167,8 @@ async function main() {
       defaultMargin: 0.4,
       minimumMarginPercentage: 0.2,
       priceChangeThreshold: 0.1,
+      useSupplierRetailPriceAsBase: true,
+      plannedPromoDiscountPercentage: 0.1,
     },
   });
 

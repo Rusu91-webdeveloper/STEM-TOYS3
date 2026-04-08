@@ -1071,6 +1071,8 @@ model Supplier {
   defaultMargin            Float?                    @default(0.30) // Default margin (30% for KidStory)
   minimumMarginPercentage  Float?                    @default(0.15) // Minimum margin before disabling product (15%)
   priceChangeThreshold     Float?                    @default(0.10) // Alert if price changes by more than 10%
+  useSupplierRetailPriceAsBase Boolean               @default(false) // Use supplier B2C/retail price as the pricing base during sync
+  plannedPromoDiscountPercentage Float?              @default(0) // Optional planned coupon discount to fund from display price
   products                 Product[]
   user                     User?                     @relation(fields: [userId], references: [id])
   invoices                 SupplierInvoice[]

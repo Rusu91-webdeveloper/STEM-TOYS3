@@ -122,6 +122,8 @@ async function main() {
       defaultMargin: 0.25,
       minimumMarginPercentage: 0.15,
       priceChangeThreshold: 0.1,
+      useSupplierRetailPriceAsBase: true,
+      plannedPromoDiscountPercentage: 0.1,
     },
     create: {
       name: "Kidstory",
@@ -133,6 +135,8 @@ async function main() {
       defaultMargin: 0.25,
       minimumMarginPercentage: 0.15,
       priceChangeThreshold: 0.1,
+      useSupplierRetailPriceAsBase: true,
+      plannedPromoDiscountPercentage: 0.1,
     },
   });
 

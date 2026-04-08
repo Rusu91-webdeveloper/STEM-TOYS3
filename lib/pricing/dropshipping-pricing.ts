@@ -45,6 +45,32 @@ export interface DropshippingPricingResult {
   currency: string;
 }
 
+export interface BufferedRetailPriceInput {
+  /** Supplier B2C/retail price in store currency */
+  supplierRetailPrice: number;
+  /** Extra buffer added directly on top of supplier B2C (0.20 => 20%) */
+  extraBufferPercentage?: number;
+  /** Planned coupon/discount that should still preserve the target price */
+  plannedDiscountPercentage?: number;
+  /** Currency (defaults to "RON") */
+  currency?: string;
+}
+
+export interface BufferedRetailPriceResult {
+  /** Price you want to realize before any promotional discount */
+  targetPrice: number;
+  /** Display price saved to the catalog to support the planned discount */
+  displayPrice: number;
+  /** Extra amount added on top of supplier retail price for the target price */
+  extraBufferAmount: number;
+  /** Extra buffer percentage on top of supplier retail price */
+  extraBufferPercentage: number;
+  /** Planned discount percentage */
+  plannedDiscountPercentage: number;
+  /** Currency */
+  currency: string;
+}
+
 /**
  * Default pricing configuration
  */
@@ -53,6 +79,52 @@ const DEFAULT_CONFIG = {
   targetMargin: 0.25, // 25% target margin
   currency: "RON",
 };
+
+function roundCurrency(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+/**
+ * Supplier retail-price based catalog pricing with an optional promo buffer.
+ *
+ * Example:
+ * - supplierRetailPrice = 30
+ * - extraBufferPercentage = 0.20 => targetPrice = 36
+ * - plannedDiscountPercentage = 0.10 => displayPrice = 40
+ * - 10% coupon on 40 => 36.00 realized price
+ */
+export function calculateBufferedRetailPrice(
+  input: BufferedRetailPriceInput
+): BufferedRetailPriceResult {
+  const {
+    supplierRetailPrice,
+    extraBufferPercentage = 0,
+    plannedDiscountPercentage = 0,
+    currency = DEFAULT_CONFIG.currency,
+  } = input;
+
+  const safeBuffer = Number.isFinite(extraBufferPercentage)
+    ? extraBufferPercentage
+    : 0;
+  const safeDiscount =
+    Number.isFinite(plannedDiscountPercentage) && plannedDiscountPercentage > 0
+      ? plannedDiscountPercentage
+      : 0;
+
+  const targetPrice = supplierRetailPrice * (1 + safeBuffer);
+  const displayPrice =
+    safeDiscount > 0 ? targetPrice / (1 - safeDiscount) : targetPrice;
+  const extraBufferAmount = targetPrice - supplierRetailPrice;
+
+  return {
+    targetPrice: roundCurrency(targetPrice),
+    displayPrice: roundCurrency(displayPrice),
+    extraBufferAmount: roundCurrency(extraBufferAmount),
+    extraBufferPercentage: roundCurrency(safeBuffer * 100),
+    plannedDiscountPercentage: roundCurrency(safeDiscount * 100),
+    currency,
+  };
+}
 
 /**
  * Calculate dropshipping price with all costs and buffers
@@ -111,23 +183,23 @@ export function calculateDropshippingPrice(
   const marginPercentage = (marginAmount / finalPrice) * 100;
 
   // Round to 2 decimal places
-  const roundedFinalPrice = Math.round(finalPrice * 100) / 100;
-  const roundedMarginAmount = Math.round(marginAmount * 100) / 100;
+  const roundedFinalPrice = roundCurrency(finalPrice);
+  const roundedMarginAmount = roundCurrency(marginAmount);
 
   return {
     finalPrice: roundedFinalPrice,
-    subtotal: Math.round(subtotal * 100) / 100,
+    subtotal: roundCurrency(subtotal),
     breakdown: {
-      cogs: Math.round(cogs * 100) / 100,
-      shipping: Math.round(shipping * 100) / 100,
-      codFee: Math.round(codFee * 100) / 100,
-      rejectionBuffer: Math.round(calculatedRejectionBuffer * 100) / 100,
-      subtotal: Math.round(subtotal * 100) / 100,
+      cogs: roundCurrency(cogs),
+      shipping: roundCurrency(shipping),
+      codFee: roundCurrency(codFee),
+      rejectionBuffer: roundCurrency(calculatedRejectionBuffer),
+      subtotal: roundCurrency(subtotal),
       margin: roundedMarginAmount,
       finalPrice: roundedFinalPrice,
     },
     marginAmount: roundedMarginAmount,
-    marginPercentage: Math.round(marginPercentage * 100) / 100,
+    marginPercentage: roundCurrency(marginPercentage),
     currency,
   };
 }
@@ -181,4 +253,3 @@ export function getPricingConfig(): {
     targetMargin: parseFloat(process.env.TARGET_MARGIN || "0.25"),
   };
 }
-

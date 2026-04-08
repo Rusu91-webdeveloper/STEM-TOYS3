@@ -193,6 +193,8 @@ export async function GET(request: NextRequest) {
       defaultMargin: supplier.defaultMargin,
       minimumMarginPercentage: supplier.minimumMarginPercentage,
       priceChangeThreshold: supplier.priceChangeThreshold,
+      useSupplierRetailPriceAsBase: supplier.useSupplierRetailPriceAsBase,
+      plannedPromoDiscountPercentage: supplier.plannedPromoDiscountPercentage,
       adresaSediu: supplier.adresaSediu,
       anpcApproval: supplier.anpcApproval,
       educationalCertification: supplier.educationalCertification,
@@ -284,6 +286,8 @@ export async function PUT(request: NextRequest) {
       defaultMargin,
       minimumMarginPercentage,
       priceChangeThreshold,
+      useSupplierRetailPriceAsBase,
+      plannedPromoDiscountPercentage,
       rejectionReason,
       notes,
       businessAddress,
@@ -333,6 +337,9 @@ export async function PUT(request: NextRequest) {
     const normalizedDefaultMargin = normalizePercent(defaultMargin);
     const normalizedMinimumMargin = normalizePercent(minimumMarginPercentage);
     const normalizedPriceChangeThreshold = normalizePercent(priceChangeThreshold);
+    const normalizedPlannedPromoDiscount = normalizePercent(
+      plannedPromoDiscountPercentage
+    );
 
     if (
       normalizedDefaultMargin !== undefined &&
@@ -360,6 +367,19 @@ export async function PUT(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "Price change threshold must be between 0 and 1 (or 0-100%)" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      normalizedPlannedPromoDiscount !== undefined &&
+      (normalizedPlannedPromoDiscount < 0 || normalizedPlannedPromoDiscount >= 1)
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Planned promo discount must be between 0 and less than 1 (or 0-100%)",
+        },
         { status: 400 }
       );
     }
@@ -405,6 +425,13 @@ export async function PUT(request: NextRequest) {
       updateData.minimumMarginPercentage = normalizedMinimumMargin;
     if (normalizedPriceChangeThreshold !== undefined)
       updateData.priceChangeThreshold = normalizedPriceChangeThreshold;
+    if (useSupplierRetailPriceAsBase !== undefined)
+      updateData.useSupplierRetailPriceAsBase = Boolean(
+        useSupplierRetailPriceAsBase
+      );
+    if (normalizedPlannedPromoDiscount !== undefined)
+      updateData.plannedPromoDiscountPercentage =
+        normalizedPlannedPromoDiscount;
 
     if (businessAddress !== undefined)
       updateData.businessAddress = businessAddress;
@@ -552,6 +579,8 @@ export async function PUT(request: NextRequest) {
         defaultMargin: supplier.defaultMargin,
         minimumMarginPercentage: supplier.minimumMarginPercentage,
         priceChangeThreshold: supplier.priceChangeThreshold,
+        useSupplierRetailPriceAsBase: supplier.useSupplierRetailPriceAsBase,
+        plannedPromoDiscountPercentage: supplier.plannedPromoDiscountPercentage,
         adresaSediu: supplier.adresaSediu,
         anpcApproval: supplier.anpcApproval,
         educationalCertification: supplier.educationalCertification,

@@ -8,7 +8,10 @@ import {
 
 import { recomputeBundles } from "@/lib/bundles/recompute";
 import { db } from "@/lib/db";
-import { calculateDropshippingPrice } from "@/lib/pricing/dropshipping-pricing";
+import {
+  calculateBufferedRetailPrice,
+  calculateDropshippingPrice,
+} from "@/lib/pricing/dropshipping-pricing";
 import {
   createAppAdapter,
   createBaseLinkerCsvAdapter,
@@ -337,12 +340,18 @@ async function upsertProducts(
       defaultMargin: true,
       minimumMarginPercentage: true,
       priceChangeThreshold: true,
+      useSupplierRetailPriceAsBase: true,
+      plannedPromoDiscountPercentage: true,
     },
   });
 
   const defaultMargin = supplier?.defaultMargin ?? 0.30; // 30% default
   const minimumMargin = supplier?.minimumMarginPercentage ?? 0.15; // 15% minimum
   const priceChangeThreshold = supplier?.priceChangeThreshold ?? 0.10; // 10% threshold
+  const useSupplierRetailPriceAsBase =
+    supplier?.useSupplierRetailPriceAsBase ?? false;
+  const plannedPromoDiscountPercentage =
+    supplier?.plannedPromoDiscountPercentage ?? 0;
 
   // Default shipping cost (can be configured per supplier later)
   const defaultShippingCost = 15; // RON
@@ -456,7 +465,20 @@ async function upsertProducts(
     let priceChangeSignificant = false;
 
     if (supplierCost > 0) {
-      if (retailPrice !== undefined) {
+      if (useSupplierRetailPriceAsBase && retailPrice !== undefined) {
+        const pricingResult = calculateBufferedRetailPrice({
+          supplierRetailPrice: retailPrice,
+          extraBufferPercentage: defaultMargin,
+          plannedDiscountPercentage: plannedPromoDiscountPercentage,
+        });
+
+        calculatedPrice = pricingResult.displayPrice;
+        marginPercentage = calculateProfitMargin(calculatedPrice, supplierCost);
+
+        if (marginPercentage < minimumMargin * 100) {
+          marginTooLow = true;
+        }
+      } else if (retailPrice !== undefined) {
         marginPercentage = calculateProfitMargin(retailPrice, supplierCost);
         if (marginPercentage < minimumMargin * 100) {
           marginTooLow = true;
