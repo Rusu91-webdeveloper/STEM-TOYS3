@@ -19,7 +19,11 @@ export function MobileLanguageSelector() {
   const [currentLangCode, setCurrentLangCode] = useState("ro");
 
   // Use the translation context
-  const { language: contextLanguage, setLanguage: contextSetLanguage } =
+  const {
+    language: contextLanguage,
+    setLanguage: contextSetLanguage,
+    t,
+  } =
     useTranslation();
 
   useEffect(() => {
@@ -48,16 +52,22 @@ export function MobileLanguageSelector() {
   };
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-2 mb-2 px-1">
-        <div className="p-0.5 rounded bg-indigo-50">
-          <Globe className="h-3 w-3 text-indigo-600" />
+    <div className="w-full space-y-3">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+          <Globe className="h-4 w-4" />
         </div>
-        <span className="text-[10px] font-semibold text-gray-700 uppercase tracking-wider">
-          Language
-        </span>
+        <div>
+          <p className="text-sm font-semibold text-slate-900">
+            {t("language", "Limbă")}
+          </p>
+          <p className="text-xs text-slate-500">
+            {t("languageSelectorDescription", "Alege experiența preferată")}
+          </p>
+        </div>
       </div>
-      <div className="flex gap-2">
+
+      <div className="grid grid-cols-2 gap-2">
         {languages.map(lang => {
           const isActive = language === lang.code;
           return (
@@ -66,18 +76,21 @@ export function MobileLanguageSelector() {
               type="button"
               onClick={() => switchLanguage(lang.code)}
               className={cn(
-                "flex-1 flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 min-h-[52px] touch-target border-2 relative",
+                "relative flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-[1rem] border px-3 py-3 text-sm font-medium transition-all duration-200 touch-target",
                 isActive
-                  ? "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-md border-indigo-400"
-                  : "bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100 border-gray-200 hover:border-indigo-200 shadow-sm"
+                  ? "border-sky-200 bg-sky-50 text-sky-900 shadow-[0_16px_32px_-28px_rgba(2,132,199,0.35)]"
+                  : "border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
               )}
             >
-              <span className="text-xl">{lang.flag}</span>
-              <span className="text-[10px] font-bold tracking-wide">
+              <span className="text-xl leading-none">{lang.flag}</span>
+              <span className="text-[11px] font-semibold tracking-[0.2em] text-current/80">
                 {lang.code.toUpperCase()}
               </span>
+              <span className="text-xs text-current/70">{lang.name}</span>
               {isActive && (
-                <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-green-400 rounded-full border border-white"></div>
+                <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-sky-600 text-white">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
+                </div>
               )}
             </button>
           );
