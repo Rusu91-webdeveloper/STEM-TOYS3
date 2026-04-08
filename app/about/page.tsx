@@ -1,9 +1,9 @@
 "use client";
 
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { ArrowRight } from "lucide-react";
 
 import { BookCarousel } from "@/components/ui/book-carousel";
 import { Button } from "@/components/ui/button";
@@ -224,9 +224,14 @@ export default function AboutPage() {
                   </Button>
                 </div>
                 <div className="mx-auto mt-4 inline-flex flex-col items-center gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-slate-200 shadow-inner shadow-black/30 sm:flex-row sm:text-sm">
-                  <span>Informatii despre brand, suport si selectia produselor</span>
+                  <span>
+                    Informatii despre brand, suport si selectia produselor
+                  </span>
                   <span className="hidden h-1 w-1 rounded-full bg-white/30 sm:inline-block" />
-                  <span>Fara promisiuni artificiale, cu pagini comerciale si ghiduri clare</span>
+                  <span>
+                    Fara promisiuni artificiale, cu pagini comerciale si ghiduri
+                    clare
+                  </span>
                 </div>
               </div>
             </div>
@@ -455,15 +460,6 @@ export default function AboutPage() {
                           className="h-9 rounded-full border border-sky-300/70 bg-white px-4 text-xs font-semibold text-sky-700 transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-800"
                         >
                           {t("linkedin", "LinkedIn")}
-                        </Button>
-                        <Button
-                          asChild
-                          variant="outline"
-                          className="h-9 rounded-full border border-sky-300/70 bg-white px-4 text-xs font-semibold text-sky-700 transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-800"
-                        >
-                          <Link href="/authors/techtots-editorial">
-                            {t("viewProfile", "View author profile")}
-                          </Link>
                         </Button>
                       </div>
                     </div>

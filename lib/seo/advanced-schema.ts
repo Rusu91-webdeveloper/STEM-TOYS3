@@ -3,8 +3,9 @@
  * Keep claims factual and tied to visible page content.
  */
 
-import type { Product } from "@/types/product";
 import { appConfig } from "@/lib/config/app-config";
+import { getCategoryPageHref } from "@/lib/utils/category-page-links";
+import type { Product } from "@/types/product";
 
 function extractBrandFromName(name: string): string {
   const brands = [
@@ -110,7 +111,8 @@ export function generateEducationalProductSchema(product: Product) {
     description: product.description || product.name,
     image: product.images || [],
     sku: product.sku || product.id,
-    category: product.category?.name || product.stemDiscipline || "Jucarii STEM",
+    category:
+      product.category?.name || product.stemDiscipline || "Jucarii STEM",
     brand: {
       "@type": "Brand",
       name: extractBrandFromName(product.name),
@@ -122,8 +124,12 @@ export function generateEducationalProductSchema(product: Product) {
   if (product.ageGroup) {
     schema.audience = {
       "@type": "PeopleAudience",
-      suggestedMinAge: Number(getAgeRangeFromGroup(product.ageGroup).split("-")[0]),
-      suggestedMaxAge: Number(getAgeRangeFromGroup(product.ageGroup).split("-")[1]),
+      suggestedMinAge: Number(
+        getAgeRangeFromGroup(product.ageGroup).split("-")[0]
+      ),
+      suggestedMaxAge: Number(
+        getAgeRangeFromGroup(product.ageGroup).split("-")[1]
+      ),
     };
   }
 
@@ -328,8 +334,9 @@ export function generateReviewSchema(product: Product, reviews: any[]) {
 
 export function generateEducationalBreadcrumbSchema(product: Product) {
   const categoryName = product.category?.name || "Produse";
-  const categoryUrl = product.category?.slug
-    ? `https://www.techtots.ro/categories/${product.category.slug}`
+  const categoryHref = getCategoryPageHref(product.category?.slug);
+  const categoryUrl = categoryHref
+    ? `https://www.techtots.ro${categoryHref}`
     : "https://www.techtots.ro/products";
 
   return {

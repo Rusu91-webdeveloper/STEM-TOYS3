@@ -3,6 +3,7 @@
  * Creates semantic relationships between content for maximum SEO impact
  */
 
+import { getCategoryPageHref } from "@/lib/utils/category-page-links";
 import { Product } from "@/types/product";
 
 export interface InternalLink {
@@ -31,9 +32,10 @@ export function generateProductInternalLinks(product: Product): InternalLink[] {
   }
 
   // Category page
-  if (product.category) {
+  const categoryHref = getCategoryPageHref(product.category?.slug);
+  if (product.category && categoryHref) {
     links.push({
-      url: `/categories/${product.category.slug}`,
+      url: categoryHref,
       anchor: `jucării ${product.category.name}`,
       context: `Explorează întreaga noastră colecție de ${product.category.name.toLowerCase()}`,
       relevanceScore: 0.8,
@@ -99,36 +101,40 @@ export function generateRelatedProductLinks(
   const links: InternalLink[] = [];
 
   // Same age group products
-  const sameAgeProducts = allProducts
-    .filter(p => p.id !== product.id && p.ageGroup === product.ageGroup)
-    .slice(0, 3);
+  const ageGroup = product.ageGroup;
+  if (ageGroup) {
+    const sameAgeProducts = allProducts
+      .filter(p => p.id !== product.id && p.ageGroup === ageGroup)
+      .slice(0, 3);
 
-  sameAgeProducts.forEach(p => {
-    links.push({
-      url: `/products/${p.slug}`,
-      anchor: p.name,
-      context: `O altă jucărie STEM excelentă pentru ${getAgeGroupDisplayName(product.ageGroup)}`,
-      relevanceScore: 0.8,
-      linkType: "product",
+    sameAgeProducts.forEach(p => {
+      links.push({
+        url: `/products/${p.slug}`,
+        anchor: p.name,
+        context: `O altă jucărie STEM excelentă pentru ${getAgeGroupDisplayName(ageGroup)}`,
+        relevanceScore: 0.8,
+        linkType: "product",
+      });
     });
-  });
+  }
 
   // Same STEM discipline
-  const sameDisciplineProducts = allProducts
-    .filter(
-      p => p.id !== product.id && p.stemDiscipline === product.stemDiscipline
-    )
-    .slice(0, 2);
+  const stemDiscipline = product.stemDiscipline;
+  if (stemDiscipline) {
+    const sameDisciplineProducts = allProducts
+      .filter(p => p.id !== product.id && p.stemDiscipline === stemDiscipline)
+      .slice(0, 2);
 
-  sameDisciplineProducts.forEach(p => {
-    links.push({
-      url: `/products/${p.slug}`,
-      anchor: p.name,
-      context: `Continuă explorarea ${getStemDisciplineDisplayName(product.stemDiscipline)} cu`,
-      relevanceScore: 0.7,
-      linkType: "product",
+    sameDisciplineProducts.forEach(p => {
+      links.push({
+        url: `/products/${p.slug}`,
+        anchor: p.name,
+        context: `Continuă explorarea ${getStemDisciplineDisplayName(stemDiscipline)} cu`,
+        relevanceScore: 0.7,
+        linkType: "product",
+      });
     });
-  });
+  }
 
   // Complementary products (different disciplines, same age)
   const complementaryProducts = allProducts

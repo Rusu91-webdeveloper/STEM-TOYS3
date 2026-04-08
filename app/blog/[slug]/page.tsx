@@ -2,8 +2,8 @@
 import { notFound } from "next/navigation";
 import React from "react";
 
-import BlogPostDetail from "@/features/blog/components/BlogPostDetail";
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
+import BlogPostDetail from "@/features/blog/components/BlogPostDetail";
 import { getBlogPost, getRelatedPosts } from "@/lib/api/blog";
 import {
   validateStructuredData,
@@ -17,6 +17,8 @@ type BlogPostPageProps = {
     slug: string;
   }>;
 };
+
+type StructuredData = Record<string, unknown>;
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   try {
@@ -45,7 +47,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
     // Get FAQ schema if available from AI metadata
     const faqQuestions = aiMetadata.contentAnalysis?.questions || [];
-    const faqSchema =
+    const faqSchema: StructuredData | null =
       faqQuestions.length > 0
         ? {
             "@context": "https://schema.org",
@@ -62,7 +64,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         : null;
 
     // Prepare structured data array
-    const structuredData = [
+    const structuredData: StructuredData[] = [
       // Breadcrumb schema
       {
         "@context": "https://schema.org",
@@ -111,9 +113,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         author: {
           "@type": "Organization",
           name: "TechTots Editorial",
-          url: "https://www.techtots.ro/authors/techtots-editorial",
           sameAs: [
-            "https://www.techtots.ro/authors/techtots-editorial",
             "https://www.linkedin.com/company/techtots-romania/",
             "https://www.instagram.com/techtots_magazin/",
           ],

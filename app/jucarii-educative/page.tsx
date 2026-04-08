@@ -5,7 +5,8 @@ import { createMetadata } from "@/lib/metadata";
 
 const faq = [
   {
-    question: "Sunt prea scumpe jucăriile educative față de ce găsesc în magazine?",
+    question:
+      "Sunt prea scumpe jucăriile educative față de ce găsesc în magazine?",
     answer:
       "Prețul reflectă de obicei materialele, siguranța și cât rezistă la repetări: o jucărie la care copilul revine săptămână de săptămână îți scoate din ecuație „cumpăr din nou peste o lună”. La TechTots lucrăm cu branduri precum Fischertechnik, Thames & Kosmos, Djeco, 4M sau Magblox tocmai pentru a avea în coș variante care merită banii, nu doar ambalaj frumos. Compară ce primești în cutie și pentru ce vârstă e gândită — acolo se vede dacă merită.",
   },
@@ -15,7 +16,8 @@ const faq = [
       "Începe mereu de pe etichetă: vârsta recomandată e făcută să prevină frustrarea (prea greu) sau plictiseala (prea simplu). Urmărește și cât de mult poate lucra singur: unii copii vor autonomie din prima, alții au nevoie de un adult la început, iar asta e normal. La noi găsești produse pentru 3–14 ani; dacă ești între două variante, alege-o pe cea care îi lasă loc să crească, nu să o termine într-o după-amiază.",
   },
   {
-    question: "Chiar se joacă copilul cu ele sau rămân în dulap după două zile?",
+    question:
+      "Chiar se joacă copilul cu ele sau rămân în dulap după două zile?",
     answer:
       "Cel mai bun semn e o joacă cu feedback rapid: vede rezultat, poate încerca altceva, nu așteaptă jumătate de oră până „se întâmplă ceva”. Ferește-te de jucăriile care sună educative dar sunt doar o singură apăsare de buton fără sens. Când activitatea are pași clari și un rezultat vizibil — un experiment, un model care stă în picioare, un cod care face robotul să se miște — copilul revine pentru că îi dă plăcere, nu pentru că i-ai cerut tu.",
   },
@@ -132,7 +134,7 @@ export default function EducationalToysLandingPage() {
             "Asamblează, încearcă variante și înțelege cum stă în picioare o structură — spațialitate și gândire ordonată, nu doar „legat de piese”.",
         },
         {
-          href: "/categories/coding-robotics",
+          href: "/robotica-pentru-copii",
           label: "Robotică și coding",
           description:
             "Leagă idei, tastează sau programează și vede efectul în mișcare: robotul răspunde la ce a hotărât el, nu la un singur buton magic.",

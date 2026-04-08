@@ -1,11 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 
-import {
-  productMutedTextClass,
-  productTitleClass,
-} from "./productTheme";
+import { getCategoryPageHref } from "@/lib/utils/category-page-links";
+
+import { productMutedTextClass, productTitleClass } from "./productTheme";
 
 interface ProductBreadcrumbProps {
   categorySlug?: string;
@@ -23,42 +23,39 @@ export function ProductBreadcrumb({
   productName,
   t,
 }: ProductBreadcrumbProps) {
-  const hasCategoryBreadcrumb =
-    typeof categorySlug === "string" &&
-    categorySlug.trim().length > 0 &&
-    typeof categoryName === "string" &&
-    categoryName.trim().length > 0;
+  const categoryHref = getCategoryPageHref(categorySlug);
+  const hasCategoryBreadcrumb = categoryName.trim().length > 0;
 
   return (
     <nav className="mb-4 sm:mb-6 lg:mb-8" aria-label="Breadcrumb">
       <ol className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-1 text-xs sm:text-sm">
         <li>
-          <a
+          <Link
             href="/"
             className="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[0.7rem] font-medium text-slate-700 transition hover:bg-slate-200 sm:px-3 sm:text-xs"
           >
             {t("home", "Acasă")}
-          </a>
+          </Link>
         </li>
         <li className={`${productMutedTextClass} px-0.5`}>/</li>
         <li>
-          <a
+          <Link
             href="/products"
             className="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[0.7rem] font-medium text-slate-700 transition hover:bg-slate-200 sm:px-3 sm:text-xs"
           >
             {t("products", "Produse")}
-          </a>
+          </Link>
         </li>
-        {hasCategoryBreadcrumb && (
+        {categoryHref && hasCategoryBreadcrumb && (
           <>
             <li className={`${productMutedTextClass} px-0.5`}>/</li>
             <li>
-              <a
-                href={`/categories/${categorySlug}`}
+              <Link
+                href={categoryHref}
                 className="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[0.7rem] font-medium text-slate-700 transition hover:bg-slate-200 sm:px-3 sm:text-xs"
               >
                 {categoryName}
-              </a>
+              </Link>
             </li>
           </>
         )}

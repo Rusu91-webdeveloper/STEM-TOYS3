@@ -131,16 +131,15 @@ export default function SmartToysLandingPage() {
             "Pentru copiii fascinati de tehnologie, miscari, senzori si jocuri programabile.",
         },
         {
-          href: "/categories/coding-robotics",
+          href: "/robotica-pentru-copii",
           label: "Coding si jucarii programabile",
           description:
-            "Subcategorie directa pentru cautari de coding, programare vizuala si roboți educaționali.",
+            "Hub dedicat pentru cautari de coding, programare vizuala si roboți educaționali.",
         },
         {
           href: "/jucarii-stem",
           label: "Jucarii STEM",
-          description:
-            "Cea mai completă selecție de jucării STEM din România.",
+          description: "Cea mai completă selecție de jucării STEM din România.",
         },
         {
           href: "/jucarii-educative",

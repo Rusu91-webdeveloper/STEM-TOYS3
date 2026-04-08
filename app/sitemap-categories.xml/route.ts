@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
+import { REMOVED_CATEGORY_PAGE_SLUGS } from "@/lib/utils/category-page-links";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
 
@@ -14,13 +16,16 @@ function escapeXml(value: string): string {
 
 export async function GET() {
   try {
+    const now = new Date().toISOString();
     const categories = await prisma.category.findMany({
       where: {
         isActive: true,
+        slug: {
+          notIn: [...REMOVED_CATEGORY_PAGE_SLUGS],
+        },
       },
       select: {
         slug: true,
-        updatedAt: true,
       },
       orderBy: {
         slug: "asc",
@@ -31,7 +36,6 @@ export async function GET() {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
     if (!categories || categories.length === 0) {
-      const now = new Date().toISOString();
       sitemap += `
   <url>
     <loc>${escapeXml(`${baseUrl}/categories`)}</loc>
@@ -42,13 +46,12 @@ export async function GET() {
     }
 
     categories.forEach(category => {
-      const lastmod = new Date(category.updatedAt || new Date()).toISOString();
       const url = `${baseUrl}/categories/${category.slug}`;
 
       sitemap += `
   <url>
     <loc>${escapeXml(url)}</loc>
-    <lastmod>${lastmod}</lastmod>
+    <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`;

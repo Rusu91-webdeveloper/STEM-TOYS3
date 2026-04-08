@@ -78,7 +78,7 @@ export default function RoboticsLandingPage() {
       title="Robotica pentru copii: construiește, programează, vezi mișcarea"
       description="Copilul tău e fascinat de cum funcționează lucrurile? Îi place să potrivească piese, să vadă o roată care se învârte și să înțeleagă de ce merge sau de ce nu? Aici găsești kituri cu care poate construi modele care se mișcă, poate testa idei și poate învăța pas cu pas — fără presiunea de a fi „deja bun la tehnic”."
       primaryCta={{
-        href: "/categories/coding-robotics",
+        href: "/products?category=technology",
         label: "Vezi kiturile de robotică",
       }}
       secondaryCta={{
@@ -149,7 +149,7 @@ export default function RoboticsLandingPage() {
       ]}
       clusters={[
         {
-          href: "/categories/coding-robotics",
+          href: "/products?category=technology",
           label: "Robotică și coding în catalog",
           description:
             "Toate kiturile din această zonă, cu filtre după ce ai nevoie: vârstă, tip de activitate, buget.",

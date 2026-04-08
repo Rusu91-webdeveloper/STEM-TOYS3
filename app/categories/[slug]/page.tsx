@@ -69,6 +69,7 @@ import {
 import { getTranslation } from "@/lib/i18n/server";
 import { blogService } from "@/lib/services/blog-service";
 import { getCategoryName } from "@/lib/services/categories-service";
+import { isRemovedCategoryPageSlug } from "@/lib/utils/category-page-links";
 
 // Enable ISR with 10 minutes revalidation
 export const revalidate = 600;
@@ -113,7 +114,7 @@ export async function generateMetadata({
 }) {
   const { slug: slugParam } = await params;
   const slug = slugParam.toLowerCase();
-  if (!isKnownSlug(slug)) {
+  if (isRemovedCategoryPageSlug(slug) || !isKnownSlug(slug)) {
     notFound();
   }
   const cookieStore = await cookies();
@@ -529,7 +530,8 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 md:gap-6">
           {items.map((t, idx) => {
-            const IconComponent = testimonialIcons[idx % testimonialIcons.length];
+            const IconComponent =
+              testimonialIcons[idx % testimonialIcons.length];
             return (
               <blockquote
                 key={idx}
@@ -558,7 +560,9 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
                     <User className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
                   </div>
                   <div className="text-xs text-slate-600 sm:text-sm">
-                    <div className="font-semibold text-slate-900">{t.author}</div>
+                    <div className="font-semibold text-slate-900">
+                      {t.author}
+                    </div>
                     <div className="text-[10px] uppercase tracking-wide text-indigo-600/80 sm:text-xs">
                       {t.role}
                     </div>
@@ -780,22 +784,24 @@ function Overview({ slug, locale }: { slug: string; locale: string }) {
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
-            {overviewCards.map(({ icon: IconComponent, title: cardTitle, copy: cardCopy }) => (
-              <div
-                key={cardTitle}
-                className={`${glassCardClass} group rounded-2xl border-slate-200/70 bg-white/95 px-4 py-4 transition-all duration-300 hover:border-slate-300/80 hover:shadow-lg sm:px-5 sm:py-5`}
-              >
-                <div className="mb-2 flex items-center gap-2 text-indigo-700 sm:mb-3">
-                  <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <h4 className="text-sm font-semibold text-slate-900 sm:text-base">
-                    {cardTitle}
-                  </h4>
+            {overviewCards.map(
+              ({ icon: IconComponent, title: cardTitle, copy: cardCopy }) => (
+                <div
+                  key={cardTitle}
+                  className={`${glassCardClass} group rounded-2xl border-slate-200/70 bg-white/95 px-4 py-4 transition-all duration-300 hover:border-slate-300/80 hover:shadow-lg sm:px-5 sm:py-5`}
+                >
+                  <div className="mb-2 flex items-center gap-2 text-indigo-700 sm:mb-3">
+                    <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <h4 className="text-sm font-semibold text-slate-900 sm:text-base">
+                      {cardTitle}
+                    </h4>
+                  </div>
+                  <p className="text-xs leading-relaxed text-slate-600 sm:text-sm">
+                    {cardCopy}
+                  </p>
                 </div>
-                <p className="text-xs leading-relaxed text-slate-600 sm:text-sm">
-                  {cardCopy}
-                </p>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
       </div>
@@ -936,11 +942,14 @@ function CategoryEducationalBenefits({ slug }: { slug: string }) {
             Beneficii Educaționale pentru {getCategoryName(slug, "ro")}
           </h2>
         </div>
-        <div className={`${glassCardClass} border-slate-200/70 bg-white/95 px-4 py-5 shadow-inner shadow-slate-900/5 sm:px-6 sm:py-7 lg:px-8 lg:py-8`}>
+        <div
+          className={`${glassCardClass} border-slate-200/70 bg-white/95 px-4 py-5 shadow-inner shadow-slate-900/5 sm:px-6 sm:py-7 lg:px-8 lg:py-8`}
+        >
           <div className="mb-4 flex items-center gap-3 sm:mb-6">
             <Lightbulb className="h-5 w-5 text-amber-300" />
             <h3 className="text-base font-semibold text-slate-900 sm:text-lg">
-              Ce învață copiii prin jucăriile {getCategoryName(slug, "ro").toLowerCase()}:
+              Ce învață copiii prin jucăriile{" "}
+              {getCategoryName(slug, "ro").toLowerCase()}:
             </h3>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
@@ -981,7 +990,7 @@ export default async function CategoryDetailPage({
   const cookieStore = await cookies();
   const locale = cookieStore.get("locale")?.value ?? "ro";
   const slug = slugParam.toLowerCase();
-  if (!isKnownSlug(slug)) {
+  if (isRemovedCategoryPageSlug(slug) || !isKnownSlug(slug)) {
     notFound();
   }
   const _t = getTranslation(locale);
@@ -1164,7 +1173,6 @@ export default async function CategoryDetailPage({
         <Testimonials slug={slug} />
 
         <Suspense>
-          {/* @ts-expect-error Async Server Component */}
           <RelatedBlogs slug={slug} />
         </Suspense>
       </div>

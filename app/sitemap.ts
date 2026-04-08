@@ -2,6 +2,10 @@ import { MetadataRoute } from "next";
 
 import { db } from "@/lib/db";
 import { regionalStemCities } from "@/lib/seo/regional-search";
+import {
+  isRemovedCategoryPageSlug,
+  REMOVED_CATEGORY_PAGE_SLUGS,
+} from "@/lib/utils/category-page-links";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
 
@@ -40,11 +44,6 @@ const staticRoutes: MetadataRoute.Sitemap = [
     url: `${baseUrl}/categories`,
     changeFrequency: "weekly",
     priority: 0.8,
-  },
-  {
-    url: `${baseUrl}/categories/coding-robotics`,
-    changeFrequency: "weekly",
-    priority: 0.86,
   },
   {
     url: `${baseUrl}/blog`,
@@ -129,6 +128,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     db.category.findMany({
       where: {
         isActive: true,
+        slug: {
+          notIn: [...REMOVED_CATEGORY_PAGE_SLUGS],
+        },
       },
       select: {
         slug: true,
@@ -140,15 +142,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${baseUrl}/jucarii-stem/${city.slug}`,
     lastModified: now,
     changeFrequency: "weekly" as const,
-    priority: city.slug === "bucuresti" || city.slug === "cluj-napoca" ? 0.84 : 0.78,
+    priority:
+      city.slug === "bucuresti" || city.slug === "cluj-napoca" ? 0.84 : 0.78,
   }));
 
   const categoryPages = categories
     .filter(
       category =>
-        !["coding-robotics", "science-experiments", "magnetic-building"].includes(
-          category.slug
-        )
+        !["science-experiments", "magnetic-building"].includes(category.slug) &&
+        !isRemovedCategoryPageSlug(category.slug)
     )
     .map(category => ({
       url: `${baseUrl}/categories/${category.slug}`,
@@ -171,10 +173,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.66,
   }));
 
-  return staticRoutes.map(route => ({ ...route, lastModified: now })).concat(
-    regionalPages,
-    categoryPages,
-    productPages,
-    blogPages
-  );
+  return staticRoutes
+    .map(route => ({ ...route, lastModified: now }))
+    .concat(regionalPages, categoryPages, productPages, blogPages);
 }
