@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { appConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isUniqueConstraintError } from "@/lib/returns/errors";
 import {
   RETURN_REASON_LABELS_RO,
   RETURN_WINDOW_DAYS,
@@ -10,6 +11,7 @@ import {
   isWithinReturnWindowForOrder,
   normalizeReturnDetails,
 } from "@/lib/returns/policy";
+import { mapReturnStatusToOrderItemStatus } from "@/lib/returns/status-machine";
 
 export async function POST(request: Request) {
   try {
@@ -107,30 +109,33 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create the return record
-    const returnRecord = await db.return.create({
-      data: {
-        userId: session.user.id,
-        orderId: orderItem.orderId,
-        orderItemId: orderItem.id,
-        reason: returnReason,
-        details: returnReason === "OTHER" ? normalizedDetails : null,
-        status: "PENDING",
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
+    // Create the return record and sync the order item in one transaction
+    const returnRecord = await db.$transaction(async tx => {
+      const createdReturn = await tx.return.create({
+        data: {
+          userId: session.user.id,
+          orderId: orderItem.orderId,
+          orderItemId: orderItem.id,
+          reason: returnReason,
+          details: returnReason === "OTHER" ? normalizedDetails : null,
+          status: "PENDING",
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    // Update the order item status to reflect return requested
-    await db.orderItem.update({
-      where: { id: orderItem.id },
-      data: { returnStatus: "REQUESTED" },
+      await tx.orderItem.update({
+        where: { id: orderItem.id },
+        data: { returnStatus: mapReturnStatusToOrderItemStatus("PENDING") },
+      });
+
+      return createdReturn;
     });
 
     // Get store settings for admin email
@@ -188,6 +193,17 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Error initiating return:", error);
+
+    if (isUniqueConstraintError(error)) {
+      return NextResponse.json(
+        {
+          error:
+            "Produsul are deja un retur activ. Verifică pagina de retururi înainte să trimiți o nouă cerere.",
+        },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Nu am putut iniția returul." },
       { status: 500 }

@@ -77,6 +77,7 @@ import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { AnalyticsChart } from "@/components/ui/analytics-chart";
 import { useToast } from "@/components/ui/use-toast";
 import { RETURN_REASON_LABELS_RO } from "@/lib/returns/policy";
+import { canTransitionReturnStatus } from "@/lib/returns/status-machine";
 
 type ReturnReason =
   | "DOES_NOT_MEET_EXPECTATIONS"
@@ -319,6 +320,11 @@ function getClaimDeadlineState(deadline?: string | null) {
     isOverdue,
     daysRemaining,
   };
+}
+
+function canMoveReturnTo(currentStatus: ReturnStatus, nextStatus: ReturnStatus) {
+  return currentStatus !== nextStatus &&
+    canTransitionReturnStatus(currentStatus, nextStatus);
 }
 
 export default function AdminReturnsPage() {
@@ -1597,7 +1603,9 @@ export default function AdminReturnsPage() {
                                         "APPROVED"
                                       )
                                     }
-                                    disabled={returnItem.status === "APPROVED"}
+                                    disabled={
+                                      !canMoveReturnTo(returnItem.status, "APPROVED")
+                                    }
                                   >
                                     Approve Return
                                   </DropdownMenuItem>
@@ -1608,7 +1616,9 @@ export default function AdminReturnsPage() {
                                         "REJECTED"
                                       )
                                     }
-                                    disabled={returnItem.status === "REJECTED"}
+                                    disabled={
+                                      !canMoveReturnTo(returnItem.status, "REJECTED")
+                                    }
                                   >
                                     Reject Return
                                   </DropdownMenuItem>
@@ -1620,8 +1630,7 @@ export default function AdminReturnsPage() {
                                       )
                                     }
                                     disabled={
-                                      returnItem.status === "RECEIVED" ||
-                                      returnItem.status === "REFUNDED"
+                                      !canMoveReturnTo(returnItem.status, "RECEIVED")
                                     }
                                   >
                                     Mark as Received
@@ -1633,7 +1642,9 @@ export default function AdminReturnsPage() {
                                         "REFUNDED"
                                       )
                                     }
-                                    disabled={returnItem.status === "REFUNDED"}
+                                    disabled={
+                                      !canMoveReturnTo(returnItem.status, "REFUNDED")
+                                    }
                                   >
                                     Mark as Refunded
                                   </DropdownMenuItem>

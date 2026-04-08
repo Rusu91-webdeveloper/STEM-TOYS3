@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AdminNotificationService } from "@/lib/email/admin-notification-service";
+import {
+  buildManualRefundRequestNote,
+  normalizeManualRefundReturnIds,
+} from "@/lib/returns/manual-refund-sync";
 
 /**
  * Netopia Refund API
@@ -23,7 +27,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const { transactionId, orderId, amount, reason } = await request.json();
+    const { transactionId, orderId, amount, reason, returnIds } =
+      await request.json();
+    const normalizedReturnIds = normalizeManualRefundReturnIds(returnIds);
 
     // Validate required fields
     if (!transactionId && !orderId) {
@@ -67,6 +73,43 @@ export async function POST(request: Request) {
       );
     }
 
+    if (normalizedReturnIds.length > 0) {
+      const linkedReturns = await db.return.findMany({
+        where: {
+          id: { in: normalizedReturnIds },
+          orderId: order.id,
+        },
+        select: {
+          id: true,
+          status: true,
+        },
+      });
+
+      if (linkedReturns.length !== normalizedReturnIds.length) {
+        return NextResponse.json(
+          {
+            error:
+              "Unele retururi selectate pentru refund manual nu aparțin acestei comenzi.",
+          },
+          { status: 400 }
+        );
+      }
+
+      const nonRefundableReturns = linkedReturns.filter(
+        returnRecord => !["RECEIVED", "REFUNDED"].includes(returnRecord.status)
+      );
+
+      if (nonRefundableReturns.length > 0) {
+        return NextResponse.json(
+          {
+            error:
+              "Doar retururile primite pot fi atașate unei cereri de refund manual.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Calculate refund amount (default to full order amount if not specified)
     const refundAmount = amount && amount > 0 ? amount : order.total;
     const isPartialRefund = refundAmount < order.total;
@@ -74,14 +117,23 @@ export async function POST(request: Request) {
     // Generate refund request ID
     const refundRequestId = `REF-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
+    const refundRequestNote = buildManualRefundRequestNote({
+      refundRequestId,
+      refundAmount,
+      reason,
+      requestedAt: new Date(),
+      requestedBy: session.user.email,
+      returnIds: normalizedReturnIds,
+    });
+
     // Update order with refund pending status
     const updatedOrder = await db.order.update({
       where: { id: order.id },
       data: {
         paymentStatus: "REFUND_PENDING",
         notes: order.notes
-          ? `${order.notes}\n[REFUND_REQUESTED: ${refundRequestId} - Amount: ${refundAmount.toFixed(2)} RON - ${reason || "No reason provided"} - ${new Date().toISOString()} - Requested by: ${session.user.email}]`
-          : `[REFUND_REQUESTED: ${refundRequestId} - Amount: ${refundAmount.toFixed(2)} RON - ${reason || "No reason provided"} - ${new Date().toISOString()} - Requested by: ${session.user.email}]`,
+          ? `${order.notes}\n${refundRequestNote}`
+          : refundRequestNote,
       },
     });
 
@@ -126,6 +178,7 @@ export async function POST(request: Request) {
         isPartialRefund,
         status: "PENDING",
         reason: reason || null,
+        linkedReturnIds: normalizedReturnIds,
         customerEmail: order.user?.email || null,
         manualProcessingRequired: true,
         instructions: "Please process this refund through the Netopia merchant dashboard. After processing, use the /api/payments/netopia/refund/complete endpoint to mark the refund as completed.",

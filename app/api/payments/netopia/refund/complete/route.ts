@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { DatabaseTemplateService } from "@/lib/email/database-template-service";
+import { mapReturnStatusToOrderItemStatus } from "@/lib/returns/status-machine";
+import {
+  appendManualRefundResolutionNote,
+  buildManualRefundCompletedNote,
+  buildManualRefundResolutionNote,
+  extractLatestManualRefundRequestedReturnIds,
+  normalizeManualRefundReturnIds,
+  planManualRefundReturnSync,
+} from "@/lib/returns/manual-refund-sync";
 
 /**
  * Mark a Netopia refund as completed
@@ -19,7 +28,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const { orderId, netopiaRefundId, refundedAmount } = await request.json();
+    const { orderId, netopiaRefundId, refundedAmount, returnIds } =
+      await request.json();
+    const normalizedReturnIds = normalizeManualRefundReturnIds(returnIds);
 
     // Validate required fields
     if (!orderId) {
@@ -57,15 +68,89 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update order to refunded
-    const updatedOrder = await db.order.update({
-      where: { id: order.id },
-      data: {
-        paymentStatus: "REFUNDED",
-        notes: order.notes
-          ? `${order.notes}\n[REFUNDED: ${netopiaRefundId || "Manual"} - Amount: ${(refundedAmount || order.total).toFixed(2)} RON - ${new Date().toISOString()} - Completed by: ${session.user.email}]`
-          : `[REFUNDED: ${netopiaRefundId || "Manual"} - Amount: ${(refundedAmount || order.total).toFixed(2)} RON - ${new Date().toISOString()} - Completed by: ${session.user.email}]`,
+    const effectiveRefundedAmount = refundedAmount || order.total;
+    const orderReturns = await db.return.findMany({
+      where: { orderId: order.id },
+      select: {
+        id: true,
+        orderItemId: true,
+        status: true,
+        refundStatus: true,
+        resolutionNotes: true,
       },
+    });
+
+    const requestedReturnIds =
+      normalizedReturnIds.length > 0
+        ? normalizedReturnIds
+        : extractLatestManualRefundRequestedReturnIds(order.notes);
+    const syncPlan = planManualRefundReturnSync({
+      orderReturns,
+      orderTotal: order.total,
+      refundedAmount: effectiveRefundedAmount,
+      requestedReturnIds,
+    });
+
+    if (!syncPlan.ok) {
+      return NextResponse.json(
+        { error: syncPlan.error },
+        { status: 400 }
+      );
+    }
+
+    const completedAt = new Date();
+    const manualRefundResolutionNote = buildManualRefundResolutionNote({
+      completedAt,
+      refundId: netopiaRefundId,
+      refundedAmount: effectiveRefundedAmount,
+    });
+    const refundCompletedNote = buildManualRefundCompletedNote({
+      refundId: netopiaRefundId,
+      refundedAmount: effectiveRefundedAmount,
+      completedAt,
+      completedBy: session.user.email,
+      syncedReturnIds: syncPlan.targetReturns.map(returnRecord => returnRecord.id),
+    });
+
+    const updatedOrder = await db.$transaction(async tx => {
+      const nextOrder = await tx.order.update({
+        where: { id: order.id },
+        data: {
+          paymentStatus: "REFUNDED",
+          notes: order.notes
+            ? `${order.notes}\n${refundCompletedNote}`
+            : refundCompletedNote,
+        },
+      });
+
+      for (const returnRecord of syncPlan.targetReturns) {
+        const currentReturn = orderReturns.find(
+          candidate => candidate.id === returnRecord.id
+        );
+
+        await tx.return.update({
+          where: { id: returnRecord.id },
+          data: {
+            status: "REFUNDED",
+            refundStatus: "SUCCESS",
+            refundError: "",
+            resolutionStatus: "REFUNDED",
+            resolutionNotes: appendManualRefundResolutionNote(
+              currentReturn?.resolutionNotes,
+              manualRefundResolutionNote
+            ),
+          },
+        });
+
+        await tx.orderItem.update({
+          where: { id: returnRecord.orderItemId },
+          data: {
+            returnStatus: mapReturnStatusToOrderItemStatus("REFUNDED"),
+          },
+        });
+      }
+
+      return nextOrder;
     });
 
     console.log(`Netopia refund completed:`, {
@@ -73,6 +158,9 @@ export async function POST(request: Request) {
       orderNumber: order.orderNumber,
       netopiaRefundId,
       refundedAmount: refundedAmount || order.total,
+      syncedReturnIds: syncPlan.targetReturns.map(returnRecord => returnRecord.id),
+      manualReviewRequired: syncPlan.manualReviewRequired,
+      manualReviewReason: syncPlan.manualReviewReason,
       completedBy: session.user.email,
       timestamp: new Date().toISOString(),
     });
@@ -105,8 +193,13 @@ export async function POST(request: Request) {
         orderId: order.id,
         orderNumber: order.orderNumber,
         paymentStatus: "REFUNDED",
-        refundedAmount: refundedAmount || order.total,
+        refundedAmount: effectiveRefundedAmount,
         netopiaRefundId: netopiaRefundId || null,
+        syncedReturnIds: syncPlan.targetReturns.map(returnRecord => returnRecord.id),
+        alreadyRefundedReturnIds: syncPlan.alreadyRefundedReturnIds,
+        manualReviewRequired: syncPlan.manualReviewRequired,
+        manualReviewReason: syncPlan.manualReviewReason,
+        syncSource: syncPlan.source,
         customerNotified: !!order.user?.email,
       },
     });

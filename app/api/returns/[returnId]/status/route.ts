@@ -3,7 +3,14 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isStripePaymentMethod } from "@/lib/orders/customer-order-display";
 import { generateReturnLabel } from "@/lib/return-label";
+import {
+  canTransitionReturnStatus,
+  getAllowedNextReturnStatuses,
+  isReturnLifecycleStatus,
+  mapReturnStatusToOrderItemStatus,
+} from "@/lib/returns/status-machine";
 import { getStripeServerClient } from "@/lib/stripe-server";
 import {
   sendReturnApprovedEmail,
@@ -75,14 +82,7 @@ export async function PATCH(
     );
 
     // Validate status
-    const validStatuses = [
-      "PENDING",
-      "APPROVED",
-      "REJECTED",
-      "RECEIVED",
-      "REFUNDED",
-    ];
-    if (hasStatusUpdate && !validStatuses.includes(status)) {
+    if (hasStatusUpdate && !isReturnLifecycleStatus(status)) {
       return NextResponse.json(
         { error: "Invalid status value" },
         { status: 400 }
@@ -183,6 +183,7 @@ export async function PATCH(
             id: true,
             orderNumber: true,
             createdAt: true,
+            paymentMethod: true,
             stripePaymentIntentId: true,
             total: true,
             shippingCost: true,
@@ -218,10 +219,27 @@ export async function PATCH(
       return NextResponse.json({ error: "Return not found" }, { status: 404 });
     }
 
+    if (
+      hasStatusUpdate &&
+      !canTransitionReturnStatus(returnData.status, status)
+    ) {
+      const allowedTransitions = getAllowedNextReturnStatuses(returnData.status);
+      return NextResponse.json(
+        {
+          error: `Invalid status transition from ${returnData.status} to ${status}.`,
+          allowedTransitions,
+        },
+        { status: 400 }
+      );
+    }
+
     // Update return status
     const updateData: Record<string, unknown> = {};
+    const nextOrderItemStatus =
+      hasStatusUpdate ? mapReturnStatusToOrderItemStatus(status) : null;
+    const isRefundTransition = hasStatusUpdate && status === "REFUNDED";
 
-    if (hasStatusUpdate) {
+    if (hasStatusUpdate && !isRefundTransition) {
       updateData.status = status;
     }
 
@@ -275,54 +293,58 @@ export async function PATCH(
           : null;
     }
 
-    const updatedReturn = await db.return.update({
-      where: { id: returnId },
-      data: updateData,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            addresses: {
-              where: { isDefault: true },
-              take: 1,
-            },
-          },
-        },
-        order: {
-          select: {
-            id: true,
-            orderNumber: true,
-            createdAt: true,
-            stripePaymentIntentId: true,
-            total: true,
-            shippingCost: true,
-            paymentStatus: true,
-          },
-        },
-        orderItem: {
-          include: {
-            product: {
-              include: {
-                supplier: {
-                  select: {
-                    id: true,
-                    name: true,
+    const updatedReturn =
+      Object.keys(updateData).length > 0
+        ? await db.return.update({
+            where: { id: returnId },
+            data: updateData,
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  addresses: {
+                    where: { isDefault: true },
+                    take: 1,
                   },
                 },
               },
+              order: {
+                select: {
+                  id: true,
+                  orderNumber: true,
+                  createdAt: true,
+                  paymentMethod: true,
+                  stripePaymentIntentId: true,
+                  total: true,
+                  shippingCost: true,
+                  paymentStatus: true,
+                },
+              },
+              orderItem: {
+                include: {
+                  product: {
+                    include: {
+                      supplier: {
+                        select: {
+                          id: true,
+                          name: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              reportLogs: {
+                orderBy: {
+                  sentAt: "desc",
+                },
+                take: 10,
+              },
             },
-          },
-        },
-        reportLogs: {
-          orderBy: {
-            sentAt: "desc",
-          },
-          take: 10,
-        },
-      },
-    });
+          })
+        : returnData;
 
     if (hasStatusUpdate) {
       console.log(`✅ Return ${returnId} status updated to: ${status}`);
@@ -330,90 +352,175 @@ export async function PATCH(
       console.log(`✅ Return ${returnId} supplier authorization updated`);
     }
 
+    if (hasStatusUpdate && status !== "REFUNDED" && nextOrderItemStatus) {
+      await db.orderItem.update({
+        where: { id: returnData.orderItemId },
+        data: { returnStatus: nextOrderItemStatus },
+      });
+    }
+
     // Stripe refund logic for REFUNDED status
-    if (hasStatusUpdate && status === "REFUNDED") {
+    if (isRefundTransition) {
       try {
-        const stripe = getStripeServerClient();
         const order = updatedReturn.order as any;
         const orderItem = updatedReturn.orderItem as any;
+        const paymentMethod = order.paymentMethod || "";
+        const isStripeRefundableOrder =
+          isStripePaymentMethod(paymentMethod) ||
+          Boolean(order.stripePaymentIntentId);
+        const isOrderAlreadyRefunded = order.paymentStatus === "REFUNDED";
+        const isReturnAlreadyRefundSuccessful =
+          returnData.refundStatus === "SUCCESS";
+        const isPaidLikeOrderStatus =
+          order.paymentStatus === "PAID" || order.paymentStatus === "COMPLETED";
 
-        if (returnData.refundStatus === "SUCCESS") {
+        const finalizeRefundState = async () => {
+          const [orderItemCount, refundedReturnCount] = await Promise.all([
+            db.orderItem.count({
+              where: { orderId: order.id },
+            }),
+            db.return.count({
+              where: { orderId: order.id, status: "REFUNDED" },
+            }),
+          ]);
+
+          const shouldMarkOrderRefunded =
+            orderItemCount > 0 &&
+            refundedReturnCount + (returnData.status === "REFUNDED" ? 0 : 1) >=
+              orderItemCount &&
+            order.paymentStatus !== "REFUNDED";
+
+          await db.$transaction(async tx => {
+            await tx.return.update({
+              where: { id: returnId },
+              data: {
+                status: "REFUNDED",
+                refundStatus: "SUCCESS",
+                refundError: "",
+              },
+            });
+
+            await tx.orderItem.update({
+              where: { id: returnData.orderItemId },
+              data: {
+                returnStatus: mapReturnStatusToOrderItemStatus("REFUNDED"),
+              },
+            });
+
+            if (shouldMarkOrderRefunded) {
+              await tx.order.update({
+                where: { id: order.id },
+                data: { paymentStatus: "REFUNDED" },
+              });
+            }
+          });
+        };
+
+        if (isReturnAlreadyRefundSuccessful || isOrderAlreadyRefunded) {
           console.log(
             `ℹ️ Return ${returnId} already has successful refund status. Skipping duplicate Stripe refund.`
           );
+          await finalizeRefundState();
         } else {
-          if (!order.stripePaymentIntentId) {
+          if (!isStripeRefundableOrder) {
+            const refundErrorMessage =
+              "Refundul trebuie confirmat în procesatorul de plăți înainte să marchezi returul ca REFUNDED.";
+
             await db.return.update({
               where: { id: returnId },
               data: {
                 refundStatus: "FAILED",
-                refundError:
-                  "Order does not have a Stripe payment intent ID. Cannot process refund.",
+                refundError: refundErrorMessage,
               },
             });
             return NextResponse.json(
               {
-                error:
-                  "Order does not have a Stripe payment intent ID. Cannot process refund.",
+                error: refundErrorMessage,
                 refundStatus: "FAILED",
-                refundError:
-                  "Order does not have a Stripe payment intent ID. Cannot process refund.",
+                refundError: refundErrorMessage,
               },
               { status: 400 }
             );
           }
-          if (order.paymentStatus === "REFUNDED") {
+
+          if (!order.stripePaymentIntentId) {
+            const refundErrorMessage =
+              "Order does not have a Stripe payment intent ID. Cannot process refund.";
+
             await db.return.update({
               where: { id: returnId },
-              data: { refundStatus: "SUCCESS", refundError: "" },
+              data: {
+                refundStatus: "FAILED",
+                refundError: refundErrorMessage,
+              },
             });
-          } else {
-            const refundAmount = Math.round(
-              Number(orderItem.price || 0) *
-                Number(orderItem.quantity || 0) *
-                100
+            return NextResponse.json(
+              {
+                error: refundErrorMessage,
+                refundStatus: "FAILED",
+                refundError: refundErrorMessage,
+              },
+              { status: 400 }
             );
-            if (refundAmount <= 0) {
-              await db.return.update({
-                where: { id: returnId },
-                data: {
-                  refundStatus: "FAILED",
-                  refundError:
-                    "Refund amount is zero or negative. Skipping Stripe refund.",
-                },
-              });
-            } else {
-              await stripe.refunds.create({
-                payment_intent: order.stripePaymentIntentId,
-                amount: refundAmount,
-                metadata: {
-                  returnId: updatedReturn.id,
-                  orderNumber: order.orderNumber,
-                  orderItemId: updatedReturn.orderItemId,
-                },
-              });
-
-              const [orderItemCount, refundedReturnCount] = await Promise.all([
-                db.orderItem.count({
-                  where: { orderId: order.id },
-                }),
-                db.return.count({
-                  where: { orderId: order.id, status: "REFUNDED" },
-                }),
-              ]);
-
-              if (orderItemCount > 0 && refundedReturnCount >= orderItemCount) {
-                await db.order.update({
-                  where: { id: order.id },
-                  data: { paymentStatus: "REFUNDED" },
-                });
-              }
-              await db.return.update({
-                where: { id: returnId },
-                data: { refundStatus: "SUCCESS", refundError: "" },
-              });
-            }
           }
+
+          if (!isPaidLikeOrderStatus) {
+            const refundErrorMessage =
+              "Only paid Stripe orders can be marked as refunded.";
+
+            await db.return.update({
+              where: { id: returnId },
+              data: {
+                refundStatus: "FAILED",
+                refundError: refundErrorMessage,
+              },
+            });
+            return NextResponse.json(
+              {
+                error: refundErrorMessage,
+                refundStatus: "FAILED",
+                refundError: refundErrorMessage,
+              },
+              { status: 400 }
+            );
+          }
+
+          const refundAmount = Math.round(
+            Number(orderItem.price || 0) * Number(orderItem.quantity || 0) * 100
+          );
+          if (refundAmount <= 0) {
+            const refundErrorMessage =
+              "Refund amount is zero or negative. Skipping Stripe refund.";
+
+            await db.return.update({
+              where: { id: returnId },
+              data: {
+                refundStatus: "FAILED",
+                refundError: refundErrorMessage,
+              },
+            });
+            return NextResponse.json(
+              {
+                error: refundErrorMessage,
+                refundStatus: "FAILED",
+                refundError: refundErrorMessage,
+              },
+              { status: 400 }
+            );
+          }
+
+          const stripe = getStripeServerClient();
+          await stripe.refunds.create({
+            payment_intent: order.stripePaymentIntentId,
+            amount: refundAmount,
+            metadata: {
+              returnId: updatedReturn.id,
+              orderNumber: order.orderNumber,
+              orderItemId: updatedReturn.orderItemId,
+            },
+          });
+
+          await finalizeRefundState();
         }
       } catch (refundError) {
         await db.return.update({
@@ -483,6 +590,7 @@ export async function PATCH(
             id: true,
             orderNumber: true,
             createdAt: true,
+            paymentMethod: true,
             stripePaymentIntentId: true,
             total: true,
             shippingCost: true,

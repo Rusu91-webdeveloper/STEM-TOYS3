@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateReturnLabel } from "@/lib/return-label";
+import { mapReturnStatusToOrderItemStatus } from "@/lib/returns/status-machine";
 import { sendBulkReturnApprovedEmail } from "@/lib/email/return-templates";
 
 // Increase timeout for this route (Vercel)
@@ -125,6 +126,17 @@ export async function POST(request: Request) {
           })
         )
       );
+
+      await tx.orderItem.updateMany({
+        where: {
+          id: {
+            in: [...new Set(returns.map(returnItem => returnItem.orderItemId))],
+          },
+        },
+        data: {
+          returnStatus: mapReturnStatusToOrderItemStatus("APPROVED"),
+        },
+      });
     });
     
     console.log(`✅ All ${returns.length} returns updated to APPROVED`);

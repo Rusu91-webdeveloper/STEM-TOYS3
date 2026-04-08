@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { appConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isUniqueConstraintError } from "@/lib/returns/errors";
 import {
   RETURN_PHOTO_LIMIT,
   RETURN_REASON_LABELS_RO,
@@ -13,6 +14,7 @@ import {
   normalizeReturnDetails,
   normalizeReturnPhotos,
 } from "@/lib/returns/policy";
+import { mapReturnStatusToOrderItemStatus } from "@/lib/returns/status-machine";
 
 export async function POST(request: Request) {
   try {
@@ -28,12 +30,16 @@ export async function POST(request: Request) {
     const { orderItemIds, reason, details, photos } = await request.json();
     const normalizedDetails = normalizeReturnDetails(details);
     const normalizedPhotos = normalizeReturnPhotos(photos);
+    const normalizedOrderItemIds = Array.isArray(orderItemIds)
+      ? [...new Set(
+          orderItemIds
+            .filter((id): id is string => typeof id === "string")
+            .map(id => id.trim())
+            .filter(Boolean)
+        )]
+      : [];
 
-    if (
-      !orderItemIds ||
-      !Array.isArray(orderItemIds) ||
-      orderItemIds.length === 0
-    ) {
+    if (normalizedOrderItemIds.length === 0) {
       return NextResponse.json(
         { error: "Selectează cel puțin un produs pentru retur." },
         { status: 400 }
@@ -61,7 +67,7 @@ export async function POST(request: Request) {
     // Find all order items that belong to the user
     const orderItems = await db.orderItem.findMany({
       where: {
-        id: { in: orderItemIds },
+        id: { in: normalizedOrderItemIds },
         order: {
           userId: session.user.id,
         },
@@ -84,6 +90,16 @@ export async function POST(request: Request) {
       );
     }
 
+    if (orderItems.length !== normalizedOrderItemIds.length) {
+      return NextResponse.json(
+        {
+          error:
+            "Unele produse selectate nu au fost găsite sau nu aparțin contului tău.",
+        },
+        { status: 400 }
+      );
+    }
+
     // Verify all items belong to the same order
     const orderIds = [...new Set(orderItems.map(item => item.orderId))];
     if (orderIds.length > 1) {
@@ -95,6 +111,25 @@ export async function POST(request: Request) {
 
     // Check if the return is within 14 days of delivery
     const order = orderItems[0].order;
+
+    if (order.status !== "DELIVERED") {
+      return NextResponse.json(
+        { error: "Poți returna doar produse din comenzi livrate." },
+        { status: 400 }
+      );
+    }
+
+    const digitalItems = orderItems.filter(item => item.isDigital);
+    if (digitalItems.length > 0) {
+      return NextResponse.json(
+        {
+          error: `Produsele digitale nu pot fi returnate: ${digitalItems
+            .map(item => item.name)
+            .join(", ")}`,
+        },
+        { status: 400 }
+      );
+    }
 
     // Use deliveredAt if available, otherwise fall back to order creation date
     // This matches the frontend logic for return eligibility
@@ -132,7 +167,7 @@ export async function POST(request: Request) {
     // This prevents duplicate returns if the previous request timed out but still created records
     const existingReturns = await db.return.findMany({
       where: {
-        orderItemId: { in: orderItemIds },
+        orderItemId: { in: normalizedOrderItemIds },
         userId: session.user.id,
         status: {
           in: ["PENDING", "APPROVED", "RECEIVED"],
@@ -179,17 +214,17 @@ export async function POST(request: Request) {
       // Update order items return status
       await tx.orderItem.updateMany({
         where: {
-          id: { in: orderItemIds },
+          id: { in: normalizedOrderItemIds },
         },
         data: {
-          returnStatus: "REQUESTED",
+          returnStatus: mapReturnStatusToOrderItemStatus("PENDING"),
         },
       });
 
       // Get the created return records
       const returns = await tx.return.findMany({
         where: {
-          orderItemId: { in: orderItemIds },
+          orderItemId: { in: normalizedOrderItemIds },
           userId: session.user.id,
         },
         orderBy: {
@@ -293,6 +328,17 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Error initiating bulk return:", error);
+
+    if (isUniqueConstraintError(error)) {
+      return NextResponse.json(
+        {
+          error:
+            "Unul sau mai multe produse au deja un retur activ. Verifică pagina de retururi înainte să trimiți o nouă cerere.",
+        },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Nu am putut iniția returul." },
       { status: 500 }
