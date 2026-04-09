@@ -18,7 +18,6 @@ import { useCart } from "@/features/cart";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { ShippingMethod } from "../types";
 
 interface PaymentCard {
@@ -101,9 +100,8 @@ const PaymentMethodSelectorComponent = ({
   );
   const codBlockedByMixedSupplier = useMemo(
     () =>
-      Boolean(
-        shippingMethod?.isMixedSupplierCart || shippingMethod?.requiresPrepaid
-      ),
+      (shippingMethod?.isMixedSupplierCart ?? false) ||
+      (shippingMethod?.requiresPrepaid ?? false),
     [shippingMethod]
   );
   const codBlockedByLimit = useMemo(
@@ -173,17 +171,17 @@ const PaymentMethodSelectorComponent = ({
             "codUnavailableThreshold",
             `Plata ramburs este disponibilă doar pentru comenzi de până la ${codThreshold.toFixed(0)} RON. Pentru această comandă trebuie să alegi plata online cu cardul.`
           )
-      : !stripeEnabled
-        ? t(
-            "codUnavailableGuarantee",
-            "Rambursul necesită autorizare garanție pe card. Activează plata cu cardul pentru a folosi COD."
-          )
-        : codBlockedByMixedSupplier
+        : !stripeEnabled
           ? t(
-              "codUnavailableMixedSupplier",
-              "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul."
+              "codUnavailableGuarantee",
+              "Rambursul necesită autorizare garanție pe card. Activează plata cu cardul pentru a folosi COD."
             )
-          : undefined;
+          : codBlockedByMixedSupplier
+            ? t(
+                "codUnavailableMixedSupplier",
+                "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul."
+              )
+            : undefined;
 
     if (codEnabled && isRomanianUser && !isDigitalOnlyCart) {
       methods.push({
@@ -252,7 +250,7 @@ const PaymentMethodSelectorComponent = ({
       const firstEnabledMethod = paymentMethods.find(
         method => !method.disabled
       );
-      onPaymentMethodChange(firstEnabledMethod?.id || paymentMethods[0].id);
+      onPaymentMethodChange(firstEnabledMethod?.id ?? paymentMethods[0].id);
     }
   }, [
     codBlockedByFanbox,
@@ -306,15 +304,15 @@ const PaymentMethodSelectorComponent = ({
   ) => {
     switch (variant) {
       case "recommended":
-        return "border border-violet-200 bg-violet-50 text-violet-800";
+        return "border border-violet-200 bg-violet-50 text-violet-700";
       case "popular":
-        return "border border-amber-200 bg-amber-50 text-amber-900";
+        return "border border-amber-200 bg-amber-50 text-amber-800";
       case "saved":
-        return "border border-emerald-200 bg-emerald-50 text-emerald-800";
+        return "border border-emerald-200 bg-emerald-50 text-emerald-700";
       case "unavailable":
-        return "border border-rose-200 bg-rose-50 text-rose-800";
+        return "border border-rose-200 bg-rose-50 text-rose-700";
       default:
-        return "border border-slate-200 bg-slate-100 text-slate-700";
+        return "border border-slate-200 bg-slate-100 text-slate-600";
     }
   };
 
@@ -323,29 +321,29 @@ const PaymentMethodSelectorComponent = ({
       case "stripe":
         return {
           bg: "bg-violet-50",
-          text: "text-violet-800",
+          text: "text-violet-700",
           icon: <ShieldCheck className="h-3.5 w-3.5" />,
           label: "Stripe",
           borderAndGlow:
-            "border-primary/60 bg-gradient-to-br from-violet-50 to-white shadow-md ring-2 ring-primary/15",
+            "border-violet-300 bg-violet-50/50 shadow-[0_10px_30px_-18px_rgba(109,40,217,0.45)] ring-1 ring-violet-200",
         };
       case "netopia":
         return {
           bg: "bg-sky-50",
-          text: "text-sky-800",
+          text: "text-sky-700",
           icon: <CreditCard className="h-3.5 w-3.5" />,
           label: "Netopia",
           borderAndGlow:
-            "border-primary/70 bg-gradient-to-br from-sky-50 to-white shadow-md ring-2 ring-primary/20",
+            "border-sky-300 bg-sky-50/60 shadow-[0_10px_30px_-18px_rgba(14,116,144,0.35)] ring-1 ring-sky-200",
         };
       case "cod":
         return {
           bg: "bg-amber-50",
-          text: "text-amber-900",
+          text: "text-amber-800",
           icon: <Banknote className="h-3.5 w-3.5" />,
           label: t("cashOnDelivery", "Ramburs"),
           borderAndGlow:
-            "border-amber-400/80 bg-gradient-to-br from-amber-50 to-white shadow-md ring-2 ring-amber-200/60",
+            "border-amber-300 bg-amber-50/60 shadow-[0_10px_30px_-18px_rgba(217,119,6,0.35)] ring-1 ring-amber-200",
         };
       default:
         return {
@@ -354,28 +352,40 @@ const PaymentMethodSelectorComponent = ({
           icon: <CreditCard className="h-3.5 w-3.5" />,
           label: "Payment",
           borderAndGlow:
-            "border-slate-400 bg-gradient-to-br from-slate-50 to-white shadow-md ring-2 ring-slate-200/80",
+            "border-slate-300 bg-slate-50 shadow-sm ring-1 ring-slate-200",
         };
     }
   };
 
   const getColorConfig = (color: string) => {
-    const configs: Record<string, { icon: string; bg: string; checkBg: string; checkBorder: string }> = {
+    const configs: Record<
+      string,
+      {
+        icon: string;
+        bg: string;
+        border: string;
+        checkBg: string;
+        checkBorder: string;
+      }
+    > = {
       violet: {
         icon: "text-violet-700",
         bg: "bg-violet-50",
+        border: "border-violet-200",
         checkBg: "bg-violet-600",
         checkBorder: "border-violet-600",
       },
       blue: {
         icon: "text-sky-700",
         bg: "bg-sky-50",
+        border: "border-sky-200",
         checkBg: "bg-primary",
         checkBorder: "border-primary",
       },
       amber: {
         icon: "text-amber-800",
         bg: "bg-amber-50",
+        border: "border-amber-200",
         checkBg: "bg-amber-600",
         checkBorder: "border-amber-600",
       },
@@ -384,29 +394,19 @@ const PaymentMethodSelectorComponent = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div className={`${checkoutCardClass} px-6 py-6 sm:px-7 sm:py-7`}>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <Label className="block text-base font-bold text-slate-900 sm:text-lg">
-              {t("selectPaymentMethod", "Selectează metoda de plată")}
-            </Label>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-700">
-              {t(
-                "paymentMethodSubtitle",
-                "Alege varianta potrivită. Dacă selectezi ramburs, îți explicăm pașii clar înainte să continui."
-              )}
-            </p>
-          </div>
-          <div className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">
-            <ShieldCheck className="h-4 w-4" />
-            {t("securePayment", "Plățile tale sunt protejate și criptate")}
-          </div>
-        </div>
+    <div className="space-y-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <Label className="text-sm font-semibold text-slate-900">
+          {t("selectPaymentMethod", "Selectează metoda de plată")}
+        </Label>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
+          <ShieldCheck className="h-3.5 w-3.5" />
+          {t("securePayment", "Plată securizată")}
+        </span>
       </div>
 
       {codBlockedByFanbox && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3.5">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
               <Info className="h-4 w-4" />
@@ -430,7 +430,7 @@ const PaymentMethodSelectorComponent = ({
       )}
 
       {codBlockedByMixedSupplier && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3.5">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
               <Info className="h-4 w-4" />
@@ -456,14 +456,17 @@ const PaymentMethodSelectorComponent = ({
       )}
 
       {codBlockedByLimit && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50/80 px-4 py-3.5">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50/80 px-4 py-3">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-700">
               <Info className="h-4 w-4" />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-rose-950">
-                {t("codThresholdBannerTitle", "Ramburs indisponibil pentru această comandă")}
+                {t(
+                  "codThresholdBannerTitle",
+                  "Ramburs indisponibil pentru această comandă"
+                )}
               </p>
               <p className="mt-1 text-sm leading-relaxed text-rose-800">
                 {t(
@@ -477,7 +480,7 @@ const PaymentMethodSelectorComponent = ({
       )}
 
       {showCodOverview && (
-        <div className="rounded-3xl border border-amber-200 bg-amber-50/70 px-4 py-4 shadow-sm">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 px-4 py-3.5 shadow-sm">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
               <Info className="h-4 w-4" />
@@ -497,7 +500,7 @@ const PaymentMethodSelectorComponent = ({
                   "Plătești la livrare. Dacă această comandă are risc logistic mai mare, îți vom cere și o autorizare temporară pe card, explicată clar mai jos."
                 )}
               </p>
-              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              <div className="mt-2.5 flex flex-wrap gap-2 text-xs">
                 <span className="rounded-full bg-white px-2.5 py-1 font-medium text-amber-900">
                   {t("codInfoPointOne", "Nu plătești acum produsele")}
                 </span>
@@ -543,36 +546,41 @@ const PaymentMethodSelectorComponent = ({
           const isDisabled = method.disabled === true;
           const colorConfig = getColorConfig(method.color);
           const providerStyles = getProviderStyles(method.provider);
+          const detailText = method.disabledReason ?? method.description;
 
           return (
             <label
               key={method.id}
               htmlFor={`payment-${method.id}`}
               className={cn(
-                "group relative flex gap-4 rounded-2xl border-2 px-5 py-5 transition-all duration-200 ease-out sm:gap-5 sm:px-6 sm:py-6",
+                "group relative flex gap-3 rounded-[24px] border px-4 py-4 transition-all duration-200 ease-out sm:gap-4 sm:px-5 sm:py-[18px]",
                 isDisabled
-                  ? "cursor-not-allowed border-slate-200 bg-slate-100 opacity-60"
-                  : "cursor-pointer border-slate-200 bg-white shadow-sm hover:border-slate-300 hover:shadow-md",
+                  ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-65"
+                  : "cursor-pointer border-slate-200 bg-white shadow-[0_6px_20px_-16px_rgba(15,23,42,0.28)] hover:border-slate-300 hover:bg-slate-50/70 hover:shadow-[0_12px_24px_-20px_rgba(15,23,42,0.35)]",
                 !isDisabled &&
-                  (isSelected
-                    ? providerStyles.borderAndGlow + " z-[1]"
-                    : "hover:bg-slate-50/90")
+                  (isSelected ? `${providerStyles.borderAndGlow} z-[1]` : "")
               )}
             >
               <div
                 className={cn(
-                  "mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300",
+                  "mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300",
                   isDisabled
                     ? "border-slate-300 bg-slate-200"
                     : isSelected
-                      ? `${colorConfig.checkBorder} ${colorConfig.checkBg} scale-110 shadow-sm`
-                      : "border-slate-300 bg-transparent group-hover:border-slate-400"
+                      ? `${colorConfig.checkBorder} ${colorConfig.checkBg} scale-105 shadow-sm`
+                      : "border-slate-300 bg-white group-hover:border-slate-400"
                 )}
               >
                 {isDisabled ? (
                   <Lock className="h-2.5 w-2.5 text-slate-600" />
                 ) : (
-                  <Check className={cn("h-3 w-3 text-white transition-transform duration-300", isSelected ? "scale-100 opacity-100" : "scale-0 opacity-0")} strokeWidth={3} />
+                  <Check
+                    className={cn(
+                      "h-3 w-3 text-white transition-transform duration-300",
+                      isSelected ? "scale-100 opacity-100" : "scale-0 opacity-0"
+                    )}
+                    strokeWidth={3}
+                  />
                 )}
               </div>
 
@@ -586,12 +594,12 @@ const PaymentMethodSelectorComponent = ({
               <div className="flex flex-1 items-start gap-4">
                 <div
                   className={cn(
-                    "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border transition-all duration-200",
+                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-all duration-200",
                     isDisabled
                       ? "border-slate-200 bg-slate-100"
                       : isSelected
-                        ? colorConfig.bg + " border-sky-200 shadow-inner"
-                        : "border-slate-200 bg-sky-50/80 group-hover:border-sky-200 group-hover:bg-sky-50"
+                        ? `${colorConfig.bg} ${colorConfig.border} shadow-inner`
+                        : "border-slate-200 bg-slate-50 group-hover:border-slate-300 group-hover:bg-white"
                   )}
                 >
                   <div
@@ -600,7 +608,7 @@ const PaymentMethodSelectorComponent = ({
                       isDisabled
                         ? "text-slate-500"
                         : isSelected
-                          ? colorConfig.icon + " scale-110"
+                          ? `${colorConfig.icon} scale-110`
                           : "text-slate-500 group-hover:text-slate-700"
                     )}
                   >
@@ -609,34 +617,34 @@ const PaymentMethodSelectorComponent = ({
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h3 className="text-base font-bold tracking-tight text-slate-900 sm:text-[17px]">
+                      <h3 className="text-[15px] font-semibold tracking-tight text-slate-900 sm:text-base">
                         {method.name}
                       </h3>
-                      {(method.description || method.disabledReason) && (
+                      {detailText && (
                         <p
                           className={cn(
-                            "mt-1.5 max-w-[98%] text-sm leading-relaxed",
-                            isDisabled ? "text-slate-500" : "text-slate-700"
+                            "mt-1 max-w-[98%] text-sm leading-relaxed",
+                            isDisabled ? "text-slate-500" : "text-slate-600"
                           )}
                         >
-                          {method.disabledReason || method.description}
+                          {detailText}
                         </p>
                       )}
                     </div>
                     {method.fee && !isDisabled && (
-                      <span className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                      <span className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
                         {method.fee}
                       </span>
                     )}
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <div className="mt-2.5 flex flex-wrap items-center gap-2">
                     {method.badge && (
                       <span
                         className={cn(
-                          "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-sm",
+                          "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em]",
                           getBadgeStyles(method.badgeVariant)
                         )}
                       >
@@ -646,7 +654,7 @@ const PaymentMethodSelectorComponent = ({
 
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-sm",
+                        "inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em]",
                         providerStyles.bg,
                         providerStyles.text
                       )}
