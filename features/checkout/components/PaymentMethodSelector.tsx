@@ -2,7 +2,6 @@
 
 import {
   Banknote,
-  Check,
   CreditCard,
   Info,
   Loader2,
@@ -304,107 +303,45 @@ const PaymentMethodSelectorComponent = ({
   ) => {
     switch (variant) {
       case "recommended":
-        return "border border-violet-200 bg-violet-50 text-violet-700";
+        return "border-rose-200 bg-rose-600 text-white";
       case "popular":
-        return "border border-amber-200 bg-amber-50 text-amber-800";
+        return "border-rose-200 bg-rose-600 text-white";
       case "saved":
-        return "border border-emerald-200 bg-emerald-50 text-emerald-700";
+        return "border-emerald-200 bg-emerald-600 text-white";
       case "unavailable":
-        return "border border-rose-200 bg-rose-50 text-rose-700";
+        return "border-slate-200 bg-slate-100 text-slate-600";
       default:
-        return "border border-slate-200 bg-slate-100 text-slate-600";
+        return "border-slate-200 bg-slate-100 text-slate-600";
     }
   };
 
-  const getProviderStyles = (provider: Provider) => {
+  const getMethodStyles = (provider: Provider) => {
     switch (provider) {
       case "stripe":
         return {
-          bg: "bg-violet-50",
-          text: "text-violet-700",
-          icon: <ShieldCheck className="h-3.5 w-3.5" />,
-          label: "Stripe",
-          borderAndGlow:
-            "border-violet-300 bg-violet-50/50 shadow-[0_10px_30px_-18px_rgba(109,40,217,0.45)] ring-1 ring-violet-200",
+          iconBox: "border-slate-200 bg-white text-slate-700",
+          meta: "text-slate-500",
         };
       case "netopia":
         return {
-          bg: "bg-sky-50",
-          text: "text-sky-700",
-          icon: <CreditCard className="h-3.5 w-3.5" />,
-          label: "Netopia",
-          borderAndGlow:
-            "border-sky-300 bg-sky-50/60 shadow-[0_10px_30px_-18px_rgba(14,116,144,0.35)] ring-1 ring-sky-200",
+          iconBox: "border-slate-200 bg-white text-slate-700",
+          meta: "text-slate-500",
         };
       case "cod":
         return {
-          bg: "bg-amber-50",
-          text: "text-amber-800",
-          icon: <Banknote className="h-3.5 w-3.5" />,
-          label: t("cashOnDelivery", "Ramburs"),
-          borderAndGlow:
-            "border-amber-300 bg-amber-50/60 shadow-[0_10px_30px_-18px_rgba(217,119,6,0.35)] ring-1 ring-amber-200",
+          iconBox: "border-slate-200 bg-white text-slate-700",
+          meta: "text-slate-500",
         };
       default:
         return {
-          bg: "bg-slate-100",
-          text: "text-slate-700",
-          icon: <CreditCard className="h-3.5 w-3.5" />,
-          label: "Payment",
-          borderAndGlow:
-            "border-slate-300 bg-slate-50 shadow-sm ring-1 ring-slate-200",
+          iconBox: "border-slate-200 bg-white text-slate-700",
+          meta: "text-slate-500",
         };
     }
-  };
-
-  const getColorConfig = (color: string) => {
-    const configs: Record<
-      string,
-      {
-        icon: string;
-        bg: string;
-        border: string;
-        checkBg: string;
-        checkBorder: string;
-      }
-    > = {
-      violet: {
-        icon: "text-violet-700",
-        bg: "bg-violet-50",
-        border: "border-violet-200",
-        checkBg: "bg-violet-600",
-        checkBorder: "border-violet-600",
-      },
-      blue: {
-        icon: "text-sky-700",
-        bg: "bg-sky-50",
-        border: "border-sky-200",
-        checkBg: "bg-primary",
-        checkBorder: "border-primary",
-      },
-      amber: {
-        icon: "text-amber-800",
-        bg: "bg-amber-50",
-        border: "border-amber-200",
-        checkBg: "bg-amber-600",
-        checkBorder: "border-amber-600",
-      },
-    };
-    return configs[color] || configs.violet;
   };
 
   return (
     <div className="space-y-3.5">
-      <div className="hidden flex-wrap items-center justify-between gap-2 px-1 sm:flex">
-        <Label className="text-sm font-semibold text-slate-900">
-          {t("selectPaymentMethod", "Selectează metoda de plată")}
-        </Label>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          {t("securePayment", "Plată securizată")}
-        </span>
-      </div>
-
       {codBlockedByFanbox && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3">
           <div className="flex items-start gap-3">
@@ -530,161 +467,130 @@ const PaymentMethodSelectorComponent = ({
         </div>
       )}
 
-      <RadioGroup
-        value={selectedPaymentMethod}
-        onValueChange={value => {
-          const selectedMethod = paymentMethods.find(
-            method => method.id === value
-          );
-          if (selectedMethod?.disabled) return;
-          onPaymentMethodChange(value);
-        }}
-        className="grid gap-2.5 sm:gap-4"
-      >
-        {paymentMethods.map(method => {
-          const isSelected = selectedPaymentMethod === method.id;
-          const isDisabled = method.disabled === true;
-          const colorConfig = getColorConfig(method.color);
-          const providerStyles = getProviderStyles(method.provider);
-          const detailText = method.disabledReason ?? method.description;
+      <div className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
+          <Label className="block text-lg font-semibold text-slate-900">
+            {t("paymentOptionsTitle", "Payment options")}
+          </Label>
+          <p className="mt-1 text-sm text-slate-500">
+            {t("paymentOptionsSubtitle", "Please select a payment method.")}
+          </p>
+        </div>
 
-          return (
-            <label
-              key={method.id}
-              htmlFor={`payment-${method.id}`}
-              className={cn(
-                "group relative flex gap-2.5 rounded-[20px] border px-3 py-3 transition-all duration-200 ease-out sm:gap-4 sm:rounded-[24px] sm:px-5 sm:py-[18px]",
-                isDisabled
-                  ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-65"
-                  : "cursor-pointer border-slate-200 bg-white shadow-[0_6px_20px_-16px_rgba(15,23,42,0.28)] hover:border-slate-300 hover:bg-slate-50/70 hover:shadow-[0_12px_24px_-20px_rgba(15,23,42,0.35)]",
-                !isDisabled &&
-                  (isSelected ? `${providerStyles.borderAndGlow} z-[1]` : "")
-              )}
-            >
-              <div
+        <RadioGroup
+          value={selectedPaymentMethod}
+          onValueChange={value => {
+            const selectedMethod = paymentMethods.find(
+              method => method.id === value
+            );
+            if (selectedMethod?.disabled) return;
+            onPaymentMethodChange(value);
+          }}
+          className="divide-y divide-slate-200"
+        >
+          {paymentMethods.map(method => {
+            const isSelected = selectedPaymentMethod === method.id;
+            const isDisabled = method.disabled === true;
+            const detailText = method.disabledReason ?? method.description;
+            const methodStyles = getMethodStyles(method.provider);
+            const trailingLabel = !isDisabled
+              ? (method.badge ?? method.fee)
+              : method.badge;
+
+            return (
+              <label
+                key={method.id}
+                htmlFor={`payment-${method.id}`}
                 className={cn(
-                  "mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-6 sm:w-6",
+                  "block px-4 py-4 transition-colors sm:px-6",
                   isDisabled
-                    ? "border-slate-300 bg-slate-200"
-                    : isSelected
-                      ? `${colorConfig.checkBorder} ${colorConfig.checkBg} scale-105 shadow-sm`
-                      : "border-slate-300 bg-white group-hover:border-slate-400"
+                    ? "cursor-not-allowed bg-slate-50/80 opacity-70"
+                    : "cursor-pointer bg-white hover:bg-slate-50/70",
+                  isSelected && !isDisabled && "bg-slate-50/80"
                 )}
               >
-                {isDisabled ? (
-                  <Lock className="h-2.5 w-2.5 text-slate-600" />
-                ) : (
-                  <Check
-                    className={cn(
-                      "h-3 w-3 text-white transition-transform duration-300",
-                      isSelected ? "scale-100 opacity-100" : "scale-0 opacity-0"
-                    )}
-                    strokeWidth={3}
-                  />
-                )}
-              </div>
+                <RadioGroupItem
+                  value={method.id}
+                  id={`payment-${method.id}`}
+                  disabled={isDisabled}
+                  className="sr-only"
+                />
 
-              <RadioGroupItem
-                value={method.id}
-                id={`payment-${method.id}`}
-                disabled={isDisabled}
-                className="sr-only"
-              />
-
-              <div className="flex flex-1 items-start gap-3 sm:gap-4">
-                <div
-                  className={cn(
-                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all duration-200 sm:h-12 sm:w-12",
-                    isDisabled
-                      ? "border-slate-200 bg-slate-100"
-                      : isSelected
-                        ? `${colorConfig.bg} ${colorConfig.border} shadow-inner`
-                        : "border-slate-200 bg-slate-50 group-hover:border-slate-300 group-hover:bg-white"
-                  )}
-                >
+                <div className="flex items-center gap-3">
                   <div
                     className={cn(
-                      "transition-all duration-300",
+                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2",
                       isDisabled
-                        ? "text-slate-500"
+                        ? "border-slate-300 bg-slate-100"
                         : isSelected
-                          ? `${colorConfig.icon} scale-110`
-                          : "text-slate-500 group-hover:text-slate-700"
+                          ? "border-primary bg-white"
+                          : "border-slate-300 bg-white"
                     )}
                   >
-                    {React.isValidElement(method.icon)
-                      ? React.cloneElement(
-                          method.icon as React.ReactElement<{
-                            className?: string;
-                          }>,
-                          {
-                            className: "h-[18px] w-[18px] sm:h-6 sm:w-6",
-                          }
-                        )
-                      : method.icon}
-                  </div>
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-start justify-between gap-2 sm:gap-3">
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-semibold tracking-tight text-slate-900 sm:text-base">
-                        {method.name}
-                      </h3>
-                      {detailText && (
-                        <p
-                          className={cn(
-                            "mt-0.5 max-w-[98%] text-[13px] leading-5 sm:mt-1 sm:text-sm sm:leading-relaxed",
-                            isDisabled ? "text-slate-500" : "text-slate-600"
-                          )}
-                        >
-                          {detailText}
-                        </p>
-                      )}
-                    </div>
-                    {method.fee && !isDisabled && (
-                      <span className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700 sm:px-2.5 sm:py-1 sm:text-xs">
-                        {method.fee}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:mt-2.5 sm:gap-2">
-                    {method.badge && (
+                    {isDisabled ? (
+                      <Lock className="h-3 w-3 text-slate-500" />
+                    ) : (
                       <span
                         className={cn(
-                          "inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] sm:px-2.5 sm:py-1 sm:text-[10px] sm:tracking-[0.16em]",
-                          getBadgeStyles(method.badgeVariant)
+                          "h-2.5 w-2.5 rounded-full bg-primary transition-opacity",
+                          isSelected ? "opacity-100" : "opacity-0"
                         )}
-                      >
-                        {method.badge}
-                      </span>
+                      />
                     )}
+                  </div>
 
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1 rounded-full border border-slate-200 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[10px] sm:tracking-[0.16em]",
-                        providerStyles.bg,
-                        providerStyles.text
+                  <div
+                    className={cn(
+                      "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border",
+                      methodStyles.iconBox
+                    )}
+                  >
+                    <div className={cn("text-slate-700", methodStyles.meta)}>
+                      {React.isValidElement(method.icon)
+                        ? React.cloneElement(
+                            method.icon as React.ReactElement<{
+                              className?: string;
+                            }>,
+                            {
+                              className: "h-6 w-6",
+                            }
+                          )
+                        : method.icon}
+                    </div>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate text-base font-medium text-slate-900">
+                        {method.name}
+                      </p>
+
+                      {trailingLabel && (
+                        <span
+                          className={cn(
+                            "shrink-0 rounded-md border px-2 py-1 text-xs font-semibold",
+                            method.badge
+                              ? getBadgeStyles(method.badgeVariant)
+                              : "border-slate-200 bg-slate-50 text-slate-600"
+                          )}
+                        >
+                          {trailingLabel}
+                        </span>
                       )}
-                    >
-                      {providerStyles.icon}
-                      {providerStyles.label}
-                    </span>
+                    </div>
+
+                    {detailText && (
+                      <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                        {detailText}
+                      </p>
+                    )}
                   </div>
                 </div>
-              </div>
-            </label>
-          );
-        })}
-      </RadioGroup>
-
-      <p className="px-1 text-[11px] leading-relaxed text-slate-500 sm:text-xs">
-        {t(
-          "paymentMethodsFootnote",
-          "Metoda selectată este confirmată în pasul următor. Pentru ramburs, vezi întâi costurile și condițiile aferente."
-        )}
-      </p>
+              </label>
+            );
+          })}
+        </RadioGroup>
+      </div>
     </div>
   );
 };

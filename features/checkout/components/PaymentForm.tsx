@@ -984,24 +984,24 @@ export function PaymentForm({
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className={`${checkoutCardClass} p-3.5 sm:p-6`}>
-        <div className="mb-4 flex flex-col gap-2.5 border-b border-slate-200 pb-4 sm:mb-5 sm:gap-3 sm:pb-5">
+        <div className="mb-4 flex flex-col gap-2 border-b border-slate-200 pb-4 sm:mb-5 sm:gap-2.5 sm:pb-5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-700 sm:px-2.5 sm:text-[11px] sm:text-slate-800">
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-700 sm:px-2.5 sm:text-[11px]">
               {t("paymentStepLabel", "Pasul 3 din 4")}
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-800 sm:px-2.5 sm:text-[11px] sm:text-emerald-900">
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-800 sm:px-2.5 sm:text-[11px]">
               <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               {t("securePaymentLabel", "Plată securizată")}
             </span>
           </div>
           <div>
             <h2 className="text-lg font-bold tracking-tight text-slate-900 sm:text-2xl">
-              {t("paymentMethod", "Metodă de plată")}
+              {t("paymentOptionsTitle", "Opțiuni de plată")}
             </h2>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-slate-600 sm:mt-2 sm:text-sm sm:text-slate-700">
+            <p className="mt-1 text-[13px] leading-relaxed text-slate-500 sm:mt-1.5 sm:text-sm">
               {t(
-                "paymentStepSubtitle",
-                "Alege cum plătești. Dacă selectezi ramburs, confirmi separat condițiile înainte de verificarea finală."
+                "paymentOptionsSubtitle",
+                "Selectează metoda de plată preferată."
               )}
             </p>
           </div>
