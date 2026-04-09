@@ -1249,6 +1249,8 @@ export const ro = {
   book2TitleEn: "STEM Play for Neurodiverse Minds",
   switchToRo: "🇷🇴 RO",
   switchToEn: "🇬🇧 EN",
+  founderCardHeading: "Conducere și viziune",
+  founderCardImageAlt: "Banner conducere TechTots și învățare STEM",
   founderDescription:
     "Antreprenor vizionar cu expertiză extinsă în dezvoltare, design și marketing. Pasionat de crearea tehnologiei educaționale care îi ajută pe copii să exploreze, să învețe și să crească. A fondat TechTots cu misiunea de a revoluționa modul în care copiii interacționează cu disciplinele STEM prin jucării educaționale atent proiectate.",
   linkedin: "LinkedIn",

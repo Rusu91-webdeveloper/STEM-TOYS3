@@ -1110,6 +1110,8 @@ export const en = {
   book2TitleEn: "STEM Play for Neurodiverse Minds",
   switchToRo: "🇷🇴 RO",
   switchToEn: "🇬🇧 EN",
+  founderCardHeading: "Leadership & vision",
+  founderCardImageAlt: "TechTots leadership and STEM learning banner",
   founderDescription:
     "Visionary entrepreneur with extensive expertise in development, design, and marketing. Passionate about creating educational technology that empowers children to explore, learn, and grow. Founded TechTots with the mission to revolutionize how children interact with STEM subjects through thoughtfully designed educational toys.",
   linkedin: "LinkedIn",

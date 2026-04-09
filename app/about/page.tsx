@@ -428,7 +428,10 @@ export default function AboutPage() {
                     <div className="relative h-40 w-full sm:h-48 md:h-56">
                       <Image
                         src="/images/category_banner_math_01.png"
-                        alt="RUSU EMANUEL MARIUS"
+                        alt={t(
+                          "founderCardImageAlt",
+                          "TechTots leadership and STEM learning banner"
+                        )}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 75vw, 50vw"
                         style={{ objectFit: "cover" }}
@@ -443,7 +446,7 @@ export default function AboutPage() {
                     </div>
                     <div className="space-y-4 px-5 py-6">
                       <h3 className="border-b border-slate-200/80 pb-3 text-lg font-semibold text-slate-900">
-                        RUSU EMANUEL MARIUS
+                        {t("founderCardHeading", "Leadership & vision")}
                       </h3>
                       <p className="text-sm leading-relaxed text-slate-700">
                         {t(

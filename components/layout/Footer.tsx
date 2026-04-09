@@ -6,7 +6,6 @@ import {
   Facebook,
   Youtube,
   Linkedin,
-  Twitter,
   Globe,
   ShieldCheck,
   CreditCard,
@@ -92,11 +91,6 @@ export default function Footer({
       name: "Instagram",
       href: "https://www.instagram.com/techtots_magazin/",
       icon: Instagram,
-    },
-    {
-      name: "Twitter",
-      href: "https://x.com/RusuEmanue41893",
-      icon: Twitter,
     },
     {
       name: "LinkedIn",
