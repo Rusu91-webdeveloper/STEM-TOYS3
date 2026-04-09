@@ -50,22 +50,27 @@ export default function SidebarNav({
   const pathname = usePathname();
 
   return (
-    <nav className={cn("space-y-1", className)} {...props}>
+    <nav className={cn("space-y-1.5", className)} {...props}>
       {items.map(item => {
         const Icon = item.icon;
+        const isActive =
+          item.href === "/admin"
+            ? pathname === item.href
+            : pathname === item.href || pathname?.startsWith(`${item.href}/`);
+
         return (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-              pathname === item.href
-                ? "bg-primary/10 text-primary"
+              "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+              isActive
+                ? "bg-primary/10 text-primary shadow-sm"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
-            <Icon className="h-5 w-5" />
-            <span>{item.title}</span>
+            <Icon className="h-5 w-5 shrink-0" />
+            <span className="truncate">{item.title}</span>
           </Link>
         );
       })}

@@ -7,19 +7,17 @@ import {
   ShoppingBag,
   Users,
   Package,
-  TrendingUp,
-  Calendar,
   Activity,
   BarChart3,
-  Eye,
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { DemoModeBanner } from "@/components/admin/DemoModeBanner";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -27,7 +25,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DemoModeBanner } from "@/components/admin/DemoModeBanner";
 import { getDashboardData, getOperationsOverview } from "@/lib/admin/api";
 import type {
   DashboardStat,
@@ -68,14 +65,14 @@ function StatCard({ stat }: { stat: DashboardStat }) {
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-sm bg-gradient-to-br from-white to-gray-50/50">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-gray-600 mb-1">
               {stat.title}
             </p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="flex flex-wrap items-baseline gap-2">
+              <p className="break-words text-2xl font-bold text-gray-900">
                 {stat.title === "Total Revenue" ? (
                   <CurrencyDisplay value={stat.value} />
                 ) : (
@@ -97,7 +94,7 @@ function StatCard({ stat }: { stat: DashboardStat }) {
             </div>
             <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
           </div>
-          <div className="p-3 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-300">
+          <div className="w-fit rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 p-3 transition-all duration-300 group-hover:from-gray-200 group-hover:to-gray-300">
             {Icon}
           </div>
         </div>
@@ -172,7 +169,9 @@ function OpsMetricCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className={`text-2xl font-bold ${toneClass}`}>{value}</div>
+        <div className={`break-words text-2xl font-bold ${toneClass}`}>
+          {value}
+        </div>
         <p className="mt-1 text-xs text-gray-500">{hint}</p>
       </CardContent>
     </Card>
@@ -338,21 +337,21 @@ export default function AdminDashboard() {
     return (
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-600 mt-1">
               Welcome to your admin dashboard
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="animate-pulse bg-gray-200 h-10 w-32 rounded-md"></div>
             <div className="animate-pulse bg-gray-200 h-10 w-24 rounded-md"></div>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="animate-pulse">
               <div className="bg-gray-200 h-32 rounded-lg"></div>
@@ -386,20 +385,20 @@ export default function AdminDashboard() {
             <span className="sm:hidden">Monitor your store&apos;s performance</span>
           </p>
         </div>
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-          <Button variant="outline" size="sm" className="shrink-0" asChild>
+        <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto" asChild>
             <Link href="/admin/fulfillment-issues">
               <AlertCircle className="h-4 w-4 mr-2" />
               Fulfillment Issues
             </Link>
           </Button>
-          <Button variant="outline" size="sm" className="shrink-0" asChild>
+          <Button variant="outline" size="sm" className="w-full sm:w-auto" asChild>
             <Link href="/admin/analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
               View Analytics
             </Link>
           </Button>
-          <Button size="sm" className="shrink-0" asChild>
+          <Button size="sm" className="w-full sm:w-auto" asChild>
             <Link href="/admin/products">
               <Package className="h-4 w-4 mr-2" />
               Manage Products
@@ -412,7 +411,7 @@ export default function AdminDashboard() {
       <DemoModeBanner />
 
       {/* Stats Grid - Enhanced */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
         {data.stats.map((stat, index) => (
           <StatCard key={index} stat={stat} />
         ))}
@@ -466,7 +465,7 @@ export default function AdminDashboard() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
             <OpsMetricCard
               title="Ready To Place"
               value={
@@ -505,7 +504,7 @@ export default function AdminDashboard() {
             />
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5">
             <OpsMetricCard
               title="Issue Value At Risk"
               value={
@@ -1187,16 +1186,16 @@ export default function AdminDashboard() {
                 {data.recentOrders.slice(0, 5).map(order => (
                   <div
                     key={order.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-white border border-gray-100 hover:shadow-sm transition-shadow"
+                    className="flex flex-col gap-3 rounded-lg border border-gray-100 bg-white p-3 transition-shadow hover:shadow-sm sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-medium">
                           {(order.customer || "C").charAt(0).toUpperCase()}
                         </span>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-gray-900">
                           {order.customer || "Unknown Customer"}
                         </p>
                         <p className="text-sm text-gray-500">
@@ -1204,7 +1203,7 @@ export default function AdminDashboard() {
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right">
                       <p className="font-medium text-gray-900">
                         <CurrencyDisplay value={order.amount} />
                       </p>
@@ -1261,16 +1260,16 @@ export default function AdminDashboard() {
                 {data.topProducts.slice(0, 5).map((product, index) => (
                   <div
                     key={product.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-white border border-gray-100 hover:shadow-sm transition-shadow"
+                    className="flex flex-col gap-3 rounded-lg border border-gray-100 bg-white p-3 transition-shadow hover:shadow-sm sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-medium">
                           {index + 1}
                         </span>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-gray-900">
                           {product.name}
                         </p>
                         <p className="text-sm text-gray-500">
@@ -1278,7 +1277,7 @@ export default function AdminDashboard() {
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right">
                       <p className="font-medium text-gray-900">
                         {product.sales} sales
                       </p>
@@ -1310,10 +1309,10 @@ export default function AdminDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2"
+              className="flex h-auto flex-col items-center gap-2 p-4"
               asChild
             >
               <Link href="/admin/products/create">
@@ -1323,7 +1322,7 @@ export default function AdminDashboard() {
             </Button>
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2"
+              className="flex h-auto flex-col items-center gap-2 p-4"
               asChild
             >
               <Link href="/admin/orders">
@@ -1333,7 +1332,7 @@ export default function AdminDashboard() {
             </Button>
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2"
+              className="flex h-auto flex-col items-center gap-2 p-4"
               asChild
             >
               <Link href="/admin/customers">
@@ -1343,7 +1342,7 @@ export default function AdminDashboard() {
             </Button>
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2"
+              className="flex h-auto flex-col items-center gap-2 p-4"
               asChild
             >
               <Link href="/admin/analytics">

@@ -33,42 +33,42 @@ export function ProductTable({ products }: { products: Product[] }) {
   const { formatPrice } = useCurrency();
 
   return (
-    <div className="border rounded-md">
-      <div className="w-full overflow-auto">
-        <table className="w-full caption-bottom text-sm">
+    <div className="overflow-hidden rounded-md border">
+      <div className="w-full overflow-x-auto">
+        <table className="min-w-[860px] w-full caption-bottom text-sm">
           <thead className="border-b">
             <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-              <th className="h-12 px-4 text-left align-middle font-medium">
+              <th className="h-12 px-4 text-left align-middle font-medium whitespace-nowrap">
                 <div className="flex items-center gap-1">
                   Product
                   <ArrowUpDown className="h-3 w-3" />
                 </div>
               </th>
-              <th className="h-12 px-4 text-left align-middle font-medium">
+              <th className="h-12 px-4 text-left align-middle font-medium whitespace-nowrap">
                 <div className="flex items-center gap-1">
                   Category
                   <ArrowUpDown className="h-3 w-3" />
                 </div>
               </th>
-              <th className="h-12 px-4 text-left align-middle font-medium">
+              <th className="h-12 px-4 text-left align-middle font-medium whitespace-nowrap">
                 <div className="flex items-center gap-1">
                   Supplier
                   <ArrowUpDown className="h-3 w-3" />
                 </div>
               </th>
-              <th className="h-12 px-4 text-left align-middle font-medium">
+              <th className="h-12 px-4 text-left align-middle font-medium whitespace-nowrap">
                 <div className="flex items-center gap-1">
                   Price
                   <ArrowUpDown className="h-3 w-3" />
                 </div>
               </th>
-              <th className="h-12 px-4 text-left align-middle font-medium">
+              <th className="h-12 px-4 text-left align-middle font-medium whitespace-nowrap">
                 <div className="flex items-center gap-1">
                   Inventory
                   <ArrowUpDown className="h-3 w-3" />
                 </div>
               </th>
-              <th className="h-12 px-4 text-left align-middle font-medium">
+              <th className="h-12 px-4 text-left align-middle font-medium whitespace-nowrap">
                 <div className="flex items-center gap-1">
                   Status
                   <ArrowUpDown className="h-3 w-3" />
@@ -97,7 +97,7 @@ export function ProductTable({ products }: { products: Product[] }) {
                 >
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 overflow-hidden rounded-md">
+                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md">
                         <Image
                           src={product.images[0] || "/placeholder-product.png"}
                           alt={product.name}
@@ -105,14 +105,14 @@ export function ProductTable({ products }: { products: Product[] }) {
                           className="object-cover"
                         />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <Link
                           href={`/admin/products/${product.id}`}
-                          className="font-medium text-primary hover:underline"
+                          className="block truncate font-medium text-primary hover:underline"
                         >
                           {product.name}
                         </Link>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="truncate text-xs text-muted-foreground">
                           ID: {product.id}
                         </p>
                       </div>
@@ -141,7 +141,9 @@ export function ProductTable({ products }: { products: Product[] }) {
                   </td>
                   <td className="px-4 py-4">
                     <div className="space-y-1">
-                      <div className="font-medium">{product.price} RON</div>
+                      <div className="font-medium">
+                        {formatPrice(product.price)}
+                      </div>
                     </div>
                   </td>
                   <td className="px-4 py-4">

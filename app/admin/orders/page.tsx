@@ -141,6 +141,17 @@ const getWorkflowBucketBadgeClasses = (bucket?: string) => {
   }
 };
 
+function OrderStatusBadge({ status }: { status: string }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(status)}`}
+    >
+      {getStatusIcon(status)}
+      {status}
+    </span>
+  );
+}
+
 export default function OrdersPage() {
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -199,7 +210,7 @@ export default function OrdersPage() {
 
       const data = await response.json();
       setOrders(data.orders ?? []);
-      setPagination(data.pagination ?? pagination);
+      setPagination(prev => data.pagination ?? prev);
     } catch (error) {
       console.error("Error fetching orders:", error);
       toast({
@@ -249,7 +260,10 @@ export default function OrdersPage() {
     setStatusUpdateModal(prev => ({ ...prev, updating: true }));
 
     try {
-      const requestBody: any = {
+      const requestBody: {
+        status: string;
+        cancellationReason?: string;
+      } = {
         status: statusUpdateModal.newStatus,
       };
 
@@ -279,7 +293,7 @@ export default function OrdersPage() {
         throw new Error("Failed to update order status");
       }
 
-      const data = await response.json();
+      await response.json();
 
       // Close modal first
       closeStatusUpdateModal();
@@ -402,7 +416,7 @@ export default function OrdersPage() {
             <div className="flex flex-col gap-4 sm:gap-6">
               <form
                 onSubmit={handleSearch}
-                className="flex w-full sm:max-w-sm items-center space-x-2"
+                className="flex w-full items-center gap-2 sm:max-w-sm"
               >
                 <Input
                   type="search"
@@ -415,13 +429,13 @@ export default function OrdersPage() {
                   <Search className="h-4 w-4" />
                 </Button>
               </form>
-              <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:flex-row">
                 <Select
                   defaultValue="all"
                   value={status}
                   onValueChange={value => setStatus(value)}
                 >
-                  <SelectTrigger className="w-full sm:w-[160px]">
+                  <SelectTrigger className="w-full xl:w-[160px]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -438,7 +452,7 @@ export default function OrdersPage() {
                   value={workflowBucket}
                   onValueChange={value => setWorkflowBucket(value)}
                 >
-                  <SelectTrigger className="w-full sm:w-[170px]">
+                  <SelectTrigger className="w-full xl:w-[170px]">
                     <SelectValue placeholder="Workflow" />
                   </SelectTrigger>
                   <SelectContent>
@@ -453,7 +467,7 @@ export default function OrdersPage() {
                   value={period}
                   onValueChange={value => setPeriod(value)}
                 >
-                  <SelectTrigger className="w-full sm:w-[160px]">
+                  <SelectTrigger className="w-full xl:w-[160px]">
                     <SelectValue placeholder="Time Period" />
                   </SelectTrigger>
                   <SelectContent>
@@ -467,13 +481,14 @@ export default function OrdersPage() {
                   variant="outline"
                   size="icon"
                   onClick={() => fetchOrders()}
+                  className="w-full xl:w-10"
                 >
                   <Filter className="h-4 w-4" />
                 </Button>
               </div>
             </div>
 
-            <div className="mt-6 overflow-x-auto">
+            <div className="mt-6">
               {loading ? (
                 <div className="flex justify-center items-center py-8">
                   <RotateCw className="h-6 w-6 animate-spin" />
@@ -484,130 +499,258 @@ export default function OrdersPage() {
                   No orders found. Try adjusting your filters.
                 </div>
               ) : (
-                <table className="w-full border-collapse min-w-[700px]">
-                  <thead>
-                    <tr className="border-b text-xs font-medium text-muted-foreground">
-                      <th className="px-4 py-3 text-left">
-                        <div className="flex items-center gap-1">
-                          <span>Order</span>
-                          <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </th>
-                      <th className="px-4 py-3 text-left">
-                        <div className="flex items-center gap-1">
-                          <span>Date</span>
-                          <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </th>
-                      <th className="px-4 py-3 text-left">Customer</th>
-                      <th className="px-4 py-3 text-left">
-                        <div className="flex items-center gap-1">
-                          <span>Total</span>
-                          <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </th>
-                      <th className="px-4 py-3 text-left">Status</th>
-                      <th className="px-4 py-3 text-left">Payment</th>
-                      <th className="px-4 py-3 text-left">Items</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <>
+                  <div className="space-y-3 md:hidden">
                     {orders.map(order => (
-                      <tr
+                      <div
                         key={order.id}
-                        className="border-b text-sm hover:bg-muted/50"
+                        className="rounded-xl border bg-white p-4 shadow-sm"
                       >
-                        <td className="px-4 py-4">
-                          <Link
-                            href={`/admin/orders/${order.id}`}
-                            className="font-medium text-primary hover:underline"
-                          >
-                            {order.id}
-                          </Link>
-                          {order.manualShippingReviewRequired && (
-                            <div className="mt-1 flex items-center gap-1 text-amber-600" title={order.shippingReviewReason || "Requires shipping review"}>
-                              <AlertTriangle className="h-3 w-3" />
-                              <span className="text-xs font-medium">Shipping Review</span>
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <Link
+                                href={`/admin/orders/${order.id}`}
+                                className="break-all font-medium text-primary hover:underline"
+                              >
+                                {order.id}
+                              </Link>
+                              <p className="mt-1 text-sm text-muted-foreground">
+                                {order.date}
+                              </p>
                             </div>
-                          )}
-                          {order.workflowLabel && (
-                            <div className="mt-1 flex flex-wrap items-center gap-1">
+                            <OrderStatusBadge status={order.status} />
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="font-medium text-foreground">
+                              {order.customer}
+                            </p>
+                            <p className="break-all text-sm text-muted-foreground">
+                              {order.email}
+                            </p>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2">
+                            {order.manualShippingReviewRequired && (
+                              <div
+                                className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700"
+                                title={
+                                  order.shippingReviewReason ||
+                                  "Requires shipping review"
+                                }
+                              >
+                                <AlertTriangle className="h-3 w-3" />
+                                Shipping Review
+                              </div>
+                            )}
+                            {order.workflowLabel && (
                               <span
-                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getWorkflowBucketBadgeClasses(order.workflowBucket)}`}
+                                className={`inline-flex items-center rounded-full px-2 py-1 text-[10px] font-medium ${getWorkflowBucketBadgeClasses(order.workflowBucket)}`}
                               >
                                 {order.workflowLabel}
                               </span>
-                              {order.fulfillmentStatus && (
-                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-                                  {formatWorkflowStatusLabel(order.fulfillmentStatus)}
-                                </span>
-                              )}
+                            )}
+                            {order.fulfillmentStatus && (
+                              <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-700">
+                                {formatWorkflowStatusLabel(
+                                  order.fulfillmentStatus
+                                )}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted/40 p-3 text-sm">
+                            <div>
+                              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                Total
+                              </p>
+                              <p className="font-medium">
+                                {formatPrice(order.total)}
+                              </p>
                             </div>
-                          )}
-                        </td>
-                        <td className="px-4 py-4">{order.date}</td>
-                        <td className="px-4 py-4">
-                          <div>
-                            <div>{order.customer}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {order.email}
+                            <div>
+                              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                Payment
+                              </p>
+                              <p className="font-medium">{order.payment}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                Items
+                              </p>
+                              <p className="font-medium">{order.items} items</p>
+                            </div>
+                            <div>
+                              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                Workflow
+                              </p>
+                              <p className="font-medium">
+                                {order.workflowLabel || "Standard"}
+                              </p>
                             </div>
                           </div>
-                        </td>
-                        <td className="px-4 py-4 font-medium">
-                          {formatPrice(order.total)}
-                        </td>
-                        <td className="px-4 py-4">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(order.status)}`}
-                          >
-                            {getStatusIcon(order.status)}
-                            {order.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-4">{order.payment}</td>
-                        <td className="px-4 py-4">{order.items} items</td>
-                        <td className="px-4 py-4 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem asChild>
-                                <Link href={`/admin/orders/${order.id}`}>
-                                  View Details
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => openStatusUpdateModal(order)}
-                              >
-                                Update Status
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => openDeleteModal(order)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Order
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button variant="outline" asChild>
+                              <Link href={`/admin/orders/${order.id}`}>
+                                View
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => openStatusUpdateModal(order)}
+                            >
+                              Update
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="col-span-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                              onClick={() => openDeleteModal(order)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Order
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+
+                  <div className="hidden overflow-x-auto md:block">
+                    <table className="w-full min-w-[700px] border-collapse">
+                      <thead>
+                        <tr className="border-b text-xs font-medium text-muted-foreground">
+                          <th className="px-4 py-3 text-left">
+                            <div className="flex items-center gap-1">
+                              <span>Order</span>
+                              <ArrowUpDown className="h-3 w-3" />
+                            </div>
+                          </th>
+                          <th className="px-4 py-3 text-left">
+                            <div className="flex items-center gap-1">
+                              <span>Date</span>
+                              <ArrowUpDown className="h-3 w-3" />
+                            </div>
+                          </th>
+                          <th className="px-4 py-3 text-left">Customer</th>
+                          <th className="px-4 py-3 text-left">
+                            <div className="flex items-center gap-1">
+                              <span>Total</span>
+                              <ArrowUpDown className="h-3 w-3" />
+                            </div>
+                          </th>
+                          <th className="px-4 py-3 text-left">Status</th>
+                          <th className="px-4 py-3 text-left">Payment</th>
+                          <th className="px-4 py-3 text-left">Items</th>
+                          <th className="px-4 py-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orders.map(order => (
+                          <tr
+                            key={order.id}
+                            className="border-b text-sm hover:bg-muted/50"
+                          >
+                            <td className="px-4 py-4">
+                              <Link
+                                href={`/admin/orders/${order.id}`}
+                                className="font-medium text-primary hover:underline"
+                              >
+                                {order.id}
+                              </Link>
+                              {order.manualShippingReviewRequired && (
+                                <div
+                                  className="mt-1 flex items-center gap-1 text-amber-600"
+                                  title={
+                                    order.shippingReviewReason ||
+                                    "Requires shipping review"
+                                  }
+                                >
+                                  <AlertTriangle className="h-3 w-3" />
+                                  <span className="text-xs font-medium">
+                                    Shipping Review
+                                  </span>
+                                </div>
+                              )}
+                              {order.workflowLabel && (
+                                <div className="mt-1 flex flex-wrap items-center gap-1">
+                                  <span
+                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getWorkflowBucketBadgeClasses(order.workflowBucket)}`}
+                                  >
+                                    {order.workflowLabel}
+                                  </span>
+                                  {order.fulfillmentStatus && (
+                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
+                                      {formatWorkflowStatusLabel(
+                                        order.fulfillmentStatus
+                                      )}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-4 py-4">{order.date}</td>
+                            <td className="px-4 py-4">
+                              <div>
+                                <div>{order.customer}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {order.email}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 font-medium">
+                              {formatPrice(order.total)}
+                            </td>
+                            <td className="px-4 py-4">
+                              <OrderStatusBadge status={order.status} />
+                            </td>
+                            <td className="px-4 py-4">{order.payment}</td>
+                            <td className="px-4 py-4">{order.items} items</td>
+                            <td className="px-4 py-4 text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Actions</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/admin/orders/${order.id}`}>
+                                      View Details
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      openStatusUpdateModal(order)
+                                    }
+                                  >
+                                    Update Status
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    className="text-red-600"
+                                    onClick={() => openDeleteModal(order)}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete Order
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
 
