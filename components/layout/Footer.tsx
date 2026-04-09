@@ -3,18 +3,18 @@
 import {
   Instagram,
   Mail,
-  MapPin,
-  Phone,
   Facebook,
   Youtube,
   Linkedin,
   Twitter,
   Globe,
   ArrowRight,
+  ShieldCheck,
+  CreditCard,
+  Truck,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import NTPLogo from "ntp-logo-react";
 import { useEffect, useState } from "react";
 
 import NewsletterSignup from "@/components/NewsletterSignup";
@@ -65,22 +65,9 @@ export default function Footer({
   const storeDescription =
     storeSettings?.storeDescription ?? t("companyDescription");
   const resolvedEmail = storeSettings?.contactEmail ?? "support@techtots.ro";
-  const resolvedPhone = storeSettings?.contactPhone ?? "+40 746 000 000";
 
   const getReturnPolicyText = () =>
     t("freeReturnsOver50", "14 calendar days for returns. Return shipping is paid by the customer.");
-
-  const companyAddressParts = [
-    storeSettings?.businessAddress,
-    storeSettings?.businessCity,
-    storeSettings?.businessState,
-    storeSettings?.businessCountry,
-  ].filter(Boolean);
-
-  const companyAddress =
-    companyAddressParts.length > 0
-      ? companyAddressParts.join(", ")
-      : t("footerLegalAddress", "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56");
 
   const handleFooterNewsletter = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,6 +138,52 @@ export default function Footer({
     { label: t("privacyPolicy", "Politica de confidențialitate"), href: "/privacy" },
     { label: t("termsOfService", "Termeni și condiții"), href: "/terms" },
     { label: "GDPR", href: "/gdpr" },
+  ];
+
+  const trustPartners = [
+    {
+      name: "Netopia Payments",
+      href: "https://netopia-payments.com/",
+      eyebrow: t("footerSecurePayments", "Plăți securizate"),
+      detail: t("footerNetopiaDetail", "3D Secure pentru piața din România"),
+      icon: ShieldCheck,
+      brandClassName:
+        "bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_62%,#38bdf8_100%)] text-white",
+      wordmarkClassName: "text-white",
+      wordmark: (
+        <>
+          <span className="font-black uppercase tracking-[0.18em]">NETOPIA</span>
+          <span className="text-white/80"> Payments</span>
+        </>
+      ),
+    },
+    {
+      name: "Stripe",
+      href: "https://stripe.com/",
+      eyebrow: t("footerCardPayments", "Plăți cu cardul"),
+      detail: t("footerStripeDetail", "Visa, Mastercard, Apple Pay și multe altele"),
+      icon: CreditCard,
+      brandClassName:
+        "bg-[linear-gradient(135deg,#eef2ff_0%,#dbeafe_100%)] text-[#635bff]",
+      wordmarkClassName: "text-[#635bff]",
+      wordmark: <span className="font-black tracking-tight lowercase">stripe</span>,
+    },
+    {
+      name: "FanCourier",
+      href: "https://www.fancourier.ro/",
+      eyebrow: t("footerFastDelivery", "Livrare rapidă"),
+      detail: t("footerFanCourierDetail", "Expediere națională cu tracking"),
+      icon: Truck,
+      brandClassName:
+        "bg-[linear-gradient(135deg,#fff7ed_0%,#ffedd5_100%)] text-[#ea580c]",
+      wordmarkClassName: "text-[#ea580c]",
+      wordmark: (
+        <>
+          <span className="font-black tracking-[0.08em]">Fan</span>
+          <span className="font-semibold">Courier</span>
+        </>
+      ),
+    },
   ];
 
   return (
@@ -357,24 +390,54 @@ export default function Footer({
             </div>
           </div>
 
-          {/* Payment trust */}
-          <div className="flex flex-col items-center gap-3 sm:items-end">
-            <Link
-              href="https://netopia-payments.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 transition-colors hover:bg-slate-100"
-            >
-              <NTPLogo
-                color="#f8fafc"
-                version="horizontal"
-                secret="156180"
-                aria-hidden="true"
-              />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-900">
-                Secure Payment
-              </span>
-            </Link>
+          {/* Payments & delivery partners */}
+          <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:min-w-[340px]">
+            <p className="text-center text-[10px] font-bold uppercase tracking-[0.26em] text-slate-400 sm:text-right">
+              {t("footerTrustedPartners", "Parteneri de încredere")}
+            </p>
+            <div className="grid gap-2">
+              {trustPartners.map(partner => {
+                const Icon = partner.icon;
+
+                return (
+                  <Link
+                    key={partner.name}
+                    href={partner.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-[0_16px_28px_-24px_rgba(15,23,42,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_20px_36px_-24px_rgba(37,99,235,0.28)]"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div
+                        className={`flex h-11 min-w-[74px] items-center justify-center rounded-2xl px-3 shadow-inner ${partner.brandClassName}`}
+                      >
+                        <span
+                          className={`text-sm leading-none ${partner.wordmarkClassName}`}
+                        >
+                          {partner.wordmark}
+                        </span>
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                          {partner.eyebrow}
+                        </p>
+                        <p className="truncate text-sm font-semibold text-slate-900">
+                          {partner.name}
+                        </p>
+                        <p className="truncate text-xs text-slate-500">
+                          {partner.detail}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors group-hover:bg-slate-900 group-hover:text-white">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

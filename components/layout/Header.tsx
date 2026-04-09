@@ -78,7 +78,7 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useTranslation();
+  const { t, language, setLanguage } = useTranslation();
   const { data: session, status } = useOptimizedSession();
 
   const activeFilters = useMemo(
@@ -164,6 +164,12 @@ export default function Header() {
     } else {
       window.location.href = "/auth/login";
     }
+  };
+
+  const toggleMobileLanguage = () => {
+    const nextLanguage = language === "ro" ? "en" : "ro";
+    setLanguage(nextLanguage);
+    router.refresh();
   };
 
   const loadCategories = async () => {
@@ -314,12 +320,36 @@ export default function Header() {
           </div>
 
           {/* Mobile right side */}
-          <div className="flex lg:hidden items-center gap-2">
+          <div className="flex lg:hidden items-center gap-1.5">
             {/* Cart icon mobile */}
             <CartButton
               variant="header"
               className="relative flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors duration-200 hover:bg-slate-100 bg-transparent border-0 shadow-none p-0"
             />
+
+            <button
+              type="button"
+              onClick={toggleMobileLanguage}
+              aria-label={
+                language === "ro"
+                  ? "Switch language to English"
+                  : "Comută limba în română"
+              }
+              title={
+                language === "ro"
+                  ? "Switch to English"
+                  : "Comută în română"
+              }
+              className="group relative inline-flex h-9 min-w-[44px] items-center justify-center overflow-hidden rounded-full border border-slate-200/90 bg-white px-1.5 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-[0_14px_30px_-18px_rgba(14,165,233,0.45)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+            >
+              <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.95),rgba(255,255,255,0.45)_45%,transparent_70%)] opacity-80" />
+              <span className="relative flex items-center gap-1.5">
+                <LanguageFlag language={language} />
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600">
+                  {language === "ro" ? "RO" : "EN"}
+                </span>
+              </span>
+            </button>
 
             {/* Hamburger */}
             <button
@@ -922,5 +952,23 @@ export default function Header() {
           document.body
         )}
     </header>
+  );
+}
+
+function LanguageFlag({ language }: { language: string }) {
+  if (language === "ro") {
+    return (
+      <span className="relative block h-4 w-6 overflow-hidden rounded-[0.4rem] ring-1 ring-black/10 shadow-sm">
+        <span className="absolute inset-y-0 left-0 w-1/3 bg-[#002B7F]" />
+        <span className="absolute inset-y-0 left-1/3 w-1/3 bg-[#FCD116]" />
+        <span className="absolute inset-y-0 right-0 w-1/3 bg-[#CE1126]" />
+      </span>
+    );
+  }
+
+  return (
+    <span className="relative flex h-4 w-6 items-center justify-center overflow-hidden rounded-[0.4rem] bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_100%)] text-[8px] font-black tracking-[0.16em] text-white ring-1 ring-black/10 shadow-sm">
+      EN
+    </span>
   );
 }
