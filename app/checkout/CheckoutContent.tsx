@@ -31,21 +31,26 @@ export function CheckoutContent() {
                 priority
               />
             </Link>
-            <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-              <Lock
-                className="h-4 w-4 shrink-0 text-primary"
-                aria-hidden
-              />
-              <span className="hidden font-medium sm:inline">
-                {t("checkoutSecureSslPayment", "Plată securizată SSL")}
-              </span>
-              <span className="font-medium sm:hidden">SSL</span>
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500"
+              aria-label={t("checkoutSecureSslPayment", "Plată securizată SSL")}
+              title={t("checkoutSecureSslPayment", "Plată securizată SSL")}
+            >
+              <Lock className="h-4 w-4 shrink-0" aria-hidden />
             </div>
           </div>
         </header>
 
         <main className="flex-1">
           <div className="container mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+            <div className="mb-4 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-600 shadow-[0_8px_24px_-20px_rgba(15,23,42,0.22)] sm:mb-6">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <Lock className="h-4 w-4" aria-hidden />
+              </div>
+              <p className="leading-relaxed">
+                {t("checkoutSecureSslPayment", "Plată securizată SSL")}
+              </p>
+            </div>
             <StripeBypassProvider>
               <CheckoutFlow />
             </StripeBypassProvider>

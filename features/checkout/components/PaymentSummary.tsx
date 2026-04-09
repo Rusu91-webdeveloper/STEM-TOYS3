@@ -3,9 +3,9 @@
 import { Banknote, CreditCard, ShieldCheck } from "lucide-react";
 import React, { useMemo } from "react";
 
+import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { useTranslation } from "@/lib/i18n";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
-import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 
 interface PaymentSummaryProps {
   appliedCoupon?: any;
@@ -20,7 +20,7 @@ interface PaymentSummaryProps {
   isLockerCodFlow?: boolean;
 }
 
-export const PaymentSummary = React.memo(function PaymentSummary({
+const PaymentSummaryComponent = ({
   appliedCoupon,
   discountAmount = 0,
   useNewCard,
@@ -31,7 +31,7 @@ export const PaymentSummary = React.memo(function PaymentSummary({
   shippingCost = 0,
   codConfig = null,
   isLockerCodFlow = false,
-}: PaymentSummaryProps) {
+}: PaymentSummaryProps) => {
   const { t } = useTranslation();
   const isNetopia = selectedPaymentMethod.startsWith("netopia_");
   const isCOD = selectedPaymentMethod === "cash_on_delivery";
@@ -69,7 +69,7 @@ export const PaymentSummary = React.memo(function PaymentSummary({
   return (
     <>
       {appliedCoupon && discountAmount > 0 && (
-        <div className="my-4 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
+        <div className="my-3 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 sm:my-4 sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-emerald-900">
@@ -93,22 +93,22 @@ export const PaymentSummary = React.memo(function PaymentSummary({
       )}
 
       {isNetopia && (
-        <div className="my-6">
-          <div className={`${checkoutCardClass} p-4`}>
+        <div className="my-4 sm:my-6">
+          <div className={`${checkoutCardClass} p-3.5 sm:p-4`}>
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sky-700 sm:h-10 sm:w-10">
                 <CreditCard className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-[13px] font-semibold text-slate-900 sm:text-sm">
                     {t("netopiaSummaryTitle", "Plată online securizată")}
                   </p>
                   <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-800">
                     Netopia
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-[13px] leading-5 text-slate-600 sm:text-sm">
                   {t(
                     "netopiaRedirectNotice",
                     "După confirmare vei fi redirecționat pe pagina securizată Netopia pentru finalizarea plății."
@@ -121,15 +121,15 @@ export const PaymentSummary = React.memo(function PaymentSummary({
       )}
 
       {isStripeNewCard && (
-        <div className="my-6">
-          <div className={`${checkoutCardClass} p-4`}>
+        <div className="my-4 sm:my-6">
+          <div className={`${checkoutCardClass} p-3.5 sm:p-4`}>
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-violet-100 text-violet-700 sm:h-10 sm:w-10">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-[13px] font-semibold text-slate-900 sm:text-sm">
                     {t("stripeSummaryTitle", "Card securizat prin Stripe")}
                   </p>
                   {!isCalculatingTotal && totalAmount > 0 && (
@@ -138,7 +138,7 @@ export const PaymentSummary = React.memo(function PaymentSummary({
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-[13px] leading-5 text-slate-600 sm:text-sm">
                   {t(
                     "paymentProcessing",
                     "Introduci cardul o singură dată, iar procesarea plății se face în siguranță prin Stripe."
@@ -156,15 +156,17 @@ export const PaymentSummary = React.memo(function PaymentSummary({
       )}
 
       {isCOD && codFeeResult && (
-        <div className="my-6">
-          <div className={`${checkoutCardClass} border-amber-200 bg-amber-50/80 p-4`}>
+        <div className="my-4 sm:my-6">
+          <div
+            className={`${checkoutCardClass} border-amber-200 bg-amber-50/80 p-3.5 sm:p-4`}
+          >
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-800">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-800 sm:h-10 sm:w-10">
                 <Banknote className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-[13px] font-semibold text-slate-900 sm:text-sm">
                     {isLockerCodFlow
                       ? t("codLockerSummaryTitle", "Plată la ridicare")
                       : t("codSummaryTitle", "Estimare pentru plata ramburs")}
@@ -175,7 +177,7 @@ export const PaymentSummary = React.memo(function PaymentSummary({
                       : t("cashOnDelivery", "Ramburs")}
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-[13px] leading-5 text-slate-600 sm:text-sm">
                   {isLockerCodFlow
                     ? t(
                         "codLockerSummaryBody",
@@ -189,8 +191,8 @@ export const PaymentSummary = React.memo(function PaymentSummary({
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+            <div className="mt-3 grid gap-2.5 sm:mt-4 sm:grid-cols-3 sm:gap-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 sm:py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                   {isLockerCodFlow
                     ? t("codLockerFee", "Taxă plată la FANbox")
@@ -200,16 +202,18 @@ export const PaymentSummary = React.memo(function PaymentSummary({
                   +{codFeeResult.fee.toFixed(2)} RON
                 </p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 sm:py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                   {t("feeBreakdown", "Structură taxă")}
                 </p>
                 <p className="mt-1 text-sm text-slate-600">
-                  {codPercentageLabel}% ({codFeeResult.breakdown.percentageFee.toFixed(2)} RON) +{" "}
-                  {codFeeResult.breakdown.fixedFee.toFixed(2)} RON {t("fixed", "fix")}
+                  {codPercentageLabel}% (
+                  {codFeeResult.breakdown.percentageFee.toFixed(2)} RON) +{" "}
+                  {codFeeResult.breakdown.fixedFee.toFixed(2)} RON{" "}
+                  {t("fixed", "fix")}
                 </p>
               </div>
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-3">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2.5 sm:py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-900">
                   {isLockerCodFlow
                     ? t("totalWithLockerCOD", "Total cu plată la FANbox")
@@ -232,4 +236,8 @@ export const PaymentSummary = React.memo(function PaymentSummary({
       )}
     </>
   );
-});
+};
+
+PaymentSummaryComponent.displayName = "PaymentSummary";
+
+export const PaymentSummary = React.memo(PaymentSummaryComponent);

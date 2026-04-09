@@ -395,7 +395,7 @@ const PaymentMethodSelectorComponent = ({
 
   return (
     <div className="space-y-3.5">
-      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+      <div className="hidden flex-wrap items-center justify-between gap-2 px-1 sm:flex">
         <Label className="text-sm font-semibold text-slate-900">
           {t("selectPaymentMethod", "Selectează metoda de plată")}
         </Label>
@@ -539,7 +539,7 @@ const PaymentMethodSelectorComponent = ({
           if (selectedMethod?.disabled) return;
           onPaymentMethodChange(value);
         }}
-        className="grid gap-3 sm:gap-4"
+        className="grid gap-2.5 sm:gap-4"
       >
         {paymentMethods.map(method => {
           const isSelected = selectedPaymentMethod === method.id;
@@ -553,7 +553,7 @@ const PaymentMethodSelectorComponent = ({
               key={method.id}
               htmlFor={`payment-${method.id}`}
               className={cn(
-                "group relative flex gap-3 rounded-[24px] border px-4 py-4 transition-all duration-200 ease-out sm:gap-4 sm:px-5 sm:py-[18px]",
+                "group relative flex gap-2.5 rounded-[20px] border px-3 py-3 transition-all duration-200 ease-out sm:gap-4 sm:rounded-[24px] sm:px-5 sm:py-[18px]",
                 isDisabled
                   ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-65"
                   : "cursor-pointer border-slate-200 bg-white shadow-[0_6px_20px_-16px_rgba(15,23,42,0.28)] hover:border-slate-300 hover:bg-slate-50/70 hover:shadow-[0_12px_24px_-20px_rgba(15,23,42,0.35)]",
@@ -563,7 +563,7 @@ const PaymentMethodSelectorComponent = ({
             >
               <div
                 className={cn(
-                  "mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300",
+                  "mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-6 sm:w-6",
                   isDisabled
                     ? "border-slate-300 bg-slate-200"
                     : isSelected
@@ -591,10 +591,10 @@ const PaymentMethodSelectorComponent = ({
                 className="sr-only"
               />
 
-              <div className="flex flex-1 items-start gap-4">
+              <div className="flex flex-1 items-start gap-3 sm:gap-4">
                 <div
                   className={cn(
-                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-all duration-200",
+                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all duration-200 sm:h-12 sm:w-12",
                     isDisabled
                       ? "border-slate-200 bg-slate-100"
                       : isSelected
@@ -612,20 +612,29 @@ const PaymentMethodSelectorComponent = ({
                           : "text-slate-500 group-hover:text-slate-700"
                     )}
                   >
-                    {method.icon}
+                    {React.isValidElement(method.icon)
+                      ? React.cloneElement(
+                          method.icon as React.ReactElement<{
+                            className?: string;
+                          }>,
+                          {
+                            className: "h-[18px] w-[18px] sm:h-6 sm:w-6",
+                          }
+                        )
+                      : method.icon}
                   </div>
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2 sm:gap-3">
                     <div className="min-w-0">
-                      <h3 className="text-[15px] font-semibold tracking-tight text-slate-900 sm:text-base">
+                      <h3 className="text-sm font-semibold tracking-tight text-slate-900 sm:text-base">
                         {method.name}
                       </h3>
                       {detailText && (
                         <p
                           className={cn(
-                            "mt-1 max-w-[98%] text-sm leading-relaxed",
+                            "mt-0.5 max-w-[98%] text-[13px] leading-5 sm:mt-1 sm:text-sm sm:leading-relaxed",
                             isDisabled ? "text-slate-500" : "text-slate-600"
                           )}
                         >
@@ -634,17 +643,17 @@ const PaymentMethodSelectorComponent = ({
                       )}
                     </div>
                     {method.fee && !isDisabled && (
-                      <span className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                      <span className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700 sm:px-2.5 sm:py-1 sm:text-xs">
                         {method.fee}
                       </span>
                     )}
                   </div>
 
-                  <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:mt-2.5 sm:gap-2">
                     {method.badge && (
                       <span
                         className={cn(
-                          "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em]",
+                          "inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] sm:px-2.5 sm:py-1 sm:text-[10px] sm:tracking-[0.16em]",
                           getBadgeStyles(method.badgeVariant)
                         )}
                       >
@@ -654,7 +663,7 @@ const PaymentMethodSelectorComponent = ({
 
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em]",
+                        "inline-flex items-center gap-1 rounded-full border border-slate-200 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[10px] sm:tracking-[0.16em]",
                         providerStyles.bg,
                         providerStyles.text
                       )}
@@ -670,7 +679,7 @@ const PaymentMethodSelectorComponent = ({
         })}
       </RadioGroup>
 
-      <p className="px-1 text-xs leading-relaxed text-slate-500">
+      <p className="px-1 text-[11px] leading-relaxed text-slate-500 sm:text-xs">
         {t(
           "paymentMethodsFootnote",
           "Metoda selectată este confirmată în pasul următor. Pentru ramburs, vezi întâi costurile și condițiile aferente."
