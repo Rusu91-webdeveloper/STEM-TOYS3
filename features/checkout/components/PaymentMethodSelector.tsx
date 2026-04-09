@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Banknote,
-  CreditCard,
-  Info,
-  Loader2,
-  Lock,
-  ShieldCheck,
-} from "lucide-react";
+import { Banknote, Info, Loader2, Lock } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useMemo } from "react";
 
@@ -17,6 +10,10 @@ import { useCart } from "@/features/cart";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
+import {
+  NetopiaPaymentRowLogo,
+  StripePaymentRowLogo,
+} from "./PaymentMethodBrandLogos";
 import { ShippingMethod } from "../types";
 
 interface PaymentCard {
@@ -51,7 +48,7 @@ type PaymentMethodItem = {
   id: string;
   type: string;
   name: string;
-  icon: React.ReactNode;
+  icon: React.ReactNode | null;
   provider: Provider;
   fee?: string;
   description?: string;
@@ -132,7 +129,7 @@ const PaymentMethodSelectorComponent = ({
         id: "stripe_new",
         type: "new_card",
         name: t("useNewCard", "Folosește un card nou"),
-        icon: <ShieldCheck className="h-6 w-6" />,
+        icon: null,
         provider: "stripe",
         fee: t("stripeFee", "0% taxe"),
         description: t(
@@ -150,7 +147,7 @@ const PaymentMethodSelectorComponent = ({
         id: "netopia_card",
         type: "netopia_card",
         name: isRomanianUser ? "Card bancar" : "Credit/Debit Card",
-        icon: <CreditCard className="h-6 w-6" />,
+        icon: null,
         provider: "netopia",
         fee: "1.5%",
         description: isRomanianUser
@@ -541,22 +538,33 @@ const PaymentMethodSelectorComponent = ({
 
                   <div
                     className={cn(
-                      "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border",
-                      methodStyles.iconBox
+                      "flex shrink-0 items-center justify-center rounded-xl border",
+                      methodStyles.iconBox,
+                      method.provider === "stripe" || method.provider === "netopia"
+                        ? "h-12 min-h-[3rem] w-[min(100%,7.25rem)] min-w-[6.25rem] max-w-[7.5rem]"
+                        : "h-12 w-12"
                     )}
                   >
-                    <div className={cn("text-slate-700", methodStyles.meta)}>
-                      {React.isValidElement(method.icon)
-                        ? React.cloneElement(
-                            method.icon as React.ReactElement<{
-                              className?: string;
-                            }>,
-                            {
-                              className: "h-6 w-6",
-                            }
-                          )
-                        : method.icon}
-                    </div>
+                    {method.provider === "stripe" ? (
+                      <StripePaymentRowLogo />
+                    ) : method.provider === "netopia" ? (
+                      <NetopiaPaymentRowLogo />
+                    ) : (
+                      <div
+                        className={cn("text-slate-700", methodStyles.meta)}
+                      >
+                        {React.isValidElement(method.icon)
+                          ? React.cloneElement(
+                              method.icon as React.ReactElement<{
+                                className?: string;
+                              }>,
+                              {
+                                className: "h-6 w-6",
+                              }
+                            )
+                          : method.icon}
+                      </div>
+                    )}
                   </div>
 
                   <div className="min-w-0 flex-1">
