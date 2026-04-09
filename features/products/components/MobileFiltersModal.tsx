@@ -272,7 +272,7 @@ export function MobileFiltersModal({
                   value={searchQuery}
                   onChange={event => setSearchQuery(event.target.value)}
                   placeholder={t("searchCategory", "Search categories")}
-                  className="h-10 rounded-xl border-slate-200 bg-slate-50 pl-10 text-sm text-slate-700 focus-visible:ring-orange-200"
+                  className="h-10 rounded-xl border-slate-200 bg-slate-50 pl-10 text-base text-slate-700 placeholder:text-sm focus-visible:ring-orange-200 sm:text-sm"
                 />
               </div>
 

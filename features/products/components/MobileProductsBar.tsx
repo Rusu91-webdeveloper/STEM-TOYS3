@@ -177,7 +177,7 @@ export function MobileProductsBar({
             value={searchQuery}
             onChange={e => onSearchQueryChange(e.currentTarget.value)}
             placeholder={t("productsSearchPlaceholder", "Search toys by name...")}
-            className="h-9 w-full rounded-xl border border-slate-200/90 bg-white/95 pl-10 pr-10 text-sm shadow-sm transition focus:outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-200"
+            className="h-9 w-full rounded-xl border border-slate-200/90 bg-white/95 pl-10 pr-10 text-base shadow-sm transition placeholder:text-sm focus:outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-200 sm:text-sm"
           />
           {searchQuery && (
             <button

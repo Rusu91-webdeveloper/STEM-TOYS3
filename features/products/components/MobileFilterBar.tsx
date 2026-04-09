@@ -105,7 +105,7 @@ export function MobileFilterBar({
                 "productsSearchPlaceholder",
                 "Search toys by name..."
               )}
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-10 text-sm text-slate-700 transition focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-100"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-10 text-base text-slate-700 transition placeholder:text-sm focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:text-sm"
             />
             {searchQuery && (
               <button
