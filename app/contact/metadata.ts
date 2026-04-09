@@ -32,7 +32,7 @@ const contactStructuredData = {
     ],
     sameAs: [
       "https://www.facebook.com/techtotsromania",
-      "https://www.instagram.com/techtotsro",
+      "https://www.instagram.com/techtots_romania/",
       "https://linkedin.com/company/techtots-romania",
     ],
   },

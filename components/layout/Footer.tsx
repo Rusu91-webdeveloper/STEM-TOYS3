@@ -89,7 +89,7 @@ export default function Footer({
     },
     {
       name: "Instagram",
-      href: "https://www.instagram.com/techtots_magazin/",
+      href: "https://www.instagram.com/techtots_romania/",
       icon: Instagram,
     },
     {

@@ -235,7 +235,7 @@ export function generateSocialLinks(): string {
       <a href="https://facebook.com/techtots" style="display: inline-block; margin: 0 8px; text-decoration: none;">
         <img src="${getBaseUrl()}/icons/facebook.png" alt="Facebook" style="width: 24px; height: 24px;">
       </a>
-      <a href="https://instagram.com/techtots" style="display: inline-block; margin: 0 8px; text-decoration: none;">
+      <a href="https://www.instagram.com/techtots_romania/" style="display: inline-block; margin: 0 8px; text-decoration: none;">
         <img src="${getBaseUrl()}/icons/instagram.png" alt="Instagram" style="width: 24px; height: 24px;">
       </a>
       <a href="https://youtube.com/techtots" style="display: inline-block; margin: 0 8px; text-decoration: none;">

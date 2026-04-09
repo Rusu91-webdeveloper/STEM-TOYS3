@@ -59,7 +59,7 @@ export const metadata = createMetadata({
       },
       sameAs: [
         "https://www.facebook.com/techtotsromania",
-        "https://www.instagram.com/techtotsro",
+        "https://www.instagram.com/techtots_romania/",
         "https://www.linkedin.com/company/techtots-romania",
       ],
     },

@@ -115,7 +115,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           name: "TechTots Editorial",
           sameAs: [
             "https://www.linkedin.com/company/techtots-romania/",
-            "https://www.instagram.com/techtots_magazin/",
+            "https://www.instagram.com/techtots_romania/",
           ],
         },
         publisher: {
