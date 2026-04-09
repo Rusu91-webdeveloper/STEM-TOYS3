@@ -8,7 +8,6 @@ import {
   Linkedin,
   Twitter,
   Globe,
-  ArrowRight,
   ShieldCheck,
   CreditCard,
   Truck,
@@ -19,6 +18,12 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
 import NewsletterSignup from "@/components/NewsletterSignup";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useTranslation } from "@/lib/i18n";
 import { getRegionalStemLinks } from "@/lib/seo/regional-search";
 
@@ -43,9 +48,6 @@ export default function Footer({
   const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(
     initialStoreSettings ?? null
   );
-  const [footerEmail, setFooterEmail] = useState("");
-  const [footerStatus, setFooterStatus] = useState<"idle" | "success" | "error">("idle");
-
   useEffect(() => {
     if (storeSettings) return;
     async function fetchStoreSettings() {
@@ -69,24 +71,6 @@ export default function Footer({
 
   const getReturnPolicyText = () =>
     t("freeReturnsOver50", "14 calendar days for returns. Return shipping is paid by the customer.");
-
-  const handleFooterNewsletter = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!footerEmail) return;
-    try {
-      const res = await fetch("/api/newsletter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: footerEmail }),
-      });
-      setFooterStatus(res.ok ? "success" : "error");
-      if (res.ok) setFooterEmail("");
-    } catch {
-      setFooterStatus("error");
-    } finally {
-      setTimeout(() => setFooterStatus("idle"), 4000);
-    }
-  };
 
   const socialLinks = [
     {
@@ -200,26 +184,26 @@ export default function Footer({
       <NewsletterSignup />
 
       {/* Main footer grid */}
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-
-          {/* Column 1 — Brand */}
-          <div className="flex flex-col gap-4">
-            <Link href="/" className="relative block h-9 w-28">
-              <Image
-                src="/TechTots_LOGO.png"
-                alt={`${storeName} Logo`}
-                fill
-                sizes="112px"
-                className="object-contain object-left"
-              />
-            </Link>
-            <p className="text-sm leading-relaxed text-slate-500 max-w-[200px]">
-              {storeDescription}
-            </p>
-            {/* Social icons */}
-            <div className="flex flex-wrap gap-2 mt-1">
-              {socialLinks.slice(0, 2).map(link => {
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-11 lg:px-8 lg:py-14">
+        <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3 lg:gap-10">
+          {/* Column 1 — Brand (compact on small screens) */}
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4 lg:flex-col">
+              <Link href="/" className="relative block h-8 w-24 shrink-0 sm:h-9 sm:w-28">
+                <Image
+                  src="/TechTots_LOGO.png"
+                  alt={`${storeName} Logo`}
+                  fill
+                  sizes="112px"
+                  className="object-contain object-left"
+                />
+              </Link>
+              <p className="text-sm leading-snug text-slate-600 sm:leading-relaxed lg:max-w-[260px]">
+                {storeDescription}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {socialLinks.map(link => {
                 const Icon = link.icon;
                 return (
                   <a
@@ -228,22 +212,7 @@ export default function Footer({
                     aria-label={link.name}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-800"
-                  >
-                    <Icon className="h-4 w-4" />
-                  </a>
-                );
-              })}
-              {socialLinks.slice(2).map(link => {
-                const Icon = link.icon;
-                return (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    aria-label={link.name}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-800"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition-colors hover:border-slate-400 hover:text-slate-900"
                   >
                     <Icon className="h-4 w-4" />
                   </a>
@@ -252,17 +221,61 @@ export default function Footer({
             </div>
           </div>
 
-          {/* Column 2 — Customer Service */}
-          <div>
-            <h3 className="mb-4 text-sm font-bold text-slate-900">
+          {/* Mobile / tablet: collapsible nav — saves vertical space */}
+          <div className="lg:hidden">
+            <Accordion type="single" collapsible className="w-full rounded-xl border border-slate-200 divide-y divide-slate-200">
+              <AccordionItem value="support" className="border-0 px-1">
+                <AccordionTrigger className="px-3 py-3 text-sm font-bold text-slate-900 hover:no-underline">
+                  {t("footerCustomerCare", "Customer Service")}
+                </AccordionTrigger>
+                <AccordionContent className="px-3 pb-3">
+                  <ul className="space-y-2 border-t border-slate-100 pt-2">
+                    {customerServiceLinks.map(item => (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className="text-sm text-slate-700 transition-colors hover:text-slate-900"
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="discover" className="border-0 px-1">
+                <AccordionTrigger className="px-3 py-3 text-sm font-bold text-slate-900 hover:no-underline">
+                  {t("footerShopDiscover", "Company")}
+                </AccordionTrigger>
+                <AccordionContent className="px-3 pb-3">
+                  <ul className="space-y-2 border-t border-slate-100 pt-2">
+                    {companyLinks.map(item => (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className="text-sm text-slate-700 transition-colors hover:text-slate-900"
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+
+          {/* Desktop: link columns */}
+          <div className="hidden lg:block">
+            <h3 className="mb-3 text-sm font-bold text-slate-900">
               {t("footerCustomerCare", "Customer Service")}
             </h3>
-            <ul className="space-y-2.5">
+            <ul className="space-y-2">
               {customerServiceLinks.map(item => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-slate-500 transition-colors hover:text-slate-900"
+                    className="text-sm text-slate-700 transition-colors hover:text-slate-900"
                   >
                     {item.label}
                   </Link>
@@ -271,17 +284,16 @@ export default function Footer({
             </ul>
           </div>
 
-          {/* Column 3 — Company */}
-          <div>
-            <h3 className="mb-4 text-sm font-bold text-slate-900">
+          <div className="hidden lg:block">
+            <h3 className="mb-3 text-sm font-bold text-slate-900">
               {t("footerShopDiscover", "Company")}
             </h3>
-            <ul className="space-y-2.5">
+            <ul className="space-y-2">
               {companyLinks.map(item => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-slate-500 transition-colors hover:text-slate-900"
+                    className="text-sm text-slate-700 transition-colors hover:text-slate-900"
                   >
                     {item.label}
                   </Link>
@@ -289,80 +301,34 @@ export default function Footer({
               ))}
             </ul>
           </div>
-
-          {/* Column 4 — Newsletter mini-form */}
-          <div>
-            <h3 className="mb-2 text-sm font-bold text-slate-900">
-              {t("footerKnowledge", "Newsletter")}
-            </h3>
-            <p className="mb-4 text-sm text-slate-500 leading-relaxed">
-              {t(
-                "newsletterFooterDesc",
-                "Fii la curent cu cele mai noi jucării STEM și resurse educaționale."
-              )}
-            </p>
-            <form
-              onSubmit={handleFooterNewsletter}
-              className="flex items-center gap-2"
-              aria-label="Footer newsletter signup"
-            >
-              <label htmlFor="footer-email" className="sr-only">
-                {t("emailAddressPlaceholder")}
-              </label>
-              <input
-                id="footer-email"
-                type="email"
-                value={footerEmail}
-                onChange={e => setFooterEmail(e.target.value)}
-                placeholder={t("emailAddressPlaceholder", "Your Email")}
-                className="flex-1 min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:bg-white focus:ring-2 focus:ring-[#2563EB]/20"
-                required
-              />
-              <button
-                type="submit"
-                aria-label="Subscribe"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB] text-white transition-colors hover:bg-[#1D4ED8]"
-              >
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </form>
-            {footerStatus === "success" && (
-              <p className="mt-2 text-xs text-emerald-600 font-medium">
-                {t("subscriptionSuccessMessage", "Abonare reușită!")}
-              </p>
-            )}
-            {footerStatus === "error" && (
-              <p className="mt-2 text-xs text-rose-600 font-medium">
-                {t("subscriptionErrorMessage", "Eroare. Încearcă din nou.")}
-              </p>
-            )}
-          </div>
         </div>
 
         {/* Return policy bar */}
-        <div className="mt-10 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">
+        <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-center text-xs leading-relaxed text-slate-600 sm:mt-8 sm:px-4 sm:py-3">
           {getReturnPolicyText()} ·{" "}
-          <Link href="/returns" className="text-[#2563EB] hover:underline">
+          <Link href="/returns" className="font-medium text-[#2563EB] hover:underline">
             {t("seeReturnPolicy", "See policy")}
           </Link>
           {" · "}
-          <span>Comenzi COD: refuz/nepreluare colet (RTO) poate genera cost logistic tur + retur · </span>
-          <Link href="/shipping" className="text-[#2563EB] hover:underline">
+          <span>
+            Comenzi COD: refuz/nepreluare colet (RTO) poate genera cost logistic tur + retur ·{" "}
+          </span>
+          <Link href="/shipping" className="font-medium text-[#2563EB] hover:underline">
             Detalii livrare
           </Link>
         </div>
 
         {/* SEO regional links */}
-        <div className="mt-8 border-t border-slate-100 pt-6">
-          <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <div className="mt-5 border-t border-slate-100 pt-4 sm:mt-7 sm:pt-6">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-600 sm:mb-3">
             Livrare rapidă în
           </p>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5 sm:gap-x-5 sm:gap-y-2">
             {getRegionalStemLinks().map(link => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-xs text-slate-400 transition-colors hover:text-slate-700"
+                className="text-xs text-slate-600 transition-colors hover:text-slate-900"
               >
                 {link.label.replace("Jucarii STEM ", "")}
               </Link>
@@ -371,16 +337,28 @@ export default function Footer({
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-8 border-t border-slate-100 pt-6 flex flex-col-reverse gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col-reverse gap-4 border-t border-slate-100 pt-5 sm:mt-8 sm:flex-row sm:items-start sm:justify-between sm:gap-5 sm:pt-6">
           {/* Copyright + legal links */}
-          <div className="flex flex-col gap-2.5 text-center sm:text-left">
-            <p className="text-xs text-slate-400">
+          <div className="flex flex-col gap-2 text-center sm:max-w-md sm:text-left">
+            <p className="text-xs text-slate-600">
               © {new Date().getFullYear()} {storeName}. {t("allRightsReserved")}
             </p>
-            <p className="text-[10px] text-slate-400">
-              {t("footerLegalCui", "CUI: 51813997")} · {t("footerLegalRegCom", "J20/352/2025")}
-            </p>
-            <div className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 sm:justify-start">
+            <div
+              className="rounded-lg border border-slate-200 bg-slate-50/90 px-3 py-2.5 text-left"
+              role="group"
+              aria-label={t("footerLegalInfoLabel", "Company details")}
+            >
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-700">
+                {t("footerLegalInfoLabel", "Company details")}
+              </p>
+              <p className="text-[11px] leading-snug text-slate-600 sm:text-xs sm:leading-relaxed">
+                {t("footerLegalCui", "CUI: 51813997")}
+              </p>
+              <p className="mt-1.5 text-[11px] leading-snug text-slate-600 sm:text-xs sm:leading-relaxed">
+                {t("footerLegalRegCom", "J20/352/2025")}
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 sm:justify-start sm:gap-x-5">
               {[
                 { label: t("privacyPolicy", "Politica de confidențialitate"), href: "/privacy" },
                 { label: t("termsOfService", "Termeni și condiții"), href: "/terms" },
@@ -390,7 +368,7 @@ export default function Footer({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-xs text-slate-400 transition-colors hover:text-slate-700"
+                  className="text-xs text-slate-600 transition-colors hover:text-slate-900"
                 >
                   {item.label}
                 </Link>
@@ -399,8 +377,8 @@ export default function Footer({
           </div>
 
           {/* Payments & delivery partners */}
-          <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:min-w-[340px]">
-            <p className="text-center text-[10px] font-bold uppercase tracking-[0.26em] text-slate-400 sm:text-right">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[340px]">
+            <p className="text-center text-[10px] font-bold uppercase tracking-[0.26em] text-slate-600 sm:text-right">
               {t("footerTrustedPartners", "Parteneri de încredere")}
             </p>
             <div className="grid gap-2">
@@ -413,7 +391,7 @@ export default function Footer({
                     href={partner.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-[0_16px_28px_-24px_rgba(15,23,42,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_20px_36px_-24px_rgba(37,99,235,0.28)]"
+                    className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-3 py-2.5 shadow-[0_16px_28px_-24px_rgba(15,23,42,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_20px_36px_-24px_rgba(37,99,235,0.28)] sm:py-3"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <div
@@ -437,19 +415,19 @@ export default function Footer({
                       </div>
 
                       <div className="min-w-0">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600">
                           {partner.eyebrow}
                         </p>
                         <p className="truncate text-sm font-semibold text-slate-900">
                           {partner.name}
                         </p>
-                        <p className="truncate text-xs text-slate-500">
+                        <p className="truncate text-xs text-slate-600">
                           {partner.detail}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors group-hover:bg-slate-900 group-hover:text-white">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors group-hover:bg-slate-900 group-hover:text-white">
                       <Icon className="h-4 w-4" />
                     </div>
                   </Link>
