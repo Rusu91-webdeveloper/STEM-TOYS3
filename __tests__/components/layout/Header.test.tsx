@@ -1,8 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { usePathname } from "next/navigation";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { signOut } from "next-auth/react";
 import Header from "@/components/layout/Header";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 jest.mock("next/navigation", () => ({
   usePathname: jest.fn(),
   useRouter: jest.fn(() => ({ push: jest.fn() })),
+  useSearchParams: jest.fn(),
 }));
 
 // Mock next-auth
@@ -40,20 +41,17 @@ jest.mock("@/features/cart", () => ({
   ),
 }));
 
-// Mock the language and currency switchers
-jest.mock("@/components/language-switcher", () => ({
-  LanguageSwitcher: () => <div data-testid="language-switcher">Language</div>,
-}));
-
-jest.mock("@/components/ui/currency-switcher", () => ({
-  CurrencySwitcher: ({ allowedCodes }: { allowedCodes?: string[] }) => (
-    <div data-testid="currency-switcher">Currency</div>
+// Mock the language selector used in the mobile sidebar
+jest.mock("@/components/ui/mobile-language-selector", () => ({
+  MobileLanguageSelector: () => (
+    <div data-testid="mobile-language-selector">Language selector</div>
   ),
 }));
 
 describe("Header Component - Mobile Menu", () => {
   beforeEach(() => {
     (usePathname as jest.Mock).mockReturnValue("/");
+    (useSearchParams as jest.Mock).mockReturnValue(new URLSearchParams());
     (signOut as jest.Mock).mockResolvedValue(undefined);
   });
 
@@ -75,7 +73,7 @@ describe("Header Component - Mobile Menu", () => {
     fireEvent.click(menuButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/menu/i)).toBeInTheDocument();
+      expect(document.querySelector(".mobile-sidebar-panel")).toBeInTheDocument();
     });
   });
 
@@ -87,7 +85,7 @@ describe("Header Component - Mobile Menu", () => {
     fireEvent.click(menuButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/menu/i)).toBeInTheDocument();
+      expect(document.querySelector(".mobile-sidebar-panel")).toBeInTheDocument();
     });
 
     // Close menu
@@ -109,7 +107,7 @@ describe("Header Component - Mobile Menu", () => {
     fireEvent.click(menuButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/menu/i)).toBeInTheDocument();
+      expect(document.querySelector(".mobile-sidebar-panel")).toBeInTheDocument();
     });
 
     // Click backdrop (the overlay div)
@@ -133,18 +131,14 @@ describe("Header Component - Mobile Menu", () => {
     fireEvent.click(menuButton);
 
     await waitFor(() => {
-      // Check for mobile menu container first
-      const mobileMenu = document.querySelector(
-        ".fixed.top-0.right-0.bottom-0"
-      );
+      const mobileMenu = document.querySelector(".mobile-sidebar-panel");
       expect(mobileMenu).toBeInTheDocument();
-
-      // Check for navigation links within the mobile menu
-      const mobileMenuLinks = mobileMenu?.querySelectorAll("a[href]");
-      // home, categories, blog, about (products now moved to collapsible)
-      expect(mobileMenuLinks).toHaveLength(4);
+      expect(within(mobileMenu as HTMLElement).getByRole("link", { name: /categories/i })).toHaveAttribute("href", "/categories");
+      expect(within(mobileMenu as HTMLElement).getByRole("link", { name: /about/i })).toHaveAttribute("href", "/about");
+      expect(within(mobileMenu as HTMLElement).getByRole("link", { name: /contact/i })).toHaveAttribute("href", "/contact");
     });
   });
+
   it("navigates when selecting age group from Products section", async () => {
     const push = jest.fn();
     (useRouter as unknown as jest.Mock).mockReturnValue({ push });
@@ -159,11 +153,11 @@ describe("Header Component - Mobile Menu", () => {
     fireEvent.click(productsToggle);
 
     // open Age
-    const ageToggle = screen.getByRole("button", { name: /vârstă/i });
+    const ageToggle = screen.getByRole("button", { name: /age/i });
     fireEvent.click(ageToggle);
 
     const ageItem = await screen.findByRole("button", {
-      name: /4–6 ani|4-6 ani/i,
+      name: /age3to5/i,
     });
     fireEvent.click(ageItem);
 
@@ -180,10 +174,8 @@ describe("Header Component - Mobile Menu", () => {
     fireEvent.click(menuButton);
 
     await waitFor(() => {
-      const menuContainer = document.querySelector(
-        ".fixed.top-0.right-0.bottom-0"
-      );
-      expect(menuContainer).toHaveClass("w-[80vw]", "max-w-[340px]");
+      const menuContainer = document.querySelector(".mobile-sidebar-panel");
+      expect(menuContainer).toHaveClass("w-[86vw]", "max-w-[380px]");
     });
   });
 
@@ -195,22 +187,27 @@ describe("Header Component - Mobile Menu", () => {
     fireEvent.click(menuButton);
 
     await waitFor(() => {
-      // Check for mobile menu container first
-      const mobileMenu = document.querySelector(
-        ".fixed.top-0.right-0.bottom-0"
-      );
+      const mobileMenu = document.querySelector(".mobile-sidebar-panel");
       expect(mobileMenu).toBeInTheDocument();
 
-      // Check for utilities within the mobile menu
-      const languageSwitcher = mobileMenu?.querySelector(
-        '[data-testid="language-switcher"]'
-      );
-      const currencySwitcher = mobileMenu?.querySelector(
-        '[data-testid="currency-switcher"]'
+      const languageSelector = mobileMenu?.querySelector(
+        '[data-testid="mobile-language-selector"]'
       );
 
-      expect(languageSwitcher).toBeInTheDocument();
-      expect(currencySwitcher).toBeInTheDocument();
+      expect(languageSelector).toBeInTheDocument();
+    });
+  });
+
+  it("keeps account actions in a dedicated mobile footer", async () => {
+    render(<Header />);
+
+    const menuButton = screen.getByRole("button", { name: /open main menu/i });
+    fireEvent.click(menuButton);
+
+    await waitFor(() => {
+      const footer = document.querySelector(".mobile-sidebar-footer");
+      expect(footer).toBeInTheDocument();
+      expect(within(footer as HTMLElement).getByText(/account/i)).toBeInTheDocument();
     });
   });
 });

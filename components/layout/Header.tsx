@@ -349,7 +349,7 @@ export default function Header() {
 
             {/* Sidebar */}
             <div
-              className="fixed top-0 right-0 bottom-0 w-[86vw] xs:w-[80vw] sm:w-[68vw] md:w-[56vw] max-w-[380px]
+              className="mobile-sidebar-panel fixed top-0 right-0 bottom-0 w-[86vw] xs:w-[80vw] sm:w-[68vw] md:w-[56vw] max-w-[380px]
               bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_36%,#f8fafc_100%)]
               text-slate-900
               border-l border-slate-200/90
@@ -395,8 +395,8 @@ export default function Header() {
                 </button>
               </div>
 
-              <div className="relative flex h-full flex-col">
-                <div className="mobile-sidebar-scroll relative z-0 flex-1 overflow-y-auto px-4 pb-6 pt-4">
+              <div className="relative flex min-h-0 flex-1 flex-col">
+                <div className="mobile-sidebar-scroll mobile-sidebar-body relative z-0 min-h-0 flex-1 overflow-y-auto px-4 pt-4">
                   <div className="rounded-[1.75rem] bg-[linear-gradient(135deg,#0f766e_0%,#0284c7_55%,#2563eb_100%)] p-4 text-white shadow-[0_26px_50px_-30px_rgba(14,116,144,0.55)]">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/75">
                       {t("products", "Produse")}
@@ -795,7 +795,10 @@ export default function Header() {
                     <MobileLanguageSelector />
                   </div>
 
-                  <div className="mt-6 rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-[0_16px_32px_-28px_rgba(15,23,42,0.32)]">
+                </div>
+
+                <div className="mobile-sidebar-footer relative z-10 border-t border-slate-200/80 bg-white/92 px-4 pt-4 backdrop-blur-md">
+                  <div className="rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-[0_16px_32px_-28px_rgba(15,23,42,0.32)]">
                     <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
                       {t("account", "Cont")}
                     </div>
