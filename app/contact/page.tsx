@@ -344,7 +344,7 @@ export default function ContactPage() {
                   <p className="mt-2 text-xs text-slate-600 sm:text-sm">
                     TechTots Educational Solutions
                     <br />
-                    Mehedinti 54-56, Bl D5, sc 2, apt 70
+                    Mehedinti 54-56, Bl D5, sc 2
                     <br />
                     Cluj-Napoca, Cluj
                     <br />

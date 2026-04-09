@@ -584,7 +584,7 @@ export const en = {
   address: "Address",
   customerSupport: "Customer Support",
   footerLegalAddress:
-    "Cluj County, Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70",
+    "Cluj County, Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2",
 
   // SEO Translations
   metaTitle: "TechTots | STEM Toys for Curious Minds",

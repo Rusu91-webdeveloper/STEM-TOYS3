@@ -673,7 +673,7 @@ export const ro = {
   address: "Adresă",
   customerSupport: "Asistență Clienți",
   footerLegalAddress:
-    "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70",
+    "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2",
 
   // SEO Translations
   metaTitle: "TechTots | Jucării STEM pentru minți curioase",

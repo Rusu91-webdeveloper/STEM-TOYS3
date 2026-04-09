@@ -503,7 +503,7 @@ export default function AboutPage() {
                         </dt>
                         <dd className="mt-1 leading-relaxed">
                           {process.env.NEXT_PUBLIC_STORE_LEGAL_ADDRESS ||
-                            "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70"}
+                            "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2"}
                         </dd>
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">

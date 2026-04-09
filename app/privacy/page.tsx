@@ -203,7 +203,7 @@ export default function PrivacyPage() {
                   {contactEmail}
                 </a>{" "}
                 sau la adresa: TechTots Educational Solutions, Mehedinți 54-56,
-                Bl. D5, Sc. 2, Ap. 70, Cluj-Napoca, Cluj, România.
+                Bl. D5, Sc. 2, Cluj-Napoca, Cluj, România.
               </p>
               <p>
                 Telefon: <a href={`tel:${contactPhone.replace(/[^\d+]/g, "")}`}>{contactPhone}</a>
