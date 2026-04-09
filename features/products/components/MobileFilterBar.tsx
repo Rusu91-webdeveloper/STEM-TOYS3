@@ -1,220 +1,103 @@
 "use client";
 
-import { X, Filter, Zap, Star, Gift, TrendingUp, ChevronRight } from "lucide-react";
-import React, { useRef, useState, useEffect } from "react";
+import { ChevronDown, RotateCcw } from "lucide-react";
+import React from "react";
+
+import { cn } from "@/lib/utils";
+
+export type MobileFilterPanel = "category" | "age" | "price";
 
 interface MobileFilterBarProps {
   activeFilterCount: number;
-  selectedCategories: string[];
-  selectedPriceRange?: [number, number];
-  onCategoryQuickSelect: (category: string) => void;
-  onPriceQuickSelect: (range: string) => void;
-  onOpenFilters: () => void;
+  categoryLabel: string;
+  ageLabel: string;
+  priceLabel: string;
+  categoryActive: boolean;
+  ageActive: boolean;
+  priceActive: boolean;
+  onOpenPanel: (panel: MobileFilterPanel) => void;
   onClearFilters: () => void;
   t: (key: string, fallback?: string) => string;
 }
 
-const QUICK_CATEGORIES = [
-  {
-    id: "science",
-    label: "Știință",
-    icon: "🧪",
-    color: "from-blue-500 to-cyan-500",
-  },
-  {
-    id: "technology",
-    label: "Tehnologie",
-    icon: "💻",
-    color: "from-green-500 to-emerald-500",
-  },
-  {
-    id: "engineering",
-    label: "Inginerie",
-    icon: "⚙️",
-    color: "from-orange-500 to-red-500",
-  },
-  {
-    id: "mathematics",
-    label: "Matematică",
-    icon: "🔢",
-    color: "from-purple-500 to-pink-500",
-  },
-];
+interface MobileFilterChipProps {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}
 
-const QUICK_PRICE_RANGES = [
-  { id: "under-50", label: "<50", range: [0, 50] },
-  { id: "50-100", label: "50-100", range: [50, 100] },
-  { id: "100-200", label: "100-200", range: [100, 200] },
-  { id: "over-200", label: "200+", range: [200, 1000] },
-];
-
-const SPECIAL_FILTERS = [
-  { id: "BEST_SELLERS", label: "Best", icon: Star },
-  { id: "NEW_ARRIVALS", label: "New", icon: Zap },
-  { id: "GIFT_IDEAS", label: "Gifts", icon: Gift },
-  { id: "SALE_ITEMS", label: "Sale", icon: TrendingUp },
-];
+function MobileFilterChip({ active, label, onClick }: MobileFilterChipProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex min-w-0 flex-shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+        active
+          ? "border-orange-400 bg-orange-50 text-orange-700"
+          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+      )}
+    >
+      <span className="truncate max-w-[9rem]">{label}</span>
+      <ChevronDown className="h-4 w-4 flex-shrink-0" />
+    </button>
+  );
+}
 
 export function MobileFilterBar({
   activeFilterCount,
-  selectedCategories,
-  selectedPriceRange,
-  onCategoryQuickSelect,
-  onPriceQuickSelect,
-  onOpenFilters,
+  categoryLabel,
+  ageLabel,
+  priceLabel,
+  categoryActive,
+  ageActive,
+  priceActive,
+  onOpenPanel,
   onClearFilters,
   t,
 }: MobileFilterBarProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showRightFade, setShowRightFade] = useState(true);
-  const [hasScrolled, setHasScrolled] = useState(false);
-
-  const scrollbarHideStyle = {
-    scrollbarWidth: "none" as const,
-    msOverflowStyle: "none" as const,
-  };
-
-  const handleScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
-    setShowRightFade(!atEnd);
-    if (!hasScrolled && el.scrollLeft > 0) setHasScrolled(true);
-  };
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
-    setShowRightFade(!atEnd);
-  }, []);
-
   return (
-    <div className="xl:hidden relative z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 sm:sticky sm:top-16">
-      {/* Compact Header */}
-      <div className="px-3 py-2">
-        <div className="flex items-center justify-between text-slate-700">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-sky-600" />
-            <span className="text-sm font-semibold text-slate-700">
-              {t("filters", "Filters")}
-            </span>
-            {activeFilterCount > 0 && (
-              <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-gradient-to-r from-sky-500 to-emerald-500 text-white text-xs font-bold shadow-sm">
-                {activeFilterCount}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            {activeFilterCount > 0 && (
-              <button
-                onClick={onClearFilters}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-600 hover:text-rose-600 rounded-lg border border-slate-200 hover:border-rose-200 transition-colors"
-              >
-                <X className="w-3 h-3" />
-                <span>{t("clear", "Clear")}</span>
-              </button>
-            )}
-          </div>
+    <div className="xl:hidden border-b border-slate-100 bg-white">
+      <div className="px-4 py-3">
+        <div
+          className="flex items-center gap-2 overflow-x-auto"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
+          <MobileFilterChip
+            active={categoryActive}
+            label={categoryLabel}
+            onClick={() => onOpenPanel("category")}
+          />
+          <MobileFilterChip
+            active={ageActive}
+            label={ageLabel}
+            onClick={() => onOpenPanel("age")}
+          />
+          <MobileFilterChip
+            active={priceActive}
+            label={priceLabel}
+            onClick={() => onOpenPanel("price")}
+          />
         </div>
-      </div>
 
-      {/* Ultra-Compact Single Row Filter Section */}
-      <div className="px-3 pb-2">
-        {/* Swipe hint shown before user scrolls */}
-        {!hasScrolled && (
-          <div className="flex items-center gap-0.5 mb-1 text-[10px] text-slate-400 font-medium">
-            <span>{t("swipeToSeeMore", "Swipe to see more")}</span>
-            <ChevronRight className="w-3 h-3 animate-pulse" />
+        {activeFilterCount > 0 && (
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <p className="text-xs text-slate-500">
+              {activeFilterCount} {t("activeFilters", "active filters")}
+            </p>
+            <button
+              type="button"
+              onClick={onClearFilters}
+              className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 transition-colors hover:text-slate-900"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              {t("clearAll", "Clear all")}
+            </button>
           </div>
         )}
-        <div className="relative">
-          <div
-            ref={scrollRef}
-            onScroll={handleScroll}
-            className="flex gap-1.5 overflow-x-auto pb-1"
-            style={scrollbarHideStyle}
-          >
-            {/* Category Chips */}
-            {QUICK_CATEGORIES.map(category => {
-              const isSelected = selectedCategories.includes(category.id);
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => onCategoryQuickSelect(category.id)}
-                  className={`flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                    isSelected
-                      ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                  }`}
-                  title={category.label}
-                >
-                  <span className="text-sm">{category.icon}</span>
-                  <span className="whitespace-nowrap">{category.label}</span>
-                </button>
-              );
-            })}
-
-            {/* Divider */}
-            <div className="flex-shrink-0 w-px h-8 bg-slate-200 mx-1"></div>
-
-            {/* Price Range Chips */}
-            {QUICK_PRICE_RANGES.map(priceRange => {
-              const isSelected =
-                selectedPriceRange &&
-                selectedPriceRange[0] === priceRange.range[0] &&
-                selectedPriceRange[1] === priceRange.range[1];
-
-              return (
-                <button
-                  key={priceRange.id}
-                  onClick={() => onPriceQuickSelect(priceRange.id)}
-                  className={`flex-shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                    isSelected
-                      ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  {priceRange.label}
-                </button>
-              );
-            })}
-
-            {/* Divider */}
-            <div className="flex-shrink-0 w-px h-8 bg-slate-200 mx-1"></div>
-
-            {/* Special Filter Chips */}
-            {SPECIAL_FILTERS.map(special => {
-              const IconComponent = special.icon;
-              return (
-                <button
-                  key={special.id}
-                  onClick={() => onCategoryQuickSelect(special.id)}
-                  className="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition-all"
-                >
-                  <IconComponent className="w-3 h-3" />
-                  <span className="whitespace-nowrap">{special.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Right fade gradient to indicate more scrollable content */}
-          {showRightFade && (
-            <div
-              className="absolute right-0 top-0 bottom-0 w-10 pointer-events-none"
-              style={{
-                background:
-                  "linear-gradient(to left, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 100%)",
-              }}
-            >
-              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 border border-slate-200">
-                <ChevronRight className="w-3 h-3 text-slate-400" />
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

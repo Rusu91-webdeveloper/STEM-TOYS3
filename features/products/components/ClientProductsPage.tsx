@@ -31,8 +31,7 @@ import {
   ProductFiltersErrorBoundary,
   ProductGridErrorBoundary,
 } from "./ProductsErrorBoundary";
-import { MobileFilterBar } from "./MobileFilterBar";
-import MobileAgeBar from "./MobileAgeBar";
+import { MobileFilterBar, type MobileFilterPanel } from "./MobileFilterBar";
 import { MobileProductsBar } from "./MobileProductsBar";
 import { ProductsMainDisplay } from "./ProductsMainDisplay";
 import { ProductsSidebar } from "./ProductsSidebar";
@@ -197,6 +196,8 @@ function ClientProductsPageContent({
   const [page, setPage] = useState(parsedPage);
   const [bundleViewMode, setBundleViewMode] =
     useState<BundleViewMode>(parsedBundleViewMode);
+  const [mobileFilterPanel, setMobileFilterPanel] =
+    useState<MobileFilterPanel>("category");
 
   useEffect(() => {
     setPage(parsedPage);
@@ -284,6 +285,40 @@ function ClientProductsPageContent({
       },
     ];
   }, [allSidebarCategories, products, t]);
+
+  const actualPriceRange = useMemo(() => {
+    if (!products || products.length === 0) {
+      return { min: 0, max: 1000 };
+    }
+
+    const prices = products
+      .map(product => {
+        const price =
+          typeof product.price === "string"
+            ? parseFloat(product.price)
+            : product.price;
+        return Number.isFinite(price) ? price : 0;
+      })
+      .filter(price => price > 0);
+
+    if (prices.length === 0) {
+      return { min: 0, max: 1000 };
+    }
+
+    return {
+      min: Math.floor(Math.min(...prices)),
+      max: Math.ceil(Math.max(...prices)),
+    };
+  }, [products]);
+
+  const mobilePriceRange = useMemo(
+    () => ({
+      min: actualPriceRange.min,
+      max: actualPriceRange.max,
+      current: state.priceRangeFilter,
+    }),
+    [actualPriceRange.max, actualPriceRange.min, state.priceRangeFilter]
+  );
 
   // Client-side filtering based on selected categories and other filters
   const filteredProducts = useMemo(() => {
@@ -679,54 +714,109 @@ function ClientProductsPageContent({
     actions.clearFilters();
   };
 
-  // Quick filter handlers for mobile
-  const handleCategoryQuickSelect = (categoryId: string) => {
-    // Handle special categories
-    if (
-      ["BEST_SELLERS", "NEW_ARRIVALS", "GIFT_IDEAS", "SALE_ITEMS"].includes(
-        categoryId
-      )
-    ) {
-      const currentSpecialCategories = state.selectedSpecialCategories;
-      const isSelected = currentSpecialCategories.includes(categoryId as any);
-
-      if (isSelected) {
-        actions.setSpecialCategories(
-          currentSpecialCategories.filter(cat => cat !== categoryId)
-        );
-      } else {
-        actions.setSpecialCategories([
-          ...currentSpecialCategories,
-          categoryId as any,
-        ]);
-      }
-    } else {
-      // Handle regular categories
-      actions.toggleCategory(categoryId);
-    }
+  const handleOpenMobilePanel = (panel: MobileFilterPanel) => {
+    setMobileFilterPanel(panel);
+    actions.setMobileFiltersOpen(true);
   };
 
-  const handlePriceQuickSelect = (rangeId: string) => {
-    if (rangeId === "clear") {
-      // Clear price filter
-      actions.setPriceRange([0, 1000]);
-      actions.setNoPriceFilter(true);
+  const handleClearMobilePanel = (panel: MobileFilterPanel) => {
+    if (panel === "category") {
+      actions.setCategories([]);
       return;
     }
 
-    const priceRanges: Record<string, [number, number]> = {
-      "under-50": [0, 50],
-      "50-100": [50, 100],
-      "100-200": [100, 200],
-      "over-200": [200, 1000],
-    };
-
-    const range = priceRanges[rangeId];
-    if (range) {
-      actions.setPriceRange(range);
-      actions.setNoPriceFilter(false);
+    if (panel === "age") {
+      actions.setAgeGroup("");
+      return;
     }
+
+    actions.setPriceRange([actualPriceRange.min, actualPriceRange.max]);
+    actions.setNoPriceFilter(true);
   };
+
+  const mobileFilterCount =
+    state.selectedCategories.length +
+    (state.selectedAgeGroup ? 1 : 0) +
+    (!state.noPriceFilter &&
+    (state.priceRangeFilter[0] !== actualPriceRange.min ||
+      state.priceRangeFilter[1] !== actualPriceRange.max)
+      ? 1
+      : 0);
+
+  const totalActiveFilterCount =
+    state.selectedCategories.length +
+    Object.values(state.selectedFilters).flat().length +
+    state.selectedLearningOutcomes.length +
+    (state.selectedProductType && state.selectedProductType !== "all" ? 1 : 0) +
+    state.selectedSpecialCategories.length +
+    (state.selectedAgeGroup ? 1 : 0) +
+    (!state.noPriceFilter &&
+    (state.priceRangeFilter[0] !== actualPriceRange.min ||
+      state.priceRangeFilter[1] !== actualPriceRange.max)
+      ? 1
+      : 0);
+
+  const categoryLabelLookup = useMemo(
+    () =>
+      new Map(
+        (categoryFilter[0]?.options ?? []).map(option => [
+          normalizeCategory(option.id),
+          option.label,
+        ])
+      ),
+    [categoryFilter]
+  );
+
+  const mobileCategoryLabel = useMemo(() => {
+    if (state.selectedCategories.length === 0) {
+      return t("categories", "Category");
+    }
+
+    if (state.selectedCategories.length === 1) {
+      return (
+        categoryLabelLookup.get(
+          normalizeCategory(state.selectedCategories[0])
+        ) ?? state.selectedCategories[0]
+      );
+    }
+
+    return `${state.selectedCategories.length} ${t("selected", "selected")}`;
+  }, [categoryLabelLookup, state.selectedCategories, t]);
+
+  const mobileAgeLabel = useMemo(() => {
+    switch (state.selectedAgeGroup) {
+      case "PRESCHOOL_3_5":
+        return t("age3to5H2", "3-5 years");
+      case "ELEMENTARY_6_8":
+        return t("age6to8H2", "6-8 years");
+      case "MIDDLE_SCHOOL_9_12":
+        return t("age9to12H2", "9-12 years");
+      case "TEENS_13_PLUS":
+        return t("age13plusH2", "13+ years");
+      default:
+        return t("ageGroup", "Age");
+    }
+  }, [state.selectedAgeGroup, t]);
+
+  const mobilePriceLabel = useMemo(() => {
+    if (
+      state.noPriceFilter ||
+      (state.priceRangeFilter[0] === actualPriceRange.min &&
+        state.priceRangeFilter[1] === actualPriceRange.max)
+    ) {
+      return t("price", "Price");
+    }
+
+    return `${Math.round(state.priceRangeFilter[0])}-${Math.round(
+      state.priceRangeFilter[1]
+    )} lei`;
+  }, [
+    actualPriceRange.max,
+    actualPriceRange.min,
+    state.noPriceFilter,
+    state.priceRangeFilter,
+    t,
+  ]);
 
   // Always render the main content to prevent CLS
   const content = (
@@ -738,7 +828,10 @@ function ClientProductsPageContent({
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
               {/* Breadcrumb */}
               <nav className="flex items-center gap-1.5 text-sm text-slate-500 mb-4">
-                <Link href="/" className="hover:text-slate-800 transition-colors">
+                <Link
+                  href="/"
+                  className="hover:text-slate-800 transition-colors"
+                >
                   {t("home", "Home")}
                 </Link>
                 <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
@@ -773,36 +866,30 @@ function ClientProductsPageContent({
           {/* Mobile Filter Bar */}
           <div className="xl:hidden bg-white border-b border-slate-100">
             <MobileFilterBar
-              activeFilterCount={
-                state.selectedCategories.length +
-                Object.values(state.selectedFilters).flat().length +
-                state.selectedLearningOutcomes.length +
-                (state.selectedProductType && state.selectedProductType !== "all" ? 1 : 0) +
-                state.selectedSpecialCategories.length +
-                (bundleViewMode !== "all" ? 1 : 0) +
-                (!state.noPriceFilter &&
-                (state.priceRangeFilter[0] !== 0 || state.priceRangeFilter[1] !== 1000)
-                  ? 1
-                  : 0)
+              activeFilterCount={totalActiveFilterCount}
+              categoryLabel={mobileCategoryLabel}
+              ageLabel={mobileAgeLabel}
+              priceLabel={mobilePriceLabel}
+              categoryActive={state.selectedCategories.length > 0}
+              ageActive={Boolean(state.selectedAgeGroup)}
+              priceActive={
+                !state.noPriceFilter &&
+                (state.priceRangeFilter[0] !== actualPriceRange.min ||
+                  state.priceRangeFilter[1] !== actualPriceRange.max)
               }
-              selectedCategories={state.selectedCategories}
-              selectedPriceRange={state.priceRangeFilter}
-              onCategoryQuickSelect={handleCategoryQuickSelect}
-              onPriceQuickSelect={handlePriceQuickSelect}
-              onOpenFilters={() => actions.setMobileFiltersOpen(true)}
+              onOpenPanel={handleOpenMobilePanel}
               onClearFilters={handleClearFilters}
-              t={t}
-            />
-            <MobileAgeBar
-              selectedAgeGroup={state.selectedAgeGroup}
-              onSelectAgeGroup={age => actions.setAgeGroup(age)}
               t={t}
             />
             <MobileProductsBar
               bundleViewMode={bundleViewMode}
               onBundleViewModeChange={setBundleViewMode}
-              bundleCount={filteredProducts.filter(p => p?.isBundle === true).length}
-              regularCount={filteredProducts.filter(p => p?.isBundle !== true).length}
+              bundleCount={
+                filteredProducts.filter(p => p?.isBundle === true).length
+              }
+              regularCount={
+                filteredProducts.filter(p => p?.isBundle !== true).length
+              }
               totalCount={filteredProducts.length}
               sortOption={sortOption}
               onSortChange={handleSortChange}
@@ -834,7 +921,9 @@ function ClientProductsPageContent({
                   selectedLearningOutcomes={state.selectedLearningOutcomes}
                   selectedProductType={state.selectedProductType}
                   selectedSpecialCategories={state.selectedSpecialCategories}
-                  selectedAgeGroup={state.selectedAgeGroup}
+                  selectedAgeGroup={
+                    state.selectedAgeGroup as ProductData["ageGroup"]
+                  }
                   handleCategoryChange={handleCategoryChange}
                   handleFilterChange={handleFilterChange}
                   handlePriceChange={handlePriceChange}
@@ -842,7 +931,7 @@ function ClientProductsPageContent({
                   setSelectedLearningOutcomes={actions.setLearningOutcomes}
                   setSelectedProductType={actions.setProductType}
                   setSelectedSpecialCategories={actions.setSpecialCategories}
-                  setSelectedAgeGroup={age => actions.setAgeGroup(age)}
+                  setSelectedAgeGroup={age => actions.setAgeGroup(age ?? "")}
                   handleClearFilters={handleClearFilters}
                   setMobileFiltersOpen={actions.setMobileFiltersOpen}
                   t={t}
@@ -896,50 +985,22 @@ function ClientProductsPageContent({
         <MobileFiltersModal
           isOpen={state.mobileFiltersOpen}
           onClose={() => actions.setMobileFiltersOpen(false)}
+          activePanel={mobileFilterPanel}
+          onActivePanelChange={setMobileFilterPanel}
           categories={categoryFilter[0]}
-          filters={dynamicFilters}
-          priceRange={(() => {
-            // Calculate actual price range from products (same logic as ProductsSidebar)
-            if (!products || products.length === 0) {
-              return { min: 0, max: 1000, current: state.priceRangeFilter };
-            }
-
-            const prices = products
-              .map(p => {
-                const price =
-                  typeof p.price === "string" ? parseFloat(p.price) : p.price;
-                return isNaN(price) ? 0 : price;
-              })
-              .filter(price => price > 0);
-
-            if (prices.length === 0) {
-              return { min: 0, max: 1000, current: state.priceRangeFilter };
-            }
-
-            const min = Math.floor(Math.min(...prices));
-            const max = Math.ceil(Math.max(...prices));
-
-            return {
-              min,
-              max,
-              current: state.priceRangeFilter,
-            };
-          })()}
+          priceRange={mobilePriceRange}
           selectedCategories={state.selectedCategories}
-          selectedFilters={state.selectedFilters}
           noPriceFilter={state.noPriceFilter}
-          selectedLearningOutcomes={state.selectedLearningOutcomes}
-          selectedProductType={state.selectedProductType}
-          selectedSpecialCategories={state.selectedSpecialCategories}
-          selectedAgeGroup={state.selectedAgeGroup}
+          selectedAgeGroup={state.selectedAgeGroup as ProductData["ageGroup"]}
+          activeFilterCount={mobileFilterCount}
+          categoryLabel={mobileCategoryLabel}
+          ageLabel={mobileAgeLabel}
+          priceLabel={mobilePriceLabel}
           onCategoryChange={handleCategoryChange}
-          onFilterChange={handleFilterChange}
           onPriceChange={handlePriceChange}
           onNoPriceFilterChange={handleNoPriceFilterChange}
-          onLearningOutcomesChange={actions.setLearningOutcomes}
-          onProductTypeChange={actions.setProductType}
-          onSpecialCategoriesChange={actions.setSpecialCategories}
-          onAgeGroupChange={age => actions.setAgeGroup(age)}
+          onAgeGroupChange={age => actions.setAgeGroup(age ?? "")}
+          onClearCurrentPanel={handleClearMobilePanel}
           onClearFilters={handleClearFilters}
           t={t}
         />
