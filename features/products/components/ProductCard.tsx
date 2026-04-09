@@ -263,7 +263,7 @@ export function ProductCard({
             src={imageUrl}
             alt={product.name}
             fill
-            className="object-contain p-3 sm:p-4 transition-transform duration-500 group-hover:scale-[1.04]"
+            className="object-contain p-2 sm:p-2.5 transition-transform duration-500 group-hover:scale-[1.04]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             priority={priority}
             quality={90}
@@ -368,7 +368,7 @@ export function ProductCard({
       </div>
 
       {/* Product info */}
-      <div className="flex flex-1 flex-col gap-1.5 p-3 sm:p-3.5">
+      <div className="flex flex-1 flex-col gap-1 p-2.5 sm:p-3">
         {/* Rating */}
         {product.averageRating ? (
           <div className="flex items-center gap-1 mt-0.5">

@@ -824,9 +824,9 @@ function ClientProductsPageContent({
         <div className="w-full">
           {/* Page header — breadcrumb + title */}
           <div className="border-b border-slate-100 bg-white">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="container mx-auto px-3 sm:px-4 lg:px-5 py-4 sm:py-5">
               {/* Breadcrumb */}
-              <nav className="flex items-center gap-1.5 text-sm text-slate-500 mb-4">
+              <nav className="flex items-center gap-1.5 text-sm text-slate-500 mb-3">
                 <Link
                   href="/"
                   className="hover:text-slate-800 transition-colors"
@@ -886,8 +886,8 @@ function ClientProductsPageContent({
           </div>
 
           {/* Main content — sidebar + products grid */}
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-            <div className="flex flex-col xl:flex-row gap-8 items-start">
+          <div className="container mx-auto px-3 sm:px-4 lg:px-5 py-3 sm:py-4">
+            <div className="flex flex-col xl:flex-row gap-4 xl:gap-5 items-start">
               <ProductFiltersErrorBoundary
                 onError={() => {
                   handleClearFilters();
@@ -948,7 +948,7 @@ function ClientProductsPageContent({
                     t={t}
                   />
                   {bundleFilteredProducts.length > 0 && (
-                    <div className="mt-8">
+                    <div className="mt-5 sm:mt-6">
                       <ProductsPagination
                         currentPage={page}
                         totalPages={totalPages}
@@ -1000,7 +1000,7 @@ function ClientProductsPageContent({
 
 function ClientProductsPageFallback() {
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <div className="container mx-auto px-3 sm:px-4 lg:px-5 py-3 sm:py-5">
       <div className="animate-pulse">
         <div className="h-[15vh] sm:h-[20vh] bg-muted rounded-2xl mb-4 sm:mb-8"></div>
         <div className="flex flex-col md:flex-row gap-4 sm:gap-6">

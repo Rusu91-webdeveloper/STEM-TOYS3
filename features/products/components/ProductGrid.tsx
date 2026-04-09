@@ -216,7 +216,7 @@ export function ProductGrid({
   const isEffectivelySingleColumn = visibleColumns === 1;
 
   return (
-    <div className={cn("space-y-3 sm:space-y-4", className)}>
+    <div className={cn("space-y-2 sm:space-y-3", className)}>
       {(showLayoutToggle || showSortOptions) && (
         <div className="hidden xl:flex mb-3 flex-col gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-2 shadow-sm sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-3 sm:py-2.5">
           {showSortOptions && (
@@ -306,7 +306,7 @@ export function ProductGrid({
           {t("noProductsFound")}
         </div>
       ) : layout === "grid" && !isEffectivelySingleColumn ? (
-        <div className={`grid ${gridColsClass} gap-3 sm:gap-4 lg:gap-5`}>
+        <div className={`grid ${gridColsClass} gap-2 sm:gap-3 lg:gap-3.5`}>
           {sortedProducts.map((product, index) => (
             <div
               key={product.id}
@@ -323,7 +323,7 @@ export function ProductGrid({
           ))}
         </div>
       ) : (
-        <div className="flex flex-col space-y-3 sm:space-y-4 lg:space-y-6">
+        <div className="flex flex-col space-y-2 sm:space-y-3 lg:space-y-4">
           {sortedProducts.map((product, index) => (
             <ProductCard
               key={product.id}

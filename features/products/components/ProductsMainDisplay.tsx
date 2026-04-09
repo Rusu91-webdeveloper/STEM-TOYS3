@@ -128,7 +128,7 @@ export function ProductsMainDisplay({
   return (
     <div className="flex-1 text-slate-900">
       {/* Toolbar — view toggle + sort (desktop) */}
-      <div className="hidden xl:flex items-center justify-between mb-5 gap-4">
+      <div className="hidden xl:flex items-center justify-between mb-3 gap-3">
         {/* View toggle */}
         <div className="flex items-center gap-1 border border-slate-200 rounded-lg p-1 bg-white">
           <button
@@ -218,7 +218,7 @@ export function ProductsMainDisplay({
       )}
 
       {/* Products grid or list */}
-      <div className={viewMode === "list" ? "space-y-3" : ""}>
+      <div className={viewMode === "list" ? "space-y-2 sm:space-y-2.5" : ""}>
         {viewMode === "grid" ? (
           <ProductGrid
             products={displayProducts.map((product, index) => {
