@@ -1,11 +1,11 @@
 // Service Worker for STEM TOYS E-commerce Platform
-// Version: 1.0.1
+// Version: 1.0.2
 // Cache Strategy: Network First with Cache Fallback
 
-const CACHE_NAME = 'stem-toys-v1.0.1';
-const STATIC_CACHE = 'static-v1.0.1';
-const DYNAMIC_CACHE = 'dynamic-v1.0.1';
-const API_CACHE = 'api-v1.0.1';
+const CACHE_NAME = 'stem-toys-v1.0.2';
+const STATIC_CACHE = 'static-v1.0.2';
+const DYNAMIC_CACHE = 'dynamic-v1.0.2';
+const API_CACHE = 'api-v1.0.2';
 
 // Cache configurations
 const CACHE_CONFIGS = {
@@ -147,6 +147,12 @@ self.addEventListener('fetch', (event) => {
 
   // Skip payment endpoints to avoid caching or delaying payment status checks
   if (isPaymentRequest(url.pathname)) {
+    return;
+  }
+
+  // Keep account and checkout navigations fully network-driven so auth redirects,
+  // payment callbacks, and order pages never get replaced with the offline shell.
+  if (isCriticalNavigationPath(url.pathname)) {
     return;
   }
   
@@ -326,12 +332,12 @@ async function handleUploadThingRequest(request) {
 // Handle page requests
 async function handlePageRequest(request) {
   try {
-    // Try network first
     const networkResponse = await fetch(request);
-    
-    if (networkResponse.ok) {
-      return networkResponse;
-    }
+
+    // Always return the real server response when we have one, including
+    // redirects, 404s, and 500s. Offline fallback should only happen for
+    // genuine network failures, not valid application responses.
+    return networkResponse;
   } catch (error) {
     console.warn('[SW] Network failed for page request:', request.url);
   }
@@ -541,6 +547,10 @@ function isAuthRequest(pathname) {
 
 function isPaymentRequest(pathname) {
   return pathname.startsWith('/api/payments');
+}
+
+function isCriticalNavigationPath(pathname) {
+  return pathname.startsWith('/account') || pathname.startsWith('/checkout');
 }
 
 function isNextJSAsset(pathname) {

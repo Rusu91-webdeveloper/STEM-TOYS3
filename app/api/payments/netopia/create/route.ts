@@ -75,6 +75,9 @@ export async function POST(request: Request) {
     const recipientEmail = customerData?.email || order.user?.email;
 
     if (recipientEmail) {
+      const loginUrl = new URL("/auth/login", siteUrl);
+      loginUrl.searchParams.set("callbackUrl", `/account/orders/${order.id}`);
+
       DatabaseTemplateService.sendOrderAwaitingPaymentEmail(recipientEmail, {
         customerName:
           customerData?.name ||
@@ -84,7 +87,7 @@ export async function POST(request: Request) {
         orderNumber: order.orderNumber || order.id,
         orderTotal: Number(order.total),
         paymentMethodLabel: "Card (Netopia)",
-        orderUrl: `${siteUrl}/account/orders/${order.id}`,
+        orderUrl: loginUrl.toString(),
       }).catch(emailError => {
         console.error(
           `❌ [API] Failed to send awaiting payment email for order ${order.id}:`,
