@@ -1,182 +1,114 @@
-import { CheckCircle, Package, Mail, Clock, Truck } from "lucide-react";
+import { Check, Gift, Mail, Sparkles } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-
-import { appConfig } from "@/lib/config/app-config";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-// import { getTranslations } from "@/lib/i18n/server";
 
 export const metadata = {
   title: "Confirmare Comandă | TechTots",
   description: "Comanda dvs. a fost plasată cu succes.",
 };
 
+const CONFETTI_BITS = [
+  "left-8 top-24 rotate-12 bg-rose-400",
+  "left-16 top-16 -rotate-[18deg] bg-amber-400",
+  "left-2 top-32 rotate-45 bg-sky-400",
+  "right-8 top-20 rotate-12 bg-emerald-400",
+  "right-12 top-32 -rotate-[16deg] bg-violet-400",
+  "right-3 top-28 rotate-45 bg-rose-300",
+  "left-20 top-36 bg-emerald-300",
+  "right-20 top-36 bg-amber-300",
+  "left-12 top-10 bg-fuchsia-300",
+  "right-16 top-10 bg-cyan-300",
+];
+
 export default async function OrderConfirmationPage({
   searchParams,
 }: {
   searchParams: Promise<{ orderId?: string }>;
 }) {
-  // const t = await getTranslations();
   const params = await searchParams;
   const orderId = params.orderId;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12">
-      <div className="container max-w-4xl mx-auto px-4">
-        {/* Success Header */}
-        <div className="text-center mb-12 animate-fade-in-up">
-          <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6 animate-bounce">
-            <CheckCircle className="h-10 w-10 text-green-600" />
+    <div className="relative min-h-screen overflow-hidden bg-[#c7852a] px-4 py-8 sm:px-6 sm:py-12">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,rgba(255,240,196,0.45),transparent_18%),radial-gradient(circle_at_74%_18%,rgba(255,236,179,0.35),transparent_20%),radial-gradient(circle_at_58%_52%,rgba(120,58,12,0.16),transparent_34%),linear-gradient(180deg,rgba(129,74,22,0.12),rgba(82,46,14,0.24))]" />
+      <div className="pointer-events-none absolute right-[-2rem] top-28 hidden h-56 w-56 rounded-full border border-white/20 bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.95),rgba(245,245,245,0.82)_45%,rgba(226,232,240,0.65)_72%,rgba(255,255,255,0)_76%)] shadow-[0_20px_50px_-25px_rgba(15,23,42,0.35)] blur-[1px] sm:block" />
+      <div className="pointer-events-none absolute left-[-5rem] bottom-[-5rem] h-56 w-56 rounded-full bg-[radial-gradient(circle_at_40%_30%,rgba(255,214,170,0.65),rgba(251,146,60,0.2)_48%,rgba(194,65,12,0)_72%)]" />
+
+      <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-md items-center justify-center">
+        <div className="relative w-full max-w-[19rem] rounded-[2.5rem] bg-[#111827] p-2.5 shadow-[0_40px_90px_-30px_rgba(15,23,42,0.75)] sm:max-w-[20rem]">
+          <div className="absolute left-1/2 top-3 h-7 w-28 -translate-x-1/2 rounded-full bg-black" />
+          <div className="absolute left-3 top-28 h-14 w-1 rounded-full bg-white/10" />
+          <div className="absolute right-3 top-32 h-20 w-1 rounded-full bg-white/10" />
+
+          <div className="overflow-hidden rounded-[2rem] bg-white px-6 pb-7 pt-9 text-center">
+            <div className="flex items-center justify-between text-[10px] font-medium text-slate-400">
+              <span>19:22</span>
+              <span className="flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                <span className="h-1.5 w-4 rounded-full border border-slate-300" />
+              </span>
+            </div>
+
+            <div className="mx-auto mt-7 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_14px_26px_-14px_rgba(34,197,94,0.8)]">
+              <Check className="h-6 w-6" strokeWidth={3.2} />
+            </div>
+
+            <div className="relative mx-auto mt-5 flex h-44 w-40 items-center justify-center">
+              {CONFETTI_BITS.map(bit => (
+                <span
+                  key={bit}
+                  className={`absolute h-2.5 w-1 rounded-full opacity-90 ${bit}`}
+                />
+              ))}
+
+              <div className="absolute left-[3.35rem] top-[4.55rem] flex h-9 w-9 items-center justify-center rounded-xl bg-white text-slate-700 shadow-[0_12px_24px_-14px_rgba(15,23,42,0.35)]">
+                <Gift className="h-4.5 w-4.5 text-fuchsia-500" />
+              </div>
+              <div className="absolute right-[3.25rem] top-[4.2rem] flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 shadow-[0_10px_20px_-12px_rgba(14,165,233,0.45)]">
+                <Sparkles className="h-4 w-4" />
+              </div>
+
+              <div className="absolute inset-x-10 bottom-8 h-4 rounded-full bg-sky-100/80 blur-md" />
+              <div className="relative mt-5 h-24 w-24 rounded-[1.35rem] bg-[#12b5ea] shadow-[0_28px_40px_-22px_rgba(14,165,233,0.75)]">
+                <div className="absolute left-1/2 top-[1.05rem] h-8 w-10 -translate-x-1/2 rounded-[999px] border-[3px] border-[#086f8f] border-b-0" />
+                <div className="absolute inset-x-0 top-[2.15rem] h-px bg-[#0891b2]/30" />
+                <div className="absolute left-1/2 top-[2.95rem] h-2.5 w-2.5 -translate-x-1/2 rounded-full border-2 border-[#086f8f]" />
+              </div>
+            </div>
+
+            <h1 className="mt-1 text-[1.55rem] font-bold tracking-tight text-slate-900">
+              Comanda a fost plasată!
+            </h1>
+            <p className="mt-2 text-[13px] leading-relaxed text-slate-500">
+              Veți primi un email de confirmare imediat.
+            </p>
+
+            {orderId && (
+              <p className="mt-3 text-[11px] font-medium text-slate-400">
+                Comanda #{orderId}
+              </p>
+            )}
+
+            <div className="mt-8 space-y-3">
+              <Link
+                href="/products"
+                className="inline-flex w-full items-center justify-center rounded-full bg-[#1683ff] px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_28px_-18px_rgba(22,131,255,0.9)] transition-colors hover:bg-[#0f74e8]"
+              >
+                Înapoi la magazin
+              </Link>
+              <Link
+                href="/account/orders"
+                className="inline-flex items-center justify-center gap-2 text-[13px] font-medium text-slate-400 transition-colors hover:text-slate-600"
+              >
+                <Mail className="h-3.5 w-3.5" />
+                Vezi comenzile mele
+              </Link>
+            </div>
+
+            <div className="mx-auto mt-7 h-1.5 w-24 rounded-full bg-slate-900/8" />
           </div>
-          <h1 className="text-4xl font-bold mb-4 text-gray-900">
-            Vă mulțumim pentru comandă!
-          </h1>
-          <p className="text-gray-600 text-xl max-w-2xl mx-auto">
-            Comanda dvs. a fost plasată cu succes și este în curs de procesare.
-          </p>
         </div>
-
-        {/* Order Details Card */}
-        <Card className="mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-          <CardContent className="p-8">
-            <div className="flex flex-col md:flex-row justify-between border-b border-gray-200 pb-6 mb-6">
-              <div>
-                <h2 className="text-2xl font-semibold mb-3 text-gray-900">
-                  Detalii Comandă
-                </h2>
-                <div className="space-y-2">
-                  <p className="text-gray-700 font-medium">
-                    Comanda #{orderId || "N/A"}
-                  </p>
-                  <p className="text-gray-600">
-                    Data:{" "}
-                    {new Date().toLocaleDateString("ro-RO", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 md:mt-0">
-                <div className="bg-blue-50 text-blue-700 px-6 py-3 rounded-lg inline-block border border-blue-200">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <p className="font-semibold">Status: Procesare</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Next Steps */}
-            <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">
-                Ce urmează?
-              </h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-                  <div className="p-2 bg-blue-100 rounded-full">
-                    <Mail className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1">
-                      Email de confirmare
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Veți primi un email cu detaliile comenzii în câteva minute
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-                  <div className="p-2 bg-orange-100 rounded-full">
-                    <Clock className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1">
-                      Procesare comandă
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Comanda dvs. este pregătită pentru expediere
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-                  <div className="p-2 bg-green-100 rounded-full">
-                    <Truck className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1">
-                      Notificare expediere
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Veți primi un email când comanda va fi expediată
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Information */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-              <h4 className="font-semibold text-blue-900 mb-3">
-                Informații importante
-              </h4>
-              <ul className="space-y-2 text-sm text-blue-800">
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
-                  Puteți urmări statusul comenzii în{" "}
-                  <Link
-                    href="/account/orders"
-                    className="text-blue-600 underline font-medium hover:text-blue-800"
-                  >
-                    istoricul comenzilor
-                  </Link>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
-                  Pentru întrebări, contactați-ne la{" "}
-                  <a
-                    href={`mailto:${appConfig.contactEmail}`}
-                    className="text-blue-600 underline font-medium hover:text-blue-800"
-                  >
-                    {appConfig.contactEmail}
-                  </a>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
-                  Numărul de comandă este:{" "}
-                  <span className="font-mono font-semibold text-blue-900">
-                    {orderId || "N/A"}
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                asChild
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-              >
-                <Link href="/products">
-                  <Package className="h-5 w-5" />
-                  Continuă Cumpărăturile
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="px-8 py-3 text-lg border-2 hover:bg-gray-50"
-              >
-                <Link href="/account/orders">Vezi Comenzile Mele</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

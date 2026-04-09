@@ -516,7 +516,7 @@ const PaymentMethodSelectorComponent = ({
                   className="sr-only"
                 />
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-start gap-3">
                   <div
                     className={cn(
                       "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2",
@@ -560,15 +560,15 @@ const PaymentMethodSelectorComponent = ({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="truncate text-base font-medium text-slate-900">
+                    <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                      <p className="w-full text-[15px] font-medium leading-5 text-slate-900 sm:text-base sm:leading-6">
                         {method.name}
                       </p>
 
                       {trailingLabel && (
                         <span
                           className={cn(
-                            "shrink-0 rounded-md border px-2 py-1 text-xs font-semibold",
+                            "inline-flex max-w-full items-center rounded-md border px-2 py-1 text-[11px] font-semibold leading-none sm:shrink-0 sm:text-xs",
                             method.badge
                               ? getBadgeStyles(method.badgeVariant)
                               : "border-slate-200 bg-slate-50 text-slate-600"
@@ -580,7 +580,7 @@ const PaymentMethodSelectorComponent = ({
                     </div>
 
                     {detailText && (
-                      <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                      <p className="mt-1 text-sm leading-5 text-slate-500 sm:leading-relaxed">
                         {detailText}
                       </p>
                     )}
