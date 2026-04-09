@@ -254,6 +254,10 @@ export function MobileFiltersModal({
               }
               onOpenPanel={onActivePanelChange}
               onClearFilters={onClearFilters}
+              searchQuery=""
+              onSearchQueryChange={() => {}}
+              onClearSearch={() => {}}
+              showSearch={false}
               t={t}
             />
           </div>

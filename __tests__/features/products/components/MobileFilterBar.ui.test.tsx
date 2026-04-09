@@ -18,6 +18,9 @@ describe("MobileFilterBar", () => {
         priceActive={true}
         onOpenPanel={() => {}}
         onClearFilters={() => {}}
+        searchQuery=""
+        onSearchQueryChange={() => {}}
+        onClearSearch={() => {}}
         t={t}
       />
     );
@@ -25,6 +28,7 @@ describe("MobileFilterBar", () => {
     expect(screen.getByRole("button", { name: /Category/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /6-8 years/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /50-100 lei/i })).toBeTruthy();
+    expect(screen.getByPlaceholderText(/Search toys by name/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: /Clear all/i })).toBeTruthy();
   });
 });

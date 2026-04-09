@@ -32,7 +32,6 @@ import {
   ProductGridErrorBoundary,
 } from "./ProductsErrorBoundary";
 import { MobileFilterBar, type MobileFilterPanel } from "./MobileFilterBar";
-import { MobileProductsBar } from "./MobileProductsBar";
 import { ProductsMainDisplay } from "./ProductsMainDisplay";
 import { ProductsSidebar } from "./ProductsSidebar";
 import {
@@ -879,22 +878,6 @@ function ClientProductsPageContent({
               }
               onOpenPanel={handleOpenMobilePanel}
               onClearFilters={handleClearFilters}
-              t={t}
-            />
-            <MobileProductsBar
-              bundleViewMode={bundleViewMode}
-              onBundleViewModeChange={setBundleViewMode}
-              bundleCount={
-                filteredProducts.filter(p => p?.isBundle === true).length
-              }
-              regularCount={
-                filteredProducts.filter(p => p?.isBundle !== true).length
-              }
-              totalCount={filteredProducts.length}
-              sortOption={sortOption}
-              onSortChange={handleSortChange}
-              viewMode={state.viewMode}
-              onViewModeChange={handleViewModeChange}
               searchQuery={state.searchQuery}
               onSearchQueryChange={handleSearchQueryChange}
               onClearSearch={handleSearchClear}
