@@ -215,31 +215,31 @@ export function MobileFiltersModal({
   return (
     <Sheet open={isOpen} onOpenChange={open => !open && onClose()}>
       <SheetContent
-        side="bottom"
-        className="h-auto max-h-[78vh] w-full max-w-full rounded-t-[28px] border-0 bg-white px-0 pb-0 shadow-[0_-12px_36px_rgba(15,23,42,0.14)]"
+        side="top"
+        className="[&>button]:hidden left-0 right-0 top-[4.5rem] mx-3 h-auto max-h-[calc(100vh-6rem)] w-auto rounded-[28px] border border-slate-200 bg-white px-0 pb-0 pt-0 shadow-[0_20px_44px_rgba(15,23,42,0.18)]"
       >
-        <SheetHeader className="border-b border-slate-100 px-4 pb-4 pt-3 text-left">
-          <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
+        <SheetHeader className="border-b border-slate-100 px-4 pb-3 pt-3 text-left">
+          <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-slate-200" />
           <div className="flex items-start justify-between gap-3">
             <div>
-              <SheetTitle className="text-lg font-semibold text-slate-900">
+              <SheetTitle className="text-xl font-semibold text-slate-900">
                 {modalTitle}
               </SheetTitle>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-xs text-slate-500">
                 {t("refineResults", "Refine the products you see on mobile.")}
               </p>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-700"
               aria-label={t("close", "Close")}
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="-mx-4 mt-4">
+          <div className="-mx-4 mt-3">
             <MobileFilterBar
               activeFilterCount={activeFilterCount}
               categoryLabel={categoryLabel}
@@ -263,21 +263,21 @@ export function MobileFiltersModal({
           </div>
         </SheetHeader>
 
-        <div className="overflow-y-auto px-4 py-4">
+        <div className="overflow-y-auto px-4 py-3">
           {activePanel === "category" && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
                   value={searchQuery}
                   onChange={event => setSearchQuery(event.target.value)}
                   placeholder={t("searchCategory", "Search categories")}
-                  className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 text-sm text-slate-700 focus-visible:ring-orange-200"
+                  className="h-10 rounded-xl border-slate-200 bg-slate-50 pl-10 text-sm text-slate-700 focus-visible:ring-orange-200"
                 />
               </div>
 
               {filteredCategories.length > 0 ? (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5">
                   {filteredCategories.map(option => {
                     const isSelected = selectedCategories.some(
                       selectedCategory =>
@@ -291,23 +291,23 @@ export function MobileFiltersModal({
                         type="button"
                         onClick={() => onCategoryChange(option.id)}
                         className={cn(
-                          "flex min-h-[52px] items-center justify-between gap-3 rounded-2xl border px-3 py-3 text-left transition-colors",
+                          "flex min-h-[48px] items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left transition-colors",
                           isSelected
                             ? "border-orange-400 bg-orange-50 text-orange-700"
                             : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                         )}
                       >
-                        <span className="min-w-0 flex-1 text-sm font-medium">
+                        <span className="min-w-0 flex-1 text-sm font-medium leading-tight">
                           <span className="block truncate">{option.label}</span>
                           {option.count !== undefined && (
-                            <span className="mt-1 block text-xs text-slate-400">
+                            <span className="mt-0.5 block text-[11px] text-slate-400">
                               {option.count}
                             </span>
                           )}
                         </span>
                         <span
                           className={cn(
-                            "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border",
+                            "flex h-4.5 w-4.5 flex-shrink-0 items-center justify-center rounded-md border",
                             isSelected
                               ? "border-orange-500 bg-orange-500 text-white"
                               : "border-slate-300 bg-white"
@@ -328,7 +328,7 @@ export function MobileFiltersModal({
           )}
 
           {activePanel === "age" && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5">
               {MOBILE_AGE_OPTIONS.map(option => {
                 const isSelected = selectedAgeGroup === option.id;
 
@@ -342,7 +342,7 @@ export function MobileFiltersModal({
                       )
                     }
                     className={cn(
-                      "flex min-h-[56px] items-center justify-between gap-3 rounded-2xl border px-3 py-3 text-left transition-colors",
+                      "flex min-h-[48px] items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left transition-colors",
                       isSelected
                         ? "border-orange-400 bg-orange-50 text-orange-700"
                         : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
@@ -353,7 +353,7 @@ export function MobileFiltersModal({
                     </span>
                     <span
                       className={cn(
-                        "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border",
+                        "flex h-4.5 w-4.5 flex-shrink-0 items-center justify-center rounded-md border",
                         isSelected
                           ? "border-orange-500 bg-orange-500 text-white"
                           : "border-slate-300 bg-white"
@@ -368,7 +368,7 @@ export function MobileFiltersModal({
           )}
 
           {activePanel === "price" && (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {pricePresets.map(preset => {
                 const isSelected = preset.range
                   ? !noPriceFilter &&
@@ -390,7 +390,7 @@ export function MobileFiltersModal({
                       onPriceChange([priceRange.min, priceRange.max]);
                     }}
                     className={cn(
-                      "flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition-colors",
+                      "flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-left transition-colors",
                       isSelected
                         ? "border-orange-400 bg-orange-50 text-orange-700"
                         : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
@@ -399,7 +399,7 @@ export function MobileFiltersModal({
                     <span className="text-sm font-medium">{preset.label}</span>
                     <span
                       className={cn(
-                        "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border",
+                        "flex h-4.5 w-4.5 flex-shrink-0 items-center justify-center rounded-md border",
                         isSelected
                           ? "border-orange-500 bg-orange-500 text-white"
                           : "border-slate-300 bg-white"
@@ -414,19 +414,19 @@ export function MobileFiltersModal({
           )}
         </div>
 
-        <div className="border-t border-slate-100 bg-white px-4 py-4">
+        <div className="border-t border-slate-100 bg-white px-4 py-3">
           <div className="flex gap-3">
             <button
               type="button"
               onClick={() => onClearCurrentPanel(activePanel)}
-              className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
+              className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
             >
               {t("clear", "Clear")}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+              className="flex-1 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
             >
               {t("apply", "Apply")}
             </button>
