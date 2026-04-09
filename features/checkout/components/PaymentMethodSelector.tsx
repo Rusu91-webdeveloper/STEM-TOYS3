@@ -464,12 +464,12 @@ const PaymentMethodSelectorComponent = ({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
-          <Label className="block text-lg font-semibold text-slate-900">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-3 py-3 sm:px-5 sm:py-3.5">
+          <Label className="block text-base font-semibold text-slate-900 sm:text-[17px]">
             {t("paymentOptionsTitle", "Payment options")}
           </Label>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
             {t("paymentOptionsSubtitle", "Please select a payment method.")}
           </p>
         </div>
@@ -499,7 +499,7 @@ const PaymentMethodSelectorComponent = ({
                 key={method.id}
                 htmlFor={`payment-${method.id}`}
                 className={cn(
-                  "block px-4 py-4 transition-colors sm:px-6",
+                  "block px-3 py-2.5 transition-colors sm:px-5 sm:py-3",
                   isDisabled
                     ? "cursor-not-allowed bg-slate-50/80 opacity-70"
                     : "cursor-pointer bg-white hover:bg-slate-50/70",
@@ -513,10 +513,10 @@ const PaymentMethodSelectorComponent = ({
                   className="sr-only"
                 />
 
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-2.5 sm:gap-3">
                   <div
                     className={cn(
-                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2",
+                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 sm:h-6 sm:w-6",
                       isDisabled
                         ? "border-slate-300 bg-slate-100"
                         : isSelected
@@ -529,7 +529,7 @@ const PaymentMethodSelectorComponent = ({
                     ) : (
                       <span
                         className={cn(
-                          "h-2.5 w-2.5 rounded-full bg-primary transition-opacity",
+                          "h-2 w-2 rounded-full bg-primary transition-opacity sm:h-2.5 sm:w-2.5",
                           isSelected ? "opacity-100" : "opacity-0"
                         )}
                       />
@@ -538,11 +538,11 @@ const PaymentMethodSelectorComponent = ({
 
                   <div
                     className={cn(
-                      "flex shrink-0 items-center justify-center rounded-xl border",
+                      "flex shrink-0 items-center justify-center rounded-lg border",
                       methodStyles.iconBox,
                       method.provider === "stripe" || method.provider === "netopia"
-                        ? "h-12 min-h-[3rem] w-[min(100%,7.25rem)] min-w-[6.25rem] max-w-[7.5rem]"
-                        : "h-12 w-12"
+                        ? "h-9 min-h-9 w-[min(100%,6.25rem)] min-w-[5rem] max-w-[6.5rem] sm:h-10 sm:min-h-10"
+                        : "h-9 w-9 sm:h-10 sm:w-10"
                     )}
                   >
                     {method.provider === "stripe" ? (
@@ -559,7 +559,7 @@ const PaymentMethodSelectorComponent = ({
                                 className?: string;
                               }>,
                               {
-                                className: "h-6 w-6",
+                                className: "h-5 w-5 sm:h-[1.35rem] sm:w-[1.35rem]",
                               }
                             )
                           : method.icon}
@@ -568,15 +568,15 @@ const PaymentMethodSelectorComponent = ({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                      <p className="w-full text-[15px] font-medium leading-5 text-slate-900 sm:text-base sm:leading-6">
+                    <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                      <p className="w-full text-sm font-medium leading-tight text-slate-900 sm:text-[15px] sm:leading-snug">
                         {method.name}
                       </p>
 
                       {trailingLabel && (
                         <span
                           className={cn(
-                            "inline-flex max-w-full items-center rounded-md border px-2 py-1 text-[11px] font-semibold leading-none sm:shrink-0 sm:text-xs",
+                            "inline-flex max-w-full items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold leading-none sm:shrink-0 sm:px-2 sm:py-0.5 sm:text-[11px]",
                             method.badge
                               ? getBadgeStyles(method.badgeVariant)
                               : "border-slate-200 bg-slate-50 text-slate-600"
@@ -588,7 +588,7 @@ const PaymentMethodSelectorComponent = ({
                     </div>
 
                     {detailText && (
-                      <p className="mt-1 text-sm leading-5 text-slate-500 sm:leading-relaxed">
+                      <p className="mt-0.5 text-xs leading-snug text-slate-500 sm:text-[13px] sm:leading-relaxed">
                         {detailText}
                       </p>
                     )}

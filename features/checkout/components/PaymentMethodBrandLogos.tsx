@@ -1,6 +1,5 @@
 "use client";
 
-import NTPLogo from "ntp-logo-react";
 import Image from "next/image";
 
 /**
@@ -8,32 +7,32 @@ import Image from "next/image";
  */
 export function StripePaymentRowLogo() {
   return (
-    <div className="flex h-full w-full min-w-[5.5rem] max-w-[6.75rem] items-center justify-center px-2">
+    <div className="flex h-full w-full min-w-[4.75rem] max-w-[5.75rem] items-center justify-center px-1.5">
       <Image
         src="/images/checkout/stripe-wordmark.svg"
         alt=""
-        width={88}
-        height={28}
-        className="h-5 w-auto max-h-6 object-contain"
+        width={80}
+        height={22}
+        className="h-[1.15rem] w-auto max-h-5 object-contain object-left sm:h-5"
       />
     </div>
   );
 }
 
 /**
- * Compact Netopia Payments logo for the checkout payment row (boxed logo style).
+ * Netopia Payments wordmark — uses a vendored SVG so checkout works when
+ * external CDNs (mny.ro) are blocked by CSP or network policies.
  */
 export function NetopiaPaymentRowLogo() {
   return (
-    <div className="flex h-full w-full max-w-[6.75rem] items-center justify-center px-1.5">
-      <div className="max-h-8 w-full max-w-[6.5rem] overflow-hidden [&_img]:h-7 [&_img]:w-auto [&_img]:max-w-full [&_img]:object-contain [&_img]:object-left">
-        <NTPLogo
-          color="#ffffff"
-          version="horizontal"
-          secret="156180"
-          aria-hidden
-        />
-      </div>
+    <div className="flex h-full w-full min-w-[4.75rem] max-w-[6rem] items-center justify-center px-1">
+      <Image
+        src="/images/checkout/netopia-wordmark.svg"
+        alt=""
+        width={120}
+        height={22}
+        className="h-[1.1rem] w-auto max-h-5 max-w-[5.85rem] object-contain object-left sm:h-5"
+      />
     </div>
   );
 }

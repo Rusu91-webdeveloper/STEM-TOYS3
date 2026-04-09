@@ -12,10 +12,11 @@ import {
   ShieldCheck,
   CreditCard,
   Truck,
+  type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { useTranslation } from "@/lib/i18n";
@@ -140,7 +141,18 @@ export default function Footer({
     { label: "GDPR", href: "/gdpr" },
   ];
 
-  const trustPartners = [
+  const trustPartners: Array<{
+    name: string;
+    href: string;
+    eyebrow: string;
+    detail: string;
+    icon: LucideIcon;
+    brandClassName: string;
+    wordmarkClassName: string;
+    wordmark: ReactNode;
+    /** Local SVG path — avoids broken remote Netopia assets */
+    logoSrc?: string;
+  }> = [
     {
       name: "Netopia Payments",
       href: "https://netopia-payments.com/",
@@ -148,14 +160,10 @@ export default function Footer({
       detail: t("footerNetopiaDetail", "3D Secure pentru piața din România"),
       icon: ShieldCheck,
       brandClassName:
-        "bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_62%,#38bdf8_100%)] text-white",
-      wordmarkClassName: "text-white",
-      wordmark: (
-        <>
-          <span className="font-black uppercase tracking-[0.18em]">NETOPIA</span>
-          <span className="text-white/80"> Payments</span>
-        </>
-      ),
+        "border border-slate-200 bg-white shadow-inner ring-1 ring-slate-100",
+      wordmarkClassName: "",
+      wordmark: null,
+      logoSrc: "/images/checkout/netopia-wordmark.svg",
     },
     {
       name: "Stripe",
@@ -409,13 +417,23 @@ export default function Footer({
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <div
-                        className={`flex h-11 min-w-[74px] items-center justify-center rounded-2xl px-3 shadow-inner ${partner.brandClassName}`}
+                        className={`flex h-11 min-w-[74px] max-w-[132px] items-center justify-center rounded-2xl px-2 shadow-inner ${partner.brandClassName}`}
                       >
-                        <span
-                          className={`text-sm leading-none ${partner.wordmarkClassName}`}
-                        >
-                          {partner.wordmark}
-                        </span>
+                        {partner.logoSrc ? (
+                          <Image
+                            src={partner.logoSrc}
+                            alt="Netopia Payments"
+                            width={120}
+                            height={22}
+                            className="h-6 w-auto max-h-7 max-w-[118px] object-contain object-left"
+                          />
+                        ) : (
+                          <span
+                            className={`text-sm leading-none ${partner.wordmarkClassName}`}
+                          >
+                            {partner.wordmark}
+                          </span>
+                        )}
                       </div>
 
                       <div className="min-w-0">
