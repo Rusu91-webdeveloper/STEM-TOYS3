@@ -414,51 +414,60 @@ const PaymentMethodSelectorComponent = ({
       )}
 
       {showCodOverview && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 px-4 py-3.5 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-              <Info className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-semibold text-amber-950">
-                  {t("codInfoTitle", "Ramburs la livrare")}
+        <div className="overflow-hidden rounded-2xl border border-amber-200/90 bg-gradient-to-br from-amber-50/95 via-white to-amber-50/40 shadow-[0_4px_20px_-10px_rgba(180,83,9,0.25)]">
+          <div className="h-0.5 bg-gradient-to-r from-amber-400 to-orange-400" />
+          <div className="px-4 py-4 sm:px-5 sm:py-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800 ring-1 ring-amber-200/60">
+                <Info className="h-4 w-4" aria-hidden />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-slate-900">
+                    {t("codSelectorPreviewTitle", "Ramburs la livrare")}
+                  </p>
+                  <span className="inline-flex items-center rounded-full border border-amber-200 bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                    {t("codInfoBadge", "Confirmare înainte de finalizare")}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+                  {t(
+                    "codSelectorPreviewBody",
+                    "Plătești la curier la primire. Refuzul sau nepreluarea pot fi tratate ca retur (RTO); mai jos îți explicăm clar taxa ramburs, garanția pe card (dacă e cazul) și costurile posibile tur + retur."
+                  )}
                 </p>
-                <span className="inline-flex items-center rounded-full border border-amber-200 bg-white px-2 py-0.5 text-[11px] font-medium text-amber-800">
-                  {t("codInfoBadge", "Confirmare înainte de finalizare")}
-                </span>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center rounded-lg border border-amber-100 bg-white/90 px-2.5 py-1 text-xs font-medium text-amber-950 shadow-sm">
+                    {t("codInfoPointOne", "Nu plătești acum produsele")}
+                  </span>
+                  <span className="inline-flex items-center rounded-lg border border-amber-100 bg-white/90 px-2.5 py-1 text-xs font-medium text-amber-950 shadow-sm">
+                    {t("codInfoPointTwo", "Refuzul poate genera cost logistic")}
+                  </span>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                  {t("codSelectorPreviewLinksLead", "Documente:")}{" "}
+                  <Link
+                    href="/shipping"
+                    className="font-semibold text-amber-900 underline decoration-amber-300 underline-offset-2 hover:text-amber-950"
+                  >
+                    {t("shippingPolicy", "Politica de livrare")}
+                  </Link>
+                  {", "}
+                  <Link
+                    href="/returns"
+                    className="font-semibold text-amber-900 underline decoration-amber-300 underline-offset-2 hover:text-amber-950"
+                  >
+                    {t("returnsPolicy", "Politica de retur")}
+                  </Link>
+                  {", "}
+                  <Link
+                    href="/terms"
+                    className="font-semibold text-amber-900 underline decoration-amber-300 underline-offset-2 hover:text-amber-950"
+                  >
+                    {t("termsAndConditions", "Termeni și Condiții")}
+                  </Link>
+                </p>
               </div>
-              <p className="mt-1 text-sm leading-relaxed text-amber-800">
-                {t(
-                  "codInfoBody",
-                  "Plătești la livrare. Dacă această comandă are risc logistic mai mare, îți vom cere și o autorizare temporară pe card, explicată clar mai jos."
-                )}
-              </p>
-              <div className="mt-2.5 flex flex-wrap gap-2 text-xs">
-                <span className="rounded-full bg-white px-2.5 py-1 font-medium text-amber-900">
-                  {t("codInfoPointOne", "Nu plătești acum produsele")}
-                </span>
-                <span className="rounded-full bg-white px-2.5 py-1 font-medium text-amber-900">
-                  {t("codInfoPointTwo", "Refuzul poate genera cost logistic")}
-                </span>
-              </div>
-              <p className="mt-2 text-xs text-amber-900">
-                Vezi{" "}
-                <Link
-                  href="/shipping"
-                  className="font-semibold underline underline-offset-4 hover:text-amber-700"
-                >
-                  Politica de Livrare
-                </Link>{" "}
-                și{" "}
-                <Link
-                  href="/terms"
-                  className="font-semibold underline underline-offset-4 hover:text-amber-700"
-                >
-                  Termeni și Condiții
-                </Link>
-                .
-              </p>
             </div>
           </div>
         </div>

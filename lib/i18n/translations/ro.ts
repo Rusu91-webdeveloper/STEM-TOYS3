@@ -2048,6 +2048,26 @@ export const ro = {
   codLockerProviderChip: "Card la locker",
   codLockerFeePreview: "Fără taxă fixă de 5 RON",
   codInfoTitle: "Informare COD (ramburs)",
+  codSelectorPreviewTitle: "Ramburs la livrare",
+  codSelectorPreviewBody:
+    "Plătești la curier la primire. Refuzul sau nepreluarea pot fi tratate ca retur (RTO); mai jos îți explicăm clar taxa ramburs, garanția pe card (dacă e cazul) și costurile posibile tur + retur.",
+  codSelectorPreviewLinksLead: "Documente:",
+  codRambursHeroTitle: "Ramburs — plătești la livrare",
+  codRambursHeroBadge: "Informare obligatorie",
+  codRambursHeroSubtitle:
+    "Pe scurt: ce trebuie să știi înainte să alegi ramburs — structurat ca într-un checkout profesionist.",
+  codKeyPointPayTitle: "Plătești la curier",
+  codKeyPointPayBody:
+    "Suma comenzii și taxa ramburs se achită la primirea coletului, nu în momentul plasării.",
+  codKeyPointRtoTitle: "Refuz sau nepreluare",
+  codKeyPointRtoBody:
+    "Dacă refuzi coletul la livrare sau nu îl ridici în termen, acesta poate fi returnat expeditorului (RTO).",
+  codKeyPointRoundTripTitle: "Costuri tur și retur",
+  codKeyPointRoundTripBody:
+    "În caz de RTO se pot aplica costurile logistice reale de dus și întors, conform politicilor afișate.",
+  codKeyPointAckTitle: "Confirmare înainte de plată",
+  codKeyPointAckBody:
+    "Continuarea comenzii cu ramburs necesită acceptarea explicită a acestor condiții.",
   codInfoBody:
     "Refuzul la livrare sau nepreluarea coletului sunt tratate ca RTO (retur la expeditor). În acest caz se pot aplica costurile logistice efective tur + retur, conform politicilor afișate înainte de comandă.",
   codLockerInfoTitle: "Informare plată la FANbox",

@@ -1860,6 +1860,26 @@ export const en = {
   codLockerProviderChip: "Card at locker",
   codLockerFeePreview: "No fixed 5 RON fee",
   codInfoTitle: "COD information",
+  codSelectorPreviewTitle: "Cash on delivery",
+  codSelectorPreviewBody:
+    "You pay the courier on delivery. Refusal or failure to collect may be treated as RTO (return to sender). Below we explain the COD fee, any card hold (if required), and possible round-trip logistics costs.",
+  codSelectorPreviewLinksLead: "Policies:",
+  codRambursHeroTitle: "Cash on delivery",
+  codRambursHeroBadge: "Required information",
+  codRambursHeroSubtitle:
+    "A short, professional summary of what you should know before choosing cash on delivery.",
+  codKeyPointPayTitle: "Pay the courier on delivery",
+  codKeyPointPayBody:
+    "The order total and COD fee are paid when you receive the parcel, not when you place the order.",
+  codKeyPointRtoTitle: "Refusal or non-collection",
+  codKeyPointRtoBody:
+    "If you refuse the parcel at delivery or do not collect it in time, it may be returned to the sender (RTO).",
+  codKeyPointRoundTripTitle: "Round-trip costs",
+  codKeyPointRoundTripBody:
+    "In an RTO case, actual outbound and return logistics costs may apply according to policies shown at checkout.",
+  codKeyPointAckTitle: "Acknowledgement before checkout",
+  codKeyPointAckBody:
+    "Continuing with cash on delivery requires explicit acceptance of these terms.",
   codInfoBody:
     "Delivery refusal or parcel non-collection are treated as RTO (return to sender). In this case, effective outbound + return logistics costs may apply according to policies shown before placing the order.",
   codLockerInfoTitle: "FANbox payment information",
