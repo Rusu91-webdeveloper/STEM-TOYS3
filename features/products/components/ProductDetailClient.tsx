@@ -129,12 +129,7 @@ export default function ProductDetailClient({
       <div className={productContentWrapperClass}>
         <div className={productPrimaryPanelClass}>
           {/* Breadcrumb */}
-          <ProductBreadcrumb
-            categorySlug={product.category?.slug}
-            categoryName={getCategoryName()}
-            productName={product.name}
-            t={t}
-          />
+          <ProductBreadcrumb productName={product.name} t={t} />
           {showBackToBundle && (
             <div className="mt-3">
               <Link
