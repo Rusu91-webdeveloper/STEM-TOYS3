@@ -25,7 +25,11 @@ import type {
 import type { FanCourierSenderConfig } from "@/lib/integrations/fancourier/types";
 import { getFanCourierSenderConfig } from "@/lib/integrations/fancourier/types";
 import { extractDimensionsCm } from "@/lib/shipping/shipping-pricing";
-import { getShippingSettings } from "@/lib/utils/store-settings";
+import {
+  DEFAULT_PRODUCT_WEIGHT_KG,
+  productStoredWeightToKg,
+} from "@/lib/shipping/store-weight-to-kg";
+import { getShippingSettings, getStoreSettings } from "@/lib/utils/store-settings";
 import { sendSupplierAwbLabelEmail } from "@/lib/email/supplier-awb";
 
 const COURIER_NAME = "FANCOURIER";
@@ -1046,8 +1050,25 @@ export const createFanAwbForOrder = async (
     };
   }
 
-  const totalWeight = products.reduce((sum, p) => sum + (p.weight || 0), 0);
-  const chargeableWeightKg = Math.max(totalWeight, 1); // Minimum 1kg
+  const storeSettings = await getStoreSettings();
+  const weightUnit =
+    (storeSettings as { weightUnit?: string | null }).weightUnit ?? "kg";
+
+  const productById = new Map(products.map(p => [p.id, p]));
+
+  let totalWeightKg = 0;
+  for (const item of physicalItems) {
+    const pid = item.productId;
+    if (!pid) continue;
+    const p = productById.get(pid);
+    if (!p) continue;
+    const lineKg =
+      productStoredWeightToKg(p.weight, weightUnit) *
+      Math.max(1, item.quantity);
+    totalWeightKg += lineKg;
+  }
+
+  const chargeableWeightKg = Math.max(totalWeightKg, DEFAULT_PRODUCT_WEIGHT_KG);
 
   let maxDimensions: { width: number; height: number; depth: number } | null =
     null;

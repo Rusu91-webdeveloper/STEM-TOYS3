@@ -1980,9 +1980,11 @@ export default function SettingsPage() {
                             product specifications.
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            <strong>Example:</strong> If set to "kg", product
-                            weights will be shown as "2.5 kg" and shipping costs
-                            will be calculated based on kilograms.
+                            <strong>Examples:</strong> With{" "}
+                            <strong>kg</strong>, a value of 2.5 means 2.5 kg.
+                            With <strong>g (grams)</strong>, 500 means 0.5 kg
+                            and 2000 means 2 kg. Shipping and AWB creation always
+                            send weights in kilograms to carriers.
                           </p>
                         </div>
                       }
@@ -2000,6 +2002,7 @@ export default function SettingsPage() {
                     <SelectContent>
                       <SelectItem value="lb">Pounds (lb)</SelectItem>
                       <SelectItem value="kg">Kilograms (kg)</SelectItem>
+                      <SelectItem value="g">Grams (g)</SelectItem>
                       <SelectItem value="oz">Ounces (oz)</SelectItem>
                     </SelectContent>
                   </Select>

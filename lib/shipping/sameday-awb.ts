@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { createSamedayAwb } from "@/lib/integrations/sameday/client";
 import { validateSamedayOrder } from "@/lib/shipping/sameday-validation";
+import { productStoredWeightToKg } from "@/lib/shipping/store-weight-to-kg";
+import { getStoreSettings } from "@/lib/utils/store-settings";
 import { Prisma } from "@prisma/client";
 
 const COURIER_NAME = "SAMEDAY";
@@ -153,6 +155,10 @@ export const createAwbForOrder = async (orderId: string) => {
   });
   const productMap = new Map(products.map(product => [product.id, product]));
 
+  const storeSettings = await getStoreSettings();
+  const weightUnit =
+    (storeSettings as { weightUnit?: string | null }).weightUnit ?? "kg";
+
   const shippingItems = order.items
     .filter(item => item.isDigital !== true)
     .map(item => {
@@ -160,7 +166,7 @@ export const createAwbForOrder = async (orderId: string) => {
       if (!product) return null;
       return {
         quantity: item.quantity,
-        weightKg: product.weight,
+        weightKg: productStoredWeightToKg(product.weight, weightUnit),
         dimensions: product.dimensions as Record<string, unknown>,
       };
     })

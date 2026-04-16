@@ -4,6 +4,8 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { validateSamedayOrder } from "@/lib/shipping/sameday-validation";
+import { productStoredWeightToKg } from "@/lib/shipping/store-weight-to-kg";
+import { getStoreSettings } from "@/lib/utils/store-settings";
 
 const requestSchema = z.object({
   orderId: z.string().min(1),
@@ -40,6 +42,10 @@ export async function POST(request: Request) {
     });
     const productMap = new Map(products.map(product => [product.id, product]));
 
+    const storeSettings = await getStoreSettings();
+    const weightUnit =
+      (storeSettings as { weightUnit?: string | null }).weightUnit ?? "kg";
+
     const shippingItems = order.items
       .filter(item => item.isDigital !== true)
       .map(item => {
@@ -47,7 +53,7 @@ export async function POST(request: Request) {
         if (!product) return null;
         return {
           quantity: item.quantity,
-          weightKg: product.weight,
+          weightKg: productStoredWeightToKg(product.weight, weightUnit),
           dimensions: product.dimensions as Record<string, unknown>,
         };
       })

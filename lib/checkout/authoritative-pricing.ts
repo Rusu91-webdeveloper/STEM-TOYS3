@@ -14,9 +14,11 @@ import {
   calculateShippingQuote,
   resolveShippingService,
 } from "@/lib/shipping/shipping-pricing";
+import { productStoredWeightToKg } from "@/lib/shipping/store-weight-to-kg";
 import {
   getCODSettings,
   getShippingSettings,
+  getStoreSettings,
   getTaxSettings,
 } from "@/lib/utils/store-settings";
 
@@ -256,6 +258,10 @@ export async function resolveCheckoutPricing(input: {
       );
     }
 
+    const storeSettings = await getStoreSettings();
+    const weightUnit =
+      (storeSettings as { weightUnit?: string | null }).weightUnit ?? "kg";
+
     const shippingItems = authoritativeItems
       .filter(item => item.isBook !== true)
       .map(item => {
@@ -271,7 +277,7 @@ export async function resolveCheckoutPricing(input: {
 
         return {
           quantity: item.quantity,
-          weightKg: product.weight,
+          weightKg: productStoredWeightToKg(product.weight, weightUnit),
           dimensions: product.dimensions as Record<string, unknown>,
         };
       });
