@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
+import { useProductActions } from "@/features/products/hooks/useProductActions";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,10 @@ export function ProductCard({
   const { formatPrice } = useCurrency();
   const { t } = useTranslation();
   const { addItem } = useShoppingCart();
+  const { isFavorited, isFavoriteLoading, handleFavorite } = useProductActions(
+    product,
+    t
+  );
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -82,6 +87,12 @@ export function ProductCard({
     setActiveImageIndex(prev =>
       prev < productImages.length - 1 ? prev + 1 : productImages.length
     );
+  };
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    void handleFavorite();
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -171,6 +182,31 @@ export function ProductCard({
               </span>
             )}
           </div>
+          <button
+            type="button"
+            onClick={handleFavoriteClick}
+            disabled={isFavoriteLoading}
+            aria-pressed={isFavorited}
+            aria-label={
+              isFavorited
+                ? t("removeFromFavorites", "Elimină din favorite")
+                : t("addToFavorites", "Adaugă la favorite")
+            }
+            className={cn(
+              "absolute right-2.5 top-2.5 z-20 flex h-8 w-8 items-center justify-center rounded-full border shadow-sm transition-all duration-200",
+              "opacity-100 sm:opacity-0 sm:group-hover:opacity-100",
+              isFavorited
+                ? "border-rose-200 bg-rose-50 text-rose-600"
+                : "border-slate-100 bg-white/90 text-slate-400 hover:border-rose-100 hover:text-rose-500",
+              isFavoriteLoading && "pointer-events-none opacity-70"
+            )}
+          >
+            {isFavoriteLoading ? (
+              <div className="h-3.5 w-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+            ) : (
+              <Heart className={cn("h-4 w-4", isFavorited && "fill-current")} />
+            )}
+          </button>
         </div>
 
         <div className="flex flex-col flex-1 p-4 sm:p-5 justify-between">
@@ -300,13 +336,31 @@ export function ProductCard({
           )}
         </div>
 
-        {/* Wishlist / heart button — top right */}
+        {/* Wishlist / heart button — top right (always visible on small screens for touch) */}
         <button
           type="button"
-          aria-label="Adaugă la favorite"
-          className="absolute right-2.5 top-2.5 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 border border-slate-100 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-rose-500 hover:border-rose-100 shadow-sm"
+          onClick={handleFavoriteClick}
+          disabled={isFavoriteLoading}
+          aria-pressed={isFavorited}
+          aria-label={
+            isFavorited
+              ? t("removeFromFavorites", "Elimină din favorite")
+              : t("addToFavorites", "Adaugă la favorite")
+          }
+          className={cn(
+            "absolute right-2.5 top-2.5 z-20 flex h-8 w-8 items-center justify-center rounded-full border shadow-sm transition-all duration-200",
+            "opacity-100 sm:opacity-0 sm:group-hover:opacity-100",
+            isFavorited
+              ? "border-rose-200 bg-rose-50 text-rose-600"
+              : "border-slate-100 bg-white/90 text-slate-400 hover:border-rose-100 hover:text-rose-500",
+            isFavoriteLoading && "pointer-events-none opacity-70"
+          )}
         >
-          <Heart className="h-4 w-4" />
+          {isFavoriteLoading ? (
+            <div className="h-3.5 w-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+          ) : (
+            <Heart className={cn("h-4 w-4", isFavorited && "fill-current")} />
+          )}
         </button>
 
         {/* Add to cart overlay — appears on hover at bottom of image */}

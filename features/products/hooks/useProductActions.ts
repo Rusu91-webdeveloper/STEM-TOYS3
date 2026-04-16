@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import type { AddToCartItemInput } from "@/features/cart/context/CartContext";
@@ -26,6 +29,7 @@ export function useProductActions(
   t: (key: string, fallback?: string) => string
 ) {
   const { toast } = useToast();
+  const router = useRouter();
   const { addItem } = useShoppingCart();
 
   const [isFavorited, setIsFavorited] = useState(false);
@@ -227,16 +231,27 @@ export function useProductActions(
 
         setIsFavorited(true);
         toast({
-          title: t("addedToWishlist", "Adăugat în lista de dorințe"),
+          variant: "wishlist",
+          duration: 4800,
+          title: t("addedToWishlist", "Adăugat la favorite"),
           description: isBook
             ? t(
                 "bookWishlistSaved",
-                "Cartea a fost salvată în lista ta de dorințe."
+                "Cartea ta este acum salvată — o poți vedea oricând din cont."
               )
             : t(
                 "wishlistSaved",
-                "Produsul a fost salvat în lista ta de dorințe."
+                "Produsul tău este salvat. Îl poți compara și comanda când ești gata."
               ),
+          action: (
+            <ToastAction
+              altText={t("viewFavorites", "Deschide pagina Favorite")}
+              className="border-rose-300/80 bg-white/90 text-rose-800 hover:bg-rose-50"
+              onClick={() => router.push("/account/wishlist")}
+            >
+              {t("viewFavoritesCta", "Vezi favorite")}
+            </ToastAction>
+          ),
         });
       } else {
         // Remove from wishlist
@@ -294,15 +309,17 @@ export function useProductActions(
         );
 
         toast({
-          title: t("removedFromWishlist", "Eliminat din lista de dorințe"),
+          variant: "default",
+          duration: 3600,
+          title: t("removedFromWishlist", "Eliminat din favorite"),
           description: isBookForRemoval
             ? t(
                 "bookWishlistRemoved",
-                "Cartea a fost eliminată din lista ta de dorințe."
+                "Cartea nu mai apare în lista ta de favorite."
               )
             : t(
                 "wishlistRemoved",
-                "Produsul a fost eliminat din lista ta de dorințe."
+                "Poți adăuga din nou acest produs oricând din pagina magazinului."
               ),
         });
       }

@@ -34,6 +34,8 @@ const toastVariants = cva(
           "destructive group border-destructive bg-destructive text-destructive-foreground",
         success: "success group border-green-600 bg-green-50 text-green-800",
         cart: "cart group border-indigo-600 bg-indigo-50 text-indigo-800",
+        wishlist:
+          "wishlist group border-rose-200/90 bg-gradient-to-br from-rose-50 via-white to-fuchsia-50/80 text-rose-950 shadow-lg shadow-rose-100/60",
         info: "info group border-blue-600 bg-blue-50 text-blue-800",
         warning: "warning group border-amber-600 bg-amber-50 text-amber-800",
       },

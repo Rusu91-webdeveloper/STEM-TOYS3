@@ -13,7 +13,14 @@ type ToasterToast = {
   title?: React.ReactNode;
   description?: React.ReactNode;
   action?: React.ReactNode;
-  variant?: "default" | "destructive" | "success" | "warning" | "info";
+  variant?:
+    | "default"
+    | "destructive"
+    | "success"
+    | "warning"
+    | "info"
+    | "cart"
+    | "wishlist";
   duration?: number;
   dismissible?: boolean;
   position?:
