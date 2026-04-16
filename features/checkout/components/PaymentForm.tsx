@@ -12,7 +12,10 @@ import React, {
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/features/cart";
 import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
-import { COD_CONSENT_VERSION } from "@/lib/checkout/cod-consent";
+import {
+  COD_CONSENT_TEXT,
+  COD_CONSENT_VERSION,
+} from "@/lib/checkout/cod-consent";
 import { useTranslation } from "@/lib/i18n";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 import {
