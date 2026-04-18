@@ -7,6 +7,7 @@ import { isUniqueConstraintError } from "@/lib/returns/errors";
 import {
   RETURN_REASON_LABELS_RO,
   RETURN_WINDOW_DAYS,
+  getLiabilityForReturnReason,
   isReturnReason,
   isWithinReturnWindowForOrder,
   normalizeReturnDetails,
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
       );
     }
     const returnReason = reason;
+    const defaultLiability = getLiabilityForReturnReason(returnReason);
 
     // Check if item is a digital book (not returnable)
     if ((orderItem as any).isDigital) {
@@ -117,8 +119,9 @@ export async function POST(request: Request) {
           orderId: orderItem.orderId,
           orderItemId: orderItem.id,
           reason: returnReason,
-          details: returnReason === "OTHER" ? normalizedDetails : null,
+          details: normalizedDetails,
           status: "PENDING",
+          liability: defaultLiability,
         },
         include: {
           user: {

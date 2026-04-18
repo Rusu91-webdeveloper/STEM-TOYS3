@@ -82,7 +82,9 @@ import { canTransitionReturnStatus } from "@/lib/returns/status-machine";
 type ReturnReason =
   | "DOES_NOT_MEET_EXPECTATIONS"
   | "DAMAGED_OR_DEFECTIVE"
+  | "MISSING_PARTS"
   | "WRONG_ITEM_SHIPPED"
+  | "DAMAGED_IN_TRANSIT"
   | "CHANGED_MIND"
   | "ORDERED_WRONG_PRODUCT"
   | "OTHER";
@@ -353,6 +355,9 @@ export default function AdminReturnsPage() {
   const [filterReason, setFilterReason] = useState<ReturnReason | undefined>(
     undefined
   );
+  const [filterLiability, setFilterLiability] = useState<
+    ReturnLiability | undefined
+  >(undefined);
   const [filterCustomerSegment, setFilterCustomerSegment] = useState<
     CustomerSegment | undefined
   >(undefined);
@@ -401,6 +406,7 @@ export default function AdminReturnsPage() {
   useEffect(() => {
     const status = searchParams.get("status");
     const reason = searchParams.get("reason");
+    const liability = searchParams.get("liability");
     const customerSegment = searchParams.get("customerSegment");
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
@@ -411,6 +417,9 @@ export default function AdminReturnsPage() {
     }
     if (reason && reason !== "__ALL__") {
       setFilterReason(reason as ReturnReason);
+    }
+    if (liability && liability !== "__ALL__") {
+      setFilterLiability(liability as ReturnLiability);
     }
     if (customerSegment && customerSegment !== "__ALL__") {
       setFilterCustomerSegment(customerSegment as CustomerSegment);
@@ -479,6 +488,7 @@ export default function AdminReturnsPage() {
     page = 1,
     status?: ReturnStatus,
     reason?: ReturnReason,
+    liability?: ReturnLiability,
     customerSegment?: CustomerSegment,
     dateRange?: DateRange
   ) => {
@@ -495,6 +505,9 @@ export default function AdminReturnsPage() {
       }
       if (reason) {
         params.append("reason", reason);
+      }
+      if (liability) {
+        params.append("liability", liability);
       }
       if (customerSegment) {
         params.append("customerSegment", customerSegment);
@@ -538,6 +551,7 @@ export default function AdminReturnsPage() {
       pagination.page,
       filterStatus,
       filterReason,
+      filterLiability,
       filterCustomerSegment,
       dateRange
     );
@@ -545,6 +559,7 @@ export default function AdminReturnsPage() {
     pagination.page,
     filterStatus,
     filterReason,
+    filterLiability,
     filterCustomerSegment,
     dateRange,
     pagination.limit,
@@ -582,6 +597,7 @@ export default function AdminReturnsPage() {
         pagination.page,
         filterStatus,
         filterReason,
+        filterLiability,
         filterCustomerSegment,
         dateRange
       );
@@ -633,6 +649,7 @@ export default function AdminReturnsPage() {
         pagination.page,
         filterStatus,
         filterReason,
+        filterLiability,
         filterCustomerSegment,
         dateRange
       );
@@ -697,6 +714,15 @@ export default function AdminReturnsPage() {
     setPagination(prev => ({ ...prev, page: 1 }));
 
     updateURL({ reason: newReason, page: "1" });
+  };
+
+  const handleLiabilityFilterChange = (value: string) => {
+    const newLiability =
+      value === "__ALL__" ? undefined : (value as ReturnLiability);
+    setFilterLiability(newLiability);
+    setPagination(prev => ({ ...prev, page: 1 }));
+
+    updateURL({ liability: newLiability, page: "1" });
   };
 
   // Handle customer segment filter change
@@ -794,6 +820,7 @@ export default function AdminReturnsPage() {
           pagination.page,
           filterStatus,
           filterReason,
+          filterLiability,
           filterCustomerSegment,
           dateRange
         );
@@ -853,6 +880,7 @@ export default function AdminReturnsPage() {
           pagination.page,
           filterStatus,
           filterReason,
+          filterLiability,
           filterCustomerSegment,
           dateRange
         );
@@ -1170,7 +1198,7 @@ export default function AdminReturnsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
                 {/* Date Range Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Date Range</label>
@@ -1218,6 +1246,26 @@ export default function AdminReturnsPage() {
                       <SelectItem value="__ALL__">All Reasons</SelectItem>
                       {Object.entries(reasonLabels).map(([reason, label]) => (
                         <SelectItem key={reason} value={reason}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Responsibility</label>
+                  <Select
+                    value={filterLiability || "__ALL__"}
+                    onValueChange={handleLiabilityFilterChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Responsibilities" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__ALL__">All Responsibilities</SelectItem>
+                      {Object.entries(liabilityBadges).map(([liability, { label }]) => (
+                        <SelectItem key={liability} value={liability}>
                           {label}
                         </SelectItem>
                       ))}
@@ -1299,6 +1347,7 @@ export default function AdminReturnsPage() {
                       setSearchTerm("");
                       setFilterStatus(undefined);
                       setFilterReason(undefined);
+                      setFilterLiability(undefined);
                       setFilterCustomerSegment(undefined);
                       setDateRange(undefined);
                       setPagination(prev => ({ ...prev, page: 1 }));

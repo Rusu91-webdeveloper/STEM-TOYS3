@@ -235,6 +235,7 @@ describe("POST /api/returns/create-bulk", () => {
           expect.objectContaining({
             orderItemId: "item_1",
             status: "PENDING",
+            liability: "SUPPLIER",
           }),
         ],
       })
@@ -271,5 +272,39 @@ describe("POST /api/returns/create-bulk", () => {
 
     expect(response.status).toBe(409);
     expect(payload.error).toContain("retur activ");
+  });
+
+  it("classifies delivery damage as courier liability from creation", async () => {
+    mockOrderItemFindMany.mockResolvedValue([buildOrderItem()]);
+
+    const { POST } = await import("@/app/api/returns/create-bulk/route");
+    const response = await POST(
+      new Request("http://localhost/api/returns/create-bulk", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          orderItemIds: ["item_1"],
+          reason: "DAMAGED_IN_TRANSIT",
+          details: "Cutia a fost lovită și produsul s-a spart.",
+          photos: ["https://utfs.io/f/photo-1"],
+        }),
+      })
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.success).toBe(true);
+    expect(mockCreateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: [
+          expect.objectContaining({
+            reason: "DAMAGED_IN_TRANSIT",
+            liability: "COURIER",
+          }),
+        ],
+      })
+    );
   });
 });

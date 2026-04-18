@@ -1565,9 +1565,11 @@ export const sendEmailViaUnifiedSystem = {
 
     // Map reason codes to user-friendly labels
     const reasonLabels: { [key: string]: string } = {
-      DOES_NOT_MEET_EXPECTATIONS: "Nu corespunde așteptărilor",
-      DAMAGED_OR_DEFECTIVE: "Produs deteriorat sau defect",
-      WRONG_ITEM_SHIPPED: "Produs greșit livrat",
+      DOES_NOT_MEET_EXPECTATIONS: "Produsul nu este pe placul meu",
+      DAMAGED_OR_DEFECTIVE: "Produs defect sau nefuncțional",
+      MISSING_PARTS: "Produsul are piese lipsă / incomplet",
+      WRONG_ITEM_SHIPPED: "Am primit alt produs decât cel comandat",
+      DAMAGED_IN_TRANSIT: "Cutia a ajuns deteriorată și produsul a fost afectat",
       CHANGED_MIND: "Mi-am schimbat părerea",
       ORDERED_WRONG_PRODUCT: "Am comandat produsul greșit",
       OTHER: "Alte motive",
@@ -1707,9 +1709,11 @@ export const sendEmailViaUnifiedSystem = {
 
     // Map reason codes to user-friendly labels
     const reasonLabels: { [key: string]: string } = {
-      DOES_NOT_MEET_EXPECTATIONS: "Nu corespunde așteptărilor",
-      DAMAGED_OR_DEFECTIVE: "Produs deteriorat sau defect",
-      WRONG_ITEM_SHIPPED: "Produs greșit livrat",
+      DOES_NOT_MEET_EXPECTATIONS: "Produsul nu este pe placul meu",
+      DAMAGED_OR_DEFECTIVE: "Produs defect sau nefuncțional",
+      MISSING_PARTS: "Produsul are piese lipsă / incomplet",
+      WRONG_ITEM_SHIPPED: "Am primit alt produs decât cel comandat",
+      DAMAGED_IN_TRANSIT: "Cutia a ajuns deteriorată și produsul a fost afectat",
       CHANGED_MIND: "Mi-am schimbat părerea",
       ORDERED_WRONG_PRODUCT: "Am comandat produsul greșit",
       OTHER: "Alte motive",

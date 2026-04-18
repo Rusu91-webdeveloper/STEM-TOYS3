@@ -6,16 +6,7 @@ import { getAppConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmailViaUnifiedSystem } from "@/lib/nodemailer";
-
-// Return reason labels in Romanian
-const reasonLabelsRo: Record<string, string> = {
-  DOES_NOT_MEET_EXPECTATIONS: "Nu corespunde așteptărilor",
-  DAMAGED_OR_DEFECTIVE: "Produs deteriorat sau defect",
-  WRONG_ITEM_SHIPPED: "Produs greșit livrat",
-  CHANGED_MIND: "M-am răzgândit",
-  ORDERED_WRONG_PRODUCT: "Am comandat produsul greșit",
-  OTHER: "Alt motiv",
-};
+import { RETURN_REASON_LABELS_RO } from "@/lib/returns/policy";
 
 function resolveOrderAwb(order: {
   trackingNumber?: string | null;
@@ -506,7 +497,10 @@ export async function POST(
         quantity: returnData.orderItem.quantity,
         price: returnData.orderItem.price,
         reason: returnData.reason,
-        reasonLabel: reasonLabelsRo[returnData.reason] || returnData.reason,
+        reasonLabel:
+          RETURN_REASON_LABELS_RO[
+            returnData.reason as keyof typeof RETURN_REASON_LABELS_RO
+          ] || returnData.reason,
         details: returnData.details,
         customerName: returnData.user.name || "Client",
         orderDate: format(new Date(returnData.order.createdAt), "dd MMMM yyyy", { locale: ro }),
@@ -547,7 +541,10 @@ export async function POST(
           ? format(new Date(returnData.order.deliveredAt), "dd MMMM yyyy", { locale: ro })
           : undefined,
         reason: returnData.reason,
-        reasonLabel: reasonLabelsRo[returnData.reason] || returnData.reason,
+        reasonLabel:
+          RETURN_REASON_LABELS_RO[
+            returnData.reason as keyof typeof RETURN_REASON_LABELS_RO
+          ] || returnData.reason,
         details: returnData.details,
         customerName: returnData.user.name || "Client",
         customerAddress,

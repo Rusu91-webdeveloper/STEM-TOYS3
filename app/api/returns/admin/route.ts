@@ -20,6 +20,7 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const status = searchParams.get("status");
     const reason = searchParams.get("reason");
+    const liability = searchParams.get("liability");
     const customerSegment = searchParams.get("customerSegment");
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
@@ -33,6 +34,9 @@ export async function GET(request: Request) {
     }
     if (reason) {
       where.reason = reason;
+    }
+    if (liability) {
+      where.liability = liability;
     }
     if (startDate || endDate) {
       where.createdAt = {};

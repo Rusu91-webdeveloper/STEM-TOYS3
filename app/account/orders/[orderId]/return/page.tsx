@@ -38,13 +38,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from "@/lib/currency";
 import {
+  RETURN_POLICY_COURIER_PAYS_RO,
   RETURN_PHOTO_LIMIT,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
   RETURN_POLICY_EVIDENCE_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
+  RETURN_REASON_HELP_TEXT_RO,
   RETURN_REASON_LABELS_RO,
+  RETURN_RESPONSIBILITY_LABELS_RO,
   RETURN_REASON_VALUES,
   RETURN_WINDOW_LABEL_RO,
+  getResponsibilityForReturnReason,
   isWithinReturnWindowForOrder,
 } from "@/lib/returns/policy";
 
@@ -104,12 +108,6 @@ const returnSchema = z.object({
 
 type ReturnFormValues = z.infer<typeof returnSchema>;
 
-// Define reason display labels
-const supplierIssueReasons = new Set([
-  "DAMAGED_OR_DEFECTIVE",
-  "WRONG_ITEM_SHIPPED",
-] as const);
-
 interface ReturnPageProps {
   params: Promise<{ orderId: string }>;
 }
@@ -142,6 +140,12 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
   // Get photos from form watch
   const photos = form.watch("photos") || [];
   const selectedReason = form.watch("reason");
+  const selectedResponsibility = selectedReason
+    ? getResponsibilityForReturnReason(selectedReason)
+    : null;
+  const selectedReasonHelp = selectedReason
+    ? RETURN_REASON_HELP_TEXT_RO[selectedReason]
+    : null;
   
   // Photos are required for every return request to keep supplier evidence together.
   const photosRequired = true;
@@ -324,9 +328,11 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                   Returul se poate solicita în primele <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la livrare.
                 </p>
                 <p className="mt-1">
-                  {selectedReason && supplierIssueReasons.has(selectedReason)
+                  {selectedResponsibility === "SUPPLIER"
                     ? RETURN_POLICY_SELLER_PAYS_RO
-                    : RETURN_POLICY_CUSTOMER_PAYS_RO}
+                    : selectedResponsibility === "COURIER"
+                      ? RETURN_POLICY_COURIER_PAYS_RO
+                      : RETURN_POLICY_CUSTOMER_PAYS_RO}
                 </p>
                 <p className="mt-1">{RETURN_POLICY_EVIDENCE_RO}</p>
               </div>
@@ -487,24 +493,42 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                 )}
               />
 
-              {form.watch("reason") === "OTHER" && (
-                <FormField
-                  control={form.control}
-                  name="details"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Detalii suplimentare</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Descrie pe scurt motivul returului și starea produsului."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {selectedReason && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+                  <p>
+                    <strong>Încadrare automată:</strong>{" "}
+                    {RETURN_RESPONSIBILITY_LABELS_RO[selectedResponsibility || "UNDECIDED"]}
+                  </p>
+                  {selectedReasonHelp && <p className="mt-1">{selectedReasonHelp}</p>}
+                </div>
               )}
+
+              <FormField
+                control={form.control}
+                name="details"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Explică pe scurt ce s-a întâmplat</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={
+                          selectedReason === "MISSING_PARTS"
+                            ? "Spune-ne ce piese lipsesc din cutie."
+                            : selectedReason === "WRONG_ITEM_SHIPPED"
+                              ? "Spune-ne ce ai comandat și ce ai primit."
+                              : selectedReason === "DAMAGED_IN_TRANSIT"
+                                ? "Descrie starea cutiei și cum a fost afectat produsul."
+                                : selectedReason === "DAMAGED_OR_DEFECTIVE"
+                                  ? "Descrie defectul sau problema de funcționare."
+                                  : "Descrie pe scurt motivul returului și starea produsului."
+                        }
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Photo Upload Section - ALWAYS Required for claims */}
               {photosRequired && (

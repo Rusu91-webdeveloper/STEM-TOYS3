@@ -48,10 +48,7 @@ const toIso = (value?: Date | string | null): string | null => {
 
 export function isCourierClaimReason(reason?: string | null): boolean {
   const normalized = String(reason || "").toUpperCase();
-  return (
-    normalized === "DAMAGED_OR_DEFECTIVE" ||
-    normalized === "WRONG_ITEM_SHIPPED"
-  );
+  return normalized === "DAMAGED_IN_TRANSIT";
 }
 
 export function shouldRequireSupplierAuthorization(product?: ProductLike | null): boolean {
@@ -145,4 +142,3 @@ export function deriveSupplierReturnRouting(input: {
       input.returnRecord?.supplierAuthorizationNotes || null,
   };
 }
-

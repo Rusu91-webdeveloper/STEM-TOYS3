@@ -19,6 +19,7 @@ import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import {
   RETURN_POLICY_CUSTOMER_PAYS_RO,
   RETURN_POLICY_EVIDENCE_RO,
+  RETURN_REASON_LABELS_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
   RETURN_WINDOW_LABEL_RO,
 } from "@/lib/returns/policy";
@@ -27,7 +28,9 @@ import {
 type ReturnReason =
   | "DOES_NOT_MEET_EXPECTATIONS"
   | "DAMAGED_OR_DEFECTIVE"
+  | "MISSING_PARTS"
   | "WRONG_ITEM_SHIPPED"
+  | "DAMAGED_IN_TRANSIT"
   | "CHANGED_MIND"
   | "ORDERED_WRONG_PRODUCT"
   | "OTHER";
@@ -87,14 +90,7 @@ const STATUS_BADGES: Record<ReturnStatus, { label: string; classes: string }> = 
   },
 };
 
-const REASON_LABELS: Record<ReturnReason, string> = {
-  DOES_NOT_MEET_EXPECTATIONS: "Nu corespunde așteptărilor",
-  DAMAGED_OR_DEFECTIVE: "Deteriorat sau defect",
-  WRONG_ITEM_SHIPPED: "Produs greșit livrat",
-  CHANGED_MIND: "M-am răzgândit",
-  ORDERED_WRONG_PRODUCT: "Am comandat produsul greșit",
-  OTHER: "Alt motiv",
-};
+const REASON_LABELS: Record<ReturnReason, string> = RETURN_REASON_LABELS_RO;
 
 export default function ReturnsPage() {
   const [returns, setReturns] = useState<ReturnItem[]>([]);

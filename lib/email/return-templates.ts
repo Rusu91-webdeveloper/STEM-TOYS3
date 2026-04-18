@@ -12,9 +12,11 @@ import {
 
 // Romanian reason labels
 const reasonLabelsRo: Record<string, string> = {
-  DOES_NOT_MEET_EXPECTATIONS: "Nu îndeplinește așteptările",
-  DAMAGED_OR_DEFECTIVE: "Deteriorat sau defect",
-  WRONG_ITEM_SHIPPED: "Produs greșit expediat",
+  DOES_NOT_MEET_EXPECTATIONS: "Produsul nu este pe placul meu",
+  DAMAGED_OR_DEFECTIVE: "Produs defect sau nefuncțional",
+  MISSING_PARTS: "Produsul are piese lipsă / incomplet",
+  WRONG_ITEM_SHIPPED: "Am primit alt produs decât cel comandat",
+  DAMAGED_IN_TRANSIT: "Cutia a ajuns deteriorată și produsul a fost afectat",
   CHANGED_MIND: "M-am răzgândit",
   ORDERED_WRONG_PRODUCT: "Am comandat produsul greșit",
   OTHER: "Alt motiv",

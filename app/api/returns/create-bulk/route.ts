@@ -9,6 +9,7 @@ import {
   RETURN_REASON_LABELS_RO,
   RETURN_WINDOW_DAYS,
   getReturnReferenceDate,
+  getLiabilityForReturnReason,
   isReturnReason,
   isWithinReturnWindowForOrder,
   normalizeReturnDetails,
@@ -53,6 +54,7 @@ export async function POST(request: Request) {
       );
     }
     const returnReason = reason;
+    const defaultLiability = getLiabilityForReturnReason(returnReason);
 
     if (normalizedPhotos.length === 0) {
       return NextResponse.json(
@@ -202,6 +204,7 @@ export async function POST(request: Request) {
       status: "PENDING" as const,
       details: normalizedDetails,
       photos: normalizedPhotos,
+      liability: defaultLiability,
     }));
 
     // Use transaction to ensure data consistency
