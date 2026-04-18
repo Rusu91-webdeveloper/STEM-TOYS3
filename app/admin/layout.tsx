@@ -190,6 +190,13 @@ export default function AdminLayout({
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-2 rounded-md border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-medium text-violet-700 transition-colors hover:bg-violet-100"
+                >
+                  <Menu className="h-4 w-4" />
+                  Dashboard
+                </Link>
+                <Link
                   href="/"
                   className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
                 >

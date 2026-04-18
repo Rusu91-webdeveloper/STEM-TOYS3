@@ -16,6 +16,10 @@ import {
   X,
   Trash2,
   AlertTriangle,
+  Package2,
+  Wallet,
+  Building2,
+  ScanSearch,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect, useCallback } from "react";
@@ -63,6 +67,7 @@ import { useCurrency } from "@/lib/currency";
 // Type definitions
 type Order = {
   id: string;
+  dbId?: string;
   customer: string;
   email: string;
   date: string;
@@ -75,6 +80,23 @@ type Order = {
   workflowBucket?: "needs_action" | "in_progress" | "done";
   workflowLabel?: string;
   fulfillmentStatus?: string;
+  supplierCount?: number;
+  suppliers?: string[];
+  totalSupplierValue?: number;
+  trackedSupplierOrders?: number;
+  supplierLinePreview?: Array<{
+    id: string;
+    supplierName: string;
+    itemName: string;
+    sku?: string | null;
+    quantity: number;
+    totalCost: number;
+    status: string;
+    trackingNumber?: string | null;
+    imageUrl?: string | null;
+  }>;
+  trackingNumber?: string | null;
+  shipmentCount?: number;
 };
 
 type Pagination = {
@@ -149,6 +171,33 @@ function OrderStatusBadge({ status }: { status: string }) {
       {getStatusIcon(status)}
       {status}
     </span>
+  );
+}
+
+function CompactMetricCard({
+  title,
+  value,
+  hint,
+  icon,
+}: {
+  title: string;
+  value: string;
+  hint: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+            {title}
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-slate-900">{value}</p>
+        </div>
+        <div className="rounded-xl bg-slate-900 p-2 text-white">{icon}</div>
+      </div>
+      <p className="mt-3 text-sm text-slate-500">{hint}</p>
+    </div>
   );
 }
 
@@ -400,6 +449,20 @@ export default function OrdersPage() {
     }
   };
 
+  const totalVisibleValue = orders.reduce((sum, order) => sum + order.total, 0);
+  const totalVisibleSupplierValue = orders.reduce(
+    (sum, order) => sum + Number(order.totalSupplierValue ?? 0),
+    0
+  );
+  const needsActionCount = orders.filter(
+    order => order.workflowBucket === "needs_action"
+  ).length;
+  const trackedOrdersCount = orders.filter(
+    order =>
+      Boolean(order.trackingNumber) ||
+      Number(order.trackedSupplierOrders ?? 0) > 0
+  ).length;
+
   return (
     <>
       <div className="space-y-6">
@@ -409,6 +472,33 @@ export default function OrdersPage() {
             <Download className="h-4 w-4" />
             <span>Export</span>
           </Button>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <CompactMetricCard
+            title="Visible Orders"
+            value={String(orders.length)}
+            hint={`Page ${pagination.page} of ${Math.max(pagination.pages, 1)}`}
+            icon={<Package2 className="h-4 w-4" />}
+          />
+          <CompactMetricCard
+            title="Order Value"
+            value={formatPrice(totalVisibleValue)}
+            hint="Total value for orders currently in view"
+            icon={<Wallet className="h-4 w-4" />}
+          />
+          <CompactMetricCard
+            title="Supplier Value"
+            value={formatPrice(totalVisibleSupplierValue)}
+            hint="Estimated supplier-side value for visible orders"
+            icon={<Building2 className="h-4 w-4" />}
+          />
+          <CompactMetricCard
+            title="Needs Action"
+            value={String(needsActionCount)}
+            hint={`${trackedOrdersCount} visible orders already have tracking data`}
+            icon={<ScanSearch className="h-4 w-4" />}
+          />
         </div>
 
         <Card>
@@ -504,9 +594,9 @@ export default function OrdersPage() {
                     {orders.map(order => (
                       <div
                         key={order.id}
-                        className="rounded-xl border bg-white p-4 shadow-sm"
+                        className="overflow-hidden rounded-2xl border bg-white shadow-sm"
                       >
-                        <div className="flex flex-col gap-3">
+                        <div className="border-b bg-gradient-to-r from-slate-50 to-white px-4 py-3">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <Link
@@ -516,51 +606,49 @@ export default function OrdersPage() {
                                 {order.id}
                               </Link>
                               <p className="mt-1 text-sm text-muted-foreground">
-                                {order.date}
+                                {order.date} • {order.customer}
                               </p>
                             </div>
                             <OrderStatusBadge status={order.status} />
                           </div>
+                        </div>
 
+                        <div className="flex flex-col gap-4 p-4">
                           <div className="space-y-1">
-                            <p className="font-medium text-foreground">
-                              {order.customer}
-                            </p>
                             <p className="break-all text-sm text-muted-foreground">
                               {order.email}
                             </p>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {order.manualShippingReviewRequired && (
+                                <div
+                                  className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700"
+                                  title={
+                                    order.shippingReviewReason ||
+                                    "Requires shipping review"
+                                  }
+                                >
+                                  <AlertTriangle className="h-3 w-3" />
+                                  Shipping Review
+                                </div>
+                              )}
+                              {order.workflowLabel && (
+                                <span
+                                  className={`inline-flex items-center rounded-full px-2 py-1 text-[10px] font-medium ${getWorkflowBucketBadgeClasses(order.workflowBucket)}`}
+                                >
+                                  {order.workflowLabel}
+                                </span>
+                              )}
+                              {order.fulfillmentStatus && (
+                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-700">
+                                  {formatWorkflowStatusLabel(
+                                    order.fulfillmentStatus
+                                  )}
+                                </span>
+                              )}
+                            </div>
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-2">
-                            {order.manualShippingReviewRequired && (
-                              <div
-                                className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700"
-                                title={
-                                  order.shippingReviewReason ||
-                                  "Requires shipping review"
-                                }
-                              >
-                                <AlertTriangle className="h-3 w-3" />
-                                Shipping Review
-                              </div>
-                            )}
-                            {order.workflowLabel && (
-                              <span
-                                className={`inline-flex items-center rounded-full px-2 py-1 text-[10px] font-medium ${getWorkflowBucketBadgeClasses(order.workflowBucket)}`}
-                              >
-                                {order.workflowLabel}
-                              </span>
-                            )}
-                            {order.fulfillmentStatus && (
-                              <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-700">
-                                {formatWorkflowStatusLabel(
-                                  order.fulfillmentStatus
-                                )}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted/40 p-3 text-sm">
+                          <div className="grid grid-cols-2 gap-3 rounded-xl bg-muted/40 p-3 text-sm">
                             <div>
                               <p className="text-xs uppercase tracking-wide text-muted-foreground">
                                 Total
@@ -583,11 +671,78 @@ export default function OrdersPage() {
                             </div>
                             <div>
                               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                Workflow
+                                Supplier Value
                               </p>
                               <p className="font-medium">
-                                {order.workflowLabel || "Standard"}
+                                {formatPrice(order.totalSupplierValue ?? 0)}
                               </p>
+                            </div>
+                          </div>
+
+                          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                                Suppliers
+                              </p>
+                              <span className="text-xs text-slate-500">
+                                {order.supplierCount || 0} supplier
+                                {(order.supplierCount || 0) === 1 ? "" : "s"}
+                              </span>
+                            </div>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {(order.suppliers || []).length > 0 ? (
+                                (order.suppliers || []).map(supplier => (
+                                  <span
+                                    key={supplier}
+                                    className="inline-flex rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700"
+                                  >
+                                    {supplier}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-sm text-slate-500">
+                                  No supplier split recorded
+                                </span>
+                              )}
+                            </div>
+                            {order.supplierLinePreview &&
+                              order.supplierLinePreview.length > 0 && (
+                                <div className="mt-3 space-y-2">
+                                  {order.supplierLinePreview.map(line => (
+                                    <div
+                                      key={line.id}
+                                      className="rounded-lg border border-slate-200 bg-white px-3 py-2"
+                                    >
+                                      <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                          <p className="truncate text-sm font-medium text-slate-900">
+                                            {line.itemName}
+                                          </p>
+                                          <p className="text-xs text-slate-500">
+                                            {line.supplierName}
+                                            {line.sku ? ` • ${line.sku}` : ""}
+                                          </p>
+                                        </div>
+                                        <span className="text-xs font-medium text-slate-700">
+                                          x{line.quantity}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                          </div>
+
+                          <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-slate-500">Tracking</span>
+                              <span className="font-medium text-slate-900">
+                                {order.trackingNumber
+                                  ? "Main AWB"
+                                  : (order.trackedSupplierOrders ?? 0) > 0
+                                    ? `${order.trackedSupplierOrders} supplier line(s)`
+                                    : "Pending"}
+                              </span>
                             </div>
                           </div>
 
@@ -618,7 +773,7 @@ export default function OrdersPage() {
                   </div>
 
                   <div className="hidden overflow-x-auto md:block">
-                    <table className="w-full min-w-[700px] border-collapse">
+                    <table className="w-full min-w-[980px] border-collapse">
                       <thead>
                         <tr className="border-b text-xs font-medium text-muted-foreground">
                           <th className="px-4 py-3 text-left">
@@ -634,15 +789,16 @@ export default function OrdersPage() {
                             </div>
                           </th>
                           <th className="px-4 py-3 text-left">Customer</th>
+                          <th className="px-4 py-3 text-left">Suppliers</th>
                           <th className="px-4 py-3 text-left">
                             <div className="flex items-center gap-1">
                               <span>Total</span>
                               <ArrowUpDown className="h-3 w-3" />
                             </div>
                           </th>
+                          <th className="px-4 py-3 text-left">Workflow</th>
                           <th className="px-4 py-3 text-left">Status</th>
-                          <th className="px-4 py-3 text-left">Payment</th>
-                          <th className="px-4 py-3 text-left">Items</th>
+                          <th className="px-4 py-3 text-left">Order Snapshot</th>
                           <th className="px-4 py-3 text-right">Actions</th>
                         </tr>
                       </thead>
@@ -699,14 +855,76 @@ export default function OrdersPage() {
                                 </div>
                               </div>
                             </td>
+                            <td className="px-4 py-4">
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap gap-1">
+                                  {(order.suppliers || []).slice(0, 2).map(supplier => (
+                                    <span
+                                      key={supplier}
+                                      className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-700"
+                                    >
+                                      {supplier}
+                                    </span>
+                                  ))}
+                                  {(order.supplierCount || 0) > 2 && (
+                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                                      +{(order.supplierCount || 0) - 2}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  Supplier value:{" "}
+                                  {formatPrice(order.totalSupplierValue ?? 0)}
+                                </div>
+                              </div>
+                            </td>
                             <td className="px-4 py-4 font-medium">
                               {formatPrice(order.total)}
                             </td>
                             <td className="px-4 py-4">
+                              <div className="space-y-1">
+                                <div className="flex flex-wrap gap-1">
+                                  {order.workflowLabel && (
+                                    <span
+                                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getWorkflowBucketBadgeClasses(order.workflowBucket)}`}
+                                    >
+                                      {order.workflowLabel}
+                                    </span>
+                                  )}
+                                  {order.fulfillmentStatus && (
+                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
+                                      {formatWorkflowStatusLabel(
+                                        order.fulfillmentStatus
+                                      )}
+                                    </span>
+                                  )}
+                                </div>
+                                {order.manualShippingReviewRequired && (
+                                  <div className="flex items-center gap-1 text-xs font-medium text-amber-700">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    Shipping review
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4">
                               <OrderStatusBadge status={order.status} />
                             </td>
-                            <td className="px-4 py-4">{order.payment}</td>
-                            <td className="px-4 py-4">{order.items} items</td>
+                            <td className="px-4 py-4">
+                              <div className="space-y-1 text-xs text-slate-600">
+                                <div>
+                                  {order.payment} • {order.items} items
+                                </div>
+                                <div>
+                                  Tracking:{" "}
+                                  {order.trackingNumber
+                                    ? "Main AWB"
+                                    : (order.trackedSupplierOrders ?? 0) > 0
+                                      ? `${order.trackedSupplierOrders} supplier line(s)`
+                                      : "Pending"}
+                                </div>
+                              </div>
+                            </td>
                             <td className="px-4 py-4 text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

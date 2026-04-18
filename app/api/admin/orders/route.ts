@@ -115,6 +115,25 @@ export const GET = withRateLimit(
               supplierOrderId: true,
               supplierId: true,
               shippedAt: true,
+              totalCost: true,
+              quantity: true,
+              supplier: {
+                select: {
+                  name: true,
+                  companyName: true,
+                },
+              },
+              orderItem: {
+                select: {
+                  name: true,
+                },
+              },
+              product: {
+                select: {
+                  sku: true,
+                  images: true,
+                },
+              },
             },
           },
         },
@@ -217,6 +236,44 @@ function mapAdminOrderRow(order: any, workflow: any) {
     }
   }
 
+  const supplierOrders = Array.isArray(order.supplierOrders)
+    ? order.supplierOrders
+    : [];
+  const uniqueSupplierNames = Array.from(
+    new Set(
+      supplierOrders
+        .map((supplierOrder: any) =>
+          supplierOrder.supplier?.name || supplierOrder.supplier?.companyName
+        )
+        .filter(Boolean)
+    )
+  );
+  const totalSupplierValue = supplierOrders.reduce(
+    (sum: number, supplierOrder: any) =>
+      sum + Number(supplierOrder.totalCost ?? 0),
+    0
+  );
+  const trackedSupplierOrders = supplierOrders.filter(
+    (supplierOrder: any) =>
+      Boolean(supplierOrder.trackingNumber || supplierOrder.supplierOrderId)
+  ).length;
+  const supplierLinePreview = supplierOrders.slice(0, 3).map(
+    (supplierOrder: any) => ({
+      id: supplierOrder.id,
+      supplierName:
+        supplierOrder.supplier?.name ||
+        supplierOrder.supplier?.companyName ||
+        "Unknown Supplier",
+      itemName: supplierOrder.orderItem?.name || "Unknown Item",
+      sku: supplierOrder.product?.sku || null,
+      quantity: Number(supplierOrder.quantity ?? 0),
+      totalCost: Number(supplierOrder.totalCost ?? 0),
+      status: supplierOrder.status || "PENDING",
+      trackingNumber: supplierOrder.trackingNumber || null,
+      imageUrl: supplierOrder.product?.images?.[0] || null,
+    })
+  );
+
   return {
     dbId: order.id,
     id: order.orderNumber ?? order.id,
@@ -232,6 +289,13 @@ function mapAdminOrderRow(order: any, workflow: any) {
     workflowBucket: workflow.actionBucket,
     workflowLabel: workflow.actionLabel,
     fulfillmentStatus: workflow.fulfillmentStatus,
+    supplierCount: uniqueSupplierNames.length,
+    suppliers: uniqueSupplierNames,
+    totalSupplierValue,
+    trackedSupplierOrders,
+    supplierLinePreview,
+    trackingNumber: order.trackingNumber ?? null,
+    shipmentCount: Array.isArray(order.shipments) ? order.shipments.length : 0,
   };
 }
 
