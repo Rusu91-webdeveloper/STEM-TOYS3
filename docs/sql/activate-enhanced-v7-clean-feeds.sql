@@ -16,7 +16,7 @@ SET
 UPDATE "SupplierFeed"
 SET
   "name" = 'Kidstory Feed (enhanced_v7_clean)',
-  "sourceUrl" = 'feed_suppliers/enhanced_v7_clean.csv',
+  "sourceUrl" = 'https://www.techtots.ro/supplier-feeds/enhanced_v7_clean.csv',
   "mapping" = jsonb_build_object(
     'sku', 'sku',
     'name', 'name',
@@ -38,7 +38,7 @@ WHERE "id" = 'cmli6a22o0002jjn9dpq5pvx9';
 UPDATE "SupplierFeed"
 SET
   "name" = 'Boribon General (enhanced_v7_clean)',
-  "sourceUrl" = 'feed_suppliers/enhanced_v7_clean.csv',
+  "sourceUrl" = 'https://www.techtots.ro/supplier-feeds/enhanced_v7_clean.csv',
   "mapping" = jsonb_build_object(
     'sku', 'sku',
     'name', 'name',
