@@ -91,6 +91,12 @@ function normalizeMapping(raw: unknown): FieldMapping {
     images: mapping.images || mapping.Images,
     currency: mapping.currency || mapping.Currency,
     categoryPath: mapping.categoryPath || mapping.CategoryPath,
+    rowFilterField: mapping.rowFilterField || mapping.row_filter_field,
+    rowFilterValues: Array.isArray(mapping.rowFilterValues)
+      ? mapping.rowFilterValues
+      : Array.isArray(mapping.row_filter_values)
+        ? mapping.row_filter_values
+        : undefined,
     allowedSkus: Array.isArray(mapping.allowedSkus) ? mapping.allowedSkus : undefined,
     blockedSkus: Array.isArray(mapping.blockedSkus) ? mapping.blockedSkus : undefined,
     autoCreateProducts:
@@ -150,6 +156,17 @@ function parseImages(value: unknown): string[] {
     return value.map(v => String(v).trim()).filter(Boolean);
   }
   const raw = String(value);
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.map(v => String(v).trim()).filter(Boolean);
+      }
+    } catch {
+      // Fall back to delimiter parsing for malformed input.
+    }
+  }
   return raw.split(/[|,;]/).map(v => v.trim()).filter(Boolean);
 }
 
@@ -358,6 +375,11 @@ export function createBaseLinkerCsvAdapter({
 }: ConnectorInit): SupplierConnector {
   const resolvedMapping = normalizeMapping(mapping);
   const currency = resolvedMapping.currency || "RON";
+  const rowFilterValues = new Set(
+    (resolvedMapping.rowFilterValues ?? [])
+      .map(value => String(value).trim())
+      .filter(Boolean)
+  );
 
   return {
     type: SupplierFeedType.CSV,
@@ -421,7 +443,17 @@ export function createBaseLinkerCsvAdapter({
         );
       }
 
-      return rows
+      const filteredRows =
+        resolvedMapping.rowFilterField && rowFilterValues.size > 0
+          ? rows.filter(
+              row =>
+                rowFilterValues.has(
+                  String(row[resolvedMapping.rowFilterField as string] ?? "").trim()
+                )
+            )
+          : rows;
+
+      return filteredRows
         .map(row => mapRecordToItem(row, resolvedMapping, currency))
         .map(item => {
           if (!item) return item;

@@ -26,6 +26,8 @@ export type FieldMapping = {
   images?: string | string[];
   currency?: string;
   categoryPath?: string | string[];
+  rowFilterField?: string;
+  rowFilterValues?: string[];
   allowedSkus?: string[];
   blockedSkus?: string[];
   autoCreateProducts?: boolean;
