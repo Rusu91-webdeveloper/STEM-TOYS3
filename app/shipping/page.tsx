@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import {
+  RETURN_POLICY_COD_RTO_RO,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
   RETURN_WINDOW_LABEL_RO,
@@ -233,8 +234,7 @@ export default async function ShippingPage() {
                   retur la expeditor (RTO).
                 </li>
                 <li>
-                  • În caz de RTO se pot factura doar costurile logistice
-                  efective (transport tur + retur), fără penalități arbitrare.
+                  • {RETURN_POLICY_COD_RTO_RO}
                 </li>
                 <li>
                   • Dacă există sume achitate în avans pentru transport/avans
@@ -269,8 +269,9 @@ export default async function ShippingPage() {
                 la expeditor.
               </li>
               <li>
-                • <strong>Costuri:</strong> se pot aplica costurile logistice
-                reale tur + retur, dacă au fost comunicate înainte de comandă.
+                • <strong>Costuri:</strong> returul la expeditor este suportat
+                de noi, iar dacă a fost comunicat înainte de comandă putem
+                reține doar costul logistic al transportului tur.
               </li>
               <li>
                 • <strong>Conformitate:</strong> pentru produse
@@ -438,11 +439,9 @@ export default async function ShippingPage() {
               </summary>
               <p className="mt-4 text-slate-600">
                 Refuzul la livrare sau nepreluarea coletului sunt tratate ca
-                retur la expeditor (RTO). Pentru acest scenariu se pot aplica
-                costurile logistice efective tur + retur, conform informațiilor
-                comunicate în checkout, în Termeni și în politicile de
-                livrare/retur. Dacă rămâne o diferență peste garanția COD
-                autorizată, aceasta se gestionează prin fluxuri
+                retur la expeditor (RTO). {RETURN_POLICY_COD_RTO_RO} Dacă rămâne
+                o diferență peste garanția COD autorizată, aceasta se
+                gestionează prin fluxuri
                 legale/contabile.
               </p>
             </details>

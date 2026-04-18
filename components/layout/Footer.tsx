@@ -305,7 +305,7 @@ export default function Footer({
           </Link>
           {" · "}
           <span>
-            Comenzi COD: refuz/nepreluare colet (RTO) poate genera cost logistic tur + retur ·{" "}
+            Comenzi COD: la refuz/nepreluare (RTO) suportăm returul și putem reține doar transportul tur ·{" "}
           </span>
           <Link href="/shipping" className="font-medium text-[#2563EB] hover:underline">
             Detalii livrare

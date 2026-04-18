@@ -276,11 +276,11 @@ export function OrderReview({
                       {isLockerShippingForOrder
                         ? t(
                             "codLockerReviewNotice",
-                            "Plătești la ridicare, cu cardul la terminalul FANbox. Nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă."
+                            "Plătești la ridicare, cu cardul la terminalul FANbox. Dacă nu ridici coletul, returul la expeditor este suportat de noi, iar dacă a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur."
                           )
                         : t(
                             "codReviewNotice",
-                            "Plătești la primirea coletului. Refuzul la livrare sau nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă."
+                            "Plătești la primirea coletului. Dacă refuzi livrarea sau nu ridici coletul, returul la expeditor este suportat de noi, iar dacă a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur."
                           )}
                     </p>
                   </div>

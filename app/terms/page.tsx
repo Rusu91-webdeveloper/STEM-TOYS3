@@ -11,6 +11,7 @@ import { Icon, StatusIcons } from "@/components/ui/icon-system";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n";
 import {
+  RETURN_POLICY_COD_RTO_RO,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
   RETURN_WINDOW_LABEL_RO,
@@ -173,9 +174,7 @@ export default function TermsPage() {
                   drept de retragere după livrare.
                 </li>
                 <li>
-                  În caz de RTO, clientul poate suporta costurile logistice
-                  efective (transport tur + retur), în măsura în care acestea au
-                  fost comunicate precontractual.
+                  {RETURN_POLICY_COD_RTO_RO}
                 </li>
                 <li>
                   Dacă există diferențe de recuperat peste garanția COD

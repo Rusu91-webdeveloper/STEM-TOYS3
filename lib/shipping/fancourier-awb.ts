@@ -5,8 +5,10 @@
  * Mirrors the architecture of sameday-awb.ts for consistency.
  */
 
-import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
+
+import { db } from "@/lib/db";
+import { sendSupplierAwbLabelEmail } from "@/lib/email/supplier-awb";
 import {
   createFanCourierAwb,
   createFanCourierPickupOrder,
@@ -20,9 +22,9 @@ import type {
   FanCourierAwbPayload,
   FanCourierAwbPayment,
   FanCourierPaymentParty,
+  FanCourierSenderConfig,
   FanCourierServiceType,
 } from "@/lib/integrations/fancourier/types";
-import type { FanCourierSenderConfig } from "@/lib/integrations/fancourier/types";
 import { getFanCourierSenderConfig } from "@/lib/integrations/fancourier/types";
 import { extractDimensionsCm } from "@/lib/shipping/shipping-pricing";
 import {
@@ -30,7 +32,6 @@ import {
   productStoredWeightToKg,
 } from "@/lib/shipping/store-weight-to-kg";
 import { getShippingSettings, getStoreSettings } from "@/lib/utils/store-settings";
-import { sendSupplierAwbLabelEmail } from "@/lib/email/supplier-awb";
 
 const COURIER_NAME = "FANCOURIER";
 const isSupplierAwbEmailDisabled = () =>
@@ -724,6 +725,52 @@ const resolveShipmentDimensions = (
   return null;
 };
 
+const AWB_OBSERVATION_MAX_LENGTH = 100;
+const AWB_CONTENT_MAX_LENGTH = 100;
+
+const truncateAwbText = (value: string, maxLength: number): string => {
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
+};
+
+const buildSkuSummary = (
+  items: Array<{ sku?: string | null; quantity?: number | null }>
+): string | null => {
+  const skuParts = items
+    .map(item => {
+      const sku = item.sku?.trim();
+      if (!sku) return null;
+      const quantity = Math.max(1, item.quantity ?? 1);
+      return quantity > 1 ? `${sku}x${quantity}` : sku;
+    })
+    .filter((value): value is string => Boolean(value));
+
+  const uniqueSkuParts = Array.from(new Set(skuParts));
+  if (uniqueSkuParts.length === 0) return null;
+
+  return uniqueSkuParts.join(", ");
+};
+
+const buildAwbReferenceText = (input: {
+  orderNumber: string;
+  skuSummary?: string | null;
+}): { observation: string; content: string } => {
+  const observationBase = `Order ${input.orderNumber}`;
+  const contentBase = `Comanda #${input.orderNumber}`;
+  const skuSuffix = input.skuSummary ? ` | SKU: ${input.skuSummary}` : "";
+
+  return {
+    observation: truncateAwbText(
+      `${observationBase}${skuSuffix}`,
+      AWB_OBSERVATION_MAX_LENGTH
+    ),
+    content: truncateAwbText(
+      `${contentBase}${skuSuffix}`,
+      AWB_CONTENT_MAX_LENGTH
+    ),
+  };
+};
+
 const buildAwbPayload = (
   input: {
     order: {
@@ -752,6 +799,7 @@ const buildAwbPayload = (
     };
     chargeableWeightKg: number;
     dimensions?: { width: number; height: number; depth: number } | null;
+    skuSummary?: string | null;
   },
   senderConfig?: FanCourierSenderConfig,
   pickupLocationOverride?: string | null
@@ -791,6 +839,10 @@ const buildAwbPayload = (
     : 0;
   const awbPayment = resolveAwbPayment();
   const returnPayment = codValue > 0 ? resolveCodReturnPayment() : null;
+  const awbReference = buildAwbReferenceText({
+    orderNumber: input.order.orderNumber,
+    skuSummary: input.skuSummary,
+  });
 
   return {
     clientId: getFanCourierClientId(),
@@ -810,8 +862,8 @@ const buildAwbPayload = (
           payment: awbPayment,
           refund: null,
           returnPayment,
-          observation: `Order ${input.order.orderNumber}`,
-          content: `Comanda #${input.order.orderNumber}`,
+          observation: awbReference.observation,
+          content: awbReference.content,
           length: shipmentDimensions?.length,
           width: shipmentDimensions?.width,
           height: shipmentDimensions?.height,
@@ -1176,6 +1228,15 @@ export const createFanAwbForOrder = async (
   const senderSource: "supplier" | "env_fallback" = supplierSenderConfig
     ? "supplier"
     : "env_fallback";
+  const skuSummary = buildSkuSummary(
+    physicalItems.map(item => {
+      const product = item.productId ? productById.get(item.productId) : null;
+      return {
+        sku: product?.sku ?? null,
+        quantity: item.quantity,
+      };
+    })
+  );
   const senderDebug = {
     useSupplierAddressFlag,
     senderSource,
@@ -1215,6 +1276,7 @@ export const createFanAwbForOrder = async (
     },
     chargeableWeightKg,
     dimensions: maxDimensions,
+    skuSummary,
   };
   const pickupLocationCandidates = extractPickupLocationCandidates(
     order.lockerAddressSnapshot,

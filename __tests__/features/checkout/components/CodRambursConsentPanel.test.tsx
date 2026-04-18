@@ -19,7 +19,7 @@ describe("CodRambursConsentPanel", () => {
 
     expect(screen.getByText(/Ramburs — plătești la livrare/i)).toBeInTheDocument();
     expect(screen.getByText(/Plătești la curier/i)).toBeInTheDocument();
-    expect(screen.getByText("Costuri tur și retur")).toBeInTheDocument();
+    expect(screen.getByText("Reținem doar transportul tur")).toBeInTheDocument();
   });
 
   it("calls onCodConsentChange when checkbox toggled", async () => {

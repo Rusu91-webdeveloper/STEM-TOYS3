@@ -52,10 +52,10 @@ export function CodRambursConsentPanel({
     },
     {
       icon: ArrowLeftRight,
-      title: t("codKeyPointRoundTripTitle", "Costuri tur și retur"),
+      title: t("codKeyPointRoundTripTitle", "Reținem doar transportul tur"),
       body: t(
         "codKeyPointRoundTripBody",
-        "În caz de RTO se pot aplica costurile logistice reale de dus și întors, conform politicilor afișate."
+        "Dacă o comandă ramburs este refuzată sau neridicată, suportăm returul la expeditor și putem reține doar costul logistic al transportului tur, dacă a fost comunicat înainte de comandă."
       ),
       accent: "text-amber-900 bg-amber-50/90 border-amber-100",
     },
@@ -164,7 +164,7 @@ export function CodRambursConsentPanel({
             <span className="text-sm font-medium leading-relaxed text-slate-900">
               {t(
                 "codConsentLabel",
-                "Confirm că am citit condițiile COD și accept costurile logistice reale de tur + retur în caz de refuz sau nepreluare."
+                "Confirm că am citit condițiile COD și înțeleg că, în caz de refuz sau nepreluare, returul la expeditor este suportat de comerciant, iar dacă a fost comunicat în prealabil poate fi reținut doar costul logistic al transportului tur."
               )}
             </span>
           </label>
@@ -172,7 +172,7 @@ export function CodRambursConsentPanel({
           <p className="mt-3 text-xs leading-relaxed text-slate-500">
             {t(
               "codConsentShortNote",
-              "Pe scurt: la livrare plătești produsele și taxa COD. Dacă refuzi coletul sau nu îl ridici, pot apărea costurile logistice reale tur + retur."
+              "Pe scurt: la livrare plătești produsele și taxa COD. Dacă refuzi coletul sau nu îl ridici, suportăm returul la expeditor și putem reține doar costul logistic al transportului tur, dacă acesta a fost afișat înainte de comandă."
             )}
           </p>
         </div>

@@ -2052,7 +2052,7 @@ export const ro = {
   codInfoTitle: "Informare COD (ramburs)",
   codSelectorPreviewTitle: "Ramburs la livrare",
   codSelectorPreviewBody:
-    "Plătești la curier la primire. Refuzul sau nepreluarea pot fi tratate ca retur (RTO); mai jos îți explicăm clar taxa ramburs, garanția pe card (dacă e cazul) și costurile posibile tur + retur.",
+    "Plătești la curier la primire. Dacă refuzi coletul sau nu îl ridici, returul la expeditor este suportat de noi, iar dacă a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur.",
   codSelectorPreviewLinksLead: "Documente:",
   codRambursHeroTitle: "Ramburs — plătești la livrare",
   codRambursHeroBadge: "Informare obligatorie",
@@ -2064,21 +2064,21 @@ export const ro = {
   codKeyPointRtoTitle: "Refuz sau nepreluare",
   codKeyPointRtoBody:
     "Dacă refuzi coletul la livrare sau nu îl ridici în termen, acesta poate fi returnat expeditorului (RTO).",
-  codKeyPointRoundTripTitle: "Costuri tur și retur",
+  codKeyPointRoundTripTitle: "Reținem doar transportul tur",
   codKeyPointRoundTripBody:
-    "În caz de RTO se pot aplica costurile logistice reale de dus și întors, conform politicilor afișate.",
+    "Dacă o comandă ramburs este refuzată sau neridicată, suportăm returul la expeditor și putem reține doar costul logistic al transportului tur, dacă a fost comunicat înainte de comandă.",
   codKeyPointAckTitle: "Confirmare înainte de plată",
   codKeyPointAckBody:
     "Continuarea comenzii cu ramburs necesită acceptarea explicită a acestor condiții.",
   codInfoBody:
-    "Refuzul la livrare sau nepreluarea coletului sunt tratate ca RTO (retur la expeditor). În acest caz se pot aplica costurile logistice efective tur + retur, conform politicilor afișate înainte de comandă.",
+    "Refuzul la livrare sau nepreluarea coletului sunt tratate ca RTO (retur la expeditor). În acest caz suportăm returul la expeditor și putem reține doar costul logistic al transportului tur, dacă acesta a fost afișat înainte de comandă.",
   codLockerInfoTitle: "Informare plată la FANbox",
   codLockerInfoBody:
-    "Pentru livrarea la FANbox, plata se face la ridicare, cu cardul la terminalul locker-ului. Nepreluarea coletului este tratată ca RTO (retur la expeditor), iar costurile logistice efective tur + retur pot fi aplicate conform politicilor afișate înainte de comandă.",
+    "Pentru livrarea la FANbox, plata se face la ridicare, cu cardul la terminalul locker-ului. Nepreluarea coletului este tratată ca RTO (retur la expeditor), iar dacă acest lucru a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur.",
   codReviewNotice:
-    "Plătești cash la primirea coletului. Curierul va colecta suma totală.",
+    "Plătești cash la primirea coletului. Dacă refuzi livrarea sau nu ridici coletul, returul la expeditor este suportat de noi, iar dacă a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur.",
   codLockerReviewNotice:
-    "Plătești la ridicare, cu cardul la terminalul FANbox. Nepreluarea coletului (RTO) poate genera costuri logistice efective tur + retur, conform politicilor afișate înainte de comandă.",
+    "Plătești la ridicare, cu cardul la terminalul FANbox. Dacă nu ridici coletul, returul la expeditor este suportat de noi, iar dacă a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur.",
   codLockerFee: "Taxă plată la FANbox",
   totalWithLockerCOD: "Total cu plată la FANbox",
   codLockerNotice:

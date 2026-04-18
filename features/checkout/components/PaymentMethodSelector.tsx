@@ -433,7 +433,7 @@ const PaymentMethodSelectorComponent = ({
                 <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
                   {t(
                     "codSelectorPreviewBody",
-                    "Plătești la curier la primire. Refuzul sau nepreluarea pot fi tratate ca retur (RTO); mai jos îți explicăm clar taxa ramburs, garanția pe card (dacă e cazul) și costurile posibile tur + retur."
+                    "Plătești la curier la primire. Dacă refuzi coletul sau nu îl ridici, returul la expeditor este suportat de noi, iar dacă a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur."
                   )}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">

@@ -3,6 +3,7 @@ import { Metadata } from "next";
 
 import { appConfig } from "@/lib/config/app-config";
 import {
+  RETURN_POLICY_COD_RTO_RO,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
   RETURN_POLICY_EVIDENCE_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
@@ -196,9 +197,7 @@ export default async function ReturnsPage() {
                   dreptul de retragere exercitat după recepția produsului.
                 </p>
                 <p>
-                  Pentru RTO se pot aplica doar{" "}
-                  <strong>costurile logistice efective (tur + retur)</strong>,
-                  dacă au fost comunicate clar înainte de finalizarea comenzii.
+                  {RETURN_POLICY_COD_RTO_RO}
                 </p>
                 <p>
                   Pentru produsele defecte/neconforme, costurile aferente

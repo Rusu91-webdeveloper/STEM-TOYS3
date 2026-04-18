@@ -406,7 +406,7 @@ export async function resolveCheckoutPricing(input: {
     Math.max(0, subtotal + tax + finalShippingCost - discountAmount + codFee)
   );
   const codGuaranteeAmount = isCODPaymentMethod(input.paymentMethod)
-    ? roundMoney(Math.max(finalShippingCost, shippingBasePrice) * 2)
+    ? roundMoney(Math.max(finalShippingCost, shippingBasePrice))
     : 0;
 
   return {

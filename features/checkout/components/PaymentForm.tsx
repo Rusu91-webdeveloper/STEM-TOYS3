@@ -242,7 +242,7 @@ export function PaymentForm({
       calculatedShippingCost,
       baseShippingForGuarantee
     );
-    return Math.round(shippingBase * 2 * 100) / 100;
+    return Math.round(shippingBase * 100) / 100;
   }, [selectedPaymentMethod, calculatedShippingCost, baseShippingForGuarantee]);
   const codOrderTotalForPolicy = useMemo(() => {
     if (selectedPaymentMethod !== "cash_on_delivery") return 0;

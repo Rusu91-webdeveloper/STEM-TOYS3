@@ -740,7 +740,7 @@ export async function POST(request: Request) {
     }
 
     const expectedCodGuaranteeAmount = isCODPayment
-      ? Math.round(Math.max(finalShippingCost, shippingBasePrice) * 2 * 100) /
+      ? Math.round(Math.max(finalShippingCost, shippingBasePrice) * 100) /
         100
       : 0;
     const expectedCodGuaranteeMinor = Math.round(

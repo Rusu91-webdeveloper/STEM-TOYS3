@@ -30,6 +30,9 @@ export const RETURN_POLICY_CUSTOMER_PAYS_RO =
 export const RETURN_POLICY_SELLER_PAYS_RO =
   "Pentru produse defecte, deteriorate, neconforme sau expediate greșit, costurile de retur și remediere sunt suportate de vânzător.";
 
+export const RETURN_POLICY_COD_RTO_RO =
+  "Pentru comenzile cu plata ramburs refuzate la livrare sau neridicate, returul la expeditor este suportat de noi. Dacă acest lucru a fost comunicat înainte de finalizarea comenzii, putem reține doar costul logistic al transportului tur.";
+
 export const RETURN_POLICY_EVIDENCE_RO =
   "Fotografiile încărcate se salvează împreună cu cererea de retur și pot fi folosite ca dovadă pentru analiza internă și pentru relația cu furnizorul.";
 
