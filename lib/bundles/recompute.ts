@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { legacyBundleItemSlugById } from "@/lib/bundles/legacy-item-slugs";
 
 type RecomputeOptions = {
   supplierId?: string;
@@ -96,11 +97,18 @@ export async function recomputeBundles(
 
   const bundleItemsMap = new Map<string, string[]>();
   const allItemIds = new Set<string>();
+  const fallbackSlugs = new Set<string>();
 
   for (const bundle of bundles) {
     const ids = parseBundleItemIds(bundle.bundleItems);
     bundleItemsMap.set(bundle.id, ids);
-    ids.forEach(id => allItemIds.add(id));
+    ids.forEach(id => {
+      allItemIds.add(id);
+      const fallbackSlug = legacyBundleItemSlugById[id];
+      if (fallbackSlug) {
+        fallbackSlugs.add(fallbackSlug);
+      }
+    });
   }
 
   const components = allItemIds.size
@@ -121,6 +129,29 @@ export async function recomputeBundles(
     : [];
 
   const componentById = new Map(components.map(component => [component.id, component]));
+  const fallbackComponents = fallbackSlugs.size
+    ? await db.product.findMany({
+        where: {
+          slug: { in: Array.from(fallbackSlugs) },
+        },
+        select: {
+          id: true,
+          slug: true,
+          price: true,
+          costPrice: true,
+          stockQuantity: true,
+          isActive: true,
+          supplierId: true,
+          isBundle: true,
+        },
+      })
+    : [];
+  const fallbackComponentBySlug = new Map(
+    fallbackComponents.map(component => [component.slug, component])
+  );
+  const fallbackComponentById = new Map(
+    fallbackComponents.map(component => [component.id, component])
+  );
 
   for (const bundle of bundles) {
     result.processed += 1;
@@ -145,10 +176,33 @@ export async function recomputeBundles(
         continue;
       }
 
-      const bundleComponents = itemIds
-        .map(id => componentById.get(id))
+      const resolvedItemIds = Array.from(
+        new Set(
+          itemIds.map(id => {
+            if (componentById.has(id)) {
+              return id;
+            }
+
+            const fallbackSlug = legacyBundleItemSlugById[id];
+            const fallbackComponent = fallbackSlug
+              ? fallbackComponentBySlug.get(fallbackSlug)
+              : undefined;
+
+            return fallbackComponent?.id ?? id;
+          })
+        )
+      );
+      const bundleComponents = resolvedItemIds
+        .map(id => componentById.get(id) ?? fallbackComponentById.get(id))
         .filter((value): value is NonNullable<typeof value> => Boolean(value));
-      const missingIds = itemIds.filter(id => !componentById.has(id));
+      const missingIds = itemIds.filter(id => {
+        if (componentById.has(id)) {
+          return false;
+        }
+
+        const fallbackSlug = legacyBundleItemSlugById[id];
+        return !fallbackSlug || !fallbackComponentBySlug.has(fallbackSlug);
+      });
 
       if (missingIds.length > 0) {
         const shouldDisable = bundle.isActive || bundle.stockQuantity !== 0 || bundle.featured;
@@ -255,6 +309,7 @@ export async function recomputeBundles(
         isActive?: boolean;
         status?: "APPROVED";
         featured?: boolean;
+        bundleItems?: string[];
       } = {};
 
       if (isDifferentNumber(bundle.compareAtPrice, compareAtPrice)) {
@@ -280,6 +335,9 @@ export async function recomputeBundles(
       }
       if (!shouldBeActive && bundle.featured) {
         updateData.featured = false;
+      }
+      if (JSON.stringify(itemIds) !== JSON.stringify(resolvedItemIds)) {
+        updateData.bundleItems = resolvedItemIds;
       }
 
       if (Object.keys(updateData).length === 0) {
