@@ -112,21 +112,6 @@ const bundleDefinitions: BundleDefinition[] = [
     supplierId: SUPPLIER_A,
   },
   {
-    name: "Outdoor Nature Explorer Bundle",
-    description: "Outdoor discovery set with binoculars and pocket microscopes for field adventures.",
-    productIds: [
-      "db3b31bd-38f8-468d-be17-45f9848452cf",
-      "b054f550-18d9-4bce-a2c7-c4332fc7201e",
-      "6dd34d7c-ac76-4a54-865c-da57aebca328",
-      "347b4498-48a1-46f3-a63a-1348dc047638",
-    ],
-    discountPercent: 10,
-    category: "Outdoor & Nature",
-    stemDiscipline: "ENGINEERING",
-    ageGroup: "MIDDLE_SCHOOL_9_12",
-    supplierId: SUPPLIER_A,
-  },
-  {
     name: "Cleverclixx Starter Shapes Bundle",
     description: "A balanced magnetic building starter combining tiles and dome structures.",
     productIds: [
