@@ -31,6 +31,8 @@ export type FieldMapping = {
   allowedSkus?: string[];
   blockedSkus?: string[];
   autoCreateProducts?: boolean;
+  authoritativeForMissingStock?: boolean;
+  minimumExpectedItems?: number;
 };
 
 export type SupplierAuthConfig = {

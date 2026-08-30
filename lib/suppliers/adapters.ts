@@ -105,6 +105,18 @@ function normalizeMapping(raw: unknown): FieldMapping {
         : typeof mapping.auto_create_products === "boolean"
           ? mapping.auto_create_products
           : undefined,
+    authoritativeForMissingStock:
+      typeof mapping.authoritativeForMissingStock === "boolean"
+        ? mapping.authoritativeForMissingStock
+        : typeof mapping.authoritative_for_missing_stock === "boolean"
+          ? mapping.authoritative_for_missing_stock
+          : undefined,
+    minimumExpectedItems:
+      typeof mapping.minimumExpectedItems === "number"
+        ? mapping.minimumExpectedItems
+        : typeof mapping.minimum_expected_items === "number"
+          ? mapping.minimum_expected_items
+          : undefined,
   };
 }
 

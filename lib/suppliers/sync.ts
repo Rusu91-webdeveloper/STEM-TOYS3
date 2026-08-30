@@ -18,6 +18,7 @@ import {
   createBaseLinkerXmlAdapter,
   createGenericApiAdapter,
 } from "@/lib/suppliers/adapters";
+import { assertLiveInventorySource } from "@/lib/suppliers/source-policy";
 import { FieldMapping, ProductFeedItem } from "@/lib/suppliers/types";
 import { slugify } from "@/lib/utils";
 import { calculateProfitMargin } from "@/lib/utils/unit-economics";
@@ -26,6 +27,17 @@ type RunSyncParams = {
   feedId?: string;
   supplierId?: string;
   jobType?: SupplierSyncJobType;
+};
+
+export type SupplierFeedSyncResult = {
+  feedId: string;
+  supplierId: string;
+  status: SupplierSyncStatus;
+  imported: number;
+  updated: number;
+  failed: number;
+  zeroed: number;
+  error?: string | null;
 };
 
 function normalizeSkuList(value: unknown): string[] {
@@ -93,17 +105,7 @@ function validateRequiredFields(
 
 export async function runSupplierFeedSync(
   params: RunSyncParams = {}
-): Promise<
-  Array<{
-    feedId: string;
-    supplierId: string;
-    status: SupplierSyncStatus;
-    imported: number;
-    updated: number;
-    failed: number;
-    error?: string | null;
-  }>
-> {
+): Promise<SupplierFeedSyncResult[]> {
   const feeds = await db.supplierFeed.findMany({
     where: {
       isActive: true,
@@ -112,18 +114,19 @@ export async function runSupplierFeedSync(
     },
   });
 
-  const results: Array<{
-    feedId: string;
-    supplierId: string;
-    status: SupplierSyncStatus;
-    imported: number;
-    updated: number;
-    failed: number;
-    error?: string | null;
-  }> = [];
+  const orderedFeeds = [...feeds].sort((left, right) => {
+    const leftMapping = (left.mapping as FieldMapping) || {};
+    const rightMapping = (right.mapping as FieldMapping) || {};
+    return (
+      Number(Boolean(leftMapping.authoritativeForMissingStock)) -
+      Number(Boolean(rightMapping.authoritativeForMissingStock))
+    );
+  });
+
+  const results: SupplierFeedSyncResult[] = [];
   let shouldRecomputeBundlePricing = false;
 
-  for (const feed of feeds) {
+  for (const feed of orderedFeeds) {
     const since = new Date(Date.now() - SYNC_IN_PROGRESS_WINDOW_MS);
     const existingRunning = await db.supplierSyncJob.findFirst({
       where: {
@@ -140,6 +143,7 @@ export async function runSupplierFeedSync(
         imported: 0,
         updated: 0,
         failed: 0,
+        zeroed: 0,
         error: "Skipped: sync already in progress for this feed",
       });
       continue;
@@ -157,6 +161,7 @@ export async function runSupplierFeedSync(
 
     try {
       const mapping: FieldMapping = (feed.mapping as FieldMapping) || {};
+      assertLiveInventorySource(feed.sourceUrl);
       const connector = getConnector(feed, mapping);
       let items = await connector.fetchProducts();
 
@@ -173,6 +178,15 @@ export async function runSupplierFeedSync(
       const autoCreateProducts = Boolean(
         mapping.autoCreateProducts ??
           (mapping as Record<string, unknown>).auto_create_products
+      );
+      const authoritativeForMissingStock = Boolean(
+        mapping.authoritativeForMissingStock ??
+          (mapping as Record<string, unknown>).authoritative_for_missing_stock
+      );
+      const minimumExpectedItems = Number(
+        mapping.minimumExpectedItems ??
+          (mapping as Record<string, unknown>).minimum_expected_items ??
+          0
       );
       const allowSet = allowList.length > 0 ? new Set(allowList) : null;
       const blockSet = blockList.length > 0 ? new Set(blockList) : null;
@@ -192,22 +206,41 @@ export async function runSupplierFeedSync(
       if (blockSet) {
         items = items.filter(item => !blockSet.has(item.supplierSku));
       }
+      if (
+        authoritativeForMissingStock &&
+        minimumExpectedItems > 0 &&
+        items.length < minimumExpectedItems
+      ) {
+        throw new Error(
+          `Authoritative feed returned ${items.length} allowed items; expected at least ${minimumExpectedItems}. Missing-stock updates were stopped.`
+        );
+      }
 
-      const { imported, updated, failed } = await upsertProducts(feed, items, {
-        requiredFields,
-        enforceAllowedSkus,
-        allowSet,
-        autoCreateProducts,
-      });
+      const { imported, updated, failed, zeroed } = await upsertProducts(
+        feed,
+        items,
+        {
+          requiredFields,
+          enforceAllowedSkus,
+          allowSet,
+          autoCreateProducts,
+          authoritativeForMissingStock,
+        }
+      );
+      const completionStatus =
+        failed > 0 ? SupplierSyncStatus.FAILED : SupplierSyncStatus.SUCCESS;
+      const completionError =
+        failed > 0 ? `${failed} feed items failed validation or mapping` : null;
 
       await db.supplierSyncJob.update({
         where: { id: job.id },
         data: {
-          status: SupplierSyncStatus.SUCCESS,
+          status: completionStatus,
           finishedAt: new Date(),
           imported,
           updated,
           failed,
+          error: completionError,
         },
       });
 
@@ -215,18 +248,20 @@ export async function runSupplierFeedSync(
         where: { id: feed.id },
         data: {
           lastSyncAt: new Date(),
-          lastSyncStatus: SupplierSyncStatus.SUCCESS,
-          lastError: null,
+          lastSyncStatus: completionStatus,
+          lastError: completionError,
         },
       });
 
       results.push({
         feedId: feed.id,
         supplierId: feed.supplierId,
-        status: SupplierSyncStatus.SUCCESS,
+        status: completionStatus,
         imported,
         updated,
         failed,
+        zeroed,
+        error: completionError,
       });
       shouldRecomputeBundlePricing = true;
     } catch (error) {
@@ -258,6 +293,7 @@ export async function runSupplierFeedSync(
         imported: 0,
         updated: 0,
         failed: 0,
+        zeroed: 0,
         error: message,
       });
     }
@@ -271,6 +307,7 @@ export async function runSupplierFeedSync(
       );
     } catch (error) {
       console.error("[SUPPLIER SYNC] Bundle recompute failed:", error);
+      throw new Error("Supplier sync completed but bundle recomputation failed");
     }
   }
 
@@ -325,6 +362,7 @@ async function upsertProducts(
     enforceAllowedSkus?: boolean;
     allowSet?: Set<string> | null;
     autoCreateProducts?: boolean;
+    authoritativeForMissingStock?: boolean;
   }
 ) {
   let imported = 0;
@@ -374,6 +412,7 @@ async function upsertProducts(
           select: {
             id: true,
             price: true,
+            costPrice: true,
             isActive: true,
             isBundle: true,
           },
@@ -407,7 +446,7 @@ async function upsertProducts(
     const supplierCost =
       costCandidate !== undefined && costCandidate > 0
         ? costCandidate
-        : existing?.price ?? 0;
+        : existing?.product?.costPrice ?? 0;
     const oldSupplierPrice = existing?.price ?? 0;
     const retailPrice = Number.isFinite(item.retailPrice ?? NaN)
       ? (item.retailPrice as number)
@@ -423,7 +462,7 @@ async function upsertProducts(
         supplierSku: item.supplierSku,
         name: item.name,
         description: item.description,
-        price: supplierCost,
+        price: supplierCost > 0 ? supplierCost : existing?.price ?? null,
         currency: item.currency ?? "RON",
         stock: item.stock ?? 0,
         images: item.images ?? [],
@@ -502,7 +541,12 @@ async function upsertProducts(
       }
 
       // Check if price change is significant
-      if (existing && oldSupplierPrice > 0) {
+      if (
+        existing &&
+        oldSupplierPrice > 0 &&
+        costCandidate !== undefined &&
+        costCandidate > 0
+      ) {
         const priceChangePercent = Math.abs(
           (supplierCost - oldSupplierPrice) / oldSupplierPrice
         );
@@ -610,7 +654,7 @@ async function upsertProducts(
       supplierSku: item.supplierSku,
       name: item.name,
       description: item.description,
-      price: supplierCost,
+      price: supplierCost > 0 ? supplierCost : existing?.price ?? null,
       currency: item.currency ?? "RON",
       stock: item.stock ?? 0,
       images: item.images ?? [],
@@ -643,16 +687,18 @@ async function upsertProducts(
     // Update linked Product if it exists
     if (supplierProduct.productId) {
       const updateData: {
-        costPrice: number;
+        costPrice?: number;
         price?: number;
         isActive?: boolean;
         name?: string;
         description?: string | null;
         images?: string[];
         stockQuantity?: number;
-      } = {
-        costPrice: supplierCost || 0,
-      };
+      } = {};
+
+      if (supplierCost > 0) {
+        updateData.costPrice = supplierCost;
+      }
 
       // Only update price if margin is acceptable
       if (!marginTooLow && resolvedPrice > 0) {
@@ -719,7 +765,61 @@ async function upsertProducts(
     await disableProductsNotInAllowlist(feed, options.allowSet);
   }
 
-  return { imported, updated, failed };
+  const zeroed =
+    options?.authoritativeForMissingStock && options.allowSet
+      ? await zeroMissingAllowedSkuStock(feed, items, options.allowSet)
+      : 0;
+
+  return { imported, updated, failed, zeroed };
+}
+
+async function zeroMissingAllowedSkuStock(
+  feed: SupplierFeed,
+  items: ProductFeedItem[],
+  allowSet: Set<string>
+) {
+  const seenSkus = new Set(items.map(item => item.supplierSku));
+  const missingSkus = Array.from(allowSet).filter(sku => !seenSkus.has(sku));
+  if (missingSkus.length === 0) return 0;
+
+  const missingProducts = await db.supplierProduct.findMany({
+    where: {
+      supplierId: feed.supplierId,
+      supplierSku: { in: missingSkus },
+      productId: { not: null },
+    },
+    select: { id: true, productId: true },
+  });
+  const productIds = Array.from(
+    new Set(
+      missingProducts
+        .map(item => item.productId)
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+
+  if (productIds.length === 0) return 0;
+
+  const now = new Date();
+  await db.supplierProduct.updateMany({
+    where: { id: { in: missingProducts.map(item => item.id) } },
+    data: {
+      stock: 0,
+      lastSyncAt: now,
+      lastError: "SKU absent from authoritative supplier inventory feed",
+    },
+  });
+
+  const result = await db.product.updateMany({
+    where: {
+      id: { in: productIds },
+      supplierId: feed.supplierId,
+      isBundle: false,
+    },
+    data: { stockQuantity: 0 },
+  });
+
+  return result.count;
 }
 
 async function disableProductsNotInAllowlist(
