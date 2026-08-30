@@ -26,6 +26,20 @@ type FeedBackup = {
   feeds: unknown[];
 };
 
+type InventoryPoint = {
+  id: string;
+  stockQuantity: number;
+  reservedQuantity: number;
+};
+
+function inventoryFingerprint(products: InventoryPoint[]) {
+  return products
+    .map(product =>
+      [product.id, product.stockQuantity, product.reservedQuantity].join(":")
+    )
+    .join("|");
+}
+
 function assertProtectedBackupPath() {
   const configured = process.env.SUPPLIER_FEED_BACKUP_PATH;
   if (!configured) {
@@ -106,18 +120,29 @@ async function main() {
     findSupplier("boribon"),
     findSupplier("kidstory"),
   ]);
-  const [boribonFeeds, kidstoryFeeds, kidstoryProductCount] = await Promise.all([
-    prisma.supplierFeed.findMany({ where: { supplierId: boribon.id } }),
-    prisma.supplierFeed.findMany({ where: { supplierId: kidstory.id } }),
-    prisma.product.count({
-      where: { supplierId: kidstory.id, isBundle: false },
-    }),
-  ]);
+  const [boribonFeeds, kidstoryFeeds, boribonProductCount, kidstoryProducts] =
+    await Promise.all([
+      prisma.supplierFeed.findMany({ where: { supplierId: boribon.id } }),
+      prisma.supplierFeed.findMany({ where: { supplierId: kidstory.id } }),
+      prisma.product.count({
+        where: { supplierId: boribon.id, isBundle: false },
+      }),
+      prisma.product.findMany({
+        where: { supplierId: kidstory.id, isBundle: false },
+        select: { id: true, stockQuantity: true, reservedQuantity: true },
+        orderBy: { id: "asc" },
+      }),
+    ]);
+  const kidstoryProductCount = kidstoryProducts.length;
+  const kidstoryInventoryBefore = inventoryFingerprint(kidstoryProducts);
 
   if (kidstoryProductCount !== 56) {
     throw new Error(
       `Expected 56 Kidstory baseline products, found ${kidstoryProductCount}`
     );
+  }
+  if (boribonProductCount !== 77) {
+    throw new Error(`Expected 77 Boribon products, found ${boribonProductCount}`);
   }
 
   const desiredSources = new Set<string>(
@@ -162,17 +187,32 @@ async function main() {
   const existingDesired = BORIBON_FEEDS.filter(desired =>
     boribonFeeds.some(feed => feed.sourceUrl === desired.sourceUrl)
   ).length;
+  const activeBoribonSnapshots = boribonSnapshots.filter(
+    feed => feed.isActive
+  ).length;
+  const activeKidstorySnapshots = kidstorySnapshots.filter(
+    feed => feed.isActive
+  ).length;
+  if (
+    existingDesired !== 6 ||
+    BORIBON_FEEDS.length - existingDesired !== 1 ||
+    activeBoribonSnapshots !== 1 ||
+    activeKidstorySnapshots !== 1
+  ) {
+    throw new Error(
+      "Production feed plan changed: expected six Boribon updates, one Boribon creation, one active Boribon snapshot, and one active Kidstory snapshot."
+    );
+  }
   const plan = {
     mode: apply ? "apply" : "dry-run",
     boribonAllowedSkus: BORIBON_ALLOWED_SKUS.length,
     boribonLiveSources: BORIBON_FEEDS.length,
     boribonFeedsToUpdate: existingDesired,
     boribonFeedsToCreate: BORIBON_FEEDS.length - existingDesired,
-    boribonSnapshotsToDeactivate: boribonSnapshots.filter(feed => feed.isActive)
-      .length,
+    boribonProducts: boribonProductCount,
+    boribonSnapshotsToDeactivate: activeBoribonSnapshots,
     kidstoryBaselineProducts: kidstoryProductCount,
-    kidstorySnapshotsToDeactivate: kidstorySnapshots.filter(feed => feed.isActive)
-      .length,
+    kidstorySnapshotsToDeactivate: activeKidstorySnapshots,
   };
   console.info("[SUPPLIER FEED REPAIR] plan", plan);
 
@@ -190,7 +230,7 @@ async function main() {
     feeds: [...boribonFeeds, ...kidstoryFeeds],
   });
 
-  await prisma.$transaction(async transaction => {
+  const verification = await prisma.$transaction(async transaction => {
     for (const desired of BORIBON_FEEDS) {
       const existing = boribonFeeds.find(
         feed => feed.sourceUrl === desired.sourceUrl
@@ -244,37 +284,51 @@ async function main() {
         },
       });
     }
-  });
 
-  const [activeBoribon, activeSnapshots] = await Promise.all([
-    prisma.supplierFeed.findMany({
-      where: {
-        supplierId: boribon.id,
-        isActive: true,
-        sourceUrl: { in: Array.from(desiredSources) },
-      },
-    }),
-    prisma.supplierFeed.findMany({
-      where: {
-        supplierId: { in: [boribon.id, kidstory.id] },
-        isActive: true,
-      },
-    }),
-  ]);
-  const liveStaticSnapshots = activeSnapshots.filter(feed =>
-    isStaticSeedSource(feed.sourceUrl)
-  );
-  if (activeBoribon.length !== 7 || liveStaticSnapshots.length !== 0) {
-    throw new Error(
-      "Post-write verification failed: expected seven active Boribon feeds and zero active static snapshots."
+    const [activeBoribon, activeSnapshots, kidstoryProductsAfter] =
+      await Promise.all([
+        transaction.supplierFeed.findMany({
+          where: {
+            supplierId: boribon.id,
+            isActive: true,
+            sourceUrl: { in: Array.from(desiredSources) },
+          },
+        }),
+        transaction.supplierFeed.findMany({
+          where: {
+            supplierId: { in: [boribon.id, kidstory.id] },
+            isActive: true,
+          },
+        }),
+        transaction.product.findMany({
+          where: { supplierId: kidstory.id, isBundle: false },
+          select: { id: true, stockQuantity: true, reservedQuantity: true },
+          orderBy: { id: "asc" },
+        }),
+      ]);
+    const liveStaticSnapshots = activeSnapshots.filter(feed =>
+      isStaticSeedSource(feed.sourceUrl)
     );
-  }
+    const kidstoryInventoryAfter = inventoryFingerprint(kidstoryProductsAfter);
+    if (
+      activeBoribon.length !== 7 ||
+      liveStaticSnapshots.length !== 0 ||
+      kidstoryProductsAfter.length !== 56 ||
+      kidstoryInventoryAfter !== kidstoryInventoryBefore
+    ) {
+      throw new Error(
+        "In-transaction verification failed: expected seven active Boribon feeds, zero active static snapshots, and an unchanged 56-product Kidstory inventory baseline."
+      );
+    }
 
-  console.info("[SUPPLIER FEED REPAIR] apply complete", {
-    activeBoribonFeeds: activeBoribon.length,
-    activeStaticSnapshots: liveStaticSnapshots.length,
-    kidstoryBaselineProducts: kidstoryProductCount,
+    return {
+      activeBoribonFeeds: activeBoribon.length,
+      activeStaticSnapshots: liveStaticSnapshots.length,
+      kidstoryBaselineProducts: kidstoryProductsAfter.length,
+    };
   });
+
+  console.info("[SUPPLIER FEED REPAIR] apply complete", verification);
 }
 
 main()
