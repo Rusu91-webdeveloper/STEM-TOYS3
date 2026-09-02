@@ -44,8 +44,8 @@ interface PillarSectionProps {
 
 const DEFAULT_PILLARS: PillarItem[] = [
   {
-    titleKey: "pillarGuide2025Title",
-    descriptionKey: "pillarGuide2025Description",
+    titleKey: "pillarGuide2026Title",
+    descriptionKey: "pillarGuide2026Description",
     href: "/ghid-jucarii-stem-2025",
     accent: "from-indigo-500 to-blue-500",
   },
@@ -123,7 +123,7 @@ export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
         iconClass: "text-indigo-600",
         headerTint:
           "from-indigo-900/30 via-blue-900/10 to-transparent",
-        previewLabel: "Trenduri & recomandări 2025",
+        previewLabel: "Trenduri & recomandări 2026",
       },
       "/jucarii-stem-dupa-varsta": {
         image: "/Engineering.png",

@@ -45,15 +45,15 @@ export const ro = {
   moneyBackPromise: "Promisiunea Banilor Înapoi",
   tenThousandParentsTrust: "Încredere de Familii din Întreaga Lume",
   fourNineStars: "4.9/5 Stele",
-  ninetyNinePercentSuccess: "99% Rata de Succes",
+  ninetyNinePercentSuccess: "Retur clar 14 zile",
 
   // Social Proof & Urgency Elements
   limitedSpots: "Locuri limitate",
   consultationThisMonth: "pentru consultare gratuită luna aceasta",
   // guarantee: "Garanție 30 Zile", // Removed - risky advertisement
   transformationResults: "Rezultate de Transformare:",
-  mathScoreImprovement: "87% Îmbunătățire Scoruri Matematică",
-  engagementIncrease: "92% Creșterea Angajamentului",
+  mathScoreImprovement: "Învățare prin joacă practică",
+  engagementIncrease: "Proiecte pe vârstă",
   averageTransformation: "30 Zile Transformare Medie",
 
   // Risk Reversal Elements
@@ -139,7 +139,7 @@ export const ro = {
   dayPolicy: "Retur în 14 zile calendaristice",
   learnMore: "Află mai multe",
   usefulGuides: "Ghiduri utile pentru a alege și folosi jucăriile STEM:",
-  guide2025: "Ghid 2025",
+  guide2025: "Ghid 2026",
   byAge: "După vârstă",
   stemBenefits: "Beneficii STEM",
 
@@ -506,7 +506,7 @@ export const ro = {
   productsPageH1:
     "Găsește Jucăriile STEM Exacte Care Îți Vor Transforma Copilul",
   productsPageSubtitle:
-    "Alătură-te celor 10,000+ de părinți care și-au transformat copiii. Jucăriile noastre STEM transformă 'urăsc matematica' în 'când facem experimente?' în doar 30 de zile.",
+    "Alege jucării STEM pe vârstă și interes. Fără promisiuni de transformare în 30 de zile — doar selecție clară și livrare în România.",
   getPersonalizedRecommendations: "Obține Recomandări Personalizate (Gratuit)",
   seeSuccessStories: "Vezi Povești de Succes",
   findPerfectToysForAge:
@@ -566,7 +566,7 @@ export const ro = {
 
   // Pain-focused subheadline addressing parent frustrations
   discoverCollection:
-    "Înlocuiește timpul de ecran cu învățare activă. Peste 10,000 de părinți au transformat deja copiii lor din 'dependenti de telefon' în 'viitori inventatori' cu jucăriile noastre STEM.",
+    "Înlocuiește timpul de ecran cu învățare activă. Înlocuiește timpul de ecran cu învățare activă: experimente, construcții și proiecte potrivite vârstei.",
   stemCollectionCtaDescription:
     "Descoperă jucăriile educaționale care fac învățarea distractivă pentru copiii de toate vârstele. De la experimente științifice la roboți de programare, avem tot ce le trebuie pentru a aprinde curiozitatea și creativitatea.",
 
@@ -603,8 +603,8 @@ export const ro = {
     "Dezvoltă abilități de inginerie și știință care vor conta în cariera viitoare a copilului tău",
 
   // Social Proof Elements
-  socialProofNumber: "10,000+",
-  socialProofText: "părinți fericiți care au transformat copiii lor",
+  socialProofNumber: "STEM",
+  socialProofText: "selecție pe vârstă, livrare în România",
   successStory1:
     "Fiul meu a trecut de la 'urăsc matematica' la 'când facem următorul experiment?' în doar 2 săptămâni!",
   successStory2:
@@ -800,7 +800,7 @@ export const ro = {
     "As technology and AI transform education, STEM skills are more critical than ever. Get expert answers to all your concerns about preparing your child for the future.",
 
   // Guide 2025 Page H1
-  guide2025H1: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025",
+  guide2025H1: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2026",
   guide2025H1En: "Complete Guide to STEM Toys for Children in 2025",
 
   // Benefits Page H1
@@ -852,7 +852,7 @@ export const ro = {
   faqEducationalH2En:
     "How do I know this will actually improve my child's learning?",
   faqEducationalAnswer:
-    "Jucăriile noastre STEM sunt concepute științific pentru a îmbunătăți gândirea critică, rezolvarea problemelor și implicarea în învățare. 87% din părinți raportează îmbunătățiri la notele la matematică și 92% văd o implicare crescută în învățare. Fiecare jucărie vine cu rezultate educaționale dovedite și provocări potrivite vârstei care construiesc încrederea și abilitățile sistematic.",
+    "Jucăriile STEM sunt alese pentru a stimula curiozitatea, logica și învățarea prin proiecte practice. Nu folosim procente sau studii inventate. Ghidurile pe vârstă te ajută să alegi un start realist pentru copilul tău.",
   faqEducationalAnswerEn:
     "Our STEM toys are scientifically designed to improve critical thinking, problem-solving, and learning engagement. 87% of parents report improved math scores and 92% see increased learning engagement. Each toy comes with proven educational outcomes and age-appropriate challenges that build confidence and skills systematically.",
 
@@ -875,7 +875,7 @@ export const ro = {
   guide2025HowToChooseH2: "Cum alegi corect jucăria STEM potrivită",
   guide2025HowToChooseH2En: "How to choose the right STEM toy",
 
-  guide2025TopRecommendationsH2: "Top recomandări jucării STEM pentru 2025",
+  guide2025TopRecommendationsH2: "Top recomandări jucării STEM pentru 2026",
   guide2025TopRecommendationsH2En: "Top STEM toy recommendations for 2025",
 
   // Benefits H2 Subheadings
@@ -1280,9 +1280,9 @@ export const ro = {
   pillarSectionTitle: "Explorează temele noastre cheie",
   pillarSectionSubtitle:
     "Descoperă conținut esențial pentru a face cele mai bune alegeri pentru cei mici.",
-  pillarGuide2025Title: "Ghid 2025",
-  pillarGuide2025Description:
-    "Top recomandări și tendințe în jucării STEM pentru 2025.",
+  pillarGuide2026Title: "Ghid 2026",
+  pillarGuide2026Description:
+    "Top recomandări și tendințe în jucării STEM pentru 2026.",
   pillarByAgeTitle: "După vârstă",
   pillarByAgeDescription:
     "Alege jucării potrivite fiecărei etape de dezvoltare.",
@@ -1297,7 +1297,7 @@ export const ro = {
   newsletterFooterDesc: "Fii la curent cu cele mai noi jucării STEM și resurse educaționale.",
 
   // Guide 2025 Page translations
-  guide2025Title: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025",
+  guide2025Title: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2026",
   guide2025Byline: "By TechTots Editorial · Updated",
   guide2025Description:
     "Alege inteligent jucării STEM adaptate vârstei, intereselor și nivelului copilului. Ghidul include recomandări pe categorii STEM, grupe de vârstă și sfaturi practice pentru părinți și educatori.",
@@ -1318,7 +1318,7 @@ export const ro = {
     "Categorii STEM: Știință, Tehnologie, Inginerie, Matematică",
   guide2025AgeRecommendations: "Recomandări pe vârstă",
   guide2025HowToChoose: "Cum alegi corect jucăria",
-  guide2025TopRecommendations: "Top recomandări 2025",
+  guide2025TopRecommendations: "Top recomandări 2026",
   guide2025Faq: "Întrebări frecvente",
   guide2025WhatAreStemContent:
     "Jucăriile STEM stimulează învățarea prin joc în domeniile știință, tehnologie, inginerie și matematică. Scopul lor este să traducă concepte abstracte în experiențe tactile și vizuale, astfel încât copiii să poată explora, testa ipoteze și vedea efectele acțiunilor lor în timp real. Spre deosebire de jucăriile pasive, jucăriile STEM pun accentul pe experimentare, proiecte practice, prototipare și iterare. Fie că este vorba despre construirea unui pod din piese modulare, programarea unui robot să urmeze o linie sau observarea unei reacții chimice sigure, aceste activități cultivă gândirea critică, perseverența și capacitatea de a învăța din greșeli.",
@@ -1474,7 +1474,7 @@ export const ro = {
   faqWhatAreStem:
     "O să ajute jucăriile STEM cu adevărat copilul meu care urăște matematica și știința?",
   faqWhatAreStemAnswer:
-    "DA! Jucăriile noastre STEM au transformat peste 10,000 de copii de la 'urăsc matematica' la 'când facem experimente?'. Cheia este să faci învățarea să pară joacă, nu muncă. Jucăriile noastre sunt concepute special pentru a transforma elevii cu dificultăți în învățători încrezători prin explorare practică. Alătură-te miilor de părinți care au văzut această transformare.",
+    "Da — STEM poate face învățarea mai atractivă prin joacă și experimente practice. Nu promitem note sau transformări garantate. Alege după vârstă și interes; dacă nu se potrivește, ai retur în 14 zile calendaristice.",
   faqAgeAppropriate:
     "Îmi fac griji că voi cumpăra jucăria greșită - cum aleg cea potrivită?",
   faqAgeAppropriateAnswer:
@@ -1486,7 +1486,7 @@ export const ro = {
   faqSafety:
     "Sunt aceste jucării sigure? Nu vreau să risc siguranța copilului meu.",
   faqSafetyAnswer:
-    "Absolut! Fiecare jucărie din colecția noastră îndeplinește sau depășește standardele internaționale de siguranță (CE, ASTM, EN71). Testăm personal fiecare produs pentru siguranță și calitate. Siguranța copilului tău este prioritatea noastră #1. Am vândut peste 50,000 de jucării cu zero incidente de siguranță. Poți cumpăra cu încredere completă.",
+    "Selectăm branduri care declară respectarea standardelor de siguranță aplicabile (CE / EN71 unde e cazul). Respectă vârsta și instrucțiunile de pe ambalaj. Nu publicăm statistici inventate despre vânzări sau incidente.",
 
   // FAQ CTAs
   faqGetPersonalizedRecommendations:
@@ -1504,7 +1504,7 @@ export const ro = {
   footerShopDiscover: "Descoperă & Cumpără",
   footerCustomerCare: "Suport clienți",
   footerKnowledge: "Ghiduri & Parteneriate",
-  footerGuide2025: "Ghid 2025",
+  footerGuide2025: "Ghid 2026",
   footerAgeGuide: "Jucării STEM după vârstă",
   footerPhoneLabel: "Telefon",
   footerEmailLabel: "Email",
@@ -1518,7 +1518,7 @@ export const ro = {
 
   // Newsletter section
   exclusiveInsights: "Inspirație STEM exclusivă",
-  joinEducatorsParents: "🚀 Alătură-te la 50.000+ Educatori și Părinți STEM",
+  joinEducatorsParents: "🚀 Resurse STEM pentru părinți și educatori",
   newsletterSubtitle:
     "Obține acces exclusiv la produse noi, resurse educaționale și reduceri speciale. În plus, primește ghidul nostru săptămânal de activități STEM!",
   emailAddressPlaceholder: "Introduceți adresa de email",
@@ -1543,7 +1543,7 @@ export const ro = {
   freeReturnsOver50:
     "Retur în 14 zile calendaristice. Costul transportului de retur este suportat de client.",
   bankLevelSecurity: "Securitate și criptare la nivel bancar",
-  trustedEducators: "De încredere pentru 50.000+ educatori din întreaga lume",
+  trustedEducators: "Magazin STEM din România — selecție pe vârstă",
 
   // Navigation sections
   stemCategoriesNav: "Categorii STEM",

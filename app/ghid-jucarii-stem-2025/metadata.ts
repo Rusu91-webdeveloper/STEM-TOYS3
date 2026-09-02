@@ -4,19 +4,19 @@ import { createMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = createMetadata({
   title:
-    "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025 - Top Recomandări",
+    "Ghidul Complet al Jucăriilor STEM pentru Copii în 2026 - Top Recomandări",
   description:
     "Ghid exhaustiv cu peste 3000 de cuvinte despre jucăriile STEM: categorii, grupe de vârstă, beneficii educaționale și top recomandări pentru dezvoltarea copiilor.",
   ogImage: "/opengraph-image.png",
-  pathWithoutLocale: "/ghid-jucarii-stem-2025",
+  pathWithoutLocale: "/ghid-jucarii-stem-2026",
   translations: {
     ro: {
-      title: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025",
+      title: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2026",
       description:
         "Peste 3000 de cuvinte: categorii STEM, grupe de vârstă, beneficii, top recomandări.",
     },
     en: {
-      title: "Ultimate STEM Toys Guide 2025",
+      title: "Ultimate STEM Toys Guide 2026",
       description:
         "Long-form guide: STEM categories, age groups, benefits, and top picks.",
     },
@@ -25,7 +25,7 @@ export const metadata: Metadata = createMetadata({
     {
       "@context": "https://schema.org",
       "@type": "Article",
-      headline: "Ghidul Complet al Jucăriilor STEM în 2025",
+      headline: "Ghidul Complet al Jucăriilor STEM în 2026",
       inLanguage: ["ro", "en"],
       wordCount: 3000,
       author: {
@@ -37,7 +37,7 @@ export const metadata: Metadata = createMetadata({
       dateModified: new Date().toISOString(),
       mainEntityOfPage: {
         "@type": "WebPage",
-        "@id": "https://www.techtots.ro/ghid-jucarii-stem-2025",
+        "@id": "https://www.techtots.ro/ghid-jucarii-stem-2026",
       },
     },
     {
@@ -73,7 +73,7 @@ export const metadata: Metadata = createMetadata({
   ],
 });
 
-export default async function Guide2025Metadata() {
+export default async function Guide2026Metadata() {
   await cookies();
   return null;
 }
