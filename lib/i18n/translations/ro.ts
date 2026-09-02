@@ -1280,8 +1280,8 @@ export const ro = {
   pillarSectionTitle: "Explorează temele noastre cheie",
   pillarSectionSubtitle:
     "Descoperă conținut esențial pentru a face cele mai bune alegeri pentru cei mici.",
-  pillarGuide2026Title: "Ghid 2026",
-  pillarGuide2026Description:
+  pillarGuide2025Title: "Ghid 2026",
+  pillarGuide2025Description:
     "Top recomandări și tendințe în jucării STEM pentru 2026.",
   pillarByAgeTitle: "După vârstă",
   pillarByAgeDescription:

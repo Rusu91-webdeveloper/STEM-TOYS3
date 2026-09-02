@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle,
   Shield,
-  Users,
   Star,
   Clock,
   AlertTriangle,

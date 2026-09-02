@@ -44,8 +44,8 @@ interface PillarSectionProps {
 
 const DEFAULT_PILLARS: PillarItem[] = [
   {
-    titleKey: "pillarGuide2026Title",
-    descriptionKey: "pillarGuide2026Description",
+    titleKey: "pillarGuide2025Title",
+    descriptionKey: "pillarGuide2025Description",
     href: "/ghid-jucarii-stem-2025",
     accent: "from-indigo-500 to-blue-500",
   },
