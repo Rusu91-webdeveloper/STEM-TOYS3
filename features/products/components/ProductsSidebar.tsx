@@ -107,7 +107,8 @@ export function ProductsSidebar({
       0
     ) +
     (!noPriceFilter &&
-    (priceRangeFilter[0] > priceRange.min || priceRangeFilter[1] < priceRange.max)
+    (priceRangeFilter[0] > priceRange.min ||
+      priceRangeFilter[1] < priceRange.max)
       ? 1
       : 0) +
     selectedLearningOutcomes.length +
@@ -116,14 +117,18 @@ export function ProductsSidebar({
     (selectedAgeGroup ? 1 : 0);
 
   return (
-    <aside
-      className={cn(
-        "hidden xl:block shrink-0 w-56 2xl:w-64"
-      )}
-    >
-      <div className="sticky top-24">
-        <ScrollArea className="h-[calc(100vh-10rem)] pr-2">
-          <div className="space-y-6 pb-4">
+    <aside className={cn("hidden xl:block shrink-0 w-56 2xl:w-64")}>
+      <div className="sticky top-32 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_20px_50px_-42px_rgba(15,23,42,0.35)]">
+        <div className="border-b border-slate-100 px-5 py-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-blue-600">
+            Rafinează selecția
+          </p>
+          <p className="mt-1 text-sm font-semibold text-slate-950">
+            {t("filters", "Filtre")}
+          </p>
+        </div>
+        <ScrollArea className="h-[calc(100vh-12rem)]">
+          <div className="space-y-6 p-5">
             <EnhancedProductFilters
               categories={categoryFilter[0]}
               filters={dynamicFilters}
@@ -154,7 +159,7 @@ export function ProductsSidebar({
               <button
                 type="button"
                 onClick={handleClearFilters}
-                className="w-full rounded-lg border border-slate-200 bg-white py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
               >
                 {t("resetFilters", "Resetează Filtre")}
               </button>

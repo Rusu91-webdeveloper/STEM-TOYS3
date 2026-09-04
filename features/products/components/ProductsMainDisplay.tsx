@@ -1,12 +1,19 @@
 "use client";
 
-import { LayoutGrid, List, ChevronDown, X, Search, ShoppingCart } from "lucide-react";
+import {
+  LayoutGrid,
+  List,
+  ChevronDown,
+  X,
+  Search,
+  ShoppingCart,
+} from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect, useCallback } from "react";
 
 import { Input } from "@/components/ui/input";
-import { ProductGrid } from "@/features/products";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
+import { ProductGrid } from "@/features/products";
 import type { Product } from "@/types/product";
 
 import { OptimizedProductImage } from "./OptimizedProductImage";
@@ -47,15 +54,18 @@ interface ProductsMainDisplayProps {
   onBundleViewModeChange: (mode: "all" | "bundles" | "products") => void;
   getLearningTitle: () => string;
   getLearningDescription: () => string;
-  getProductCardContent: (product: any) => { title: string; description: string };
+  getProductCardContent: (product: any) => {
+    title: string;
+    description: string;
+  };
   t: (key: string, fallback?: string) => string;
 }
 
 export function ProductsMainDisplay({
-  activeCategory,
-  categoryInfo,
-  filteredProducts,
-  visibleProductsCount,
+  activeCategory: _activeCategory,
+  categoryInfo: _categoryInfo,
+  filteredProducts: _filteredProducts,
+  visibleProductsCount: _visibleProductsCount,
   displayedProducts,
   viewMode,
   sortOption,
@@ -63,19 +73,23 @@ export function ProductsMainDisplay({
   searchQuery = "",
   onSearchQueryChange,
   onClearSearch,
-  bundleViewMode,
-  onBundleViewModeChange,
-  getLearningTitle,
-  getLearningDescription,
+  bundleViewMode: _bundleViewMode,
+  onBundleViewModeChange: _onBundleViewModeChange,
+  getLearningTitle: _getLearningTitle,
+  getLearningDescription: _getLearningDescription,
   getProductCardContent,
   t,
 }: ProductsMainDisplayProps) {
   const [displayProducts, setDisplayProducts] = useState(displayedProducts);
-  const [prevProductCount, setPrevProductCount] = useState(displayedProducts.length);
+  const [prevProductCount, setPrevProductCount] = useState(
+    displayedProducts.length
+  );
   const [sortOpen, setSortOpen] = useState(false);
 
   const { addItem } = useShoppingCart();
-  const [cartStates, setCartStates] = useState<Record<string, "idle" | "adding" | "added">>({});
+  const [cartStates, setCartStates] = useState<
+    Record<string, "idle" | "adding" | "added">
+  >({});
 
   const handleAddToCart = useCallback(
     (product: any, e: React.MouseEvent) => {
@@ -83,7 +97,9 @@ export function ProductsMainDisplay({
       e.stopPropagation();
       if (cartStates[product.id] === "adding") return;
       const isBook = Boolean(
-        product.isBook || product.attributes?.author || product.tags?.includes("book")
+        product.isBook ||
+          product.attributes?.author ||
+          product.tags?.includes("book")
       );
       setCartStates(s => ({ ...s, [product.id]: "adding" }));
       addItem(
@@ -99,15 +115,24 @@ export function ProductsMainDisplay({
         },
         1
       );
-      setTimeout(() => setCartStates(s => ({ ...s, [product.id]: "added" })), 300);
-      setTimeout(() => setCartStates(s => ({ ...s, [product.id]: "idle" })), 1800);
+      setTimeout(
+        () => setCartStates(s => ({ ...s, [product.id]: "added" })),
+        300
+      );
+      setTimeout(
+        () => setCartStates(s => ({ ...s, [product.id]: "idle" })),
+        1800
+      );
     },
     [addItem, cartStates]
   );
 
   useEffect(() => {
-    const countDifference = Math.abs(displayedProducts.length - prevProductCount);
-    const shouldShowLoading = countDifference > Math.max(prevProductCount * 0.5, 5);
+    const countDifference = Math.abs(
+      displayedProducts.length - prevProductCount
+    );
+    const shouldShowLoading =
+      countDifference > Math.max(prevProductCount * 0.5, 5);
 
     if (shouldShowLoading) {
       setPrevProductCount(displayedProducts.length);
@@ -115,10 +140,11 @@ export function ProductsMainDisplay({
         setDisplayProducts(displayedProducts);
       }, 150);
       return () => clearTimeout(timer);
-    } else {
-      setDisplayProducts(displayedProducts);
-      setPrevProductCount(displayedProducts.length);
     }
+
+    setDisplayProducts(displayedProducts);
+    setPrevProductCount(displayedProducts.length);
+    return undefined;
   }, [displayedProducts, prevProductCount]);
 
   const currentSortLabel =
@@ -128,14 +154,16 @@ export function ProductsMainDisplay({
   return (
     <div className="flex-1 text-slate-900">
       {/* Toolbar — view toggle + sort (desktop) */}
-      <div className="hidden xl:flex items-center justify-between mb-3 gap-3">
+      <div className="mb-5 hidden items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white p-2 shadow-[0_16px_40px_-36px_rgba(15,23,42,0.35)] xl:flex">
         {/* View toggle */}
-        <div className="flex items-center gap-1 border border-slate-200 rounded-lg p-1 bg-white">
+        <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1">
           <button
             type="button"
             aria-label="Grid view"
-            onClick={() => {/* view change handled by parent via ProductGrid */}}
-            className={`flex items-center justify-center w-8 h-8 rounded-md transition ${
+            onClick={() => {
+              /* view change handled by parent via ProductGrid */
+            }}
+            className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
               viewMode === "grid"
                 ? "bg-slate-900 text-white"
                 : "text-slate-400 hover:text-slate-700 hover:bg-slate-50"
@@ -146,7 +174,7 @@ export function ProductsMainDisplay({
           <button
             type="button"
             aria-label="List view"
-            className={`flex items-center justify-center w-8 h-8 rounded-md transition ${
+            className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
               viewMode === "list"
                 ? "bg-slate-900 text-white"
                 : "text-slate-400 hover:text-slate-700 hover:bg-slate-50"
@@ -157,15 +185,18 @@ export function ProductsMainDisplay({
         </div>
 
         {/* Search bar */}
-        <div className="flex-1 max-w-sm">
+        <div className="max-w-md flex-1">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              aria-hidden
+            />
             <Input
               type="search"
               value={searchQuery}
               onChange={e => onSearchQueryChange?.(e.currentTarget.value)}
               placeholder={t("productsSearchPlaceholder", "Caută produse...")}
-              className="h-9 rounded-lg border-slate-200 bg-white pl-9 pr-8 text-sm focus-visible:border-slate-400 focus-visible:ring-1 focus-visible:ring-slate-300"
+              className="h-10 rounded-xl border-slate-200 bg-slate-50 pl-9 pr-8 text-sm shadow-none focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-100"
             />
             {searchQuery && (
               <button
@@ -184,11 +215,15 @@ export function ProductsMainDisplay({
           <button
             type="button"
             onClick={() => setSortOpen(v => !v)}
-            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition whitespace-nowrap"
+            className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
           >
-            <span className="text-slate-500 text-xs">{t("sortBy", "Sortează după:")}</span>
+            <span className="text-slate-500 text-xs">
+              {t("sortBy", "Sortează după:")}
+            </span>
             <span className="font-medium">{currentSortLabel}</span>
-            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${sortOpen ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`h-4 w-4 text-slate-400 transition-transform ${sortOpen ? "rotate-180" : ""}`}
+            />
           </button>
           {sortOpen && (
             <div className="absolute right-0 top-full mt-1 z-20 min-w-[200px] rounded-xl border border-slate-200 bg-white shadow-lg py-1 overflow-hidden">
@@ -201,7 +236,9 @@ export function ProductsMainDisplay({
                     setSortOpen(false);
                   }}
                   className={`w-full text-left px-4 py-2.5 text-sm transition hover:bg-slate-50 ${
-                    sortOption === opt.value ? "font-semibold text-slate-900" : "text-slate-600"
+                    sortOption === opt.value
+                      ? "font-semibold text-slate-900"
+                      : "text-slate-600"
                   }`}
                 >
                   {opt.label}
@@ -214,7 +251,10 @@ export function ProductsMainDisplay({
 
       {/* Close sort dropdown when clicking outside */}
       {sortOpen && (
-        <div className="fixed inset-0 z-10" onClick={() => setSortOpen(false)} />
+        <div
+          className="fixed inset-0 z-10"
+          onClick={() => setSortOpen(false)}
+        />
       )}
 
       {/* Products grid or list */}
@@ -238,6 +278,8 @@ export function ProductsMainDisplay({
             onSortChange={onSortChange}
             disableInternalSort
             columns={{ base: 2, sm: 2, md: 3, lg: 3, xl: 3 }}
+            showLayoutToggle={false}
+            showSortOptions={false}
           />
         ) : (
           <div className="space-y-3">
@@ -257,7 +299,9 @@ export function ProductsMainDisplay({
               const discountPct =
                 product.compareAtPrice && product.compareAtPrice > product.price
                   ? Math.round(
-                      ((product.compareAtPrice - product.price) / product.compareAtPrice) * 100
+                      ((product.compareAtPrice - product.price) /
+                        product.compareAtPrice) *
+                        100
                     )
                   : null;
 
@@ -319,13 +363,16 @@ export function ProductsMainDisplay({
                     <div className="flex items-center justify-between gap-2 mt-3">
                       <div className="flex items-baseline gap-1.5">
                         <span className="text-base sm:text-lg font-bold text-[#2563EB]">
-                          {product.price ? `${product.price} RON` : t("freeDownload", "Gratuit")}
+                          {product.price
+                            ? `${product.price} RON`
+                            : t("freeDownload", "Gratuit")}
                         </span>
-                        {product.compareAtPrice && product.compareAtPrice > product.price && (
-                          <span className="text-xs text-slate-400 line-through">
-                            {product.compareAtPrice} RON
-                          </span>
-                        )}
+                        {product.compareAtPrice &&
+                          product.compareAtPrice > product.price && (
+                            <span className="text-xs text-slate-400 line-through">
+                              {product.compareAtPrice} RON
+                            </span>
+                          )}
                       </div>
 
                       <button
@@ -352,7 +399,9 @@ export function ProductsMainDisplay({
                         ) : (
                           <>
                             <ShoppingCart className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">{t("addToCart", "Adaugă în Coș")}</span>
+                            <span className="hidden sm:inline">
+                              {t("addToCart", "Adaugă în Coș")}
+                            </span>
                           </>
                         )}
                       </button>
@@ -375,7 +424,10 @@ export function ProductsMainDisplay({
             {t("noProductsFound", "Nu am găsit produse")}
           </h3>
           <p className="text-sm text-slate-500 max-w-xs">
-            {t("tryAdjustingFilters", "Încearcă să ajustezi filtrele sau caută altceva.")}
+            {t(
+              "tryAdjustingFilters",
+              "Încearcă să ajustezi filtrele sau caută altceva."
+            )}
           </p>
         </div>
       )}

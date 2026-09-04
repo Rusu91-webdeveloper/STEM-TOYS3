@@ -12,27 +12,28 @@ import {
   LucideIcon,
   ChevronRight,
 } from "lucide-react";
-import React, { useState, useEffect, useMemo, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 
 import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
 import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import type { Product } from "@/types/product";
-import Link from "next/link";
-import { ProductsPagination } from "./ProductsPagination";
+
 
 import { useProductFilters } from "../hooks/useProductFilters";
 
 import type { FilterGroup } from "./EnhancedProductFilters";
+import { MobileFilterBar, type MobileFilterPanel } from "./MobileFilterBar";
 import { MobileFiltersModal } from "./MobileFiltersModal";
 import {
   ProductsErrorBoundary,
   ProductFiltersErrorBoundary,
   ProductGridErrorBoundary,
 } from "./ProductsErrorBoundary";
-import { MobileFilterBar, type MobileFilterPanel } from "./MobileFilterBar";
 import { ProductsMainDisplay } from "./ProductsMainDisplay";
+import { ProductsPagination } from "./ProductsPagination";
 import { ProductsSidebar } from "./ProductsSidebar";
 import {
   productsBackgroundClass,
@@ -695,10 +696,6 @@ function ClientProductsPageContent({
     actions.setSortBy(value === "featured" ? "relevance" : value);
   };
 
-  const handleViewModeChange = (mode: "grid" | "list") => {
-    actions.setViewMode(mode);
-  };
-
   const handleSearchQueryChange = (value: string) => {
     setPage(1);
     actions.setSearchQuery(value);
@@ -823,37 +820,37 @@ function ClientProductsPageContent({
       <ProductVariantProvider>
         <div className="w-full">
           {/* Page header — breadcrumb + title */}
-          <div className="border-b border-slate-100 bg-white">
-            <div className="container mx-auto px-3 sm:px-4 lg:px-5 py-4 sm:py-5">
+          <div className="px-3 pt-3 sm:px-4 sm:pt-5 lg:px-6 lg:pt-6">
+            <div className="container mx-auto overflow-hidden rounded-[1.5rem] bg-[#0b1220] px-5 py-7 shadow-[0_28px_70px_-44px_rgba(15,23,42,0.9)] sm:rounded-[2rem] sm:px-8 sm:py-10 lg:px-12 lg:py-12">
               {/* Breadcrumb */}
-              <nav className="flex items-center gap-1.5 text-sm text-slate-500 mb-3">
-                <Link
-                  href="/"
-                  className="hover:text-slate-800 transition-colors"
-                >
+              <nav className="mb-5 flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                <Link href="/" className="transition-colors hover:text-white">
                   {t("home", "Home")}
                 </Link>
-                <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
-                <span className="text-slate-800 font-medium">
+                <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
+                <span className="font-medium text-sky-300">
                   {t("allProducts", "Toate Produsele")}
                 </span>
               </nav>
-              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] text-sky-300">
+                    Catalog TechTots
+                  </p>
+                  <h1 className="text-3xl font-bold tracking-[-0.045em] text-white sm:text-4xl lg:text-5xl">
                     {getCategoryTitle()}
                   </h1>
-                  <p className="mt-1.5 text-sm sm:text-base text-slate-500 max-w-xl leading-relaxed">
+                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
                     {getCategoryDescription()}
                   </p>
                 </div>
-                <p className="text-sm text-slate-500 shrink-0">
+                <p className="w-fit shrink-0 rounded-full border border-white/10 bg-white/[0.07] px-4 py-2 text-xs text-slate-300 backdrop-blur">
                   {t("showing", "Afișăm")}{" "}
-                  <span className="font-semibold text-slate-700">
+                  <span className="font-bold text-white">
                     {bundleFilteredProducts.length}
                   </span>{" "}
                   {t("outOf", "din")}{" "}
-                  <span className="font-semibold text-slate-700">
+                  <span className="font-bold text-white">
                     {products.length}
                   </span>{" "}
                   {t("productsLabel", "produse")}
@@ -863,7 +860,7 @@ function ClientProductsPageContent({
           </div>
 
           {/* Mobile Filter Bar */}
-          <div className="xl:hidden bg-white border-b border-slate-100">
+          <div className="mt-3 border-y border-slate-200/80 bg-white xl:hidden">
             <MobileFilterBar
               activeFilterCount={totalActiveFilterCount}
               categoryLabel={mobileCategoryLabel}
@@ -886,8 +883,8 @@ function ClientProductsPageContent({
           </div>
 
           {/* Main content — sidebar + products grid */}
-          <div className="container mx-auto px-3 sm:px-4 lg:px-5 py-3 sm:py-4">
-            <div className="flex flex-col xl:flex-row gap-4 xl:gap-5 items-start">
+          <div className="container mx-auto px-3 py-5 sm:px-4 sm:py-7 lg:px-6 lg:py-8">
+            <div className="flex flex-col items-start gap-5 xl:flex-row xl:gap-7">
               <ProductFiltersErrorBoundary
                 onError={() => {
                   handleClearFilters();

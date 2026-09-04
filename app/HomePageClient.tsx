@@ -2,21 +2,18 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import React, { Suspense } from "react";
 
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
+import { AgeCategoriesSection } from "@/features/home/components/AgeCategoriesSection";
 import { FeaturedProductsGrid } from "@/features/home/components/FeaturedProductsGrid";
 import { HeroSection } from "@/features/home/components/HeroSection";
-import { AgeCategoriesSection } from "@/features/home/components/AgeCategoriesSection";
+import { PillarSection } from "@/features/home/components/PillarSection";
 import type { HomeBundle } from "@/features/home/types";
 import { publicConfig } from "@/lib/config/app-config";
-import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { getBaseUrl } from "@/lib/site";
 import type { Product } from "@/types/product";
-
-import { PillarSection } from "@/features/home/components/PillarSection";
 
 // Code-split below-the-fold sections with better loading strategy
 const MobileConversionOptimizer = dynamic(
@@ -27,19 +24,16 @@ const MobileConversionOptimizer = dynamic(
   }
 );
 
-
-
 const homePageShellClass =
-  "relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f6fbff_0%,#ffffff_45%,#f1f8ff_100%)] text-slate-900";
+  "relative min-h-screen overflow-hidden bg-[#f5f7fb] text-slate-950";
 
 const homePageOverlayTopClass =
-  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_10%,rgba(56,189,248,0.12),transparent_38%),radial-gradient(circle_at_86%_14%,rgba(16,185,129,0.08),transparent_30%)]";
+  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_8%,rgba(37,99,235,0.07),transparent_30%),radial-gradient(circle_at_90%_22%,rgba(14,165,233,0.05),transparent_28%)]";
 
 const homePageOverlayBottomClass =
-  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_85%,rgba(34,197,94,0.08),transparent_36%),radial-gradient(circle_at_80%_82%,rgba(99,102,241,0.08),transparent_40%)]";
+  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_88%,rgba(37,99,235,0.04),transparent_32%),radial-gradient(circle_at_82%_80%,rgba(15,23,42,0.035),transparent_36%)]";
 
-const homePageContentWrapperClass =
-  "relative z-10 flex flex-col gap-5 sm:gap-7 lg:gap-12";
+const homePageContentWrapperClass = "relative z-10 flex flex-col";
 
 // Loading fallback for featured products accordion
 const FeaturedProductsLoader = () => (
@@ -96,7 +90,7 @@ const FeaturedProductsLoader = () => (
 
 export default function HomePageClient({
   initialFeaturedProducts: originalFeaturedProducts,
-  initialBundles,
+  initialBundles: _initialBundles,
 }: {
   initialFeaturedProducts: Product[];
   initialBundles: HomeBundle[];
@@ -105,7 +99,6 @@ export default function HomePageClient({
   const initialFeaturedProducts = [...originalFeaturedProducts];
 
   const { t } = useTranslation();
-  const { formatPrice } = useCurrency();
 
   // Page-scoped JSON-LD with Local Business Schema for Romania
   const baseUrl = getBaseUrl();
@@ -207,8 +200,6 @@ export default function HomePageClient({
 
         <AgeCategoriesSection t={t} />
 
-
-
         {/* Featured Products - second section (as in screenshot) */}
         <Suspense fallback={<FeaturedProductsLoader />}>
           <FeaturedProductsGrid
@@ -218,12 +209,8 @@ export default function HomePageClient({
           />
         </Suspense>
 
-
-
         {/* Pillar Section - Explorează temele noastre cheie */}
         <PillarSection />
-
-
 
         {/* Mobile Conversion Optimizer - Sticky CTAs, trust indicators, etc. */}
         <MobileConversionOptimizer t={t} />
