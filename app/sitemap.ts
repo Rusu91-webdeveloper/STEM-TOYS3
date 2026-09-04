@@ -7,6 +7,8 @@ import {
   REMOVED_CATEGORY_PAGE_SLUGS,
 } from "@/lib/utils/category-page-links";
 
+export const dynamic = "force-dynamic";
+
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
 
 const staticRoutes: MetadataRoute.Sitemap = [
@@ -32,6 +34,11 @@ const staticRoutes: MetadataRoute.Sitemap = [
   },
   {
     url: `${baseUrl}/jucarii-inteligente`,
+    changeFrequency: "weekly",
+    priority: 0.9,
+  },
+  {
+    url: `${baseUrl}/cadouri-stem-6-8-ani`,
     changeFrequency: "weekly",
     priority: 0.9,
   },

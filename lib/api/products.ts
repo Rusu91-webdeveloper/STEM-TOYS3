@@ -1,3 +1,4 @@
+import { applyProductContentOverride } from "@/lib/products/catalog-content-overrides";
 import type { Product } from "@/types/product";
 
 import { logger } from "../logger";
@@ -32,7 +33,8 @@ export async function getCombinedProduct(
       throw new Error(`Failed to fetch product: ${response.statusText}`);
     }
 
-    return await response.json();
+    const product = (await response.json()) as Product;
+    return applyProductContentOverride(product);
   } catch (error) {
     console.error("Error fetching combined product:", error);
     return null;

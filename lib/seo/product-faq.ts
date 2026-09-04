@@ -43,6 +43,11 @@ function getOutcomeLabel(outcome?: string) {
 
 export function buildDefaultProductFaq(product: Product): ProductFaqItem[] {
   const ageLabel = getAgeLabel(product.ageGroup);
+  const manufacturerAge = [
+    product.ageRange,
+    product.attributes?.manufacturerRecommendedAge,
+    product.attributes?.originalAgeText,
+  ].find(value => typeof value === "string" && value.trim());
   const disciplineLabel = getDisciplineLabel(product.stemDiscipline);
   const primaryOutcome = Array.isArray(product.learningOutcomes)
     ? product.learningOutcomes[0]
@@ -53,7 +58,9 @@ export function buildDefaultProductFaq(product: Product): ProductFaqItem[] {
   return [
     {
       question: `Pentru ce varsta este potrivit ${product.name}?`,
-      answer: `${product.name} este potrivit in special pentru copiii din segmentul ${ageLabel}. Verifica intotdeauna nivelul de autonomie si interesul copilului pentru a alege varianta potrivita.`,
+      answer: manufacturerAge
+        ? `Vârsta recomandată de producător pentru ${product.name} este ${manufacturerAge}. Încadrarea TechTots în ghidul de cadouri pentru ${ageLabel} este orientativă și nu înlocuiește recomandarea de pe ambalaj.`
+        : `${product.name} este listat în ghidul TechTots pentru segmentul ${ageLabel}. Verifică întotdeauna recomandarea de vârstă de pe ambalaj înainte de utilizare.`,
     },
     {
       question: `Ce tip de abilitati poate sustine ${product.name}?`,
