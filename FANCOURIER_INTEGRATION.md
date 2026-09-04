@@ -46,12 +46,27 @@ Optional (dropshipping): use supplier address as pickup for AWB:
 FANCOURIER_USE_SUPPLIER_ADDRESS=true   # default: false
 ```
 
-When `true`, the system uses the supplier's business address (Admin → Suppliers
-→ Pickup Address) as the AWB sender, but **only** when the supplier has all of:
-`businessAddress`, `businessCity`, `businessState`, `phone`. If any field is
-missing or the env var is not set, it falls back to the `FANCOURIER_SENDER_*`
-env vars. **Verify with FanCourier that the sender in the AWB payload is used
-for pickup before enabling.**
+When enabled, the system uses the supplier's business address (Admin → Suppliers
+→ Pickup Address) as the physical AWB origin, but **only** when the supplier has
+all of: `businessAddress`, `businessCity`, `businessState`, `phone`. If any
+field is missing, AWB creation is blocked for manual review so a driver is not
+sent to the merchant address by mistake. The customer-facing sender name, phone,
+and email always come from `FANCOURIER_SENDER_*`; pickup scheduling uses the
+supplier's own contact details. **Confirm with FAN that each supplier warehouse
+is allowed as a pickup location under your contract before enabling this flag.**
+
+For contracted SelfAWB accounts, courier pickup orders are keyed by the
+`clientId` of a registered branch. Supplying a different `sender` address does
+not by itself prove that FAN will collect there. The safe operating choices are:
+
+- have the supplier hand the merchant-generated parcel to a FAN office; or
+- ask FAN to register/authorize each supplier warehouse as a branch under the
+  merchant contract, then add explicit supplier-to-branch mapping before
+  enabling automatic pickup.
+
+Do not generate COD AWBs with a supplier's separate FAN credentials unless FAN
+has contractually confirmed that the collected amount is still paid to the
+merchant's IBAN.
 
 Optional (testing): disable supplier AWB emails while keeping AWB generation
 active:
@@ -60,11 +75,19 @@ active:
 DISABLE_SUPPLIER_AWB_EMAIL=true   # default: false
 ```
 
-Optional (COD): for some FAN accounts, COD AWBs require `info.returnPayment`.
+COD orders use FAN **Cont Colector** and are blocked unless a valid payout bank
+and IBAN can be resolved. By default, the integration reads both values from the
+authenticated SelfAWB branch whose ID matches `FANCOURIER_CLIENT_ID`.
+
+Optional override (set both values together):
 
 ```
-FANCOURIER_RETURN_PAYMENT=sender   # default: sender
+FANCOURIER_COD_BANK=Banca Transilvania
+FANCOURIER_COD_IBAN=RO00AAAA0000000000000000
 ```
+
+`FANCOURIER_RETURN_PAYMENT` is retained only for legacy cash-ramburs shipments;
+it is not sent for Cont Colector.
 
 Optional (AWB billing override): if FAN support tells you that the AWB
 `info.payment` field must contain your billing company label instead of the
@@ -142,9 +165,13 @@ The payload includes:
 - Declared value (insurance) when applicable
 - Recipient address from checkout
 - Service:
-  - `Standard` for non-locker deliveries
+  - `Standard` for prepaid non-locker deliveries
+  - `Cont Colector` for non-locker COD deliveries
   - `FANbox` for locker deliveries with prepaid card payment
   - `FANbox Cont Colector` for locker deliveries with COD (ramburs)
+- Bank and IBAN from the matching SelfAWB branch (or the paired environment
+  override). The IBAN is sent to FAN but redacted from stored shipment payloads
+  and application logs.
 - AWB options codes (`info.options`) resolved from env:
   - `FANCOURIER_AWB_OPTIONS` (global)
   - `FANCOURIER_AWB_OPTIONS_STANDARD` (Standard only)

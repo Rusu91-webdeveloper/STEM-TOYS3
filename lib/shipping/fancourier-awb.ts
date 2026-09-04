@@ -14,24 +14,36 @@ import {
   createFanCourierPickupOrder,
   hasExtraKmOrRemoteLocality,
   getFanCourierAwbLabel,
+  getFanCourierBranches,
   getFanCourierClientId,
   isFanCourierConfigured,
   normalizeFanCourierCountyName,
 } from "@/lib/integrations/fancourier/client";
-import type {
-  FanCourierAwbPayload,
-  FanCourierAwbPayment,
-  FanCourierPaymentParty,
-  FanCourierSenderConfig,
-  FanCourierServiceType,
+import {
+  getFanCourierSenderConfig,
+  type FanCourierSenderConfig,
+  type FanCourierAwbPayload,
+  type FanCourierAwbPayment,
+  type FanCourierPaymentParty,
+  type FanCourierServiceType,
 } from "@/lib/integrations/fancourier/types";
-import { getFanCourierSenderConfig } from "@/lib/integrations/fancourier/types";
+import {
+  isFanCourierCodPaymentMethod,
+  isFanCourierCollectorService,
+  resolveFanCourierCodBankDetails,
+  resolveFanCourierSenderProfiles,
+  resolveFanCourierService,
+  type FanCourierCodBankDetails,
+} from "@/lib/shipping/fancourier-cod";
 import { extractDimensionsCm } from "@/lib/shipping/shipping-pricing";
 import {
   DEFAULT_PRODUCT_WEIGHT_KG,
   productStoredWeightToKg,
 } from "@/lib/shipping/store-weight-to-kg";
-import { getShippingSettings, getStoreSettings } from "@/lib/utils/store-settings";
+import {
+  getShippingSettings,
+  getStoreSettings,
+} from "@/lib/utils/store-settings";
 
 const COURIER_NAME = "FANCOURIER";
 const isSupplierAwbEmailDisabled = () =>
@@ -87,39 +99,33 @@ const extractAwbNumber = (response: Record<string, unknown>): string | null => {
 const redactPayload = (
   payload: Record<string, unknown>
 ): Record<string, unknown> => {
-  const redacted = { ...payload };
-  if ("password" in redacted) redacted.password = "***";
-  if ("token" in redacted) redacted.token = "***";
-  if ("access_token" in redacted) redacted.access_token = "***";
-  return redacted;
+  const redactValue = (value: unknown, key?: string): unknown => {
+    if (
+      key &&
+      ["password", "token", "access_token", "bankAccount"].includes(key)
+    ) {
+      return "***";
+    }
+    if (Array.isArray(value)) return value.map(item => redactValue(item));
+    if (value && typeof value === "object") {
+      return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>).map(
+          ([innerKey, innerValue]) => [
+            innerKey,
+            redactValue(innerValue, innerKey),
+          ]
+        )
+      );
+    }
+    return value;
+  };
+
+  return redactValue(payload) as Record<string, unknown>;
 };
 
 /**
  * Build AWB payload for FAN Courier API
  */
-const resolveFanCourierService = (
-  methodId?: string | null,
-  pickupLocation?: string | null,
-  isCodPayment?: boolean
-): FanCourierServiceType => {
-  const normalized = methodId?.includes(":")
-    ? methodId.split(":")[1]?.toLowerCase().trim()
-    : methodId?.toLowerCase().trim();
-  const wantsFanbox =
-    normalized === "easybox" ||
-    normalized === "fanbox" ||
-    normalized === "fan_box";
-
-  if (wantsFanbox && pickupLocation) {
-    if (isCodPayment) {
-      return "FANbox Cont Colector";
-    }
-    return "FANbox";
-  }
-
-  return "Standard";
-};
-
 const isFanboxService = (service: FanCourierServiceType): boolean =>
   service === "FANbox" || service === "FANbox Cont Colector";
 
@@ -469,7 +475,7 @@ const collectSupplierContacts = (
 /**
  * Build sender config from supplier address for FanCourier pickup.
  * Used only when FANCOURIER_USE_SUPPLIER_ADDRESS=true and supplier has complete address.
- * Returns null to fallback to env-based sender on any validation failure.
+ * Returns null when supplier pickup is disabled or cannot be validated.
  */
 const resolveSenderFromSupplier = (
   supplier: SupplierPickupContact | null
@@ -671,6 +677,26 @@ const resolveAwbPayment = (): FanCourierAwbPayment => {
   return "sender";
 };
 
+const getCodBankDetailsForAccount = async () => {
+  const hasEnvironmentOverride = !!(
+    process.env.FANCOURIER_COD_BANK?.trim() ||
+    process.env.FANCOURIER_COD_IBAN?.trim()
+  );
+  if (hasEnvironmentOverride) {
+    return resolveFanCourierCodBankDetails({ environment: process.env });
+  }
+
+  const clientId = getFanCourierClientId();
+  const branches = await getFanCourierBranches();
+  const matchingBranch =
+    branches.find(branch => branch.id === clientId) ?? null;
+
+  return resolveFanCourierCodBankDetails({
+    environment: process.env,
+    branch: matchingBranch,
+  });
+};
+
 const parsePositiveDimensionCm = (raw: string | undefined): number | null => {
   if (!raw) return null;
   const parsed = Number(raw);
@@ -686,7 +712,9 @@ const getFanCourierDefaultDimensions = (): {
   const length = parsePositiveDimensionCm(
     process.env.FANCOURIER_DEFAULT_LENGTH_CM
   );
-  const width = parsePositiveDimensionCm(process.env.FANCOURIER_DEFAULT_WIDTH_CM);
+  const width = parsePositiveDimensionCm(
+    process.env.FANCOURIER_DEFAULT_WIDTH_CM
+  );
   const height = parsePositiveDimensionCm(
     process.env.FANCOURIER_DEFAULT_HEIGHT_CM
   );
@@ -802,20 +830,22 @@ const buildAwbPayload = (
     skuSummary?: string | null;
   },
   senderConfig?: FanCourierSenderConfig,
-  pickupLocationOverride?: string | null
+  pickupLocationOverride?: string | null,
+  codBankDetails?: FanCourierCodBankDetails | null
 ): FanCourierAwbPayload => {
-  const isCodPayment =
-    input.order.paymentMethod === "cash_on_delivery" ||
-    input.order.paymentMethod === "cod";
+  const isCodPayment = isFanCourierCodPaymentMethod(input.order.paymentMethod);
 
   const pickupLocation =
     pickupLocationOverride ??
-    extractPickupLocation(input.order.lockerAddressSnapshot, input.order.lockerId);
-  const service = resolveFanCourierService(
-    input.order.shippingMethod,
+    extractPickupLocation(
+      input.order.lockerAddressSnapshot,
+      input.order.lockerId
+    );
+  const service = resolveFanCourierService({
+    methodId: input.order.shippingMethod,
     pickupLocation,
-    isCodPayment
-  );
+    isCodPayment,
+  });
   const fanboxService = isFanboxService(service);
   const recipientAddress = extractRecipientAddressParts({
     addressLine1: input.order.shippingAddress.addressLine1,
@@ -825,7 +855,9 @@ const buildAwbPayload = (
   const fanboxAddress = fanboxService
     ? extractFanboxAddress(input.order.lockerAddressSnapshot, {
         pickupLocation,
-        county: normalizeFanCourierCountyName(input.order.shippingAddress.state),
+        county: normalizeFanCourierCountyName(
+          input.order.shippingAddress.state
+        ),
         locality: input.order.shippingAddress.city,
         postalCode: input.order.shippingAddress.postalCode,
         street: recipientAddress.street,
@@ -833,12 +865,23 @@ const buildAwbPayload = (
     : null;
   const sender = senderConfig ?? getFanCourierSenderConfig();
   const awbOptions = resolveAwbOptionCodes(service);
-  const shipmentDimensions = resolveShipmentDimensions(service, input.dimensions);
+  const shipmentDimensions = resolveShipmentDimensions(
+    service,
+    input.dimensions
+  );
   const codValue = isCodPayment
     ? (input.order.codAmount ?? input.order.total)
     : 0;
   const awbPayment = resolveAwbPayment();
-  const returnPayment = codValue > 0 ? resolveCodReturnPayment() : null;
+  if (codValue > 0 && !codBankDetails) {
+    throw new Error(
+      "FAN Courier COD is blocked because payout bank details are missing."
+    );
+  }
+  const returnPayment =
+    codValue > 0 && !isFanCourierCollectorService(service)
+      ? resolveCodReturnPayment()
+      : null;
   const awbReference = buildAwbReferenceText({
     orderNumber: input.order.orderNumber,
     skuSummary: input.skuSummary,
@@ -850,8 +893,8 @@ const buildAwbPayload = (
       {
         info: {
           service,
-          bank: "",
-          bankAccount: "",
+          bank: codValue > 0 ? codBankDetails?.bank : "",
+          bankAccount: codValue > 0 ? codBankDetails?.bankAccount : "",
           packages: {
             parcel: 1,
             envelope: 0,
@@ -885,14 +928,16 @@ const buildAwbPayload = (
             county: normalizeFanCourierCountyName(
               fanboxAddress?.county ?? input.order.shippingAddress.state
             ),
-            locality: fanboxAddress?.locality ?? input.order.shippingAddress.city,
+            locality:
+              fanboxAddress?.locality ?? input.order.shippingAddress.city,
             street: fanboxAddress?.street ?? recipientAddress.street,
             streetNo: fanboxAddress?.streetNo ?? recipientAddress.streetNo,
             building: fanboxService ? undefined : recipientAddress.building,
             entrance: fanboxService ? undefined : recipientAddress.entrance,
             floor: fanboxService ? undefined : recipientAddress.floor,
             apartment: fanboxService ? undefined : recipientAddress.apartment,
-            zipCode: fanboxAddress?.zipCode ?? input.order.shippingAddress.postalCode,
+            zipCode:
+              fanboxAddress?.zipCode ?? input.order.shippingAddress.postalCode,
             pickupLocation: fanboxAddress?.pickupLocation,
           },
         },
@@ -932,7 +977,7 @@ export interface FanAwbResult {
   reviewReason?: string | null;
   senderDebug?: {
     useSupplierAddressFlag: boolean;
-    senderSource: "supplier" | "env_fallback";
+    pickupSource: "supplier" | "merchant_fallback";
     supplierId?: string | null;
     supplierName?: string | null;
     missingSupplierFields?: string[];
@@ -1016,8 +1061,7 @@ export const createFanAwbForOrder = async (
     };
   }
 
-  const isCodPayment =
-    order.paymentMethod === "cash_on_delivery" || order.paymentMethod === "cod";
+  const isCodPayment = isFanCourierCodPaymentMethod(order.paymentMethod);
 
   if (order.paymentStatus !== "PAID" && !isCodPayment) {
     return { success: false, error: "Order payment is not confirmed" };
@@ -1035,6 +1079,52 @@ export const createFanAwbForOrder = async (
       awbNumber: existingShipment.awbNumber,
       alreadyExists: true,
     };
+  }
+
+  let codBankDetails: FanCourierCodBankDetails | null = null;
+  if (isCodPayment) {
+    try {
+      const codBankResolution = await getCodBankDetailsForAccount();
+      if (!codBankResolution.success) {
+        const reason = codBankResolution.error;
+        await db.order.update({
+          where: { id: order.id },
+          data: {
+            manualShippingReviewRequired: true,
+            shippingReviewReason: reason,
+            courierErrorMessage: reason,
+          },
+        });
+        return {
+          success: false,
+          error: reason,
+          manualReviewRequired: true,
+          reviewReason: reason,
+        };
+      }
+      codBankDetails = codBankResolution.details;
+    } catch (error) {
+      const reason =
+        "FAN Courier COD is blocked: the payout bank configuration could not be verified against the SelfAWB account.";
+      console.error(
+        "[FAN Courier] COD payout configuration check failed:",
+        error
+      );
+      await db.order.update({
+        where: { id: order.id },
+        data: {
+          manualShippingReviewRequired: true,
+          shippingReviewReason: reason,
+          courierErrorMessage: reason,
+        },
+      });
+      return {
+        success: false,
+        error: reason,
+        manualReviewRequired: true,
+        reviewReason: reason,
+      };
+    }
   }
 
   // Calculate chargeable weight
@@ -1223,11 +1313,18 @@ export const createFanAwbForOrder = async (
     }
   }
 
-  const supplierSenderConfig = resolveSenderFromSupplier(primarySupplier);
-  const senderConfig = supplierSenderConfig ?? getFanCourierSenderConfig();
-  const senderSource: "supplier" | "env_fallback" = supplierSenderConfig
+  const merchantSenderConfig = getFanCourierSenderConfig();
+  const supplierPickupConfig = resolveSenderFromSupplier(primarySupplier);
+  const {
+    customerFacingSender: awbSenderConfig,
+    pickupSender: pickupSenderConfig,
+  } = resolveFanCourierSenderProfiles({
+    merchant: merchantSenderConfig,
+    supplierPickup: supplierPickupConfig,
+  });
+  const pickupSource: "supplier" | "merchant_fallback" = supplierPickupConfig
     ? "supplier"
-    : "env_fallback";
+    : "merchant_fallback";
   const skuSummary = buildSkuSummary(
     physicalItems.map(item => {
       const product = item.productId ? productById.get(item.productId) : null;
@@ -1239,25 +1336,51 @@ export const createFanAwbForOrder = async (
   );
   const senderDebug = {
     useSupplierAddressFlag,
-    senderSource,
+    pickupSource,
     supplierId: primarySupplier?.id ?? null,
     supplierName: primarySupplier?.name ?? null,
     missingSupplierFields,
     sender: {
-      name: senderConfig.name,
-      phone: senderConfig.phone,
-      county: senderConfig.county,
-      locality: senderConfig.locality,
-      street: senderConfig.street,
-      number: senderConfig.number,
+      name: awbSenderConfig.name,
+      phone: awbSenderConfig.phone,
+      county: awbSenderConfig.county,
+      locality: awbSenderConfig.locality,
+      street: awbSenderConfig.street,
+      number: awbSenderConfig.number,
     },
   };
 
-  if (useSupplierAddressFlag && !supplierSenderConfig) {
-    console.warn(
-      `[FAN Courier] Order ${order.orderNumber} falling back to env sender config.`,
-      senderDebug
+  if (useSupplierAddressFlag && !supplierPickupConfig) {
+    const reason =
+      "Supplier pickup is enabled, but the supplier pickup profile is incomplete. FAN Courier AWB creation is blocked to prevent collection from the merchant address. Complete businessAddress, businessCity, businessState, and phone for the supplier.";
+    console.error(`[FAN Courier] ${reason}`, senderDebug);
+    await db.order.update({
+      where: { id: order.id },
+      data: {
+        manualShippingReviewRequired: true,
+        shippingReviewReason: reason,
+      },
+    });
+    const { AdminNotificationService } = await import(
+      "@/lib/email/admin-notification-service"
     );
+    AdminNotificationService.sendOrderIssueNotification(
+      order.id,
+      "MANUAL_SHIPPING_REVIEW_REQUIRED",
+      reason,
+      "HIGH"
+    ).catch(err => {
+      console.error(
+        `[FAN Courier] Failed to send manual shipping review notification for order ${order.orderNumber}:`,
+        err
+      );
+    });
+    return {
+      success: false,
+      error: reason,
+      manualReviewRequired: true,
+      reviewReason: reason,
+    };
   }
 
   const awbInput = {
@@ -1284,8 +1407,9 @@ export const createFanAwbForOrder = async (
   );
   let payload = buildAwbPayload(
     awbInput,
-    senderConfig,
-    pickupLocationCandidates[0] ?? null
+    awbSenderConfig,
+    pickupLocationCandidates[0] ?? null,
+    codBankDetails
   );
 
   // Create shipment record
@@ -1295,7 +1419,11 @@ export const createFanAwbForOrder = async (
       courier: COURIER_NAME,
       status: "PENDING",
       declaredValue: order.declaredValue,
-      payload: JSON.parse(JSON.stringify(payload)) as Prisma.InputJsonValue,
+      payload: JSON.parse(
+        JSON.stringify(
+          redactPayload(payload as unknown as Record<string, unknown>)
+        )
+      ) as Prisma.InputJsonValue,
     },
   });
 
@@ -1332,7 +1460,12 @@ export const createFanAwbForOrder = async (
             fallbackPickupLocation,
           }
         );
-        payload = buildAwbPayload(awbInput, senderConfig, fallbackPickupLocation);
+        payload = buildAwbPayload(
+          awbInput,
+          awbSenderConfig,
+          fallbackPickupLocation,
+          codBankDetails
+        );
         response = await createFanCourierAwb(
           payload as unknown as Record<string, unknown>
         );
@@ -1523,7 +1656,7 @@ export const createFanAwbForOrder = async (
           pickupWindowEnd: pickupConfig.windowEnd || "16:00",
           pickupDate: formatPickupDate(Number(pickupConfig.offsetDays || 0)),
           observations: pickupConfig.observations || "",
-          sender: senderConfig,
+          sender: pickupSenderConfig,
         });
 
         await createFanCourierPickupOrder(pickupPayload);
