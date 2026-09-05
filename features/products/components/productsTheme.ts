@@ -3,7 +3,7 @@
 // Clean, minimal e-commerce theme — simple and professional
 
 export const productsBackgroundClass =
-  "min-h-screen bg-gray-50/50 text-slate-900";
+  "min-h-screen bg-[#f5f7fb] text-slate-950";
 
 export const productsOverlayTopClass = "";
 
@@ -12,10 +12,10 @@ export const productsOverlayBottomClass = "";
 export const productsContentWrapperClass = "relative z-10";
 
 export const productsGlassPanelClass =
-  "rounded-xl border border-slate-100 bg-white";
+  "rounded-2xl border border-slate-200/80 bg-white shadow-[0_18px_48px_-40px_rgba(15,23,42,0.3)]";
 
 export const productsGlassCardClass =
-  "rounded-xl border border-slate-100 bg-white transition-shadow duration-200";
+  "rounded-2xl border border-slate-200/80 bg-white shadow-[0_18px_48px_-40px_rgba(15,23,42,0.3)] transition-all duration-200";
 
 export const productsAccentPillClass =
   "inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700";

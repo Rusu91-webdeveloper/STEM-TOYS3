@@ -22,6 +22,16 @@ type FanboxPickupPoint = {
     raw?: Record<string, unknown>;
 };
 
+export type FanCourierBranch = {
+    id: number;
+    name: string;
+    bank: string | null;
+    bankAccount: string | null;
+    email?: string | null;
+    phone?: string | null;
+    address?: Record<string, unknown> | null;
+};
+
 export class FanCourierClientError extends Error {
     status?: number;
     code?: string;
@@ -44,11 +54,11 @@ const getBaseUrl = (): string => {
     return baseUrl.replace(/\/+$/, "");
 };
 
-const useOccasionalFanCourierAccount = (): boolean =>
+const shouldUseOccasionalFanCourierAccount = (): boolean =>
     process.env.FANCOURIER_USE_OCCASIONAL_ACCOUNT === "true";
 
 export const getFanCourierClientId = (): number => {
-    const clientId = useOccasionalFanCourierAccount()
+    const clientId = shouldUseOccasionalFanCourierAccount()
         ? process.env.FANCOURIER_OCCASIONAL_CLIENT_ID || process.env.FANCOURIER_CLIENT_ID
         : process.env.FANCOURIER_CLIENT_ID;
     if (!clientId) {
@@ -65,10 +75,10 @@ const getAuthCredentials = (): {
     username: string;
     password: string;
 } => {
-    const username = useOccasionalFanCourierAccount()
+    const username = shouldUseOccasionalFanCourierAccount()
         ? process.env.FANCOURIER_OCCASIONAL_USERNAME || process.env.FANCOURIER_USERNAME
         : process.env.FANCOURIER_USERNAME;
-    const password = useOccasionalFanCourierAccount()
+    const password = shouldUseOccasionalFanCourierAccount()
         ? process.env.FANCOURIER_OCCASIONAL_PASSWORD || process.env.FANCOURIER_PASSWORD
         : process.env.FANCOURIER_PASSWORD;
 
@@ -83,6 +93,8 @@ const getAuthCredentials = (): {
 
 let cachedToken: AuthToken | null = null;
 let cachedFanboxPoints: { expiresAt: number; points: FanboxPickupPoint[] } | null =
+    null;
+let cachedBranches: { expiresAt: number; branches: FanCourierBranch[] } | null =
     null;
 
 const fetchJson = async (
@@ -205,31 +217,29 @@ const fanCourierRequestBinary = async (
 /**
  * Create AWB via FAN Courier API
  */
-export const createFanCourierAwb = async (
+export const createFanCourierAwb = (
     payload: Record<string, unknown>
-): Promise<Record<string, unknown>> => {
-    return fanCourierRequest("/intern-awb", {
+): Promise<Record<string, unknown>> =>
+    fanCourierRequest("/intern-awb", {
         method: "POST",
         body: JSON.stringify(payload),
     });
-};
 
 /**
  * Create a pickup order via FAN Courier API
  */
-export const createFanCourierPickupOrder = async (
+export const createFanCourierPickupOrder = (
     payload: Record<string, unknown>
-): Promise<Record<string, unknown>> => {
-    return fanCourierRequest("/order", {
+): Promise<Record<string, unknown>> =>
+    fanCourierRequest("/order", {
         method: "POST",
         body: JSON.stringify(payload),
     });
-};
 
 /**
  * Download AWB label as PDF (base64 handled by caller)
  */
-export const getFanCourierAwbLabel = async (input: {
+export const getFanCourierAwbLabel = (input: {
     awbNumber: string;
     dpi?: number;
 }): Promise<{ buffer: ArrayBuffer; contentType: string | null }> => {
@@ -250,7 +260,7 @@ export const getFanCourierAwbLabel = async (input: {
  * Fetch AWB tracking details from FAN Courier SelfAWB.
  * Official SelfAWB docs use /reports/awb/tracking with clientId and awb[] params.
  */
-export const getFanCourierAwbTracking = async (input: {
+export const getFanCourierAwbTracking = (input: {
     awbNumber: string;
     language?: "ro" | "en";
 }): Promise<Record<string, unknown>> => {
@@ -332,13 +342,13 @@ export const hasExtraKmOrRemoteLocality = (
  * Check if FAN Courier is configured
  */
 export const isFanCourierConfigured = (): boolean => {
-    const hasClientId = useOccasionalFanCourierAccount()
+    const hasClientId = shouldUseOccasionalFanCourierAccount()
         ? !!(process.env.FANCOURIER_OCCASIONAL_CLIENT_ID || process.env.FANCOURIER_CLIENT_ID)
         : !!process.env.FANCOURIER_CLIENT_ID;
-    const hasUsername = useOccasionalFanCourierAccount()
+    const hasUsername = shouldUseOccasionalFanCourierAccount()
         ? !!(process.env.FANCOURIER_OCCASIONAL_USERNAME || process.env.FANCOURIER_USERNAME)
         : !!process.env.FANCOURIER_USERNAME;
-    const hasPassword = useOccasionalFanCourierAccount()
+    const hasPassword = shouldUseOccasionalFanCourierAccount()
         ? !!(process.env.FANCOURIER_OCCASIONAL_PASSWORD || process.env.FANCOURIER_PASSWORD)
         : !!process.env.FANCOURIER_PASSWORD;
 
@@ -355,6 +365,7 @@ export const isFanCourierConfigured = (): boolean => {
  */
 export const clearTokenCache = (): void => {
     cachedToken = null;
+    cachedBranches = null;
 };
 
 const normalize = (value: unknown): string =>
@@ -492,6 +503,53 @@ const toArray = (input: unknown): Record<string, unknown>[] => {
         >[];
     }
     return [];
+};
+
+/**
+ * Fetch the branches owned by the authenticated SelfAWB account.
+ * Branch bank details are used only in memory to populate Cont Colector AWBs.
+ */
+export const getFanCourierBranches = async (): Promise<FanCourierBranch[]> => {
+    if (cachedBranches && cachedBranches.expiresAt > Date.now()) {
+        return cachedBranches.branches;
+    }
+
+    const response = await fanCourierRequest("/reports/branches", {
+        method: "GET",
+    });
+    const rows =
+        toArray(response.data).length > 0
+            ? toArray(response.data)
+            : toArray(response);
+    const branches: FanCourierBranch[] = [];
+    for (const row of rows) {
+        const id = Number(row.id);
+        const name = String(row.name ?? "").trim();
+        if (!Number.isFinite(id) || !name) continue;
+
+        branches.push({
+            id,
+            name,
+            bank: typeof row.bank === "string" ? row.bank.trim() || null : null,
+            bankAccount:
+                typeof row.bankAccount === "string"
+                    ? row.bankAccount.trim() || null
+                    : null,
+            email: typeof row.email === "string" ? row.email.trim() || null : null,
+            phone: typeof row.phone === "string" ? row.phone.trim() || null : null,
+            address:
+                row.address && typeof row.address === "object"
+                    ? (row.address as Record<string, unknown>)
+                    : null,
+        });
+    }
+
+    cachedBranches = {
+        expiresAt: Date.now() + 10 * 60 * 1000,
+        branches,
+    };
+
+    return branches;
 };
 
 const extractFanboxRows = (payload: Record<string, unknown>): Record<string, unknown>[] => {

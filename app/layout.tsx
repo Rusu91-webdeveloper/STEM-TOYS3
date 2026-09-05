@@ -1,7 +1,7 @@
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist } from "next/font/google";
 
 import { SafeSessionProvider } from "@/components/auth/SafeSessionProvider";
 import { CriticalCSS } from "@/components/CriticalCSS";
@@ -17,16 +17,16 @@ import { I18nProvider } from "@/lib/i18n";
 import "./globals.css";
 import { metadata as appMetadata } from "./metadata";
 
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-geist",
   display: "swap",
 });
 
 export const metadata: Metadata = appMetadata;
 export const revalidate = 3600;
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -37,7 +37,7 @@ export default async function RootLayout({
   return (
     <html
       lang={initialLanguage}
-      className="scroll-smooth"
+      className={`${geist.variable} scroll-smooth`}
       data-scroll-behavior="smooth"
       style={{ colorScheme: "light" }}
       suppressHydrationWarning={true}
@@ -63,9 +63,7 @@ export default async function RootLayout({
 
         {/* Structured data is injected from route metadata to keep entity data consistent. */}
       </head>
-      <body
-        className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}
-      >
+      <body className="min-h-screen flex flex-col font-sans antialiased">
         <StructuredDataInjector />
         <SafeSessionProvider>
           <CentralizedSessionProvider>

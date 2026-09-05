@@ -77,11 +77,19 @@ function humanizeSpecialCategory(
 
 export default function ProductSpecs({ product }: ProductSpecsProps) {
   const { t } = useTranslation();
+  const manufacturerAge =
+    product.ageRange ||
+    product.attributes?.manufacturerRecommendedAge ||
+    product.attributes?.originalAgeText;
   const entries: Array<{ label: string; value?: React.ReactNode }> = [
     // Removed SKU/GTIN/Dimensions/Weight from UI as requested
     {
-      label: t("ageGroup"),
+      label: manufacturerAge ? "Încadrare ghid cadouri" : t("ageGroup"),
       value: humanizeAgeGroup(t as any, product.ageGroup),
+    },
+    {
+      label: "Vârsta recomandată de producător",
+      value: manufacturerAge,
     },
     {
       label: t("learningOutcomes"),
@@ -109,7 +117,9 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
     },
   ];
 
-  const brand = product?.supplier?.companyName;
+  const manufacturerBrand = product?.attributes?.brand;
+  const supplierBrand = product?.supplier?.companyName;
+  const brand = manufacturerBrand || supplierBrand;
   const tags: string[] = Array.isArray(product.tags) ? product.tags : [];
 
   const visible = entries.filter(e => !!e.value);
@@ -120,9 +130,7 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
 
   return (
     <div className={`${productSubSectionCardClass} space-y-4`}>
-      <h3 className={productTitleClass}>
-        {t("features") || "Specifications"}
-      </h3>
+      <h3 className={productTitleClass}>{t("features") || "Specifications"}</h3>
       <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
         {visible.map((e, idx) => (
           <div
@@ -150,12 +158,18 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
           <span className={`${productMutedTextClass} text-xs sm:text-sm`}>
             Brand
           </span>
-          <a
-            href={`/supplier/${product?.supplier?.companySlug ?? ""}`}
-            className="text-xs font-medium text-emerald-700 underline decoration-emerald-500/30 underline-offset-4 transition hover:text-emerald-800 sm:text-sm"
-          >
-            {brand}
-          </a>
+          {manufacturerBrand ? (
+            <span className="text-xs font-medium text-emerald-700 sm:text-sm">
+              {manufacturerBrand}
+            </span>
+          ) : (
+            <a
+              href={`/supplier/${product?.supplier?.companySlug ?? ""}`}
+              className="text-xs font-medium text-emerald-700 underline decoration-emerald-500/30 underline-offset-4 transition hover:text-emerald-800 sm:text-sm"
+            >
+              {supplierBrand}
+            </a>
+          )}
         </div>
       )}
 

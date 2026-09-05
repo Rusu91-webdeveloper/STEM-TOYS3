@@ -62,7 +62,7 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --radius: 0.875rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -107,7 +107,7 @@
       "rlig" 1,
       "calt" 1;
     font-family:
-      "Inter",
+      var(--font-geist),
       -apple-system,
       BlinkMacSystemFont,
       "Segoe UI",
@@ -117,13 +117,22 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  ::selection {
+    background: rgba(37, 99, 235, 0.18);
+    color: #0f172a;
+  }
+
+  :focus-visible {
+    outline-color: #2563eb;
+  }
+
   /* Premium typography for product pages */
   .font-display {
     font-family: "Playfair Display", serif;
   }
 
   .font-body {
-    font-family: "Inter", sans-serif;
+    font-family: var(--font-geist), sans-serif;
   }
 
   /* Enhanced blog content styling - Optimized for Mobile */

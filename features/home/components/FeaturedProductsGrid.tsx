@@ -1,9 +1,9 @@
 "use client";
 
+import { Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import { Star } from "lucide-react";
 
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import { useCurrency } from "@/lib/currency";
@@ -99,16 +99,18 @@ const ProductCard = ({
     );
   };
 
-  const rating = typeof product.averageRating === "number" ? product.averageRating : 4;
-  const reviewCount = typeof product.reviewCount === "number" ? product.reviewCount : 0;
+  const rating =
+    typeof product.averageRating === "number" ? product.averageRating : 4;
+  const reviewCount =
+    typeof product.reviewCount === "number" ? product.reviewCount : 0;
 
   return (
-    <div className="group flex flex-col bg-white rounded-2xl border border-slate-100 shadow-[0_2px_16px_rgba(0,0,0,0.07)] overflow-hidden transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
+    <div className="group flex flex-col overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white shadow-[0_18px_48px_-38px_rgba(15,23,42,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_28px_58px_-38px_rgba(37,99,235,0.28)]">
       {/* Image */}
       <Link
         href={`/products/${product.slug}`}
-        className="relative block w-full overflow-hidden bg-slate-50"
-        style={{ aspectRatio: "4/3" }}
+        className="relative block w-full overflow-hidden bg-[linear-gradient(145deg,#f8fafc,#eef2f7)]"
+        style={{ aspectRatio: "1/1" }}
         tabIndex={0}
         aria-label={product.name}
       >
@@ -117,12 +119,12 @@ const ProductCard = ({
           alt={product.name}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-contain p-4 transition-transform duration-500 group-hover:scale-[1.04] sm:p-6"
         />
 
         {/* Badge */}
         {isTopRated && (
-          <span className="absolute top-3 left-3 z-10 rounded-full bg-[#2563EB] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+          <span className="absolute left-3 top-3 z-10 rounded-full bg-[#0b1220] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
             Top Rated
           </span>
         )}
@@ -134,7 +136,7 @@ const ProductCard = ({
       </Link>
 
       {/* Content */}
-      <div className="flex flex-col flex-1 p-4 sm:p-5">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
         {/* Stars */}
         <div className="mb-2.5">
           <StarRating rating={rating} count={reviewCount} />
@@ -142,14 +144,14 @@ const ProductCard = ({
 
         {/* Name */}
         <Link href={`/products/${product.slug}`} className="mb-2 block">
-          <h3 className="text-[1rem] sm:text-[1.05rem] font-bold leading-snug text-slate-800 line-clamp-2 group-hover:text-[#2563EB] transition-colors duration-200">
+          <h3 className="line-clamp-2 text-[1rem] font-bold leading-snug tracking-[-0.015em] text-slate-900 transition-colors duration-200 group-hover:text-blue-600 sm:text-[1.05rem]">
             {product.name}
           </h3>
         </Link>
 
         {/* Price */}
         <div className="mt-auto flex items-baseline gap-2 mb-4">
-          <span className="text-[1.1rem] font-extrabold text-[#2563EB]">
+          <span className="text-[1.1rem] font-bold text-slate-950">
             {formatPrice(product.price)}
           </span>
           {compareAtPrice && (
@@ -162,7 +164,7 @@ const ProductCard = ({
         {/* Add to cart */}
         <button
           onClick={handleAddToCart}
-          className="w-full rounded-xl bg-slate-100 py-2.5 px-4 text-[13px] font-semibold text-slate-700 transition-colors duration-200 hover:bg-slate-200 active:bg-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+          className="w-full rounded-xl bg-[#0b1220] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_12px_24px_-16px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-600 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         >
           {t("addToCartText", "Adaugă în Coș")}
         </button>
@@ -180,12 +182,15 @@ export const FeaturedProductsGrid = React.memo(
     }
 
     return (
-      <section className="py-10 sm:py-14 lg:py-16 bg-[#F8FAFC]">
+      <section className="border-y border-slate-200/70 bg-white py-16 sm:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-3">
+          <div className="mb-9 flex flex-col justify-between gap-4 sm:mb-12 sm:flex-row sm:items-end">
             <div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 mb-1.5">
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em] text-blue-600">
+                Selecția TechTots
+              </p>
+              <h2 className="mb-2 text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-4xl lg:text-5xl">
                 {t("featuredProductsTitle", "Jucării Care Funcționează")}
               </h2>
               <p className="text-sm sm:text-base text-slate-500">
@@ -197,7 +202,7 @@ export const FeaturedProductsGrid = React.memo(
             </div>
             <Link
               href="/products"
-              className="self-start sm:self-auto text-sm font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors whitespace-nowrap pb-0.5 border-b border-[#2563EB]/30 hover:border-[#2563EB]"
+              className="self-start whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:self-auto"
             >
               {t("viewAllProductsText", "Vezi Toate Produsele")}
             </Link>

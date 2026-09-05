@@ -181,7 +181,10 @@ export async function GET(
               companySlug: dbProduct.supplier.companySlug,
             }
           : undefined,
-        ageRange: attributes?.age as string | undefined,
+        ageRange:
+          (attributes?.manufacturerRecommendedAge as string | undefined) ||
+          (attributes?.originalAgeText as string | undefined) ||
+          (attributes?.age as string | undefined),
         ageGroup: dbProduct.ageGroup as any,
         stemDiscipline: dbProduct.stemDiscipline as any,
         learningOutcomes: (dbProduct.learningOutcomes as any) || undefined,

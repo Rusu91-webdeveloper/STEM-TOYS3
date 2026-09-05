@@ -7,8 +7,14 @@ import { appConfig } from "@/lib/config/app-config";
 import { getCategoryPageHref } from "@/lib/utils/category-page-links";
 import type { Product } from "@/types/product";
 
-function extractBrandFromName(name: string): string {
+function getProductBrand(product: Product): string | undefined {
+  const attributeBrand = product.attributes?.brand;
+  if (typeof attributeBrand === "string" && attributeBrand.trim()) {
+    return attributeBrand.trim();
+  }
+
   const brands = [
+    "4M",
     "LEGO",
     "VEX",
     "Arduino",
@@ -17,10 +23,11 @@ function extractBrandFromName(name: string): string {
     "Thames & Kosmos",
     "LittleBits",
     "Elenco",
+    "Djeco",
+    "CreativaMente",
   ];
 
-  const foundBrand = brands.find(brand => name.includes(brand));
-  return foundBrand || "TechTots";
+  return brands.find(brand => product.name.includes(brand));
 }
 
 function getAgeRangeFromGroup(ageGroup?: string): string {
@@ -33,6 +40,37 @@ function getAgeRangeFromGroup(ageGroup?: string): string {
   };
 
   return ageRanges[ageGroup as keyof typeof ageRanges] || "3-12";
+}
+
+function getManufacturerAge(product: Product): string | undefined {
+  const candidates = [
+    product.ageRange,
+    product.attributes?.manufacturerRecommendedAge,
+    product.attributes?.originalAgeText,
+  ];
+
+  return candidates.find(
+    value => typeof value === "string" && value.trim().length > 0
+  ) as string | undefined;
+}
+
+function parseAgeRange(value: string): {
+  suggestedMinAge: number;
+  suggestedMaxAge?: number;
+} | null {
+  const match = value.match(/(\d+)\s*(?:[-–]\s*(\d+)|\+)/);
+  if (!match) return null;
+
+  const suggestedMinAge = Number(match[1]);
+  const suggestedMaxAge = match[2] ? Number(match[2]) : undefined;
+  if (!Number.isFinite(suggestedMinAge)) return null;
+
+  return {
+    suggestedMinAge,
+    ...(suggestedMaxAge && Number.isFinite(suggestedMaxAge)
+      ? { suggestedMaxAge }
+      : {}),
+  };
 }
 
 function getAgeLandingUrl(ageGroup?: string): string {
@@ -53,7 +91,15 @@ function getAgeLandingUrl(ageGroup?: string): string {
 function buildAdditionalProperty(product: Product) {
   const properties: Array<Record<string, string>> = [];
 
-  if (product.ageGroup) {
+  const manufacturerAge = getManufacturerAge(product);
+
+  if (manufacturerAge) {
+    properties.push({
+      "@type": "PropertyValue",
+      name: "Vârsta recomandată de producător",
+      value: manufacturerAge,
+    });
+  } else if (product.ageGroup) {
     properties.push({
       "@type": "PropertyValue",
       name: "Grupa de varsta",
@@ -103,6 +149,11 @@ function buildOffer(product: Product) {
 }
 
 export function generateEducationalProductSchema(product: Product) {
+  const brand = getProductBrand(product);
+  const manufacturerAge = getManufacturerAge(product);
+  const audienceAge = manufacturerAge
+    ? parseAgeRange(manufacturerAge)
+    : parseAgeRange(getAgeRangeFromGroup(product.ageGroup));
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -113,23 +164,22 @@ export function generateEducationalProductSchema(product: Product) {
     sku: product.sku || product.id,
     category:
       product.category?.name || product.stemDiscipline || "Jucarii STEM",
-    brand: {
-      "@type": "Brand",
-      name: extractBrandFromName(product.name),
-    },
+    ...(brand
+      ? {
+          brand: {
+            "@type": "Brand",
+            name: brand,
+          },
+        }
+      : {}),
     offers: buildOffer(product),
     additionalProperty: buildAdditionalProperty(product),
   };
 
-  if (product.ageGroup) {
+  if (audienceAge) {
     schema.audience = {
       "@type": "PeopleAudience",
-      suggestedMinAge: Number(
-        getAgeRangeFromGroup(product.ageGroup).split("-")[0]
-      ),
-      suggestedMaxAge: Number(
-        getAgeRangeFromGroup(product.ageGroup).split("-")[1]
-      ),
+      ...audienceAge,
     };
   }
 
