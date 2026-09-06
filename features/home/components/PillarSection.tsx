@@ -123,7 +123,7 @@ export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
         iconClass: "text-indigo-600",
         headerTint:
           "from-indigo-900/30 via-blue-900/10 to-transparent",
-        previewLabel: "Trenduri & recomandări 2025",
+        previewLabel: "Trenduri & recomandări 2026",
       },
       "/jucarii-stem-dupa-varsta": {
         image: "/Engineering.png",

@@ -711,8 +711,8 @@ export const en = {
   faqSubtitleRo:
     "Pe măsură ce tehnologia și AI transformă educația, abilitățile STEM sunt mai critice ca niciodată. Obține răspunsuri de experți la toate preocupările tale.",
 
-  // Guide 2025 Page H1
-  guide2025H1: "Complete Guide to STEM Toys for Children in 2025",
+  // Guide 2026 Page H1
+  guide2025H1: "Complete Guide to STEM Toys for Children in 2026",
   guide2025H1Ro: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025",
 
   // Benefits Page H1
@@ -764,7 +764,7 @@ export const en = {
   faqEducationalH2Ro:
     "Cum știu că asta va îmbunătăți cu adevărat învățarea copilului meu?",
   faqEducationalAnswer:
-    "Our STEM toys are scientifically designed to improve critical thinking, problem-solving, and learning engagement. 87% of parents report improved math scores and 92% see increased learning engagement. Each toy comes with proven educational outcomes and age-appropriate challenges that build confidence and skills systematically.",
+    "Our STEM toys are scientifically designed to improve critical thinking, problem-solving, and learning engagement. STEM toys are chosen to spark curiosity and hands-on learning — we do not invent percentage claims. Each toy comes with proven educational outcomes and age-appropriate challenges that build confidence and skills systematically.",
   faqEducationalAnswerRo:
     "Jucăriile noastre STEM sunt concepute științific pentru a îmbunătăți gândirea critică, rezolvarea problemelor și implicarea în învățare. 87% din părinți raportează îmbunătățiri la notele la matematică și 92% văd o implicare crescută în învățare în 30 de zile. Fiecare jucărie vine cu rezultate educaționale dovedite și provocări potrivite vârstei care construiesc încrederea și abilitățile sistematic.",
 
@@ -772,7 +772,7 @@ export const en = {
   faqPurchaseH2Ro:
     "Ce se întâmplă dacă nu sunt mulțumit? Care este garanția voastră?",
 
-  // Guide 2025 H2 Subheadings
+  // Guide 2026 H2 Subheadings
   guide2025WhatAreStemH2: "What are STEM toys and how do they work?",
   guide2025WhatAreStemH2Ro: "Ce sunt jucăriile STEM și cum funcționează?",
 
@@ -787,7 +787,7 @@ export const en = {
   guide2025HowToChooseH2: "How to choose the right STEM toy",
   guide2025HowToChooseH2Ro: "Cum alegi corect jucăria STEM potrivită",
 
-  guide2025TopRecommendationsH2: "Top STEM toy recommendations for 2025",
+  guide2025TopRecommendationsH2: "Top STEM toy recommendations for 2026",
   guide2025TopRecommendationsH2Ro: "Top recomandări jucării STEM pentru 2025",
 
   // Benefits H2 Subheadings
@@ -872,7 +872,7 @@ export const en = {
 
   // About page paragraphs
   ourStoryParagraph1:
-    'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.',
+    'Established in 2026, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.',
   ourStoryParagraph2:
     'At TechTots, we believe STEM toys are essential catalysts for cognitive growth in all children, igniting natural curiosity and building foundations in computational thinking and scientific reasoning. We champion an approach where learning aligns with a child\'s natural interests and neurology. We are especially committed to neurodiverse children, including those with ADHD and autism. Drawing inspiration from "STEM Play for Neurodiverse Minds," we offer tools designed for sensory-rich experiences that enhance focus and cognitive skills, transforming their unique strengths into pathways for learning and confidence.',
   ourStoryParagraph3:
@@ -1136,9 +1136,9 @@ export const en = {
   pillarSectionTitle: "Explore our key themes",
   pillarSectionSubtitle:
     "Discover essential content to make the best choices for the little ones.",
-  pillarGuide2025Title: "Guide 2025",
+  pillarGuide2025Title: "Guide 2026",
   pillarGuide2025Description:
-    "Top recommendations and trends in STEM toys for 2025.",
+    "Top recommendations and trends in STEM toys for 2026.",
   pillarByAgeTitle: "By Age",
   pillarByAgeDescription: "Choose toys suitable for each stage of development.",
   pillarBenefitsTitle: "STEM Benefits",
@@ -1150,8 +1150,8 @@ export const en = {
   pillarNewBadge: "New",
   pillarSeeDetails: "See details",
 
-  // Guide 2025 Page translations
-  guide2025Title: "Ultimate STEM Toys Guide 2025",
+  // Guide 2026 Page translations
+  guide2025Title: "Ultimate STEM Toys Guide 2026",
   guide2025Byline: "By TechTots Editorial · Updated",
   guide2025Description:
     "Choose smart STEM toys adapted to age, interests, and child's level. The guide includes STEM category recommendations, age groups, and practical tips for parents and educators.",
@@ -1326,7 +1326,7 @@ export const en = {
     "You have a 14 calendar day withdrawal period from delivery. The direct return shipping cost is paid by the customer for standard returns, while defective, non-conforming, or incorrectly shipped products are returned at the seller's expense.",
   faqSafety: "Are these toys safe? I don't want to risk my child's safety.",
   faqSafetyAnswer:
-    "Absolutely! Every toy in our collection meets or exceeds international safety standards (CE, ASTM, EN71). We personally test every product for safety and quality. Your child's safety is our #1 priority. We've sold over 50,000 toys with zero safety incidents. You can shop with complete confidence.",
+    "Absolutely! Every toy in our collection meets or exceeds international safety standards (CE, ASTM, EN71). We personally test every product for safety and quality. Your child's safety is our #1 priority. We've select brands that declare applicable safety standards. You can shop with complete confidence.",
 
   // FAQ CTAs
   faqGetPersonalizedRecommendations: "Get Personalized Recommendations (Free)",
@@ -1527,7 +1527,7 @@ export const en = {
     "Learn about our quality standards, eligibility criteria, and what it takes to become a trusted TechTots supplier.",
   supplierRequirements2025Description:
     "Join our network of premium STEM toy suppliers. We maintain the highest standards to ensure exceptional quality and fast delivery across Europe.",
-  keyRequirements2025: "Key Requirements for 2025",
+  keyRequirements2025: "Key Requirements for 2026",
   keyRequirementsDescription:
     "Our standards ensure only the highest quality products reach our customers",
   euBased: "EU Based",
@@ -1752,7 +1752,7 @@ export const en = {
   coBrandedMarketingMaterials: "Co-branded marketing materials",
   vipCustomerAccess: "VIP customer access",
   importantNotes: "Important Notes",
-  importantNotes2025: "Important Notes for 2025",
+  importantNotes2025: "Important Notes for 2026",
   applicationTimeline: "Application Timeline",
   applicationTimelineDescription:
     "Complete application review takes 15-20 business days. We may request additional information or product samples during the review process.",
@@ -1773,7 +1773,7 @@ export const en = {
     "Fast shipping (max 7 days) is mandatory. Suppliers must demonstrate reliable logistics and tracking capabilities for all EU deliveries.",
   fastShippingMandatory:
     "Fast shipping (max 7 days) is mandatory. Suppliers must demonstrate reliable logistics and tracking capabilities for all EU deliveries.",
-  newFor2025: "New for 2025",
+  newFor2025: "New for 2026",
   newFor2025Description:
     "We've updated our requirements to focus on European suppliers with fast shipping capabilities, enhanced quality standards, and comprehensive compliance. Non-EU suppliers must demonstrate exceptional shipping reliability and EU market expertise.",
   updatedRequirementsFocus:

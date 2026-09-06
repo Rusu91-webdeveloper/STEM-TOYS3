@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle,
   Shield,
-  Users,
   Star,
   Clock,
   AlertTriangle,
@@ -22,9 +21,9 @@ import {
 } from "@/lib/returns/policy";
 
 const socialProofBadges = [
-  { icon: Users, label: "Families Worldwide" },
-  { icon: Star, label: "4.9/5 Stars Rating" },
-  { icon: Shield, label: "Quality Guaranteed" },
+  { icon: Shield, label: "Branduri europene" },
+  { icon: Clock, label: "Livrare 1–3 zile" },
+  { icon: CheckCircle, label: "Retur 14 zile" },
 ];
 
 const faqCards = [
@@ -35,8 +34,8 @@ const faqCards = [
     bodyKey: "faqWhatAreStemAnswer",
     highlight: {
       border: "border-emerald-400/30 bg-emerald-500/10",
-      title: "🎯 Real Results:",
-      body: '"My 8-year-old went from crying over math homework to asking for more experiments. The transformation happened in just 3 weeks!" - Sarah M., Parent',
+      title: "🎯 Cum ajută în practică:",
+      body: "STEM transformă învățarea în joacă: experimente, proiecte și pași clari pe vârstă. Fără promisiuni de note — doar explorare ghidată.",
     },
   },
   {
@@ -46,8 +45,8 @@ const faqCards = [
     bodyKey: "faqAgeAppropriateAnswer",
     highlight: {
       border: "border-amber-400/30 bg-amber-500/10",
-      title: "🛡️ Our Promise:",
-      body: "If you're not 100% satisfied with your choice, we'll not only refund you but also personally help you find the perfect toy for your child's specific needs.",
+      title: "🛡️ Cum te ajutăm să alegi:",
+      body: "Folosește filtrele pe vârstă, verifică indicațiile de pe cutia brandului și scrie-ne dacă ești între două grupe. Ai retur în 14 zile calendaristice conform politicii legale.",
     },
   },
   {
@@ -56,10 +55,10 @@ const faqCards = [
     titleKey: "faqSafetyH2",
     bodyKey: "faqSafetyAnswer",
     certifications: [
-      { title: "CE Certified", subtitle: "European Standards" },
-      { title: "ASTM F963", subtitle: "US Safety Standard" },
-      { title: "EN71", subtitle: "EU Toy Safety" },
-      { title: "0 Incidents", subtitle: "50,000+ Toys Sold" },
+      { title: "CE", subtitle: "Marcaj unde e cazul" },
+      { title: "EN71", subtitle: "Siguranță jucării UE" },
+      { title: "Vârstă pe cutie", subtitle: "Respectă indicațiile brandului" },
+      { title: "FanCourier", subtitle: "Livrare în România" },
     ],
   },
   {
@@ -68,9 +67,9 @@ const faqCards = [
     titleKey: "faqEducationalH2",
     bodyKey: "faqEducationalAnswer",
     highlightStats: [
-      { value: "87%", label: "Improved Math Scores" },
-      { value: "92%", label: "Increased Engagement" },
-      { value: "10k+", label: "Happy Families" },
+      { value: "STEM", label: "Prin joacă practică" },
+      { value: "1–3z", label: "Livrare tipică RO" },
+      { value: "14z", label: "Drept de retur" },
     ],
   },
   {
@@ -105,34 +104,34 @@ export default function FAQPage() {
     mainEntity: [
       {
         "@type": "Question",
-        name: "Cum transformă jucăriile STEM copiii în doar 30 de zile?",
+        name: "Ajută jucăriile STEM dacă copilul nu place matematica?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Studiile noastre arată că 87% din copii își îmbunătățesc performanțele la matematică în 30 de zile folosind jucăriile STEM TechTots. Metodologia noastră transformă 'urăsc matematica' în 'când facem experimente?' prin învățare practică și interactivă. Peste 10,000 de părinți au văzut deja această transformare.",
+          text: "Jucăriile STEM pot face învățarea mai atractivă prin experimente și proiecte practice. Nu garantăm note sau rezultate școlare. Alege după vârstă și interes; dacă produsul nu se potrivește, ai dreptul de retur în 14 zile calendaristice.",
         },
       },
       {
         "@type": "Question",
-        name: "Ce jucării STEM sunt potrivite pentru vârsta copilului meu?",
+        name: "Cum aleg jucăria potrivită pentru vârstă?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Oferim jucării STEM personalizate pentru fiecare vârstă: 3-5 ani (explorare senzorială), 6-8 ani (experimente simple), 9-12 ani (proiecte complexe), 13+ ani (robotică avansată). Fiecare produs include ghid de vârstă și activități recomandate. Dacă nu ești 100% mulțumit, îți oferim consultare gratuită pentru a găsi jucăria perfectă.",
+          text: "Folosește filtrele pe vârstă de pe site și verifică întotdeauna intervalul de vârstă de pe ambalajul brandului. Dacă ești între două grupe, contactează-ne înainte de comandă.",
         },
       },
       {
         "@type": "Question",
-        name: "Sunt sigure jucăriile STEM pentru copii?",
+        name: "Sunt sigure jucăriile STEM din magazin?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Toate jucăriile noastre sunt certificate CE, ASTM F963, și EN71 pentru siguranța maximă. Am vândut peste 50,000 de jucării cu 0 incidente de siguranță. Materialele sunt non-toxice, testate pentru durabilitate, și proiectate special pentru mâinile mici. Garanție de siguranță 100% sau îți returnăm banii.",
+          text: "Selectăm branduri care declară respectarea standardelor de siguranță aplicabile (de exemplu CE / EN71, unde e cazul). Respectă indicațiile de vârstă și supravegherea de pe ambalaj. Nu publicăm statistici inventate despre incidente.",
         },
       },
       {
         "@type": "Question",
-        name: "Cum știu că jucăriile STEM chiar îmbunătățesc învățarea?",
+        name: "Cum știu că produsele ajută la învățare?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Rezultatele noastre dovedite: 87% îmbunătățire la matematică, 92% creșterea angajamentului în învățare, transformare medie în 30 de zile. Colaborăm cu educatori STEM și folosim metodologii validate științific. Fiecare jucărie vine cu ghid de învățare și activități structurate pentru rezultate măsurabile.",
+          text: "Produsele STEM sunt alese pentru a stimula curiozitatea, logica și învățarea prin joacă. Nu folosim procente sau studii inventate. Ghidurile noastre pe vârstă te ajută să alegi un start realist.",
         },
       },
       {
@@ -140,7 +139,7 @@ export default function FAQPage() {
         name: "Ce se întâmplă dacă nu sunt mulțumit de achiziție?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Susținem calitatea produselor noastre. Dacă nu ești mulțumit de achiziție, te rugăm să contactezi echipa noastră de servicii pentru clienți și vom lucra cu tine pentru a găsi o soluție. Include consultare gratuită personalizată pentru a găsi alternativa perfectă. Satisfacția ta este prioritatea noastră.",
+          text: `Ai drept de retragere în ${RETURN_WINDOW_LABEL_RO} de la livrare. ${RETURN_POLICY_CUSTOMER_PAYS_RO} ${RETURN_POLICY_SELLER_PAYS_RO}`,
         },
       },
       {
@@ -148,7 +147,7 @@ export default function FAQPage() {
         name: "Ce se întâmplă dacă refuz o comandă ramburs la livrare?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Refuzul la livrare sau nepreluarea coletului este tratat ca retur la expeditor (RTO). ${RETURN_POLICY_COD_RTO_RO} Dreptul de retragere în ${RETURN_WINDOW_LABEL_RO} se aplică după recepția produsului. ${RETURN_POLICY_CUSTOMER_PAYS_RO} ${RETURN_POLICY_SELLER_PAYS_RO} Pentru diferențe peste garanția COD autorizată se aplică procedurile legale și contabile din România.`,
+          text: `Refuzul la livrare sau nepreluarea coletului este tratat ca retur la expeditor (RTO). ${RETURN_POLICY_COD_RTO_RO} Dreptul de retragere în ${RETURN_WINDOW_LABEL_RO} se aplică după recepția produsului. ${RETURN_POLICY_CUSTOMER_PAYS_RO} ${RETURN_POLICY_SELLER_PAYS_RO}`,
         },
       },
     ],
@@ -247,7 +246,7 @@ export default function FAQPage() {
                       {certifications && (
                         <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
                           <p className="text-xs font-semibold text-white sm:text-sm md:text-base">
-                            🔒 Safety Certifications:
+                            🔒 Siguranță & livrare:
                           </p>
                           <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-200 sm:text-sm md:grid-cols-4">
                             {certifications.map(cert => (
@@ -269,7 +268,7 @@ export default function FAQPage() {
 
                       {highlightStats && (
                         <div className="rounded-2xl border border-purple-300/40 bg-purple-500/10 p-4 text-xs text-slate-900 shadow-inner sm:text-sm md:text-base">
-                          <p className="font-semibold">📈 Proven Results:</p>
+                          <p className="font-semibold">📈 Ce poți aștepta:</p>
                           <div className="mt-3 grid grid-cols-3 gap-3 text-center">
                             {highlightStats.map(stat => (
                               <div
@@ -348,12 +347,11 @@ export default function FAQPage() {
 
           <section className="mt-8 rounded-3xl border border-sky-500/40 bg-gradient-to-br from-sky-500/20 via-indigo-900/50 to-slate-950/80 p-6 text-center text-slate-100 shadow-xl shadow-sky-500/30 sm:mt-12 sm:p-8 md:mt-16 md:p-12">
             <h2 className="text-base font-bold text-white sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
-              Ready to Transform Your Child's Learning?
+              Gata să alegi primul kit STEM?
             </h2>
             <p className="mt-3 text-xs text-slate-200 sm:text-sm md:text-base lg:text-lg xl:text-xl">
-              Families worldwide are discovering how STEM education prepares
-              children for tomorrow's AI-driven world. Start today with quality
-              guaranteed products.
+              Explorează colecția pe vârstă, cu livrare în România și retur clar
+              în 14 zile. Scrie-ne dacă ai nevoie de o recomandare.
             </p>
             <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <Button
@@ -373,8 +371,7 @@ export default function FAQPage() {
               </Button>
             </div>
             <p className="mt-4 text-[10px] text-slate-200 sm:text-xs md:text-sm">
-              ⚡ Limited time: Free consultation worth €50 - Only 50 spots this
-              month
+              Ai o întrebare despre vârstă sau produs? Contactează-ne — răspundem din România.
             </p>
           </section>
         </section>
