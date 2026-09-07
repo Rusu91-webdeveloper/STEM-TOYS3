@@ -5,8 +5,7 @@
  * search performance, and Romanian market SEO metrics for viral content optimization
  */
 
-import { google } from "googleapis";
-import { JWT } from "google-auth-library";
+import { google, Auth } from "googleapis";
 
 export interface GSCSearchAnalyticsQuery {
   startDate: string; // YYYY-MM-DD
@@ -75,7 +74,7 @@ export class GoogleSearchConsoleService {
         return;
       }
 
-      const auth = new JWT({
+      const auth = new Auth.JWT({
         email: serviceAccountEmail,
         key: privateKey,
         scopes: ["https://www.googleapis.com/auth/webmasters.readonly"],

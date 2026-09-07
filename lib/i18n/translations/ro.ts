@@ -139,7 +139,7 @@ export const ro = {
   dayPolicy: "Retur în 14 zile calendaristice",
   learnMore: "Află mai multe",
   usefulGuides: "Ghiduri utile pentru a alege și folosi jucăriile STEM:",
-  guide2025: "Ghid 2025",
+  guide2025: "Ghid 2026",
   byAge: "După vârstă",
   stemBenefits: "Beneficii STEM",
 
@@ -529,12 +529,12 @@ export const ro = {
   heroPrimaryCta: "EXPLOREAZĂ COLECȚIA",
   heroSecondaryCta: "Vezi Categorii",
   heroTrust1: "Branduri premium europene",
-  heroTrust2: "Livrare 1–3 zile în România",
+  heroTrust2: "Livrare 1–4 zile lucrătoare",
   heroTrust3: "Selecție curată pe vârste",
 
   // Age Categories Section
   shopByAgeTitle: "Alege după Vârstă",
-  shopByAgeSubtitle: "Curatoriat special pentru fiecare etapă a dezvoltării cognitive a copilului tău.",
+  shopByAgeSubtitle: "Selectat cu grijă pentru fiecare etapă a dezvoltării copilului tău.",
   age3to5: "3-5 Ani",
   age3to5Title: "Explorare Timpurie",
   age3to5Desc: "Dezvoltarea abilităților senzoriale și a coordonării mână-ochi.",
@@ -800,8 +800,8 @@ export const ro = {
     "As technology and AI transform education, STEM skills are more critical than ever. Get expert answers to all your concerns about preparing your child for the future.",
 
   // Guide 2025 Page H1
-  guide2025H1: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025",
-  guide2025H1En: "Complete Guide to STEM Toys for Children in 2025",
+  guide2025H1: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2026",
+  guide2025H1En: "Complete Guide to STEM Toys for Children in 2026",
 
   // Benefits Page H1
   benefitsH1:
@@ -875,8 +875,8 @@ export const ro = {
   guide2025HowToChooseH2: "Cum alegi corect jucăria STEM potrivită",
   guide2025HowToChooseH2En: "How to choose the right STEM toy",
 
-  guide2025TopRecommendationsH2: "Top recomandări jucării STEM pentru 2025",
-  guide2025TopRecommendationsH2En: "Top STEM toy recommendations for 2025",
+  guide2025TopRecommendationsH2: "Top recomandări jucării STEM pentru 2026",
+  guide2025TopRecommendationsH2En: "Top STEM toy recommendations for 2026",
 
   // Benefits H2 Subheadings
   benefitsCriticalThinkingH2: "Gândire critică și logică prin jucării STEM",
@@ -1280,9 +1280,9 @@ export const ro = {
   pillarSectionTitle: "Explorează temele noastre cheie",
   pillarSectionSubtitle:
     "Descoperă conținut esențial pentru a face cele mai bune alegeri pentru cei mici.",
-  pillarGuide2025Title: "Ghid 2025",
+  pillarGuide2025Title: "Ghid 2026",
   pillarGuide2025Description:
-    "Top recomandări și tendințe în jucării STEM pentru 2025.",
+    "Top recomandări și tendințe în jucării STEM pentru 2026.",
   pillarByAgeTitle: "După vârstă",
   pillarByAgeDescription:
     "Alege jucării potrivite fiecărei etape de dezvoltare.",
@@ -1297,8 +1297,8 @@ export const ro = {
   newsletterFooterDesc: "Fii la curent cu cele mai noi jucării STEM și resurse educaționale.",
 
   // Guide 2025 Page translations
-  guide2025Title: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025",
-  guide2025Byline: "By TechTots Editorial · Updated",
+  guide2025Title: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2026",
+  guide2025Byline: "Echipa editorială TechTots · Actualizat",
   guide2025Description:
     "Alege inteligent jucării STEM adaptate vârstei, intereselor și nivelului copilului. Ghidul include recomandări pe categorii STEM, grupe de vârstă și sfaturi practice pentru părinți și educatori.",
   guide2025QuickSummary: "Pe scurt",
@@ -1318,7 +1318,7 @@ export const ro = {
     "Categorii STEM: Știință, Tehnologie, Inginerie, Matematică",
   guide2025AgeRecommendations: "Recomandări pe vârstă",
   guide2025HowToChoose: "Cum alegi corect jucăria",
-  guide2025TopRecommendations: "Top recomandări 2025",
+  guide2025TopRecommendations: "Top recomandări 2026",
   guide2025Faq: "Întrebări frecvente",
   guide2025WhatAreStemContent:
     "Jucăriile STEM stimulează învățarea prin joc în domeniile știință, tehnologie, inginerie și matematică. Scopul lor este să traducă concepte abstracte în experiențe tactile și vizuale, astfel încât copiii să poată explora, testa ipoteze și vedea efectele acțiunilor lor în timp real. Spre deosebire de jucăriile pasive, jucăriile STEM pun accentul pe experimentare, proiecte practice, prototipare și iterare. Fie că este vorba despre construirea unui pod din piese modulare, programarea unui robot să urmeze o linie sau observarea unei reacții chimice sigure, aceste activități cultivă gândirea critică, perseverența și capacitatea de a învăța din greșeli.",
@@ -1504,7 +1504,7 @@ export const ro = {
   footerShopDiscover: "Descoperă & Cumpără",
   footerCustomerCare: "Suport clienți",
   footerKnowledge: "Ghiduri & Parteneriate",
-  footerGuide2025: "Ghid 2025",
+  footerGuide2025: "Ghid 2026",
   footerAgeGuide: "Jucării STEM după vârstă",
   footerPhoneLabel: "Telefon",
   footerEmailLabel: "Email",
@@ -1516,20 +1516,22 @@ export const ro = {
   footerLegalCui: "Cod unic de înregistrare: 51813997 (20.05.2025)",
   footerLegalRegCom: "Registrul Comerțului: J2025035239005 (19.05.2025)",
 
+  "Jucării": "Jucării",
+
   // Newsletter section
   exclusiveInsights: "Inspirație STEM exclusivă",
-  joinEducatorsParents: "🚀 Alătură-te la 50.000+ Educatori și Părinți STEM",
+  joinEducatorsParents: "Idei de joacă pentru minți curioase",
   newsletterSubtitle:
-    "Obține acces exclusiv la produse noi, resurse educaționale și reduceri speciale. În plus, primește ghidul nostru săptămânal de activități STEM!",
+    "Descoperă activități de încercat împreună și jucării alese cu grijă pentru următoarea etapă.",
   emailAddressPlaceholder: "Introduceți adresa de email",
-  getFreeResources: "Obține Resurse Gratuite",
+  getFreeResources: "Mă abonez",
   subscribing: "Se abonează...",
   subscriptionSuccessMessage:
-    "✓ Bine ai venit! Verifică-ți emailul pentru primul pachet de resurse STEM.",
+    "✓ Mulțumim! Te-ai abonat la noutățile TechTots.",
   subscriptionErrorMessage:
     "✗ Ceva nu a mers bine. Te rugăm să încerci din nou sau să contactezi asistența.",
-  noSpamGuarantee: "Zero spam",
-  unsubscribeAnytime: "Te dezabonezi oricând",
+  noSpamGuarantee: "Îți trimitem idei de joacă și noutăți din colecție.",
+  unsubscribeAnytime: "Te poți dezabona oricând, din fiecare email.",
   newsletterValueBullet:
     "Primești săptămânal experimente STEM, ghiduri pentru părinți și oferte dedicate membrilor comunității TechTots.",
 
@@ -1543,7 +1545,7 @@ export const ro = {
   freeReturnsOver50:
     "Retur în 14 zile calendaristice. Costul transportului de retur este suportat de client.",
   bankLevelSecurity: "Securitate și criptare la nivel bancar",
-  trustedEducators: "De încredere pentru 50.000+ educatori din întreaga lume",
+  trustedEducators: "Pentru părinți și educatori care aleg învățarea prin joacă",
 
   // Navigation sections
   stemCategoriesNav: "Categorii STEM",
@@ -1564,7 +1566,7 @@ export const ro = {
   // Order Support links
   shippingInfoLink: "Informații Livrare",
   returnPolicyLink: "Politica de Returnare",
-  warrantyLink: "Garantie",
+  warrantyLink: "Garanție",
   productReviews: "Recenzii Produse",
   safetyInformation: "Informații de Siguranță",
 

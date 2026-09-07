@@ -1,381 +1,129 @@
-// [INFO] This is the Next.js homepage entry point. All child components have been refactored for perfect responsiveness, accessibility, and a premium, app-like user experience. See section files for detailed comments and rationale.
-import type { HomeBundle } from "@/features/home/types";
+import { unstable_cache } from "next/cache";
+import { Suspense } from "react";
+
+import { FeaturedProductsGrid } from "@/features/home/components/FeaturedProductsGrid";
+import {
+  HOVER_RACER_SKU,
+  PRODUCT_AGE_LABELS,
+} from "@/features/home/merchandising";
+import { applyProductContentOverride } from "@/lib/products/catalog-content-overrides";
 import type { Product } from "@/types/product";
 
 import HomePageClient from "./HomePageClient";
 
-// **PERFORMANCE**: Critical CSS for hero section to prevent layout shift and improve FCP
-const heroSectionCriticalCSS = `
-  /* Critical above-the-fold styles for maximum FCP improvement */
-  .hero-section {
-    min-height: 50vh;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  }
+export const revalidate = 1800;
 
-  .hero-content {
-    position: relative;
-    z-10;
-    text-align: center;
-    color: white;
-    padding: 1rem;
-    max-width: 4xl;
-    margin: 0 auto;
-  }
-
-  .hero-title {
-    font-size: 2rem;
-    font-weight: 800;
-    line-height: 1.1;
-    margin-bottom: 1rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1rem;
-    opacity: 0.9;
-    max-width: 600px;
-    margin: 0 auto 2rem;
-  }
-
-  .hero-cta {
-    background: white;
-    color: #667eea;
-    padding: 0.75rem 2rem;
-    border-radius: 0.5rem;
-    font-weight: 700;
-    text-decoration: none;
-    display: inline-block;
-    transition: all 0.2s ease;
-  }
-
-  .hero-cta:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Responsive breakpoints for critical content */
-  @media (min-width: 640px) {
-    .hero-section {
-      min-height: 55vh;
-    }
-    .hero-title {
-      font-size: 3rem;
-    }
-    .hero-subtitle {
-      font-size: 1.25rem;
-    }
-  }
-
-  @media (min-width: 768px) {
-    .hero-section {
-      min-height: 60vh;
-    }
-    .hero-title {
-      font-size: 3.5rem;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .hero-section {
-      min-height: 65vh;
-    }
-  }
-
-  /* Loading states for better UX */
-  .hero-loading {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .5; }
-  }
-`;
-
-async function getFeaturedProducts(): Promise<Product[]> {
-  try {
-    const cacheKey = "homepage_featured_products_v2";
-    const { getCached } = await import("@/lib/cache");
-    const TIME = (await import("@/lib/constants")).TIME;
-
-    const cachedResult = await getCached(
-      cacheKey,
-      () => fetchFeaturedProductsOptimized(),
-      TIME.CACHE_DURATION.MEDIUM
-    );
-
-    // Guard: never return a cached empty array — it likely means a cold-start timeout fired
-    if (!cachedResult || cachedResult.length === 0) {
-      // Attempt a fresh, uncached fetch so we don't serve a blank section
-      return await fetchFeaturedProductsOptimized();
-    }
-
-    return cachedResult;
-  } catch (error) {
-    console.error("Error fetching featured products:", error);
-    return [];
-  }
-}
-
-// **PERFORMANCE**: Ultra-optimized featured products query with minimal processing and aggressive caching
-async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
-  const { db } = await import("@/lib/db");
-
-  try {
-    // **PERFORMANCE**: Add timeout to prevent hanging queries (590ms savings opportunity)
-    const queryPromise = db.product.findMany({
-      where: {
-        isActive: true,
-        status: "APPROVED",
-        featured: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        description: true,
-        price: true,
-        compareAtPrice: true,
-        images: true,
-        stockQuantity: true,
-        averageRating: true,
-        reviewCount: true,
-        ageGroup: true,
-        stemDiscipline: true,
-        tags: true,
-        category: {
-          select: {
-            name: true,
-            slug: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 8, // Show 8 products in the grid for better e-commerce showcase
-    });
-
-    // Allow enough time for Neon serverless cold starts (can take 1–3 s)
-    const timeoutMs = 5000;
-    const timeoutPromise = new Promise<Product[]>(resolve => {
-      setTimeout(() => {
-        console.warn(`[Featured Products] Query timed out after ${timeoutMs}ms`);
-        resolve([]);
-      }, timeoutMs);
-    });
-
-    const products = await Promise.race([queryPromise, timeoutPromise]);
-
-    // **DEBUG**: Log results in development
-    if (process.env.NODE_ENV === "development") {
-      console.log(
-        `[Featured Products] Found ${products?.length || 0} products`
-      );
-    }
-
-    // **PERFORMANCE**: Return raw data without any processing to minimize server time
-    return products || [];
-  } catch (error) {
-    // **PERFORMANCE**: Silent error handling with immediate return to avoid blocking TTFB
-    console.error("Database error in fetchFeaturedProductsOptimized:", error);
-    return [];
-  }
-}
-
-async function getHomepageBundles(): Promise<HomeBundle[]> {
-  try {
-    const cacheKey = "homepage_bundles_v1";
-    const { getCached } = await import("@/lib/cache");
-    const TIME = (await import("@/lib/constants")).TIME;
-
-    const cachedResult = await getCached(
-      cacheKey,
-      () => fetchHomepageBundlesOptimized(),
-      TIME.CACHE_DURATION.MEDIUM
-    );
-
-    // Guard: never serve a cached empty array — re-fetch if cache has nothing
-    if (!cachedResult || cachedResult.length === 0) {
-      return await fetchHomepageBundlesOptimized();
-    }
-
-    return cachedResult;
-  } catch (error) {
-    console.error("Error fetching homepage bundles:", error);
-    return [];
-  }
-}
-
-function toRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  return value as Record<string, unknown>;
-}
-
-function readString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0
-    ? value.trim()
-    : null;
-}
-
-function readLocalizedField(
-  metadata: unknown,
-  language: "ro" | "en",
-  keys: string[]
-): string | null {
-  const meta = toRecord(metadata);
-  if (!meta) return null;
-
-  const containerKeys = ["localized", "translations", "multilingual", language];
-  const candidates: Array<unknown> = [meta];
-
-  containerKeys.forEach(containerKey => {
-    const next = toRecord(meta[containerKey]);
-    if (next) {
-      candidates.push(next);
-      const langObject = toRecord(next[language]);
-      if (langObject) {
-        candidates.push(langObject);
-      }
-    }
-  });
-
-  for (const candidate of candidates) {
-    const asRecord = toRecord(candidate);
-    if (!asRecord) continue;
-
-    for (const key of keys) {
-      const direct = readString(asRecord[key]);
-      if (direct) return direct;
-
-      const suffixed = readString(asRecord[`${key}_${language}`]);
-      if (suffixed) return suffixed;
-
-      const langSuffix = language === "ro" ? `${key}Ro` : `${key}En`;
-      const bySuffix = readString(asRecord[langSuffix]);
-      if (bySuffix) return bySuffix;
-    }
-  }
-
-  return null;
-}
-
-async function fetchHomepageBundlesOptimized(): Promise<HomeBundle[]> {
-  const { db } = await import("@/lib/db");
-
-  try {
-    const queryPromise = db.product.findMany({
-      where: {
-        isActive: true,
-        status: "APPROVED",
-        isBundle: true,
-        stockQuantity: {
-          gt: 0,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        description: true,
-        price: true,
-        compareAtPrice: true,
-        images: true,
-        bundleDiscount: true,
-        stockQuantity: true,
-        metadata: true,
-      },
-      orderBy: [{ bundleDiscount: "desc" }, { createdAt: "desc" }],
-      take: 3,
-    });
-
-    // Allow enough time for Neon serverless cold starts (can take 1–3 s)
-    const timeoutMs = 5000;
-    const timeoutPromise = new Promise<HomeBundle[]>(resolve => {
-      setTimeout(() => {
-        console.warn(`[Homepage Bundles] Query timed out after ${timeoutMs}ms`);
-        resolve([]);
-      }, timeoutMs);
-    });
-
-    const bundles = await Promise.race([queryPromise, timeoutPromise]);
-
-    return (bundles ?? []).map(bundle => {
-      const trimmedDescription = bundle.description?.trim();
-      const description =
-        trimmedDescription && trimmedDescription.length > 0
-          ? trimmedDescription
-          : "Pachet atent selectat pentru progres rapid si invatare distractiva.";
-
-      return {
-        id: bundle.id,
-        name: bundle.name,
-        slug: bundle.slug,
-        description,
-        nameRo: readLocalizedField(bundle.metadata, "ro", ["name", "title"]),
-        descriptionRo: readLocalizedField(bundle.metadata, "ro", [
-          "description",
-          "shortDescription",
-          "summary",
-        ]),
-        nameEn: readLocalizedField(bundle.metadata, "en", ["name", "title"]),
-        descriptionEn: readLocalizedField(bundle.metadata, "en", [
-          "description",
-          "shortDescription",
-          "summary",
-        ]),
-        price: bundle.price,
-        compareAtPrice: bundle.compareAtPrice,
-        images: Array.isArray(bundle.images) ? bundle.images : [],
-        bundleDiscount: bundle.bundleDiscount,
-        stockQuantity: bundle.stockQuantity,
-      };
-    });
-  } catch (error) {
-    console.error("Database error in fetchHomepageBundlesOptimized:", error);
-    return [];
-  }
-}
-
-// **PERFORMANCE**: Incremental Static Regeneration for optimal TTFB and LCP
-export const revalidate = 1800; // Revalidate every 30 minutes for better cache freshness
-
-export default async function Home() {
-  let featuredProducts: Product[] = [];
-  let homepageBundles: HomeBundle[] = [];
-
-  try {
-    // Run both fetches in parallel — each has its own 5s internal timeout
-    [featuredProducts, homepageBundles] = await Promise.all([
-      getFeaturedProducts(),
-      getHomepageBundles(),
+// Select from current inventory. Never infer popularity from product order.
+const getRecommendations = unstable_cache(
+  async (): Promise<Product[]> => {
+    const { db } = await import("@/lib/db");
+    const available = {
+      isActive: true,
+      status: "APPROVED" as const,
+      stockQuantity: { gt: 0 },
+    };
+    const [hover, selection] = await Promise.all([
+      db.product.findFirst({ where: { ...available, sku: HOVER_RACER_SKU } }),
+      db.product.findMany({
+        where: available,
+        orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+        take: 4,
+      }),
     ]);
-  } catch (error) {
-    console.error("Homepage data fetch error:", error);
-    featuredProducts = [];
-    homepageBundles = [];
-  }
+    const products = Array.from(
+      new Map(
+        [...(hover ? [hover] : []), ...selection].map(product => [
+          product.id,
+          product,
+        ])
+      ).values()
+    ).slice(0, 4);
+    return products.map(product =>
+      applyProductContentOverride({
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        description: product.description ?? "",
+        price: product.price,
+        images: product.images,
+        stockQuantity: product.stockQuantity,
+        ageGroup:
+          product.ageGroup && product.ageGroup in PRODUCT_AGE_LABELS
+            ? (product.ageGroup as Product["ageGroup"])
+            : undefined,
+        tags: product.tags,
+        isActive: product.isActive,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+        reservedQuantity: product.reservedQuantity,
+        featured: product.featured,
+      })
+    );
+  },
+  ["homepage-recommendations-v4"],
+  { revalidate: 300, tags: ["products"] }
+);
 
+async function Recommendations() {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const products = await Promise.race([
+      getRecommendations(),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error("Homepage product query timed out")),
+          5000
+        );
+      }),
+    ]);
+    return <FeaturedProductsGrid products={products} />;
+  } catch (error) {
+    console.error("Homepage recommendations unavailable", error);
+    return <FeaturedProductsGrid products={[]} />;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function RecommendationsLoading() {
   return (
-    <>
-      {/* **PERFORMANCE**: Inline critical CSS for immediate rendering */}
-      <style dangerouslySetInnerHTML={{ __html: heroSectionCriticalCSS }} />
-      <HomePageClient
-        initialFeaturedProducts={featuredProducts}
-        initialBundles={homepageBundles}
-      />
-    </>
+    <section
+      aria-label="Se încarcă produsele recomandate"
+      aria-busy="true"
+      className="border-y border-slate-200 bg-white py-7 sm:py-9"
+    >
+      <div className="mx-auto max-w-7xl px-5 sm:px-8">
+        <h2 className="mb-5 text-2xl font-bold">Produse recomandate</h2>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-5">
+          {[0, 1, 2, 3].map(key => (
+            <div
+              key={key}
+              className="overflow-hidden rounded-2xl border border-slate-200"
+            >
+              <div className="aspect-square bg-slate-50" />
+              <div className="h-[240px] bg-white" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function Home() {
+  return (
+    <HomePageClient>
+      <Suspense fallback={<RecommendationsLoading />}>
+        <Recommendations />
+      </Suspense>
+    </HomePageClient>
   );
 }
 
 export function generateMetadata() {
   return {
     title:
-      "Jucarii STEM, jucarii educative si robotica pentru copii | TechTots",
+      "Jucării STEM, jucării educative și robotică pentru copii | TechTots",
     description:
       "TechTots este un magazin online din Romania cu jucarii STEM, jucarii educative, jucarii inteligente, kituri de robotica, jocuri de logica si experimente stiintifice pentru copii.",
     keywords: [
@@ -391,7 +139,7 @@ export function generateMetadata() {
     ],
     openGraph: {
       title:
-        "Jucarii STEM, jucarii educative si robotica pentru copii | TechTots",
+        "Jucării STEM, jucării educative și robotică pentru copii | TechTots",
       description:
         "Magazin online din Romania cu jucarii STEM, robotica pentru copii, jocuri de logica si experimente stiintifice.",
       type: "website",
@@ -408,7 +156,7 @@ export function generateMetadata() {
     twitter: {
       card: "summary_large_image",
       title:
-        "Jucarii STEM, jucarii educative si robotica pentru copii | TechTots",
+        "Jucării STEM, jucării educative și robotică pentru copii | TechTots",
       description:
         "Exploreaza jucarii STEM, jucarii educative, robotica si experimente pentru copii.",
       images: ["/images/homepage_hero_banner_01.png"],

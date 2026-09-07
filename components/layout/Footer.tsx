@@ -158,7 +158,7 @@ export default function Footer({
       name: "FanCourier",
       href: "https://www.fancourier.ro/",
       eyebrow: t("footerFastDelivery", "Livrare rapidă"),
-      detail: t("footerFanCourierDetail", "Expediere națională cu tracking"),
+      detail: t("heroTrust2", "Livrare 1–4 zile lucrătoare"),
       icon: Truck,
       brandClassName:
         "bg-[linear-gradient(135deg,#fff7ed_0%,#ffedd5_100%)] text-[#ea580c]",
@@ -324,7 +324,7 @@ export default function Footer({
                 href={link.href}
                 className="text-xs text-slate-600 transition-colors hover:text-slate-900"
               >
-                {link.label.replace("Jucarii STEM ", "")}
+                {link.label.replace("Jucării STEM ", "").replace("Jucarii STEM ", "").replace("Bucuresti", "București").replace("Timisoara", "Timișoara").replace("Iasi", "Iași")}
               </Link>
             ))}
           </div>

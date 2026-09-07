@@ -53,14 +53,6 @@ export default function RootLayout({
         {/* Critical CSS for LCP optimization */}
         <CriticalCSS />
 
-        {/* **PERFORMANCE**: Aggressive hero image preloading for LCP optimization */}
-        <link
-          rel="preload"
-          href="/images/optimized/homepage_hero_banner_01_fallback.jpg"
-          as="image"
-          fetchPriority="high"
-        />
-
         {/* Structured data is injected from route metadata to keep entity data consistent. */}
       </head>
       <body className="min-h-screen flex flex-col font-sans antialiased">
