@@ -90,7 +90,7 @@ export default function NewsletterSignup() {
               </button>
             </form>
 
-            <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+            <p className="mt-4 text-xs leading-5 text-slate-300">
               {t("noSpamGuarantee", "Promitem să nu trimitem spam.")}{" "}
               {t("unsubscribeAnytime", "Te poți dezabona oricând.")}
             </p>

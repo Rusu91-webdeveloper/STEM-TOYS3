@@ -1325,3 +1325,14 @@ img {
     width: 100%;
   }
 }
+
+/* One progressive hero animation; content never waits for animation or JS. */
+@keyframes home-hover-racer {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-9px) rotate(1deg); }
+}
+.home-hover-racer { animation: home-hover-racer 4.5s ease-in-out infinite; animation-play-state: paused; }
+.home-hover-racer[data-playing="true"] { animation-play-state: running; }
+@media (prefers-reduced-motion: reduce) {
+  .home-hover-racer { animation: none; transform: none; }
+}

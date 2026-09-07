@@ -1,0 +1,57 @@
+{
+  "method": "Two interleaved runs per URL, default simulated mobile throttling, same installed Chrome and Lighthouse. Live hosted homepage compared with local production build; hosting/network differences remain.",
+  "results": [
+    {
+      "name": "live-1",
+      "url": "https://www.techtots.ro",
+      "at": "2026-09-07T18:17:00.432Z",
+      "lighthouseVersion": "12.8.2",
+      "performance": 55.00000000000001,
+      "accessibility": 92,
+      "lcpMs": 12378.224,
+      "cls": 0,
+      "tbtMs": 217,
+      "fcpMs": 4387.724,
+      "bytes": 2516780
+    },
+    {
+      "name": "preview-1",
+      "url": "http://localhost:3000",
+      "at": "2026-09-07T18:17:15.920Z",
+      "lighthouseVersion": "12.8.2",
+      "performance": 73,
+      "accessibility": 100,
+      "lcpMs": 6662.749999999998,
+      "cls": 0.01696369120471735,
+      "tbtMs": 227.50000000000045,
+      "fcpMs": 1369.9,
+      "bytes": 942391
+    },
+    {
+      "name": "live-2",
+      "url": "https://www.techtots.ro",
+      "at": "2026-09-07T18:17:28.864Z",
+      "lighthouseVersion": "12.8.2",
+      "performance": 73,
+      "accessibility": 92,
+      "lcpMs": 5869.16,
+      "cls": 0.01696369120471735,
+      "tbtMs": 130.5,
+      "fcpMs": 1247.1599999999999,
+      "bytes": 2516709
+    },
+    {
+      "name": "preview-2",
+      "url": "http://localhost:3000",
+      "at": "2026-09-07T18:17:42.985Z",
+      "lighthouseVersion": "12.8.2",
+      "performance": 90,
+      "accessibility": 100,
+      "lcpMs": 3104.5417499999994,
+      "cls": 0.01696369120471735,
+      "tbtMs": 214.5,
+      "fcpMs": 1366.881,
+      "bytes": 943298
+    }
+  ]
+}

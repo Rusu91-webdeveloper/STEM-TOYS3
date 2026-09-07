@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const AnalyticsWrapper = dynamic(
@@ -42,6 +43,7 @@ function canShowPopupOnDevice(): boolean {
 }
 
 export default function DeferredClientFeatures() {
+  const pathname = usePathname();
   const [enableCoreFeatures, setEnableCoreFeatures] = useState(false);
   const [enablePromotionalPopup, setEnablePromotionalPopup] = useState(false);
 
@@ -57,7 +59,7 @@ export default function DeferredClientFeatures() {
       setEnableCoreFeatures(true);
 
       popupTimer = window.setTimeout(() => {
-        if (!cancelled && canShowPopupOnDevice()) {
+        if (!cancelled && pathname !== "/" && canShowPopupOnDevice()) {
           setEnablePromotionalPopup(true);
         }
       }, 6000);
@@ -101,7 +103,7 @@ export default function DeferredClientFeatures() {
         window.clearTimeout(popupTimer);
       }
     };
-  }, []);
+  }, [pathname]);
 
   return (
     <>
@@ -113,7 +115,7 @@ export default function DeferredClientFeatures() {
           <ConversionTrackingProvider />
         </>
       ) : null}
-      {enablePromotionalPopup ? <PromotionalPopup /> : null}
+      {enablePromotionalPopup && pathname !== "/" ? <PromotionalPopup /> : null}
     </>
   );
 }

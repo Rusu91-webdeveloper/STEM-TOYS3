@@ -60,7 +60,7 @@ const navigation: {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
-  { name: "Jucarii", href: "/products", icon: Boxes },
+  { name: "Jucării", href: "/products", icon: Boxes },
   { name: "categories", href: "/categories", icon: Grid3X3 },
   { name: "about", href: "/about", icon: Info },
   { name: "contact", href: "/contact", icon: MessageSquare },
@@ -468,7 +468,7 @@ export default function Header() {
                         {t("premiumBrands", "Branduri premium")}
                       </span>
                       <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1">
-                        {t("fastDelivery", "Livrare rapidă")}
+                        {t("heroTrust2", "Livrare 1–4 zile lucrătoare")}
                       </span>
                     </div>
                     <Link
