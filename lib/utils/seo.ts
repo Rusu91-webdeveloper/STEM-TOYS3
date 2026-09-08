@@ -127,8 +127,8 @@ export function generateProductMetadata(product: any): Metadata {
 
   // Return metadata using the createMetadata utility
   return createMetadata({
-    title: "metaTitle" as any,
-    description: "metaDescription" as any,
+    title: translations.ro.title,
+    description: translations.ro.description,
     keywords,
     canonicalUrl: seoData.canonical || `${SITE_URL}/products/${product.slug}`,
     ogImage: product.images?.[0] || "/opengraph-image.png",

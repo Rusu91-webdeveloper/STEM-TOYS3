@@ -67,7 +67,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
 
   const trustHighlights = [
     { icon: Sparkles, label: t("heroTrust1", "Branduri premium europene") },
-    { icon: Truck, label: t("heroTrust2", "Livrare 1–3 zile în România") },
+    { icon: Truck, label: t("heroTrust2", "Livrare 1–4 zile lucrătoare în România") },
     {
       icon: GraduationCap,
       label: t("heroTrust3", "Selecție curată pe vârste"),

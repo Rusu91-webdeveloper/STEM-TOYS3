@@ -10,6 +10,8 @@ import { ProductActionButtons } from "./ProductActionButtons";
 
 interface ProductHeaderProps {
   name: string;
+  manufacturerAge?: string;
+  showPurchaseDetails?: boolean;
   price: number;
   compareAtPrice?: number;
   averageRating: number;
@@ -33,6 +35,8 @@ interface ProductHeaderProps {
  */
 export function ProductHeader({
   name,
+  manufacturerAge,
+  showPurchaseDetails = false,
   price,
   compareAtPrice,
   averageRating,
@@ -79,7 +83,7 @@ export function ProductHeader({
           isFavoriteLoading={isFavoriteLoading}
           onFavoriteClick={onFavoriteClick}
           onShareClick={onShareClick}
-          onQuickAddToCart={onQuickAddToCart}
+          onQuickAddToCart={showPurchaseDetails ? undefined : onQuickAddToCart}
           isAddingToCart={isAddingToCart}
           justAddedToCart={justAddedToCart}
           isBook={isBook}
@@ -124,17 +128,24 @@ export function ProductHeader({
             </span>
           )}
         </div>
-        <RatingBadge
-          averageRating={averageRating}
-          displayRating={displayRating}
-          reviewCount={reviewCount}
-          size={size}
-        />
+        {reviewCount > 0 && (
+          <RatingBadge
+            averageRating={averageRating}
+            displayRating={displayRating}
+            reviewCount={reviewCount}
+            size={size}
+          />
+        )}
       </div>
 
       {/* Discount Badge and Stock Status Row */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
+          {manufacturerAge && (
+            <Badge className="bg-sky-50 text-sky-800 border border-sky-200">
+              {manufacturerAge} · Vârsta pe cutie
+            </Badge>
+          )}
           {hasDiscount && (
             <Badge className="border-none bg-rose-500 hover:bg-rose-600 text-white shadow-sm px-3 py-1 font-bold tracking-wide">
               {discountPercentage}% {t("off", "reducere")}
@@ -163,6 +174,33 @@ export function ProductHeader({
           )}
         </div>
       </div>
+      {showPurchaseDetails && (
+        <div className="space-y-3 border-t border-slate-200 pt-4">
+          <button
+            type="button"
+            onClick={onQuickAddToCart}
+            disabled={isOutOfStock || isAddingToCart || justAddedToCart}
+            className="min-h-12 w-full rounded-xl bg-[#0b1220] px-5 py-3 text-base font-bold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isOutOfStock
+              ? "Stoc epuizat"
+              : isAddingToCart
+                ? "Se adaugă…"
+                : justAddedToCart
+                  ? "Adăugat în coș"
+                  : "Adaugă în coș"}
+          </button>
+          <p className="text-sm font-semibold text-slate-800">
+            Plată ramburs (COD)
+          </p>
+          <p className="text-sm font-semibold text-slate-800">
+            Livrare 1–4 zile lucrătoare
+          </p>
+          <p className="text-sm text-slate-600">
+            FanCourier · Card prin Stripe / Netopia
+          </p>
+        </div>
+      )}
     </div>
   );
 }

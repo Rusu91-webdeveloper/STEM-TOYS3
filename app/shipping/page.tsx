@@ -174,21 +174,21 @@ export default async function ShippingPage() {
               <h3 className="font-semibold text-slate-900 mb-2">
                 București și orașe mari
               </h3>
-              <p className="text-slate-600 text-sm">3-5 zile lucrătoare</p>
+              <p className="text-slate-600 text-sm">1–4 zile lucrătoare</p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-md border border-slate-200">
               <div className="text-3xl mb-3">🗺️</div>
               <h3 className="font-semibold text-slate-900 mb-2">
                 Restul țării
               </h3>
-              <p className="text-slate-600 text-sm">5-7 zile lucrătoare</p>
+              <p className="text-slate-600 text-sm">1–4 zile lucrătoare</p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-md border border-slate-200">
               <div className="text-3xl mb-3">🏔️</div>
               <h3 className="font-semibold text-slate-900 mb-2">
                 Zone îndepărtate
               </h3>
-              <p className="text-slate-600 text-sm">7-10 zile lucrătoare</p>
+              <p className="text-slate-600 text-sm">1–4 zile lucrătoare</p>
             </div>
           </div>
           <p className="text-sm text-slate-500 mt-4">

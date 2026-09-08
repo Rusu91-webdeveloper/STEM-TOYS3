@@ -117,11 +117,11 @@ export const en = {
   standardShipping: "Standard Shipping",
   expressShipping: "Express Shipping",
   priorityShipping: "Priority Shipping",
-  deliveryIn35Days: "Delivery in 3-5 business days",
-  deliveryIn12Days: "Delivery in 1-2 business days",
+  deliveryIn35Days: "Delivery in 1–4 business days",
+  deliveryIn12Days: "Delivery in 1–4 business days",
   deliveryIn24Hours: "Delivery in 24 hours",
-  businessDays35: "3-5 business days",
-  businessDays12: "1-2 business days",
+  businessDays35: "1–4 business days",
+  businessDays12: "1–4 business days",
   hours24: "24 hours",
   estimatedDelivery: "Estimated delivery",
   backToShippingAddress: "Back to Shipping Address",
@@ -440,7 +440,7 @@ export const en = {
   heroPrimaryCta: "EXPLORE COLLECTION",
   heroSecondaryCta: "View Categories",
   heroTrust1: "Premium European brands",
-  heroTrust2: "Delivery in 1–3 days across Romania",
+  heroTrust2: "Delivery in 1–4 business days across Romania",
   heroTrust3: "Age-curated selection",
 
   // Age Categories Section
@@ -532,7 +532,7 @@ export const en = {
   guarantee: "Easy returns and Romanian support you can rely on",
   limitedSpots: "Limited Spots",
   consultationThisMonth: "for personalized STEM consultation this month",
-  fastDelivery: "Fast delivery in 1-3 business days",
+  fastDelivery: "Fast delivery in 1–4 business days",
 
   b2bSolutions: "B2B Programs",
   b2bSolutionsDesc:
@@ -1357,14 +1357,14 @@ export const en = {
 
   // Newsletter section
   exclusiveInsights: "Exclusive STEM Insights",
-  joinEducatorsParents: "🚀 Join 50,000+ STEM Educators & Parents",
+  joinEducatorsParents: "Play ideas for curious minds",
   newsletterSubtitle:
-    "Get exclusive access to new products, educational resources, and special discounts. Plus, receive our weekly STEM activity guide!",
+    "Receive STEM gift ideas and TechTots news by email.",
   emailAddressPlaceholder: "Enter your email address",
-  getFreeResources: "Get Free Resources",
+  getFreeResources: "Subscribe",
   subscribing: "Subscribing...",
   subscriptionSuccessMessage:
-    "✓ Welcome aboard! Check your email for your first STEM resource pack.",
+    "Thank you! Your subscription has been registered.",
   subscriptionErrorMessage:
     "✗ Something went wrong. Please try again or contact support.",
   noSpamGuarantee: "Zero spam",

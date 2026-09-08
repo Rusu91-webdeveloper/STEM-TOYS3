@@ -1,7 +1,13 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -14,6 +20,7 @@ import {
 
 interface ProductDescriptionProps {
   description: string;
+  showCategoryIntro?: boolean;
   categoryName: string;
   t: (key: string, fallback?: string) => string;
   className?: string;
@@ -24,6 +31,7 @@ interface ProductDescriptionProps {
  */
 export function ProductDescription({
   description,
+  showCategoryIntro = true,
   categoryName,
   t,
   className,
@@ -92,14 +100,12 @@ export function ProductDescription({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setExpanded((v) => !v)}
+            onClick={() => setExpanded(v => !v)}
             className="w-full border-cyan-200/80 bg-gradient-to-b from-cyan-50/90 to-white text-cyan-900 shadow-sm transition hover:border-cyan-300 hover:from-cyan-100/90 hover:to-cyan-50/50 sm:w-auto sm:min-w-[11rem]"
             aria-expanded={expanded}
             aria-controls="product-detail-description"
           >
-            {expanded
-              ? t("showLess", "Show less")
-              : t("readMore", "Read more")}
+            {expanded ? t("showLess", "Show less") : t("readMore", "Read more")}
             <ChevronDown
               className={cn(
                 "size-4 shrink-0 transition-transform duration-200",
@@ -110,10 +116,12 @@ export function ProductDescription({
           </Button>
         )}
       </div>
-      <p className={`${productBodyTextClass} pt-1`}>
-        {t("stemToyDesigned", "Jucărie STEM concepută pentru")} {categoryName}.{" "}
-        {t("providesHandsOn", "Oferă experiențe practice de învățare.")}
-      </p>
+      {showCategoryIntro && (
+        <p className={`${productBodyTextClass} pt-1`}>
+          {t("stemToyDesigned", "Jucărie STEM concepută pentru")} {categoryName}
+          . {t("providesHandsOn", "Oferă experiențe practice de învățare.")}
+        </p>
+      )}
     </div>
   );
 }

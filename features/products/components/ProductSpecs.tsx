@@ -85,7 +85,9 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
     // Removed SKU/GTIN/Dimensions/Weight from UI as requested
     {
       label: manufacturerAge ? "Încadrare ghid cadouri" : t("ageGroup"),
-      value: humanizeAgeGroup(t as any, product.ageGroup),
+      value: manufacturerAge
+        ? undefined
+        : humanizeAgeGroup(t as any, product.ageGroup),
     },
     {
       label: "Vârsta recomandată de producător",

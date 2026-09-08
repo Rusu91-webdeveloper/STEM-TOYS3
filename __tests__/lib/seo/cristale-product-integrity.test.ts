@@ -55,13 +55,13 @@ describe("Cristale 4M product integrity", () => {
     });
   });
 
-  it("labels manufacturer guidance separately from gift-guide targeting", () => {
+  it("uses manufacturer guidance without a conflicting gift age", () => {
     const [ageFaq] = buildDefaultProductFaq(
       applyProductContentOverride(product)
     );
 
     expect(ageFaq.answer).toContain("recomandată de producător");
     expect(ageFaq.answer).toContain("10+");
-    expect(ageFaq.answer).toContain("ghidul de cadouri");
+    expect(ageFaq.answer).not.toContain("6-8");
   });
 });
