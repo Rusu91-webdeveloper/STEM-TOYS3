@@ -191,11 +191,11 @@ export const ro = {
   standardShipping: "Livrare standard",
   expressShipping: "Livrare expres",
   priorityShipping: "Livrare prioritară",
-  deliveryIn35Days: "Livrare în 3-5 zile lucrătoare",
-  deliveryIn12Days: "Livrare în 1-2 zile lucrătoare",
+  deliveryIn35Days: "Livrare în 1–4 zile lucrătoare",
+  deliveryIn12Days: "Livrare în 1–4 zile lucrătoare",
   deliveryIn24Hours: "Livrare în 24 de ore",
-  businessDays35: "3-5 zile lucrătoare",
-  businessDays12: "1-2 zile lucrătoare",
+  businessDays35: "1–4 zile lucrătoare",
+  businessDays12: "1–4 zile lucrătoare",
   hours24: "24 de ore",
   estimatedDelivery: "Livrare estimată",
   backToShippingAddress: "Înapoi la adresa de livrare",
@@ -529,7 +529,7 @@ export const ro = {
   heroPrimaryCta: "EXPLOREAZĂ COLECȚIA",
   heroSecondaryCta: "Vezi Categorii",
   heroTrust1: "Branduri premium europene",
-  heroTrust2: "Livrare 1–3 zile în România",
+  heroTrust2: "Livrare 1–4 zile lucrătoare în România",
   heroTrust3: "Selecție curată pe vârste",
 
   // Age Categories Section
@@ -621,7 +621,7 @@ export const ro = {
   // Urgency Elements
   limitedSpots: "Locuri Limitate",
   consultationThisMonth: "pentru consultarea STEM personalizată luna aceasta",
-  fastDelivery: "Livrare rapidă în 1-3 zile lucrătoare",
+  fastDelivery: "Livrare rapidă în 1–4 zile lucrătoare",
 
   b2bSolutions: "Programe B2B",
   b2bSolutionsDesc:
@@ -1518,14 +1518,14 @@ export const ro = {
 
   // Newsletter section
   exclusiveInsights: "Inspirație STEM exclusivă",
-  joinEducatorsParents: "🚀 Alătură-te la 50.000+ Educatori și Părinți STEM",
+  joinEducatorsParents: "Idei de joacă pentru minți curioase",
   newsletterSubtitle:
-    "Obține acces exclusiv la produse noi, resurse educaționale și reduceri speciale. În plus, primește ghidul nostru săptămânal de activități STEM!",
+    "Primește idei de cadouri STEM și noutăți TechTots pe email.",
   emailAddressPlaceholder: "Introduceți adresa de email",
-  getFreeResources: "Obține Resurse Gratuite",
+  getFreeResources: "Mă abonez",
   subscribing: "Se abonează...",
   subscriptionSuccessMessage:
-    "✓ Bine ai venit! Verifică-ți emailul pentru primul pachet de resurse STEM.",
+    "Mulțumim! Abonarea ta a fost înregistrată.",
   subscriptionErrorMessage:
     "✗ Ceva nu a mers bine. Te rugăm să încerci din nou sau să contactezi asistența.",
   noSpamGuarantee: "Zero spam",

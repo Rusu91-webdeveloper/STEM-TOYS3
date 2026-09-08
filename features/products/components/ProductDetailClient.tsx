@@ -6,6 +6,10 @@ import { useSearchParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
 import { LazyProductReviews } from "@/components/lazy/client";
+import {
+  HOVER_RACER_SLUG,
+  getProductContentOverride,
+} from "@/lib/products/catalog-content-overrides";
 import { useTranslation } from "@/lib/i18n";
 
 import { useProductActions } from "../hooks/useProductActions";
@@ -51,6 +55,10 @@ export default function ProductDetailClient({
   faq = [],
 }: ProductDetailClientProps) {
   const { t } = useTranslation();
+  const isHoverRacer = product.slug === HOVER_RACER_SLUG;
+  const manufacturerAge = getProductContentOverride(
+    product.slug
+  )?.manufacturerAge;
   const searchParams = useSearchParams();
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<
     number | null
@@ -163,11 +171,13 @@ export default function ProductDetailClient({
                 <div className={`${productSubSectionCardClass} space-y-4`}>
                   <ProductHeader
                     name={product.name}
+                    manufacturerAge={manufacturerAge}
+                    showPurchaseDetails={isHoverRacer}
                     price={product.price}
                     compareAtPrice={product.compareAtPrice}
-                    averageRating={resolvedAverageRating}
-                    reviewCount={resolvedReviewCount}
-                    totalSold={product.totalSold || 0}
+                    averageRating={isHoverRacer ? 0 : resolvedAverageRating}
+                    reviewCount={isHoverRacer ? 0 : resolvedReviewCount}
+                    totalSold={isHoverRacer ? 0 : product.totalSold || 0}
                     stockQuantity={product.stockQuantity || 0}
                     isFavorited={isFavorited}
                     isFavoriteLoading={isFavoriteLoading}
@@ -184,6 +194,7 @@ export default function ProductDetailClient({
 
                 <ProductDescription
                   description={product.description}
+                  showCategoryIntro={!isHoverRacer}
                   categoryName={getCategoryName()}
                   t={t}
                 />
@@ -212,21 +223,21 @@ export default function ProductDetailClient({
                 t={t}
               />
 
-              <ProductFAQ
-                faq={faq}
-              />
+              <ProductFAQ faq={faq} />
             </div>
           </div>
         </div>
 
-        <div className={productSecondaryPanelClass}>
-          <LazyProductReviews
-            productId={product.id}
-            reviews={initialReviews}
-            userLoggedIn={userLoggedIn}
-            className="space-y-6"
-          />
-        </div>
+        {(!isHoverRacer || initialReviews.length > 0 || userLoggedIn) && (
+          <div className={productSecondaryPanelClass}>
+            <LazyProductReviews
+              productId={product.id}
+              reviews={initialReviews}
+              userLoggedIn={userLoggedIn}
+              className="space-y-6"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

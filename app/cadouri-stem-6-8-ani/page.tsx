@@ -5,7 +5,7 @@ import Link from "next/link";
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { db } from "@/lib/db";
 import {
-  CRISTALE_4M_SLUG,
+  HOVER_RACER_SLUG,
   getProductContentOverride,
 } from "@/lib/products/catalog-content-overrides";
 
@@ -17,23 +17,31 @@ const PAGE_PATH = "/cadouri-stem-6-8-ani";
 const PAGE_URL = `https://www.techtots.ro${PAGE_PATH}`;
 const AGE_FILTER_URL = "/products?ageGroup=ELEMENTARY_6_8";
 
+const NAVIR_SLUG =
+  "instrument-optic-3-in-1-telescop-periscop-microscop-navir-N_8097";
 const PRODUCT_SLUGS = [
-  CRISTALE_4M_SLUG,
-  "cubologic-9-joc-de-logica-DJ08581",
-  "crab-robot-hibrid-4m-kit-eco-stem-4M-03448",
-  "creagami-panda-origami-3d-educational-CTV-734",
-  "set-educativ-sapa-si-descopera-dinozauri---t-rex-4M-03221",
+  NAVIR_SLUG,
+  "telescop-cu-trepied-navir-N_5015",
+  "giroscop-ufo-navir-N_6050",
 ] as const;
 
-const UPGRADE_COPY: Record<string, string> = {
-  "cubologic-9-joc-de-logica-DJ08581":
-    "Joc de logică cu provocări vizuale și piese din lemn.",
-  "crab-robot-hibrid-4m-kit-eco-stem-4M-03448":
-    "Kit de construcție pentru explorarea mecanismelor și energiei hibride.",
-  "creagami-panda-origami-3d-educational-CTV-734":
-    "Activitate de origami 3D construită pas cu pas.",
-  "set-educativ-sapa-si-descopera-dinozauri---t-rex-4M-03221":
-    "Kit de săpături pentru descoperirea unui model de T-Rex.",
+// Ages verified against the supplier descriptions, rather than broad catalog groups.
+const SELECTION_COPY: Record<string, { age: string; description: string }> = {
+  [NAVIR_SLUG]: {
+    age: "6+",
+    description:
+      "Telescop, periscop și microscop într-un singur instrument. Descoperă detalii din jur, fără ecran, sub supravegherea unui adult.",
+  },
+  "telescop-cu-trepied-navir-N_5015": {
+    age: "6+",
+    description:
+      "Observă obiecte îndepărtate cu un telescop cu trepied, sub supravegherea unui adult.",
+  },
+  "giroscop-ufo-navir-N_6050": {
+    age: "6+",
+    description:
+      "Explorează rotația și echilibrul cu un giroscop acționat de cablul inclus, sub supravegherea unui adult.",
+  },
 };
 
 const FAQS = [
@@ -44,28 +52,30 @@ const FAQS = [
   },
   {
     question: "Cât durează livrarea?",
-    answer: "1–3 zile cu FanCourier, după confirmarea stocului.",
+    answer: "1–4 zile lucrătoare cu FanCourier, după confirmarea stocului.",
   },
   {
     question: "De unde încep?",
     answer:
-      "Set Cristale Roșu 4M (~100 lei). Upgrade: Cubologic, Crab Robot, Creagami sau T-Rex dig — dacă sunt InStock.",
+      "Alege după vârsta de pe cutie și interesele copilului: observație, experimente sau logică. Selecția de mai sus include doar produse disponibile în stoc.",
   },
   {
     question: "Cum plătesc?",
-    answer: "Card via Stripe sau Netopia.",
+    answer: "Plată ramburs (COD) sau cu cardul prin Stripe / Netopia.",
   },
 ] as const;
 
 export const metadata: Metadata = {
-  title: "Cadouri STEM 6–8 ani — fără ecran, livrare 1–3 zile | TechTots",
+  title:
+    "Cadouri STEM 6–8 ani — fără ecran, livrare 1–4 zile lucrătoare | TechTots",
   description:
-    "Kituri STEM pentru 6–8 ani: experimente și logică, vârstă pe cutie. Lead: Set Cristale 4M. Livrare 1–3 zile în România.",
+    "Cadouri STEM fără ecran pentru 6–8 ani, alese după vârsta de pe cutie. Descoperire și joacă practică. Livrare 1–4 zile lucrătoare.",
   alternates: { canonical: PAGE_URL },
   openGraph: {
-    title: "Cadouri STEM 6–8 ani — fără ecran, livrare 1–3 zile | TechTots",
+    title:
+      "Cadouri STEM 6–8 ani — fără ecran, livrare 1–4 zile lucrătoare | TechTots",
     description:
-      "Kituri STEM pentru 6–8 ani: experimente și logică, vârstă pe cutie. Lead: Set Cristale 4M. Livrare 1–3 zile în România.",
+      "Cadouri STEM fără ecran pentru 6–8 ani, alese după vârsta de pe cutie. Descoperire și joacă practică. Livrare 1–4 zile lucrătoare.",
     url: PAGE_URL,
     type: "website",
     locale: "ro_RO",
@@ -97,6 +107,7 @@ function getBrand(product: LandingProduct): string | null {
 }
 
 function getManufacturerAge(product: LandingProduct): string | null {
+  if (SELECTION_COPY[product.slug]) return SELECTION_COPY[product.slug].age;
   const override = getProductContentOverride(product.slug);
   if (override?.manufacturerAge) return override.manufacturerAge;
 
@@ -201,7 +212,7 @@ function buildStructuredData(products: LandingProduct[]) {
       url: PAGE_URL,
       name: "Cadouri STEM pentru 6–8 ani",
       description:
-        "Experimente și jocuri de logică — fără ecran. Livrare 1–3 zile.",
+        "Observație și descoperire — fără ecran. Livrare 1–4 zile lucrătoare.",
       inLanguage: "ro-RO",
       isPartOf: { "@id": "https://www.techtots.ro/#website" },
       about: [
@@ -255,10 +266,8 @@ function buildStructuredData(products: LandingProduct[]) {
 
 export default async function StemGiftsSixToEightPage() {
   const products = await getLandingProducts();
-  const lead = products.find(product => product.slug === CRISTALE_4M_SLUG);
-  const upgrades = products.filter(
-    product => product.slug !== CRISTALE_4M_SLUG
-  );
+  const lead = products[0];
+  const upgrades = products.filter(product => product.slug !== lead?.slug);
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f8fbff_0%,#eef7ff_42%,#fffaf0_100%)] text-slate-950">
@@ -268,17 +277,17 @@ export default async function StemGiftsSixToEightPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(14,165,233,0.16),transparent_34%),radial-gradient(circle_at_85%_30%,rgba(245,158,11,0.16),transparent_30%)]" />
         <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
           <p className="inline-flex rounded-full border border-sky-200 bg-white/80 px-4 py-2 text-sm font-bold text-sky-800 shadow-sm">
-            Kit STEM 6–8 ani · fără ecran · livrare 1–3 zile
+            Kit STEM 6–8 ani · fără ecran · livrare 1–4 zile lucrătoare
           </p>
           <h1 className="mt-6 max-w-4xl text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
             Cadouri STEM pentru 6–8 ani
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-700 sm:text-xl">
-            Experimente și jocuri de logică — fără ecran. Livrare 1–3 zile.
+            Observație și descoperire — fără ecran. Livrare 1–4 zile lucrătoare.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              href={AGE_FILTER_URL}
+              href="#selectie-cadouri"
               className="inline-flex min-h-12 items-center justify-center rounded-xl bg-sky-600 px-6 font-black text-white shadow-lg shadow-sky-600/20 transition hover:bg-sky-500"
             >
               Vezi kiturile 6–8 →
@@ -292,19 +301,23 @@ export default async function StemGiftsSixToEightPage() {
           </div>
 
           <p className="mt-10 rounded-2xl border border-white/80 bg-white/75 px-5 py-4 text-center text-sm font-semibold text-slate-700 shadow-sm backdrop-blur">
-            Livrare 1–3 zile · FanCourier · Stripe / Netopia · Vârstă pe cutie
+            Plată ramburs (COD) · Livrare 1–4 zile lucrătoare · FanCourier ·
+            Stripe / Netopia · Vârstă pe cutie
           </p>
         </div>
       </section>
 
-      <div className="mx-auto flex max-w-7xl flex-col gap-14 px-4 py-14 sm:px-6 lg:px-8">
+      <div
+        id="selectie-cadouri"
+        className="scroll-mt-24 mx-auto flex max-w-7xl flex-col gap-14 px-4 py-14 sm:px-6 lg:px-8"
+      >
         {lead ? (
           <section className="grid overflow-hidden rounded-[2rem] border border-rose-200 bg-white shadow-[0_28px_70px_-38px_rgba(190,24,93,0.5)] lg:grid-cols-[0.9fr_1.1fr]">
             <div className="relative min-h-72 bg-rose-50">
               {lead.images[0] ? (
                 <Image
                   src={lead.images[0]}
-                  alt="Set Cristale Roșu 4M"
+                  alt={lead.name}
                   fill
                   priority
                   sizes="(min-width: 1024px) 42vw, 100vw"
@@ -314,22 +327,22 @@ export default async function StemGiftsSixToEightPage() {
             </div>
             <div className="flex flex-col justify-center p-7 sm:p-10">
               <p className="text-sm font-black uppercase tracking-[0.18em] text-rose-700">
-                Entry STEM
+                Selectat de TechTots
               </p>
               <h2 className="mt-3 text-3xl font-black sm:text-4xl">
-                Set Cristale Roșu 4M
+                {lead.name}
               </h2>
               <p className="mt-3 text-lg font-bold text-slate-700">
-                ~{Math.round(lead.price)} lei · 7–10 (overlap cadou 6–8)
+                {formatPrice(lead.price)} · În stoc
               </p>
               <p className="mt-5 text-lg leading-8 text-slate-700">
-                Crești cristale acasă. Entry STEM, unboxing clar.
+                {SELECTION_COPY[lead.slug].description}
               </p>
               <p className="mt-3 text-sm font-semibold text-slate-600">
-                Vârsta recomandată de producător: 10+.
+                Vârsta recomandată de producător: {getManufacturerAge(lead)}.
               </p>
               <Link
-                href={`/products/${CRISTALE_4M_SLUG}`}
+                href={`/products/${lead.slug}`}
                 className="mt-7 inline-flex min-h-12 w-fit items-center justify-center rounded-xl bg-rose-600 px-6 font-black text-white transition hover:bg-rose-500"
               >
                 Vezi setul →
@@ -346,8 +359,10 @@ export default async function StemGiftsSixToEightPage() {
             Un traseu simplu de selecție
           </h2>
           <p className="mt-5 max-w-4xl text-lg leading-8 text-slate-700">
-            vârstă pe cutie → entry ~100 lei (Cristale) → upgrade
-            logică/robotică → Zig &amp; Go dacă vrei demo filmabil (later)
+            Pornește de la vârsta recomandată pe cutie, apoi alege activitatea
+            care îi stârnește curiozitatea. Pentru 6–8 ani, selecția de aici
+            începe de la 6+. Respectă instrucțiunile și supravegherea
+            recomandate de producător.
           </p>
         </section>
 
@@ -355,13 +370,13 @@ export default async function StemGiftsSixToEightPage() {
           <section>
             <div className="max-w-3xl">
               <p className="text-sm font-black uppercase tracking-[0.18em] text-amber-700">
-                Upgrade-uri în stoc
+                Alte opțiuni în stoc
               </p>
               <h2 className="mt-3 text-3xl font-black sm:text-4xl">
-                Logică, robotică și descoperire
+                Descoperă lumea prin joacă
               </h2>
             </div>
-            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
               {upgrades.map(product => (
                 <article
                   key={product.slug}
@@ -387,7 +402,10 @@ export default async function StemGiftsSixToEightPage() {
                         {product.name}
                       </h3>
                       <p className="mt-3 text-sm leading-6 text-slate-600">
-                        {UPGRADE_COPY[product.slug]}
+                        {SELECTION_COPY[product.slug].description}
+                      </p>
+                      <p className="mt-3 text-sm font-semibold text-slate-600">
+                        Vârsta pe cutie: {getManufacturerAge(product)}
                       </p>
                       <p className="mt-4 font-black text-slate-900">
                         {formatPrice(product.price)}
@@ -429,8 +447,8 @@ export default async function StemGiftsSixToEightPage() {
           aria-label="Pagini utile"
           className="flex flex-wrap gap-x-6 gap-y-3 border-t border-slate-200 pt-8 text-sm font-bold text-sky-800"
         >
-          <Link href={`/products/${CRISTALE_4M_SLUG}`}>
-            Set Cristale Roșu 4M
+          <Link href={`/products/${HOVER_RACER_SLUG}`}>
+            Și pentru 8+: Hover Racer
           </Link>
           <Link href={AGE_FILTER_URL}>Toate produsele 6–8 ani</Link>
           <Link href="/faq">FAQ TechTots</Link>

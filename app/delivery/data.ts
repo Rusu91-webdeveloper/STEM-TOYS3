@@ -109,7 +109,7 @@ export const faqs: DeliveryFaq[] = [
   {
     question: "Cât durează livrarea?",
     answer:
-      "Livrarea durează de obicei 5-10 zile lucrătoare de la confirmarea comenzii. Timpul exact depinde de procesarea de către furnizor (1-3 zile) și de zona de livrare (2-7 zile). Primești estimare exactă după ce furnizorul procesează comanda.",
+      "Livrare 1–4 zile lucrătoare cu FanCourier, după confirmarea stocului.",
   },
   {
     question: "Cum urmărim coletul în timp real?",

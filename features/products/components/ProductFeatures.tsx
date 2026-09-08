@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { HOVER_RACER_SLUG } from "@/lib/products/catalog-content-overrides";
 import { ShoppingCart, Truck, RotateCcw } from "lucide-react";
 import { formatPrice } from "@/lib/email/base";
 
@@ -30,6 +31,7 @@ export function ProductFeatures({
   productSlug,
   t,
 }: ProductFeaturesProps) {
+  const isHoverRacer = productSlug === HOVER_RACER_SLUG;
   const hasDynamicFreeShippingThreshold =
     typeof freeShippingThreshold === "number" &&
     Number.isFinite(freeShippingThreshold);
@@ -92,55 +94,67 @@ export function ProductFeatures({
           {t("featuresBenefits", "Caracteristici și beneficii")}
         </h3>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <ul className="space-y-2">
-            <li className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-sky-400" />
-              <span className={productBodyTextClass}>
-                {t(
-                  "developsCriticalThinking",
-                  "Dezvoltă gândirea critică și logica"
-                )}
-              </span>
+        {isHoverRacer ? (
+          <ul className="space-y-2 text-sm text-slate-700">
+            <li>
+              Asamblează un model de aeroglisor urmând instrucțiunile incluse.
             </li>
-            <li className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-emerald-400" />
-              <span className={productBodyTextClass}>
-                {t("encouragesCreativity", "Încurajează creativitatea")}
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-violet-400" />
-              <span className={productBodyTextClass}>
-                {t("buildsConfidence", "Construiește încrederea în sine")}
-              </span>
-            </li>
+            <li>Observă deplasarea pe o pernă de aer, fără ecran.</li>
+            <li>Pregătește 2 baterii AAA; acestea nu sunt incluse.</li>
           </ul>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ul className="space-y-2">
+              <li className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-sky-400" />
+                <span className={productBodyTextClass}>
+                  {t(
+                    "developsCriticalThinking",
+                    "Dezvoltă gândirea critică și logica"
+                  )}
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-emerald-400" />
+                <span className={productBodyTextClass}>
+                  {t("encouragesCreativity", "Încurajează creativitatea")}
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-violet-400" />
+                <span className={productBodyTextClass}>
+                  {t("buildsConfidence", "Construiește încrederea în sine")}
+                </span>
+              </li>
+            </ul>
 
-          <ul className="space-y-2">
-            <li className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-orange-400" />
-              <span className={productBodyTextClass}>
-                {t(
-                  "teachesFundamentalConcepts",
-                  "Predă concepte fundamentale de"
-                )}{" "}
-                {categoryName} {t("inEngagingWay", "într-un mod captivant")}
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-rose-400" />
-              <span className={productBodyTextClass}>
-                {t("safeMaterials", "Materiale sigure și de calitate")}
-              </span>
-            </li>
-          </ul>
-        </div>
+            <ul className="space-y-2">
+              <li className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-orange-400" />
+                <span className={productBodyTextClass}>
+                  {t(
+                    "teachesFundamentalConcepts",
+                    "Predă concepte fundamentale de"
+                  )}{" "}
+                  {categoryName} {t("inEngagingWay", "într-un mod captivant")}
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-rose-400" />
+                <span className={productBodyTextClass}>
+                  {t("safeMaterials", "Materiale sigure și de calitate")}
+                </span>
+              </li>
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Learn More Resources */}
       <div className={`${productSubSectionCardClass} space-y-3`}>
-        <h3 className={productTitleClass}>{t("learnMore", "Află mai multe")}</h3>
+        <h3 className={productTitleClass}>
+          {t("learnMore", "Află mai multe")}
+        </h3>
         <p className={`${productMutedTextClass} text-xs sm:text-sm`}>
           {t(
             "usefulGuides",
