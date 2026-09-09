@@ -146,9 +146,9 @@ export function generateMetadata() {
       locale: "ro_RO",
       images: [
         {
-          url: "/images/homepage_hero_banner_01.png",
+          url: "/images/home/brand-unboxing.webp",
           width: 1200,
-          height: 630,
+          height: 800,
           alt: "TechTots - jucarii STEM si educative pentru copii",
         },
       ],
@@ -159,7 +159,7 @@ export function generateMetadata() {
         "Jucării STEM, jucării educative și robotică pentru copii | TechTots",
       description:
         "Exploreaza jucarii STEM, jucarii educative, robotica si experimente pentru copii.",
-      images: ["/images/homepage_hero_banner_01.png"],
+      images: ["/images/home/brand-unboxing.webp"],
     },
     robots: {
       index: true,

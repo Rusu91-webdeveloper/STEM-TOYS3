@@ -3,8 +3,8 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-/** A product-photo animation, not footage. Static HTML is the default. */
-export function HoverRacerPreview() {
+/** Editorial paper scene. Static server HTML; gentle motion is progressive. */
+export function BrandScene() {
   const ref = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -37,19 +37,19 @@ export function HoverRacerPreview() {
   return (
     <div
       ref={ref}
-      className="relative aspect-square w-full max-w-[340px] overflow-hidden rounded-2xl bg-white sm:max-w-[380px]"
+      className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl bg-[#cbd5bf] shadow-2xl lg:aspect-[6/5]"
     >
       <div
-        className="home-hover-racer absolute inset-0"
+        className="home-brand-scene absolute inset-0"
         data-playing={playing && !paused}
       >
         <Image
-          src="/images/home/hover-racer.webp"
-          alt="Hover Racer 4M asamblat, cu elice și platformă de aeroglisor"
+          src="/images/home/brand-unboxing.webp"
+          alt="Scenă creativă din hârtie: avioane, panglică mentă și o cutie de cadou bleumarin deschisă"
           fill
           priority
-          sizes="(max-width: 640px) 280px, 380px"
-          className="object-contain p-5"
+          sizes="(max-width: 1023px) 100vw, 560px"
+          className="object-cover"
         />
       </div>
       {!reducedMotion && (

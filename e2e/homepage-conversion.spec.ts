@@ -57,7 +57,10 @@ test("hero motion pauses offscreen and respects reduced motion", async ({
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  const animation = page.locator(".home-hover-racer");
+  const hero = page.locator('section[aria-labelledby="home-title"]');
+  await expect(hero).not.toContainText("Hover Racer");
+  await expect(hero.locator("img")).toHaveAttribute("src", /brand-unboxing/);
+  const animation = page.locator(".home-brand-scene");
   await expect(animation).toHaveAttribute("data-playing", "true");
   await page.getByRole("button", { name: "Pauză animație" }).click();
   await expect(animation).toHaveAttribute("data-playing", "false");
@@ -123,7 +126,7 @@ test("headline and CTAs render with JavaScript disabled", async ({
   await expect(
     page.getByRole("link", { name: "Explorează colecția", exact: true })
   ).toBeVisible();
-  await expect(page.locator(".home-hover-racer")).toHaveAttribute(
+  await expect(page.locator(".home-brand-scene")).toHaveAttribute(
     "data-playing",
     "false"
   );

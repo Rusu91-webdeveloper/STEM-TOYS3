@@ -2,25 +2,13 @@
   {
     "name": "desktop",
     "errors": [],
-    "width": 1440,
-    "pageWidth": 1440,
-    "productTop": 852,
-    "brokenImages": [],
-    "footerDelivery": [
-      "1–4 zile lucrătoare și suport real",
-      "1–4 zile lucrătoare"
-    ]
+    "overflow": false,
+    "broken": []
   },
   {
     "name": "mobile",
     "errors": [],
-    "width": 390,
-    "pageWidth": 390,
-    "productTop": 1415.171875,
-    "brokenImages": [],
-    "footerDelivery": [
-      "1–4 zile lucrătoare și suport real",
-      "1–4 zile lucrătoare"
-    ]
+    "overflow": false,
+    "broken": []
   }
 ]

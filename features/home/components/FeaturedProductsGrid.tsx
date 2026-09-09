@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCurrency } from "@/lib/currency";
 import type { Product } from "@/types/product";
 
-import { HOVER_RACER_SLUG, PRODUCT_AGE_LABELS } from "../merchandising";
+import { HOVER_RACER_SLUG } from "../merchandising";
 
 export function FeaturedProductsGrid({
   products,
@@ -55,12 +55,8 @@ export function FeaturedProductsGrid({
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-5">
             {showcase.map(product => {
               const hover = product.slug === HOVER_RACER_SLUG;
-              const age = hover
-                ? "8+ ani"
-                : product.ageRange ||
-                  (product.ageGroup
-                    ? PRODUCT_AGE_LABELS[product.ageGroup]
-                    : null);
+              // A catalog filter bucket is not a manufacturer age recommendation.
+              const age = hover ? "8+ ani" : product.ageRange;
               return (
                 <article
                   key={product.id}
@@ -86,7 +82,7 @@ export function FeaturedProductsGrid({
                   <div className="flex flex-1 flex-col p-3 sm:p-4">
                     <p className="mb-2 min-h-8 text-[10px] font-semibold leading-4 text-emerald-800">
                       {hover
-                        ? "Recomandarea săptămânii"
+                        ? "Recomandarea săptămânii · 8+"
                         : "Selectat de TechTots"}
                     </p>
                     <h3 className="mb-2 line-clamp-3 min-h-[3.75rem] text-sm font-bold leading-5 text-slate-950">
