@@ -10,7 +10,6 @@ import {
   Target,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,7 @@ const listBulletClass = "pl-3 text-left text-sm text-slate-700 sm:text-base";
 
 export function StemGuideLanding() {
   const { t } = useTranslation();
-  const publishedOn = useMemo(() => new Date().toLocaleDateString("ro-RO"), []);
+  const publishedOn = "7 septembrie 2026";
 
   const translate = (key: string) => {
     const value = t(key);

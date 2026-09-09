@@ -1,7 +1,4 @@
-import { StemGuideLanding } from "@/features/guides/components/StemGuideLanding";
-
-export { metadata } from "./metadata";
-
-export default function StemGuide2025Page() {
-  return <StemGuideLanding />;
+import { permanentRedirect } from "next/navigation";
+export default function LegacyStemGuidePage() {
+  permanentRedirect("/ghid-jucarii-stem-2026");
 }

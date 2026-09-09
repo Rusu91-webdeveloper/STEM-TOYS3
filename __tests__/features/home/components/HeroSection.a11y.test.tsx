@@ -1,6 +1,11 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { HeroSection } from "@/features/home/components";
+import { HeroSection } from "@/features/home/components/HeroSection";
+
+jest.mock("@/lib/analytics/homepage-conversion-events", () => ({
+  HOMEPAGE_CONVERSION_EVENTS: {},
+  trackHomepageConversionEvent: jest.fn(),
+}));
 
 const t = (k: string, d?: string) => d || k;
 
@@ -9,6 +14,8 @@ describe("HeroSection accessibility", () => {
     render(<HeroSection t={t} />);
     const h1s = screen.getAllByRole("heading", { level: 1 });
     expect(h1s.length).toBe(1);
-    expect(screen.getByLabelText(/hero|homepage/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: /STEM fără ecran/ })
+    ).toBeInTheDocument();
   });
 });

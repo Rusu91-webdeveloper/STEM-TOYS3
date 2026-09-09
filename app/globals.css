@@ -1325,3 +1325,14 @@ img {
     width: 100%;
   }
 }
+
+/* One progressive hero animation; content never waits for animation or JS. */
+@keyframes home-brand-scene {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+.home-brand-scene { animation: home-brand-scene 12s ease-in-out infinite; animation-play-state: paused; }
+.home-brand-scene[data-playing="true"] { animation-play-state: running; }
+@media (prefers-reduced-motion: reduce) {
+  .home-brand-scene { animation: none; transform: none; }
+}

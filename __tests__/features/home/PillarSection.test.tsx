@@ -7,10 +7,10 @@ describe("PillarSection", () => {
     render(<PillarSection />);
 
     const links = [
-      { name: /Ghid 2025/i, href: "/ghid-jucarii-stem-2025" },
-      { name: /După vârstă/i, href: "/jucarii-stem-dupa-varsta" },
+      { name: /Ghid STEM 2026/i, href: "/ghid-jucarii-stem-2026" },
+      { name: /Cadouri 6–8 ani/i, href: "/cadouri-stem-6-8-ani" },
       { name: /Beneficii STEM/i, href: "/beneficiile-jucariilor-stem" },
-      { name: /FAQ/i, href: "/faq" },
+      { name: /Întrebări frecvente/i, href: "/faq" },
     ];
 
     links.forEach(({ name, href }) => {
@@ -19,5 +19,3 @@ describe("PillarSection", () => {
     });
   });
 });
-
-
