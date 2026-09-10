@@ -33,16 +33,17 @@ Rollback: use the generated `before.json` snapshot to restore the affected produ
 
 ## Verification and rollout status — September 10, 2026
 
-Production deployment was requested on September 10. The activation command could not obtain a fresh supplier snapshot: the master feed repeatedly returned HTTP 503, including an independent Python HTTP request. No production catalog changes were applied. Do not activate from the September 9 analysis files.
+Production code deployment `ea104bed97a4cf46ce3df808317936ec5bd7f45b` completed successfully on Vercel (`dpl_GQGweFqKpeTAfqw5McPp85NuegLB`). The supplier feed recovered after the earlier HTTP 503 outage, and the portfolio was activated using a fresh, fully validated feed.
+
+- Active Boribon portfolio: **63 products** — 15 retained, 48 created; 62 unselected products deactivated without deletion.
+- The deployed authenticated sync completed successfully at **2026-09-10 08:51:50 UTC**, updating all 63 products with zero failures.
+- All 63 active products were found in the public product API, with B2C prices matching the supplier snapshot. The public stock API matched sellable stock for all 63. No price, EAN, compare-at-price or inventory mismatches were found.
+- The scheduled endpoint was verified to skip outside 06:00/18:00 Bucharest. Summer, winter and both daylight-saving transition dates are covered by tests.
+- Recovery snapshot and machine-readable production verification are stored outside the repository at `~/.codex/backups/boribon-portfolio-1789030274856/`.
 
 Verification completed:
-- 32 existing and new checkout/feed checks passed; subsequent targeted runs added and passed stale-checkout rejection and cart-stock freshness tests (34 distinct checks total).
+- 41 focused tests passed after the schedule change.
 - Isolated local PostgreSQL integration passed for all 63 identities, exact B2C pricing, preserved content and purchase cost, concurrent reservations, and fail-closed stock. The temporary schema was removed afterward.
-- `next build` passed (the project's existing configuration skips TypeScript and lint checks during builds).
-- Separate full and focused TypeScript runs report unrelated repository errors; no application diagnostics were reported in the changed paths. Full type checking is not green.
-
-Resume with a fresh live-feed preview, finish production deployment/activation and verify the actual cron and website. Deployment changes the supplier cron to the twice-daily Bucharest schedule. Catalog activation remains a separate explicit command after a successful live-feed preview.
-
-Schedule-change verification: 41 focused tests passed, including summer/winter UTC offsets and both daylight-saving transition dates. A fresh pre-deployment Boribon database snapshot was saved outside the repository, and a read-only migration audit found no pending migrations.
-
-The repository pre-commit full suite failed: 59 suites failed and 70 passed (157 failed / 419 passed tests), including missing GDPR routes and unrelated test setup failures. The existing full typecheck also fails outside this change. For the explicitly requested deployment, hooks are bypassed for the commit/push invocation only; hook files remain unchanged. Focused tests and the actual Vercel production build are the release validation.
+- Local and Vercel production builds passed. A read-only migration audit found no pending migrations.
+- The project's existing build configuration skips TypeScript and lint checks during builds. Separate full and focused TypeScript runs report unrelated repository errors; no application diagnostics were reported in the changed paths. Full type checking is not green.
+- The repository pre-commit full suite failed: 59 suites failed and 70 passed (157 failed / 419 passed tests), including missing GDPR routes and unrelated test setup failures. For the explicitly requested deployment, hooks were bypassed for the commit/push invocation only; hook files remain unchanged.
