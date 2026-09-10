@@ -55,7 +55,7 @@ export function ProductCard({
         )
       : 0;
   const isOutOfStock = stockQuantity <= 0;
-  const isLowStock = stockQuantity > 0 && stockQuantity < 4;
+  const isLowStock = product.attributes?.inventoryMode !== "supplier-availability" && stockQuantity > 0 && stockQuantity < 4;
 
   const productImages =
     Array.isArray(product.images) && product.images.length > 0
@@ -230,7 +230,7 @@ export function ProductCard({
             </Link>
             {renderRating()}
             <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
-              {product.description}
+              {product.description?.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ")}
             </p>
           </div>
 
@@ -459,7 +459,7 @@ export function ProductCard({
 
         {/* Description */}
         <p className="line-clamp-2 text-[11px] sm:text-xs text-slate-500 leading-relaxed">
-          {product.description}
+          {product.description?.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ")}
         </p>
 
         {/* Price */}

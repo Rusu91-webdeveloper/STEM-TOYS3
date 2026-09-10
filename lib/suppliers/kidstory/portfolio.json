@@ -1,0 +1,177 @@
+[
+  {
+    "sourceId": "24630",
+    "sku": "F4541ML",
+    "ean": "810074274432",
+    "role": "HERO",
+    "theme": "Physics & engineering"
+  },
+  {
+    "sourceId": "20597",
+    "sku": "AD6102",
+    "ean": "8437015413044",
+    "role": "HERO",
+    "theme": "Biology & life science"
+  },
+  {
+    "sourceId": "6903",
+    "sku": "6801INS",
+    "ean": "4893156068019",
+    "role": "HERO",
+    "theme": "Coding & computational thinking"
+  },
+  {
+    "sourceId": "30455",
+    "sku": "4M-05545",
+    "ean": "4893156055453",
+    "role": "HERO",
+    "theme": "Magnetism & transport engineering"
+  },
+  {
+    "sourceId": "20826",
+    "sku": "MP-250BUN",
+    "ean": "750668014238",
+    "role": "HERO",
+    "theme": "Microscopy & discovery"
+  },
+  {
+    "sourceId": "16411",
+    "sku": "4M-03427",
+    "ean": "4893156034274",
+    "role": "HERO",
+    "theme": "Hydraulics & mechanical engineering"
+  },
+  {
+    "sourceId": "16402",
+    "sku": "4M-03394",
+    "ean": "4893156033949",
+    "role": "HERO",
+    "theme": "Optics & light"
+  },
+  {
+    "sourceId": "20825",
+    "sku": "MP-250",
+    "ean": "750668013040",
+    "role": "CORE",
+    "theme": "Microscopy & discovery"
+  },
+  {
+    "sourceId": "20811",
+    "sku": "HU-10",
+    "ean": "750668005120",
+    "role": "CORE",
+    "theme": "Biology & outdoor science"
+  },
+  {
+    "sourceId": "16432",
+    "sku": "4M-03460",
+    "ean": "4893156034601",
+    "role": "CORE",
+    "theme": "Robotics & mechanics"
+  },
+  {
+    "sourceId": "12122",
+    "sku": "4M-03407",
+    "ean": "4893156034076",
+    "role": "CORE",
+    "theme": "Robotics & mechanics"
+  },
+  {
+    "sourceId": "23603",
+    "sku": "4M-03473",
+    "ean": "4893156034731",
+    "role": "CORE",
+    "theme": "Sensors & electronics"
+  },
+  {
+    "sourceId": "30435",
+    "sku": "4M-03299",
+    "ean": "4893156032997",
+    "role": "CORE",
+    "theme": "Magnetism & physics"
+  },
+  {
+    "sourceId": "30436",
+    "sku": "4M-03417",
+    "ean": "4893156034175",
+    "role": "CORE",
+    "theme": "Renewable energy & engineering"
+  },
+  {
+    "sourceId": "12525",
+    "sku": "4M-05537",
+    "ean": "4893156055378",
+    "role": "CORE",
+    "theme": "Space science"
+  },
+  {
+    "sourceId": "6910",
+    "sku": "06805IS",
+    "ean": "4893156068057",
+    "role": "CORE",
+    "theme": "Electronics & logic"
+  },
+  {
+    "sourceId": "14982",
+    "sku": "4M-03268",
+    "ean": "4893156032683",
+    "role": "ACQUISITION",
+    "theme": "Physics & mechanics"
+  },
+  {
+    "sourceId": "16438",
+    "sku": "4M-03925",
+    "ean": "4893156039255",
+    "role": "ACQUISITION",
+    "theme": "Geology"
+  },
+  {
+    "sourceId": "22990",
+    "sku": "PP4105",
+    "ean": "5710409103367",
+    "role": "ACQUISITION",
+    "theme": "Construction & spatial reasoning"
+  },
+  {
+    "sourceId": "23072",
+    "sku": "PP3989",
+    "ean": "5710409109925",
+    "role": "ACQUISITION",
+    "theme": "Space construction"
+  },
+  {
+    "sourceId": "28478",
+    "sku": "F5601ML",
+    "ean": "810074278355",
+    "role": "ECOSYSTEM",
+    "theme": "Air Toobz accessory"
+  },
+  {
+    "sourceId": "28982",
+    "sku": "F5621ML",
+    "ean": "810074278362",
+    "role": "ECOSYSTEM",
+    "theme": "Air Toobz accessory"
+  },
+  {
+    "sourceId": "28983",
+    "sku": "F5631ML",
+    "ean": "810074278379",
+    "role": "ECOSYSTEM",
+    "theme": "Air Toobz accessory"
+  },
+  {
+    "sourceId": "14845",
+    "sku": "AD4004",
+    "ean": "8437006044882",
+    "role": "ECOSYSTEM",
+    "theme": "Aqua Dragons refill"
+  },
+  {
+    "sourceId": "14974",
+    "sku": "4M-03926/EU",
+    "ean": "4893156039262",
+    "role": "TEST",
+    "theme": "Chemistry, geology & dinosaurs"
+  }
+]

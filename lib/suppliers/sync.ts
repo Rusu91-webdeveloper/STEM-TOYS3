@@ -1,3 +1,5 @@
+import { KIDSTORY_SYNC_MODE } from "@/lib/suppliers/kidstory/feed";
+import { syncKidstoryPortfolio, closeKidstoryStock } from "@/lib/suppliers/kidstory/sync";
 import { invalidateProductCaches } from "@/lib/cache-smart-invalidation";
 import { BORIBON_SYNC_MODE } from "@/lib/suppliers/boribon/feed";
 import { syncBoribonPortfolio, closeBoribonStock } from "@/lib/suppliers/boribon/sync";
@@ -129,6 +131,7 @@ export async function runSupplierFeedSync(
   for (const feed of feeds) {
     const curatedBoribon =
       (feed.mapping as Record<string, unknown> | null)?.syncMode === BORIBON_SYNC_MODE;
+    const curatedKidstory = (feed.mapping as Record<string, unknown> | null)?.syncMode === KIDSTORY_SYNC_MODE;
     const since = new Date(Date.now() - SYNC_IN_PROGRESS_WINDOW_MS);
     const existingRunning = await db.supplierSyncJob.findFirst({
       where: {
@@ -163,7 +166,7 @@ export async function runSupplierFeedSync(
     try {
       const mapping: FieldMapping = (feed.mapping as FieldMapping) || {};
       const connector = getConnector(feed, mapping);
-      let items = curatedBoribon ? [] : await connector.fetchProducts();
+      let items = (curatedBoribon || curatedKidstory) ? [] : await connector.fetchProducts();
 
       const allowList = normalizeSkuList(mapping.allowedSkus);
       const blockList = normalizeSkuList(mapping.blockedSkus);
@@ -200,7 +203,7 @@ export async function runSupplierFeedSync(
 
       const { imported, updated, failed } = curatedBoribon
         ? await syncBoribonPortfolio(db, feed)
-        : await upsertProducts(feed, items, {
+        : curatedKidstory ? await syncKidstoryPortfolio(db, feed) : await upsertProducts(feed, items, {
         requiredFields,
         enforceAllowedSkus,
         allowSet,
@@ -240,6 +243,10 @@ export async function runSupplierFeedSync(
       if (curatedBoribon) {
         await closeBoribonStock(db);
         await invalidateProductCaches({ reason: "Boribon sync failed: stock closed" });
+      }
+      if (curatedKidstory) {
+        await closeKidstoryStock(db);
+        await invalidateProductCaches({ reason: "Kidstory sync failed: availability closed" });
       }
       const message =
         error instanceof Error ? error.message : "Unknown sync failure";

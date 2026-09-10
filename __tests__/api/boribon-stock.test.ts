@@ -46,3 +46,12 @@ it("returns net stock once and closes stale, failed and inactive curated product
     legacy: 4,
   });
 });
+
+it("closes Kidstory availability when its feed is stale", async () => {
+  db.product.findMany.mockResolvedValue([
+    product("kidstory", { supplierId: "26f5418c-965d-4630-994c-b51947cdec04", metadata: { kidstory: {} }, stockQuantity: 1, reservedQuantity: 0,
+      supplierProducts: [{ status: "MAPPED", lastSyncAt: new Date(Date.now() - BORIBON_MAX_AGE_MS) }] }),
+  ]);
+  const response = await POST(new NextRequest("http://localhost/api/products/stock", { method: "POST", body: JSON.stringify({ items: [{ productId: "kidstory" }] }) }));
+  expect(await response.json()).toEqual({ kidstory: 0 });
+});

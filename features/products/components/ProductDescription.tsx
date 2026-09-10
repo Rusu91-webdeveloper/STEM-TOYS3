@@ -1,5 +1,6 @@
 "use client";
 
+import DOMPurify from "isomorphic-dompurify";
 import { ChevronDown } from "lucide-react";
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
@@ -28,7 +29,7 @@ export function ProductDescription({
   t,
   className,
 }: ProductDescriptionProps) {
-  const descRef = useRef<HTMLParagraphElement>(null);
+  const descRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [isClamped, setIsClamped] = useState(false);
 
@@ -73,13 +74,12 @@ export function ProductDescription({
       </h2>
       <div className="space-y-3">
         <div className="relative">
-          <p
+          <div
             ref={descRef}
             id="product-detail-description"
-            className={cn(productBodyTextClass, !expanded && "line-clamp-6")}
-          >
-            {description}
-          </p>
+            className={cn(productBodyTextClass, "[&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5", !expanded && "line-clamp-6")}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(description, { USE_PROFILES: { html: true }, FORBID_TAGS: ["iframe", "form", "input", "button", "style"] }) }}
+          />
           {!expanded && isClamped && (
             <div
               className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/85 to-transparent"

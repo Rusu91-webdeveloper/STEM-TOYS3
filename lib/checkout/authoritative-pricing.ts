@@ -1,4 +1,4 @@
-import { BORIBON_ID, boribonStockIsFresh, isCuratedBoribon } from "@/lib/suppliers/boribon/feed";
+import { CURATED_SUPPLIER_IDS, curatedStockIsFresh, isCuratedSupplier } from "@/lib/suppliers/curated-stock";
 import { db } from "@/lib/db";
 import {
   analyzeSupplierCartComposition,
@@ -122,7 +122,7 @@ export async function resolveCheckoutPricing(input: {
         supplierId: true,
         metadata: true,
         stockQuantity: true,
-        supplierProducts: { where: { supplierId: BORIBON_ID }, select: { lastSyncAt: true, status: true } },
+        supplierProducts: { where: { supplierId: { in: CURATED_SUPPLIER_IDS } }, select: { lastSyncAt: true, status: true } },
         supplier: {
           select: {
             id: true,
@@ -136,8 +136,8 @@ export async function resolveCheckoutPricing(input: {
 
   for (const product of products) {
     if (
-      isCuratedBoribon(product.supplierId, product.metadata) &&
-      !product.supplierProducts.some(p => p.status === "MAPPED" && boribonStockIsFresh(p.lastSyncAt))
+      isCuratedSupplier(product.supplierId, product.metadata) &&
+      !product.supplierProducts.some(p => p.status === "MAPPED" && curatedStockIsFresh(p.lastSyncAt))
     ) {
       throw new CheckoutPricingError(
         "SUPPLIER_STOCK_UNAVAILABLE",
