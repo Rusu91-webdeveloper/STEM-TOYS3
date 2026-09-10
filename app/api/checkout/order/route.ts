@@ -1,3 +1,4 @@
+import { BORIBON_ID, BORIBON_MAX_AGE_MS, isCuratedBoribon } from "@/lib/suppliers/boribon/feed";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -1425,6 +1426,8 @@ export async function POST(request: Request) {
                 name: true,
                 isActive: true,
                 stockQuantity: true,
+                supplierId: true,
+                metadata: true,
               },
             });
 
@@ -1454,6 +1457,9 @@ export async function POST(request: Request) {
               where: {
                 id: productId,
                 isActive: true,
+                ...(isCuratedBoribon(product.supplierId, product.metadata) ? {
+                  supplierProducts: { some: { supplierId: BORIBON_ID, status: "MAPPED" as const, lastSyncAt: { gt: new Date(Date.now() - BORIBON_MAX_AGE_MS) } } },
+                } : {}),
                 stockQuantity: {
                   gte: item.quantity,
                 },

@@ -126,3 +126,12 @@ describe("deriveInitialPaymentStatus", () => {
     expect(pricing.orderTotal).toBe(49.99);
   });
 });
+
+
+describe("curated Boribon checkout freshness", () => {
+  it("rejects stale supplier stock before resolving payment totals", async () => {
+    db.book.findMany.mockResolvedValue([]);
+    db.product.findMany.mockResolvedValue([{ id: "boribon-test", supplierId: "ee75eea8-9f64-4076-96a2-52f5d6926c14", metadata: { boribon: {} }, supplierProducts: [{ status: "MAPPED", lastSyncAt: new Date(0) }] }]);
+    await expect(resolveCheckoutPricing({ userId: "user", items: [{ productId: "boribon-test", quantity: 1 }] })).rejects.toMatchObject({ code: "SUPPLIER_STOCK_UNAVAILABLE", status: 503 });
+  });
+});

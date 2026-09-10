@@ -1,3 +1,4 @@
+import { BORIBON_ID, boribonStockIsFresh, isCuratedBoribon } from "@/lib/suppliers/boribon/feed";
 import { db } from "@/lib/db";
 import {
   analyzeSupplierCartComposition,
@@ -119,7 +120,9 @@ export async function resolveCheckoutPricing(input: {
         weight: true,
         dimensions: true,
         supplierId: true,
+        metadata: true,
         stockQuantity: true,
+        supplierProducts: { where: { supplierId: BORIBON_ID }, select: { lastSyncAt: true, status: true } },
         supplier: {
           select: {
             id: true,
@@ -130,6 +133,19 @@ export async function resolveCheckoutPricing(input: {
       },
     }),
   ]);
+
+  for (const product of products) {
+    if (
+      isCuratedBoribon(product.supplierId, product.metadata) &&
+      !product.supplierProducts.some(p => p.status === "MAPPED" && boribonStockIsFresh(p.lastSyncAt))
+    ) {
+      throw new CheckoutPricingError(
+        "SUPPLIER_STOCK_UNAVAILABLE",
+        "Stocul furnizorului se actualizează. Te rugăm să încerci din nou în câteva minute.",
+        503
+      );
+    }
+  }
 
   const bookMap = new Map(books.map(book => [book.id, book]));
   const productMap = new Map(products.map(product => [product.id, product]));

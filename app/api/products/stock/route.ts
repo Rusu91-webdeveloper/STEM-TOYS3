@@ -1,3 +1,8 @@
+import {
+  BORIBON_ID,
+  boribonStockIsFresh,
+  isCuratedBoribon,
+} from "@/lib/suppliers/boribon/feed";
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
@@ -30,7 +35,18 @@ export async function POST(request: NextRequest) {
     if (nonBookProductIds.length > 0) {
       const products = await db.product.findMany({
         where: { id: { in: nonBookProductIds } },
-        select: { id: true, stockQuantity: true, reservedQuantity: true },
+        select: {
+          id: true,
+          isActive: true,
+          supplierId: true,
+          metadata: true,
+          stockQuantity: true,
+          reservedQuantity: true,
+          supplierProducts: {
+            where: { supplierId: BORIBON_ID },
+            select: { lastSyncAt: true, status: true },
+          },
+        },
       });
 
       for (const p of products) {
@@ -38,7 +54,16 @@ export async function POST(request: NextRequest) {
           0,
           (p.stockQuantity ?? 0) - (p.reservedQuantity ?? 0)
         );
-        stocks[p.id] = available;
+        const boribonAvailable = p.supplierProducts.some(
+          s => s.status === "MAPPED" && boribonStockIsFresh(s.lastSyncAt)
+        )
+          ? Math.max(0, p.stockQuantity)
+          : 0;
+        stocks[p.id] = !p.isActive
+          ? 0
+          : isCuratedBoribon(p.supplierId, p.metadata)
+            ? boribonAvailable
+            : available;
       }
     }
 

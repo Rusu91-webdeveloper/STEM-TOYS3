@@ -1,3 +1,6 @@
+import { invalidateProductCaches } from "@/lib/cache-smart-invalidation";
+import { BORIBON_SYNC_MODE } from "@/lib/suppliers/boribon/feed";
+import { syncBoribonPortfolio, closeBoribonStock } from "@/lib/suppliers/boribon/sync";
 import {
   SupplierFeed,
   SupplierFeedType,
@@ -124,6 +127,8 @@ export async function runSupplierFeedSync(
   let shouldRecomputeBundlePricing = false;
 
   for (const feed of feeds) {
+    const curatedBoribon =
+      (feed.mapping as Record<string, unknown> | null)?.syncMode === BORIBON_SYNC_MODE;
     const since = new Date(Date.now() - SYNC_IN_PROGRESS_WINDOW_MS);
     const existingRunning = await db.supplierSyncJob.findFirst({
       where: {
@@ -158,7 +163,7 @@ export async function runSupplierFeedSync(
     try {
       const mapping: FieldMapping = (feed.mapping as FieldMapping) || {};
       const connector = getConnector(feed, mapping);
-      let items = await connector.fetchProducts();
+      let items = curatedBoribon ? [] : await connector.fetchProducts();
 
       const allowList = normalizeSkuList(mapping.allowedSkus);
       const blockList = normalizeSkuList(mapping.blockedSkus);
@@ -193,7 +198,9 @@ export async function runSupplierFeedSync(
         items = items.filter(item => !blockSet.has(item.supplierSku));
       }
 
-      const { imported, updated, failed } = await upsertProducts(feed, items, {
+      const { imported, updated, failed } = curatedBoribon
+        ? await syncBoribonPortfolio(db, feed)
+        : await upsertProducts(feed, items, {
         requiredFields,
         enforceAllowedSkus,
         allowSet,
@@ -230,6 +237,10 @@ export async function runSupplierFeedSync(
       });
       shouldRecomputeBundlePricing = true;
     } catch (error) {
+      if (curatedBoribon) {
+        await closeBoribonStock(db);
+        await invalidateProductCaches({ reason: "Boribon sync failed: stock closed" });
+      }
       const message =
         error instanceof Error ? error.message : "Unknown sync failure";
 
@@ -264,6 +275,7 @@ export async function runSupplierFeedSync(
   }
 
   if (shouldRecomputeBundlePricing) {
+    await invalidateProductCaches({ reason: "Supplier prices and stock refreshed" });
     try {
       const bundleResult = await recomputeBundles();
       console.log(
