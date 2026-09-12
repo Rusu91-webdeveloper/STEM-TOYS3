@@ -50,3 +50,31 @@ Restore affected product/link/feed fields in a transaction, deactivate newly
 created products, and preserve subsequent orders and reservations. Never replace
 an entire production database to roll back the portfolio. Recheck production
 state before any repeat activation.
+
+## Verified production status — September 12, 2026
+
+Deployment `d0a3eec80d310fbccea9eecb158b8e878bed5022` completed successfully
+on Vercel. Activation on September 10 retained six products, added 19 and
+ deactivated 50 unselected products. The terrarium's SKU was corrected without
+changing its ID or URL.
+
+The September 12 read-only audit verified all 25 active Kidstory products against
+the fresh supplier feed and public APIs: exact SKU, price, name, description,
+ordered images, source attributes and available checkout capacity. Boribon
+remains at 63 active products. All 124 distinct source image URLs passed the
+image check during rollout; a supplier image also passed the storefront optimizer.
+The Air Toobz page was visually checked with its supplier image and 770 RON price.
+
+Both suppliers completed the common manual sync, then every scheduled run at
+18:00 September 10, 06:00/18:00 September 11, and 06:00 September 12 Bucharest.
+Each run updated 25 Kidstory and 63 Boribon products with no failures.
+
+Validation: 49 focused tests passed, as did isolated PostgreSQL integration for
+source content, pricing, reservations and failure closure. Full TypeScript
+checking still reports unrelated repository errors, with none in changed
+application paths. The local build was stopped to reduce machine load; the
+Vercel production build passed. Existing failing hooks were bypassed only for
+these release commands; hook files were not changed.
+
+Recovery and verification evidence:
+`~/.codex/backups/kidstory-portfolio-1789051327892/`.

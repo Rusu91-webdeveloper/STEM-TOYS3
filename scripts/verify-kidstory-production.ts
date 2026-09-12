@@ -54,6 +54,7 @@ async function main() {
     const product = state.products.find(p => p.barcode === item.entry.ean);
     assert(product, `Missing ${item.entry.sku}`);
     const expected = kidstoryContent(item.row);
+    assert.equal(product.sku, item.entry.sku);
     assert.equal(product.price, item.retailPrice);
     assert.equal(product.compareAtPrice, null);
     assert.equal(product.name, expected.name);

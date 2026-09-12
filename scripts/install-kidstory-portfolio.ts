@@ -128,6 +128,7 @@ async function main() {
           price: item.retailPrice!,
           compareAtPrice: null,
           barcode: entry.ean,
+          sku: entry.sku,
           isActive: true,
           status: "APPROVED" as const,
           categoryId: category.id,
