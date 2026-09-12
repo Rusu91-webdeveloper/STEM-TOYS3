@@ -34,7 +34,7 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
     {
       icon: "🚚",
       title: "Livrare Rapidă",
-      description: "Primiți jucăriile în 24-48 ore cu tracking complet",
+      description: "Primiți jucăriile în 1–4 zile lucrătoare cu tracking complet",
     },
   ];
 

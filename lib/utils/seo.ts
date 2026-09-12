@@ -72,7 +72,10 @@ export function generateProductMetadata(product: any): Metadata {
   // Define age range for better SEO targeting
   const ageRange =
     product.ageRange ||
-    (product.attributes?.age ? product.attributes.age : "8-12");
+    product.attributes?.manufacturerRecommendedAge ||
+    product.attributes?.originalAgeText ||
+    product.attributes?.age ||
+    "";
 
   const categoryLabel =
     typeof categoryName === "string" ? categoryName.toLowerCase() : "stem";
@@ -82,7 +85,7 @@ export function generateProductMetadata(product: any): Metadata {
       : "";
   const derivedDescription = [
     `${product.name} este un produs din categoria ${categoryLabel} pentru copii.`,
-    product.ageGroup ? `Potrivit pentru ${ageRange} ani.` : null,
+    ageRange ? `Vârsta recomandată: ${ageRange}.` : null,
     shortDescription ? shortDescription.slice(0, 120) : null,
   ]
     .filter(Boolean)
@@ -127,8 +130,8 @@ export function generateProductMetadata(product: any): Metadata {
 
   // Return metadata using the createMetadata utility
   return createMetadata({
-    title: "metaTitle" as any,
-    description: "metaDescription" as any,
+    title: translations.ro.title,
+    description: translations.ro.description,
     keywords,
     canonicalUrl: seoData.canonical || `${SITE_URL}/products/${product.slug}`,
     ogImage: product.images?.[0] || "/opengraph-image.png",

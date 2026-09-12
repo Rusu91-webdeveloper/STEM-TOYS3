@@ -1,11 +1,9 @@
+import { GIFT_SLUGS, selectHomepageGifts } from "@/lib/products/merchandising";
 import { unstable_cache } from "next/cache";
 import { Suspense } from "react";
 
 import { FeaturedProductsGrid } from "@/features/home/components/FeaturedProductsGrid";
-import {
-  HOVER_RACER_SKU,
-  PRODUCT_AGE_LABELS,
-} from "@/features/home/merchandising";
+import { PRODUCT_AGE_LABELS } from "@/features/home/merchandising";
 import { applyProductContentOverride } from "@/lib/products/catalog-content-overrides";
 import type { Product } from "@/types/product";
 
@@ -22,22 +20,14 @@ const getRecommendations = unstable_cache(
       status: "APPROVED" as const,
       stockQuantity: { gt: 0 },
     };
-    const [hover, selection] = await Promise.all([
-      db.product.findFirst({ where: { ...available, sku: HOVER_RACER_SKU } }),
-      db.product.findMany({
-        where: available,
-        orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
-        take: 4,
-      }),
-    ]);
-    const products = Array.from(
-      new Map(
-        [...(hover ? [hover] : []), ...selection].map(product => [
-          product.id,
-          product,
-        ])
-      ).values()
-    ).slice(0, 4);
+    const selection = await db.product.findMany({
+      where: {
+        ...available,
+        stockQuantity: { gt: 1 },
+        slug: { in: [...GIFT_SLUGS] },
+      },
+    });
+    const products = selectHomepageGifts(selection);
     return products.map(product =>
       applyProductContentOverride({
         id: product.id,
@@ -52,6 +42,10 @@ const getRecommendations = unstable_cache(
             ? (product.ageGroup as Product["ageGroup"])
             : undefined,
         tags: product.tags,
+        attributes: product.attributes as Product["attributes"],
+        ageRange:
+          (product.attributes as any)?.manufacturerRecommendedAge ||
+          (product.attributes as any)?.originalAgeText,
         isActive: product.isActive,
         createdAt: product.createdAt,
         updatedAt: product.updatedAt,
@@ -60,7 +54,7 @@ const getRecommendations = unstable_cache(
       })
     );
   },
-  ["homepage-recommendations-v4"],
+  ["homepage-recommendations-v5-curated"],
   { revalidate: 300, tags: ["products"] }
 );
 
