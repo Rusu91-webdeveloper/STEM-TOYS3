@@ -21,7 +21,7 @@ export function SeoJsonLd({ data }: JsonLdProps) {
       type="application/ld+json"
       // eslint-disable-next-line react/no-danger
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(filtered.length === 1 ? filtered[0] : filtered),
+        __html: JSON.stringify(filtered.length === 1 ? filtered[0] : filtered).replace(/</g, "\\u003c"),
       }}
     />
   );

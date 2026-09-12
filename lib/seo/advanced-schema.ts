@@ -1,3 +1,4 @@
+import { merchantOfferPolicies, type MerchantShippingSettings } from "./merchant-policy";
 /**
  * Structured data helpers for STEM-focused ecommerce pages.
  * Keep claims factual and tied to visible page content.
@@ -130,9 +131,10 @@ function buildAdditionalProperty(product: Product) {
   return properties;
 }
 
-function buildOffer(product: Product) {
+function buildOffer(product: Product, shipping?: MerchantShippingSettings) {
   return {
     "@type": "Offer",
+    ...merchantOfferPolicies(product.price, shipping),
     url: `https://www.techtots.ro/products/${product.slug}`,
     priceCurrency: "RON",
     price: product.price,
@@ -148,7 +150,7 @@ function buildOffer(product: Product) {
   };
 }
 
-export function generateEducationalProductSchema(product: Product) {
+export function generateEducationalProductSchema(product: Product, shipping?: MerchantShippingSettings) {
   const brand = getProductBrand(product);
   const manufacturerAge = getManufacturerAge(product);
   const audienceAge = manufacturerAge
@@ -172,7 +174,7 @@ export function generateEducationalProductSchema(product: Product) {
           },
         }
       : {}),
-    offers: buildOffer(product),
+    offers: buildOffer(product, shipping),
     additionalProperty: buildAdditionalProperty(product),
   };
 
@@ -489,10 +491,11 @@ export function generateAgeGroupSchema(ageGroup: string, products: Product[]) {
 export function generateCompleteProductSchema(
   product: Product,
   reviews?: any[],
-  videoUrl?: string
+  videoUrl?: string,
+  shipping?: MerchantShippingSettings
 ) {
   const schemas = [
-    generateEducationalProductSchema(product),
+    generateEducationalProductSchema(product, shipping),
     generateEducationalBreadcrumbSchema(product),
   ];
 

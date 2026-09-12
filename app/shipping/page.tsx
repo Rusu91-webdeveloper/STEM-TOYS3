@@ -1,3 +1,4 @@
+import { merchantShippingRate } from "@/lib/seo/merchant-policy";
 import { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -43,8 +44,7 @@ export default async function ShippingPage() {
   const shippingSettings = await getShippingSettings();
 
   // Extract values with fallbacks
-  const onlinePaymentPrice = shippingSettings.onlinePaymentPrice || "19.99";
-  const rambursPrice = shippingSettings.rambursPrice || "24.99";
+  const onlinePaymentPrice = String(merchantShippingRate(0, shippingSettings) ?? shippingSettings.onlinePaymentPrice ?? "19.99");
   const freeThreshold = shippingSettings.freeThreshold?.price || "199";
   const isFreeShippingActive = shippingSettings.freeThreshold?.active !== false;
 
@@ -80,7 +80,7 @@ export default async function ShippingPage() {
             <li className="flex items-center gap-2">
               <span className="text-green-600">✓</span>
               Cost livrare: {formatPrice(onlinePaymentPrice)} RON (online) /{" "}
-              {formatPrice(rambursPrice)} RON (ramburs)
+              {formatPrice(onlinePaymentPrice)} RON + taxa ramburs calculată la checkout (ramburs)
             </li>
             {isFreeShippingActive && (
               <li className="flex items-center gap-2">
@@ -139,7 +139,7 @@ export default async function ShippingPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 font-bold text-slate-900 text-right text-lg">
-                    {formatPrice(rambursPrice)} RON
+                    {formatPrice(onlinePaymentPrice)} RON + taxa ramburs calculată la checkout
                   </td>
                 </tr>
                 {isFreeShippingActive && (

@@ -1,3 +1,5 @@
+import { merchantOfferPolicies, type MerchantShippingSettings } from "@/lib/seo/merchant-policy";
+import { getShippingSettings } from "@/lib/utils/store-settings";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -156,7 +158,7 @@ async function getLandingProducts(): Promise<LandingProduct[]> {
     .filter(product => product.stockQuantity > 0 && Boolean(getBrand(product)));
 }
 
-function buildStructuredData(products: LandingProduct[]) {
+function buildStructuredData(products: LandingProduct[], shipping: MerchantShippingSettings) {
   const productItems = products.map((product, index) => {
     const url = productUrl(product.slug);
     const manufacturerAge = getManufacturerAge(product);
@@ -168,6 +170,7 @@ function buildStructuredData(products: LandingProduct[]) {
         "@type": "Product",
         "@id": `${url}#product`,
         name: product.name,
+        description: getProductContentOverride(product.slug)?.description || UPGRADE_COPY[product.slug] || product.name,
         url,
         image: product.images,
         brand: {
@@ -179,6 +182,7 @@ function buildStructuredData(products: LandingProduct[]) {
           : {}),
         offers: {
           "@type": "Offer",
+          ...merchantOfferPolicies(product.price, shipping),
           url,
           priceCurrency: "RON",
           price: product.price,
@@ -262,7 +266,7 @@ export default async function StemGiftsSixToEightPage() {
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f8fbff_0%,#eef7ff_42%,#fffaf0_100%)] text-slate-950">
-      <SeoJsonLd data={buildStructuredData(products)} />
+      <SeoJsonLd data={buildStructuredData(products, await getShippingSettings())} />
 
       <section className="relative overflow-hidden border-b border-sky-100">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(14,165,233,0.16),transparent_34%),radial-gradient(circle_at_85%_30%,rgba(245,158,11,0.16),transparent_30%)]" />

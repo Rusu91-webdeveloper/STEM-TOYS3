@@ -1,3 +1,4 @@
+import { getShippingSettings } from "@/lib/utils/store-settings";
 import { notFound } from "next/navigation";
 import React from "react";
 
@@ -135,7 +136,9 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
 
   const productSchemas = generateCompleteProductSchema(
     product,
-    reviewsForSchema
+    reviewsForSchema,
+    undefined,
+    await getShippingSettings()
   );
   const fallbackFaq = buildDefaultProductFaq(product);
   const productFaq =
