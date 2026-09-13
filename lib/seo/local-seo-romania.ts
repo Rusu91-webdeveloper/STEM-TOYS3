@@ -204,7 +204,7 @@ export function generateLocalLandingPageContent(city: RomanianCity) {
     heroText: `Descoperiți cea mai mare colecție de jucării educaționale STEM pentru copiii din ${city.name}! 
               Produse certificate, aliniate cu curriculumul românesc și livrate gratuit în toată zona ${city.region}.`,
     localBenefits: [
-      `Livrare gratuită în ${city.name} în 24-48 ore`,
+      `Livrare gratuită în ${city.name} în 1–4 zile lucrătoare`,
       `Suport educațional în română pentru părinții din ${city.region}`,
       `Parteneriate cu școli din ${city.name}`,
       `Consultanță educațională locală`,
@@ -345,7 +345,7 @@ export function generateLocalFAQ(city: RomanianCity) {
   return [
     {
       question: `Livrați jucării STEM în ${city.name}?`,
-      answer: `Da! Livrăm gratuit în ${city.name} și în toată zona ${city.region}. Comenzile plasate până la ora 14:00 sunt livrate în 24-48 ore.`
+      answer: `Da! Livrăm gratuit în ${city.name} și în toată zona ${city.region}. Comenzile plasate până la ora 14:00 sunt livrate în 1–4 zile lucrătoare.`
     },
     {
       question: `Aveți parteneriate cu școli din ${city.name}?`,

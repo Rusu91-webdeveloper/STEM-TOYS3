@@ -31,7 +31,7 @@ interface CategoryIconInfo {
 }
 
 const SORT_OPTIONS = [
-  { value: "featured", label: "Cele mai populare" },
+  { value: "featured", label: "Selecția TechTots" },
   { value: "newest", label: "Cele mai noi" },
   { value: "price-low", label: "Preț: Mic → Mare" },
   { value: "price-high", label: "Preț: Mare → Mic" },

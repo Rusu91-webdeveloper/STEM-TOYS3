@@ -60,7 +60,7 @@ export default async function ShippingPage() {
           <h1 className="text-4xl font-bold mb-4">Livrare și Transport</h1>
           <p className="text-xl text-blue-100 max-w-2xl mx-auto">
             Livrăm rapid în toată România cu parteneri de încredere. Primești
-            coletul în 5-10 zile lucrătoare.
+            coletul în 1–4 zile lucrătoare.
           </p>
         </div>
       </div>
@@ -75,7 +75,7 @@ export default async function ShippingPage() {
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-blue-800">
             <li className="flex items-center gap-2">
               <span className="text-green-600">✓</span>
-              Livrare în 5-10 zile lucrătoare
+              Livrare în 1–4 zile lucrătoare
             </li>
             <li className="flex items-center gap-2">
               <span className="text-green-600">✓</span>
@@ -174,21 +174,21 @@ export default async function ShippingPage() {
               <h3 className="font-semibold text-slate-900 mb-2">
                 București și orașe mari
               </h3>
-              <p className="text-slate-600 text-sm">3-5 zile lucrătoare</p>
+              <p className="text-slate-600 text-sm">1–4 zile lucrătoare</p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-md border border-slate-200">
               <div className="text-3xl mb-3">🗺️</div>
               <h3 className="font-semibold text-slate-900 mb-2">
                 Restul țării
               </h3>
-              <p className="text-slate-600 text-sm">5-7 zile lucrătoare</p>
+              <p className="text-slate-600 text-sm">1–4 zile lucrătoare</p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-md border border-slate-200">
               <div className="text-3xl mb-3">🏔️</div>
               <h3 className="font-semibold text-slate-900 mb-2">
                 Zone îndepărtate
               </h3>
-              <p className="text-slate-600 text-sm">7-10 zile lucrătoare</p>
+              <p className="text-slate-600 text-sm">1–4 zile lucrătoare</p>
             </div>
           </div>
           <p className="text-sm text-slate-500 mt-4">
@@ -399,7 +399,7 @@ export default async function ShippingPage() {
                 </span>
               </summary>
               <p className="mt-4 text-slate-600">
-                Livrarea durează de obicei 5-10 zile lucrătoare de la
+                Livrarea durează de obicei 1–4 zile lucrătoare de la
                 confirmarea comenzii. Timpul exact depinde de procesarea de
                 către furnizor și de zona de livrare.
               </p>

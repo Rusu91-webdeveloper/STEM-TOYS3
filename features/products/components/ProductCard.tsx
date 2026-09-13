@@ -125,7 +125,7 @@ export function ProductCard({
   };
 
   const renderRating = () => {
-    if (!product.averageRating) return null;
+    if (!product.averageRating || !product.reviewCount) return null;
     return (
       <div className="flex items-center gap-1">
         <div className="flex text-amber-400">

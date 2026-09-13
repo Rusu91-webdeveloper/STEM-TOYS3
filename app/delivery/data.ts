@@ -17,7 +17,7 @@ export interface DeliveryFaq {
 
 export const commitments: Commitment[] = [
   {
-    title: "Livrare în 5-10 zile lucrătoare",
+    title: "Livrare în 1–4 zile lucrătoare",
     description:
       "Procesăm comenzile rapid și le transmitem partenerilor noștri de livrare. Timpul exact depinde de procesarea de către furnizor și de zona de livrare.",
     icon: "⏱️",

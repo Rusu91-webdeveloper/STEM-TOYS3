@@ -522,7 +522,7 @@ export function EnhancedProductFilters({
             isInsideModal && "space-y-1 sm:space-y-1.5"
           )}
         >
-          {Object.keys(SPECIAL_CATEGORY_DISPLAY_NAMES).map(key => (
+          {Object.keys(SPECIAL_CATEGORY_DISPLAY_NAMES).filter(key => key !== "BEST_SELLERS").map(key => (
             <div
               key={key}
               className={cn(
