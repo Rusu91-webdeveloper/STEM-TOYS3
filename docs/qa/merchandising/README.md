@@ -15,3 +15,18 @@ Production audit before rollout: 88 active products; rocket 59 / 168 RON / 3 ima
 Verification: 11 focused merchandising, gift landing page and supplier-sync tests passed. Local database safety check passed. Full typecheck and historical migration validation have pre-existing failures; no migrations are introduced. Full production table backup (83 tables) and per-product recovery snapshots are stored outside Git under `~/.codex/backups/`.
 
 Product metadata now uses each product’s own title/description; unknown ages are no longer guessed as 8–12. Zero-review PDP stars are hidden. The legacy product-metadata test suite expects removed JSON-LD-in-metadata behavior and still fails its three existing assertions; the two new title/age integrity tests pass.
+
+## Production verification — September 13, 2026
+
+PR #12 was merged into main (`e2a4009`). Final copy cleanup is on main at `1d5ffdd`; its Vercel production deployment completed successfully. The local production build also passed with an increased Node heap. There are no pending migrations. Eleven focused tests passed again after merge. Full lint/typecheck retries encountered local heap exhaustion; prior repo-wide failures remain documented above.
+
+Live browser checks confirmed:
+- Four homepage cards in rocket → glove → wind car → Navir order, rocket labeled “Recomandarea săptămânii”, ages 6+ / 8+ / 8+ / 6+.
+- The first four catalog products are the same four gifts. Default sort says “Selecția TechTots”; unsupported bestseller filter removed.
+- Glove PDP 8+ badge, 8+ assisted / 10+ independent guidance, no zero-review stars. Glove excluded from ELEMENTARY_6_8 and present in MIDDLE_SCHOOL_9_12.
+- All three Boribon hero PDPs show unique titles/meta, working images, in-stock status, COD and 1–4 working days by buy controls.
+- Gift LP leads with rocket, includes Navir, and introduces glove as “Și pentru 8+”; no crystal lead or 1–3-day promise.
+- Delivery and regional landing-page copy standardized to 1–4 working days.
+- Live stock API: rocket 59, glove 91, wind car 69, Navir 25. No substitutions or stock changes.
+
+Screenshots: [homepage](homepage.png), [catalog](products.png), [glove](glove.png), [rocket](rocket.png). These are real production browser captures at 1440 × 1000, not mockups.
