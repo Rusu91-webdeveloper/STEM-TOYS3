@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCurrency } from "@/lib/currency";
 import type { Product } from "@/types/product";
 
-import { HOVER_RACER_SLUG } from "../merchandising";
+import { ROCKET_SLUG, selectHomepageGifts } from "@/lib/products/merchandising";
 
 export function FeaturedProductsGrid({
   products,
@@ -19,13 +19,7 @@ export function FeaturedProductsGrid({
   const unique = Array.from(
     new Map(products.map(product => [product.id, product])).values()
   );
-  const showcase = unique
-    .sort(
-      (a, b) =>
-        Number(b.slug === HOVER_RACER_SLUG) -
-        Number(a.slug === HOVER_RACER_SLUG)
-    )
-    .slice(0, 4);
+  const showcase = selectHomepageGifts(unique);
   return (
     <section
       aria-labelledby="home-products"
@@ -54,9 +48,9 @@ export function FeaturedProductsGrid({
         {showcase.length ? (
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-5">
             {showcase.map(product => {
-              const hover = product.slug === HOVER_RACER_SLUG;
+              const weekly = product.slug === ROCKET_SLUG;
               // A catalog filter bucket is not a manufacturer age recommendation.
-              const age = hover ? "8+ ani" : product.ageRange;
+              const age = product.ageRange;
               return (
                 <article
                   key={product.id}
@@ -68,11 +62,7 @@ export function FeaturedProductsGrid({
                     className="relative block aspect-square bg-slate-50"
                   >
                     <Image
-                      src={
-                        hover
-                          ? "/images/home/hover-racer.webp"
-                          : product.images?.[0] || "/placeholder-product.png"
-                      }
+                      src={product.images?.[0] || "/placeholder-product.png"}
                       alt={product.name}
                       fill
                       sizes="(max-width: 1023px) 50vw, 25vw"
@@ -81,15 +71,13 @@ export function FeaturedProductsGrid({
                   </Link>
                   <div className="flex flex-1 flex-col p-3 sm:p-4">
                     <p className="mb-2 min-h-8 text-[10px] font-semibold leading-4 text-emerald-800">
-                      {hover
-                        ? "Recomandarea săptămânii · 8+"
+                      {weekly
+                        ? "Recomandarea săptămânii"
                         : "Selectat de TechTots"}
                     </p>
                     <h3 className="mb-2 line-clamp-3 min-h-[3.75rem] text-sm font-bold leading-5 text-slate-950">
                       <Link href={`/products/${product.slug}`}>
-                        {hover
-                          ? "Hover Racer 4M · Kit de construit aeroglisor"
-                          : product.name}
+                        {product.name}
                       </Link>
                     </h3>
                     <div className="mb-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">

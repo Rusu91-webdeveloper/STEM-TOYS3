@@ -621,7 +621,7 @@ export const ro = {
   // Urgency Elements
   limitedSpots: "Locuri Limitate",
   consultationThisMonth: "pentru consultarea STEM personalizată luna aceasta",
-  fastDelivery: "Livrare rapidă în 1-3 zile lucrătoare",
+  fastDelivery: "Livrare rapidă în 1–4 zile lucrătoare",
 
   b2bSolutions: "Programe B2B",
   b2bSolutionsDesc:

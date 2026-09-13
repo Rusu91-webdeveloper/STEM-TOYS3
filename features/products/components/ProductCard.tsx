@@ -333,7 +333,7 @@ export function ProductCard({
           )}
           {!isOnSale && !isBundle && product.featured && (
             <span className="rounded-full bg-[#0b1220] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-white">
-              NOU
+              Selectat de TechTots
             </span>
           )}
           {isLowStock && !isOutOfStock && (

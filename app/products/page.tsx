@@ -110,7 +110,7 @@ export default async function ProductsPage({
       updatedAt: new Date(book.updatedAt),
       stockQuantity: 999, // Digital books don't have stock limits
       reservedQuantity: 0, // Digital books don't have reserved quantity
-      featured: true,
+      featured: false,
       isBook: true, // Mark as book for proper cart handling
       // Books use their category instead of stemDiscipline for filtering
     })) as ProductData[];

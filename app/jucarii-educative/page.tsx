@@ -31,7 +31,7 @@ const faq = [
 export const metadata: Metadata = createMetadata({
   title: "Jucării educative pentru copii | TechTots.ro",
   description:
-    "Jucării educative pentru copii 3–14 ani: branduri precum Fischertechnik, Thames & Kosmos, Djeco, 4M, Magblox. Livrare în 1–3 zile în România. Alege după ce exersează copilul: știință, construcții, robotică sau matematică aplicată.",
+    "Jucării educative pentru copii 3–14 ani: branduri precum Fischertechnik, Thames & Kosmos, Djeco, 4M, Magblox. Livrare în 1–4 zile lucrătoare în România. Alege după ce exersează copilul: știință, construcții, robotică sau matematică aplicată.",
   keywords: [
     "jucarii educative",
     "jucarii educative copii",
@@ -73,7 +73,7 @@ export default function EducationalToysLandingPage() {
     <CommercialLandingPage
       eyebrow="TechTots.ro"
       title="Jucării educative care îl ajută să învețe jucând"
-      description="Aici găsești jucării educative alese pentru copii între 3 și 14 ani: de la experimente și construcții la robotică și matematică aplicată, de la branduri pe care te poți baza (Fischertechnik, Thames & Kosmos, Djeco, 4M, Magblox). Rămâi dacă vrei recomandări sincere, livrare în 1–3 zile și tot ce ai nevoie ca să alegi dintr-o dată potrivit pentru copilul tău, nu doar „educativ” pe etichetă."
+      description="Aici găsești jucării educative alese pentru copii între 3 și 14 ani: de la experimente și construcții la robotică și matematică aplicată, de la branduri pe care te poți baza (Fischertechnik, Thames & Kosmos, Djeco, 4M, Magblox). Rămâi dacă vrei recomandări sincere, livrare în 1–4 zile lucrătoare și tot ce ai nevoie ca să alegi dintr-o dată potrivit pentru copilul tău, nu doar „educativ” pe etichetă."
       primaryCta={{
         href: "/products",
         label: "Vezi jucăriile din magazin",
@@ -84,7 +84,7 @@ export default function EducationalToysLandingPage() {
       }}
       proofPoints={[
         "Branduri premium, testate în familii ca a ta",
-        "Livrare în 1–3 zile, în România",
+        "Livrare în 1–4 zile lucrătoare, în România",
         "Vârste 3–14 ani, cu produse care țin pasul cu copilul",
       ]}
       quickFacts={[]}

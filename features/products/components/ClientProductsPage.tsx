@@ -1,5 +1,6 @@
 "use client";
 
+import { giftOrder, visibleInBrowse } from "@/lib/products/merchandising";
 import {
   Lightbulb,
   Atom,
@@ -20,7 +21,6 @@ import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
 import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import type { Product } from "@/types/product";
-
 
 import { useProductFilters } from "../hooks/useProductFilters";
 
@@ -322,7 +322,14 @@ function ClientProductsPageContent({
 
   // Client-side filtering based on selected categories and other filters
   const filteredProducts = useMemo(() => {
-    let filtered = [...products];
+    let filtered = products
+      .filter(product => !/E tiintific|miE care|Ã|�/.test(product.name))
+      .filter(product =>
+        state.searchQuery ||
+        state.selectedCategories.some(c => /book|carti|cărți/i.test(c))
+          ? true
+          : visibleInBrowse(product)
+      );
 
     // Filter by selected categories
     if (state.selectedCategories.length > 0) {
@@ -524,6 +531,8 @@ function ClientProductsPageContent({
         }
         case "featured":
         default: {
+          const rank = giftOrder(productA) - giftOrder(productB);
+          if (rank) return rank;
           const featuredA = productA.featured ? 1 : 0;
           const featuredB = productB.featured ? 1 : 0;
           if (featuredA !== featuredB) return featuredB - featuredA;

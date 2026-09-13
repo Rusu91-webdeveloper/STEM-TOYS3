@@ -308,7 +308,10 @@ async function fetchProductsFromDatabase(params: {
           };
         }
       })
-      .filter((condition): condition is NonNullable<typeof condition> => condition !== null);
+      .filter(
+        (condition): condition is NonNullable<typeof condition> =>
+          condition !== null
+      );
 
     // **PERFORMANCE**: Use more efficient OR conditions
     if (categoryConditions.length > 1) {
@@ -636,6 +639,7 @@ async function fetchProductsFromDatabase(params: {
             }
           : null,
         attributes: product.attributes,
+        metadata: { merchandising: (product.metadata as any)?.merchandising },
         tags: product.tags,
         // Include new categorization fields (from metadata JSON)
         ageGroup: product.ageGroup,
@@ -655,9 +659,13 @@ async function fetchProductsFromDatabase(params: {
       if (product.attributes && typeof product.attributes === "object") {
         const attrs = product.attributes as Record<string, unknown>;
         // Note: stemDiscipline is now a proper database field, no need to extract from attributes
-        if (attrs.ageRange && typeof attrs.ageRange === "string") {
+        const age =
+          attrs.manufacturerRecommendedAge ||
+          attrs.originalAgeText ||
+          attrs.ageRange;
+        if (age && typeof age === "string") {
           (productData as typeof productData & { ageRange: string }).ageRange =
-            attrs.ageRange;
+            age;
         }
       }
 

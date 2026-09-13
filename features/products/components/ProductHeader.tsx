@@ -124,12 +124,14 @@ export function ProductHeader({
             </span>
           )}
         </div>
-        <RatingBadge
-          averageRating={averageRating}
-          displayRating={displayRating}
-          reviewCount={reviewCount}
-          size={size}
-        />
+        {reviewCount > 0 && averageRating > 0 && (
+          <RatingBadge
+            averageRating={averageRating}
+            displayRating={displayRating}
+            reviewCount={reviewCount}
+            size={size}
+          />
+        )}
       </div>
 
       {/* Discount Badge and Stock Status Row */}

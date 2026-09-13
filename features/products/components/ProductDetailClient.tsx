@@ -161,6 +161,14 @@ export default function ProductDetailClient({
               {/* Product Info */}
               <div className="flex flex-col gap-4">
                 <div className={`${productSubSectionCardClass} space-y-4`}>
+                  {(product.ageRange ||
+                    product.attributes?.manufacturerRecommendedAge) && (
+                    <p className="w-fit rounded-full bg-sky-50 px-3 py-1 text-sm font-semibold text-sky-900">
+                      Vârsta recomandată:{" "}
+                      {product.ageRange ||
+                        product.attributes?.manufacturerRecommendedAge}
+                    </p>
+                  )}
                   <ProductHeader
                     name={product.name}
                     price={product.price}
@@ -180,6 +188,16 @@ export default function ProductDetailClient({
                     t={t}
                     size="md"
                   />
+                  <p className="text-sm text-slate-600">
+                    Plată cu cardul sau ramburs · Livrare 1–4 zile lucrătoare
+                  </p>
+                  {product.slug ===
+                    "kit-stem-manusa-robotica-genius-toy-G_7080" && (
+                    <p className="text-sm text-slate-600">
+                      De la 8 ani cu ajutor; de la 10 ani pentru lucru
+                      individual.
+                    </p>
+                  )}
                 </div>
 
                 <ProductDescription
@@ -212,9 +230,7 @@ export default function ProductDetailClient({
                 t={t}
               />
 
-              <ProductFAQ
-                faq={faq}
-              />
+              <ProductFAQ faq={faq} />
             </div>
           </div>
         </div>
