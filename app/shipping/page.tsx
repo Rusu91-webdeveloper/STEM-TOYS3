@@ -1,17 +1,16 @@
-import { merchantShippingRate } from "@/lib/seo/merchant-policy";
-import { Metadata } from "next";
-import Link from "next/link";
 import {
-  Truck,
-  Clock,
+  AlertTriangle,
+  ArrowRight,
   CreditCard,
+  Clock,
+  HelpCircle,
+  MapPin,
   Package,
   Shield,
-  MapPin,
-  HelpCircle,
-  ArrowRight,
-  AlertTriangle,
+  Truck,
 } from "lucide-react";
+import { Metadata } from "next";
+import Link from "next/link";
 
 import {
   RETURN_POLICY_COD_RTO_RO,
@@ -19,6 +18,7 @@ import {
   RETURN_POLICY_SELLER_PAYS_RO,
   RETURN_WINDOW_LABEL_RO,
 } from "@/lib/returns/policy";
+import { merchantShippingRate } from "@/lib/seo/merchant-policy";
 import { COD_MAX_B2B, COD_MAX_B2C } from "@/lib/shipping/cod-thresholds";
 import { getShippingSettings } from "@/lib/utils/store-settings";
 
@@ -28,6 +28,12 @@ export const metadata: Metadata = {
     "Informații complete despre livrare, costuri, termene și condiții de expediere pentru comenzile TechTots în România. Livrare rapidă cu FanCourier.",
   keywords:
     "livrare, expediere, curier, transport, FanCourier, România, jucării STEM",
+  alternates: {
+    canonical: "https://www.techtots.ro/shipping",
+  },
+  openGraph: {
+    url: "https://www.techtots.ro/shipping",
+  },
 };
 
 // Format price for display
@@ -44,7 +50,11 @@ export default async function ShippingPage() {
   const shippingSettings = await getShippingSettings();
 
   // Extract values with fallbacks
-  const onlinePaymentPrice = String(merchantShippingRate(0, shippingSettings) ?? shippingSettings.onlinePaymentPrice ?? "19.99");
+  const onlinePaymentPrice = String(
+    merchantShippingRate(0, shippingSettings) ??
+      shippingSettings.onlinePaymentPrice ??
+      "19.99"
+  );
   const freeThreshold = shippingSettings.freeThreshold?.price || "199";
   const isFreeShippingActive = shippingSettings.freeThreshold?.active !== false;
 
@@ -80,7 +90,8 @@ export default async function ShippingPage() {
             <li className="flex items-center gap-2">
               <span className="text-green-600">✓</span>
               Cost livrare: {formatPrice(onlinePaymentPrice)} RON (online) /{" "}
-              {formatPrice(onlinePaymentPrice)} RON + taxa ramburs calculată la checkout (ramburs)
+              {formatPrice(onlinePaymentPrice)} RON + taxa ramburs calculată la
+              checkout (ramburs)
             </li>
             {isFreeShippingActive && (
               <li className="flex items-center gap-2">
@@ -139,7 +150,8 @@ export default async function ShippingPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 font-bold text-slate-900 text-right text-lg">
-                    {formatPrice(onlinePaymentPrice)} RON + taxa ramburs calculată la checkout
+                    {formatPrice(onlinePaymentPrice)} RON + taxa ramburs
+                    calculată la checkout
                   </td>
                 </tr>
                 {isFreeShippingActive && (
@@ -233,9 +245,7 @@ export default async function ShippingPage() {
                   • Refuzul la livrare sau nepreluarea coletului este tratat ca
                   retur la expeditor (RTO).
                 </li>
-                <li>
-                  • {RETURN_POLICY_COD_RTO_RO}
-                </li>
+                <li>• {RETURN_POLICY_COD_RTO_RO}</li>
                 <li>
                   • Dacă există sume achitate în avans pentru transport/avans
                   logistic, acestea pot fi reținute în limita costurilor
@@ -333,8 +343,9 @@ export default async function ShippingPage() {
           <div className="bg-white rounded-xl p-6 shadow-md border border-slate-200">
             <p className="text-slate-700 mb-4">
               Conform <strong>Directivei UE 2011/83/EU</strong>, aveți dreptul
-              de retragere în termen de <strong>{RETURN_WINDOW_LABEL_RO}</strong>{" "}
-              de la primirea produselor.
+              de retragere în termen de{" "}
+              <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la primirea
+              produselor.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
@@ -399,9 +410,9 @@ export default async function ShippingPage() {
                 </span>
               </summary>
               <p className="mt-4 text-slate-600">
-                Livrarea durează de obicei 1–4 zile lucrătoare de la
-                confirmarea comenzii. Timpul exact depinde de procesarea de
-                către furnizor și de zona de livrare.
+                Livrarea durează de obicei 1–4 zile lucrătoare de la confirmarea
+                comenzii. Timpul exact depinde de procesarea de către furnizor
+                și de zona de livrare.
               </p>
             </details>
             <details className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 group">
@@ -441,8 +452,7 @@ export default async function ShippingPage() {
                 Refuzul la livrare sau nepreluarea coletului sunt tratate ca
                 retur la expeditor (RTO). {RETURN_POLICY_COD_RTO_RO} Dacă rămâne
                 o diferență peste garanția COD autorizată, aceasta se
-                gestionează prin fluxuri
-                legale/contabile.
+                gestionează prin fluxuri legale/contabile.
               </p>
             </details>
           </div>

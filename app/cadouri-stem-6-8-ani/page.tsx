@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+
+import SeoJsonLd from "@/components/seo/SeoJsonLd";
+import { db } from "@/lib/db";
+import { getProductContentOverride } from "@/lib/products/catalog-content-overrides";
 import {
   GIFT_SLUGS,
   GLOVE_SLUG,
@@ -8,13 +15,6 @@ import {
   type MerchantShippingSettings,
 } from "@/lib/seo/merchant-policy";
 import { getShippingSettings } from "@/lib/utils/store-settings";
-import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-
-import SeoJsonLd from "@/components/seo/SeoJsonLd";
-import { db } from "@/lib/db";
-import { getProductContentOverride } from "@/lib/products/catalog-content-overrides";
 
 import GiftIdeasEmailCapture from "./GiftIdeasEmailCapture";
 
@@ -331,7 +331,8 @@ export default async function StemGiftsSixToEightPage() {
                 {formatPrice(lead.price)} · 6+
               </p>
               <p className="mt-5 text-lg leading-8 text-slate-700">
-                Crești cristale acasă. Recomandarea săptămânii, unboxing clar.
+                Experiment în aer liber cu propulsie pe apă și presiunea
+                aerului.
               </p>
               <p className="mt-3 text-sm font-semibold text-slate-600">
                 Vârsta recomandată de producător: 6+.
