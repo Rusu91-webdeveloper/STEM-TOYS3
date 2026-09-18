@@ -36,6 +36,7 @@
     "restore:fresh": "npx tsx scripts/restore-database.ts --clear",
     "restore:file": "npx tsx scripts/restore-database.ts",
     "db:check-safety": "node scripts/check-database-safety.js",
+    "verify:phone": "tsx scripts/verify-phone-config.ts",
     "db:setup-safe": "chmod +x scripts/setup-safe-databases.sh && ./scripts/setup-safe-databases.sh",
     "returns:cleanup-duplicates": "npx tsx scripts/cleanup-duplicate-active-returns.ts",
     "migrate:safe": "npm run db:check-safety && npx prisma migrate dev",
