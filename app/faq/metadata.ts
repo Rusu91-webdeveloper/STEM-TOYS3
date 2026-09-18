@@ -20,49 +20,9 @@ export const metadata: Metadata = createMetadata({
         "Answers to common questions about STEM toys, shipping, returns, and safety.",
     },
   },
-  structuredData: {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "Ce sunt jucăriile STEM?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Jucăriile STEM susțin învățarea în știință, tehnologie, inginerie și matematică prin joc practic.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Sunt jucăriile potrivite pentru vârsta copilului meu?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Fiecare produs are o recomandare de vârstă. Filtrați după vârstă pentru a găsi opțiuni potrivite.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Care este politica de retur?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Puteți returna produsele nefolosite în 14 zile. Detalii complete sunt disponibile pe pagina de retur.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Sunt jucăriile sigure?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Toate jucăriile respectă standardele de siguranță relevante și sunt testate pentru calitate.",
-        },
-      },
-    ],
-  },
 });
 
 export default async function FAQMetadata() {
-  // no-op to ensure file is treated as a module; metadata is exported above
-  // Using cookies() ensures this runs on the server and can adapt by locale if needed later
   await cookies();
   return null;
 }

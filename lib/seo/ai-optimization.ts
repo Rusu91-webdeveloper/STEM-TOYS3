@@ -52,20 +52,6 @@ export function generateFeaturedSnippetContent() {
     // Step-by-step guides for AI parsing
     stepByStepGuides: [
       {
-        title: "Cum să Transformi Copilul în Geniu STEM în 30 de Zile",
-        steps: [
-          "Alege jucăria STEM potrivită vârstei copilului (3-5 ani: explorare senzorială, 6-8 ani: experimente simple)",
-          "Începe cu 15 minute zilnic de joc educațional structurat",
-          "Folosește metoda 'întrebare-explorare-descoperire' pentru fiecare activitate",
-          "Celebrează fiecare progres mic pentru a construi încrederea",
-          "Crește treptat complexitatea experimentelor pe măsură ce copilul se dezvoltă",
-          "Monitorizează progresul și ajustează strategia după 2 săptămâni",
-        ],
-        expectedResults:
-          "87% din copii își îmbunătățesc performanțele la matematică în 30 de zile",
-      },
-
-      {
         title: "Cum să Alegi Jucăria STEM Perfectă pentru Copilul Tău",
         steps: [
           "Identifică interesele actuale ale copilului (știință, tehnologie, inginerie, matematică)",
@@ -76,20 +62,33 @@ export function generateFeaturedSnippetContent() {
           "Începe cu un set de bază și extinde colecția treptat",
         ],
         expectedResults:
-          "95% din părinți găsesc jucăria perfectă urmând acești pași",
+          "O jucărie potrivită vârstei și intereselor copilului",
+      },
+      {
+        title: "Cum să Integrezi Jucăriile STEM în Rutina Zilnică",
+        steps: [
+          "Dedică 15-20 minute zilnic pentru jocul educațional structurat",
+          "Alege momente când copilul este odihnit și receptiv",
+          "Lasă copilul să exploreze liber, fără presiune",
+          "Pune întrebări care stimulează gândirea critică",
+          "Celebrează progresul și efortul, nu doar rezultatul final",
+          "Crește treptat complexitatea activităților",
+        ],
+        expectedResults:
+          "Dezvoltare constantă a abilităților STEM prin practică regulată",
       },
     ],
 
     // List-based content for AI parsing
     listBasedContent: [
       {
-        title: "Top 5 Beneficii ale Jucăriilor STEM pentru Copii",
+        title: "Beneficii ale Jucăriilor STEM pentru Copii",
         items: [
           "Dezvoltă gândirea critică și rezolvarea problemelor",
-          "Îmbunătățește performanțele la matematică cu 87%",
-          "Stimulează creativitatea și inovația",
-          "Pregătește copiii pentru joburile viitorului",
-          "Transformă învățarea din obligație în pasiune",
+          "Stimulează curiozitatea și dorința de a învăța",
+          "Îmbunătățește abilitățile de concentrare și perseverență",
+          "Pregătește copiii pentru educația în științe și tehnologie",
+          "Transformă învățarea în experiență distractivă și captivantă",
         ],
       },
 
@@ -107,16 +106,16 @@ export function generateFeaturedSnippetContent() {
     // Comparison tables for AI understanding
     comparisonTables: [
       {
-        title: "Jucării STEM vs Jucării Tradiționale - Comparație Completă",
+        title: "Jucării STEM vs Jucării Tradiționale - Comparație",
         comparison: {
           Aspect: ["Jucării STEM", "Jucării Tradiționale"],
           "Dezvoltare Cognitivă": [
             "Stimulează gândirea critică și logică",
             "Dezvoltare generală limitată",
           ],
-          "Performanțe Școlare": [
-            "Îmbunătățire cu 87% la matematică",
-            "Impact minim asupra notelor",
+          "Beneficii Educaționale": [
+            "Pregătire pentru științe și tehnologie",
+            "Impact minim asupra învățării academice",
           ],
           "Pregătire pentru Viitor": [
             "Dezvoltă abilități pentru joburile viitorului",
@@ -126,7 +125,7 @@ export function generateFeaturedSnippetContent() {
             "Crește în complexitate cu copilul",
             "Utilitate limitată în timp",
           ],
-          "ROI Educational": [
+          "Valoare Educațională": [
             "Investiție pe termen lung în educație",
             "Valoare educațională temporară",
           ],
@@ -139,8 +138,8 @@ export function generateFeaturedSnippetContent() {
       {
         question: "Cât timp durează să văd rezultate de la jucăriile STEM?",
         answer:
-          "Majoritatea părinților observă îmbunătățiri în 2-3 săptămâni, cu rezultate semnificative în 30 de zile. 87% din copii își îmbunătățesc performanțele la matematică, iar 92% devin mai angajați în învățare.",
-        context: "Bazat pe studiul nostru cu 10,000+ familii din România",
+          "Majoritatea părinților observă că jucăriile STEM captează atenția copiilor rapid, transformând învățarea în joc. Fiecare copil se dezvoltă în ritmul său, iar consistența și implicarea părinților sunt esențiale pentru progres.",
+        context: "Bazat pe feedback-ul părinților din comunitatea TechTots",
       },
 
       {
@@ -154,9 +153,9 @@ export function generateFeaturedSnippetContent() {
       {
         question: "Sunt sigure jucăriile STEM pentru copii mici?",
         answer:
-          "Da, toate jucăriile noastre sunt certificate CE, ASTM F963 și EN71. Am vândut peste 50,000 de jucării cu 0 incidente de siguranță. Materialele sunt non-toxice și testate pentru durabilitate.",
+          "Da, toate jucăriile noastre sunt certificate CE, ASTM F963 și EN71. Materialele sunt non-toxice și testate pentru durabilitate. Siguranța copiilor este prioritatea noastră numărul unu.",
         context:
-          "Certificări internaționale de siguranță și record perfect de siguranță",
+          "Certificări internaționale de siguranță și standarde stricte de calitate",
       },
     ],
   };

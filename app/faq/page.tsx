@@ -21,10 +21,9 @@ import {
   RETURN_WINDOW_LABEL_RO,
 } from "@/lib/returns/policy";
 
-const socialProofBadges = [
-  { icon: Users, label: "Families Worldwide" },
-  { icon: Star, label: "4.9/5 Stars Rating" },
+const trustBadges = [
   { icon: Shield, label: "Quality Guaranteed" },
+  { icon: Users, label: "Romanian Support" },
 ];
 
 const faqCards = [
@@ -33,11 +32,6 @@ const faqCards = [
     gradient: "border border-slate-200/80 bg-white/90",
     titleKey: "faqWhatAreStemH2",
     bodyKey: "faqWhatAreStemAnswer",
-    highlight: {
-      border: "border-emerald-400/30 bg-emerald-500/10",
-      title: "🎯 Real Results:",
-      body: '"My 8-year-old went from crying over math homework to asking for more experiments. The transformation happened in just 3 weeks!" - Sarah M., Parent',
-    },
   },
   {
     icon: Shield,
@@ -46,8 +40,8 @@ const faqCards = [
     bodyKey: "faqAgeAppropriateAnswer",
     highlight: {
       border: "border-amber-400/30 bg-amber-500/10",
-      title: "🛡️ Our Promise:",
-      body: "If you're not 100% satisfied with your choice, we'll not only refund you but also personally help you find the perfect toy for your child's specific needs.",
+      title: "🛡️ Promisiunea noastră:",
+      body: "Dacă nu ești 100% mulțumit de alegerea ta, te putem ajuta să găsești jucăria potrivită pentru nevoile specifice ale copilului tău.",
     },
   },
   {
@@ -56,10 +50,9 @@ const faqCards = [
     titleKey: "faqSafetyH2",
     bodyKey: "faqSafetyAnswer",
     certifications: [
-      { title: "CE Certified", subtitle: "European Standards" },
-      { title: "ASTM F963", subtitle: "US Safety Standard" },
-      { title: "EN71", subtitle: "EU Toy Safety" },
-      { title: "0 Incidents", subtitle: "50,000+ Toys Sold" },
+      { title: "Certificat CE", subtitle: "Standarde Europene" },
+      { title: "ASTM F963", subtitle: "Standard Siguranță SUA" },
+      { title: "EN71", subtitle: "Siguranță Jucării UE" },
     ],
   },
   {
@@ -67,11 +60,6 @@ const faqCards = [
     gradient: "border border-slate-200/80 bg-white/90",
     titleKey: "faqEducationalH2",
     bodyKey: "faqEducationalAnswer",
-    highlightStats: [
-      { value: "87%", label: "Improved Math Scores" },
-      { value: "92%", label: "Increased Engagement" },
-      { value: "10k+", label: "Happy Families" },
-    ],
   },
   {
     icon: Clock,
@@ -105,10 +93,10 @@ export default function FAQPage() {
     mainEntity: [
       {
         "@type": "Question",
-        name: "Cum transformă jucăriile STEM copiii în doar 30 de zile?",
+        name: "Ce sunt jucăriile STEM și cum ajută copiii să învețe?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Studiile noastre arată că 87% din copii își îmbunătățesc performanțele la matematică în 30 de zile folosind jucăriile STEM TechTots. Metodologia noastră transformă 'urăsc matematica' în 'când facem experimente?' prin învățare practică și interactivă. Peste 10,000 de părinți au văzut deja această transformare.",
+          text: "Jucăriile STEM (Știință, Tehnologie, Inginerie, Matematică) ajută copiii să învețe prin joc practic și interactiv. Metodologia noastră transformă învățarea abstractă în experiențe captivante și concrete. Fiecare jucărie este selectată pentru a stimula curiozitatea și gândirea critică.",
         },
       },
       {
@@ -116,7 +104,7 @@ export default function FAQPage() {
         name: "Ce jucării STEM sunt potrivite pentru vârsta copilului meu?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Oferim jucării STEM personalizate pentru fiecare vârstă: 3-5 ani (explorare senzorială), 6-8 ani (experimente simple), 9-12 ani (proiecte complexe), 13+ ani (robotică avansată). Fiecare produs include ghid de vârstă și activități recomandate. Dacă nu ești 100% mulțumit, îți oferim consultare gratuită pentru a găsi jucăria perfectă.",
+          text: "Oferim jucării STEM personalizate pentru fiecare vârstă: 3-5 ani (explorare senzorială), 6-8 ani (experimente simple), 9-12 ani (proiecte complexe), 13+ ani (robotică avansată). Fiecare produs include ghid de vârstă și activități recomandate. Dacă nu ești 100% mulțumit, te putem ajuta să găsești jucăria perfectă.",
         },
       },
       {
@@ -124,7 +112,7 @@ export default function FAQPage() {
         name: "Sunt sigure jucăriile STEM pentru copii?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Toate jucăriile noastre sunt certificate CE, ASTM F963, și EN71 pentru siguranța maximă. Am vândut peste 50,000 de jucării cu 0 incidente de siguranță. Materialele sunt non-toxice, testate pentru durabilitate, și proiectate special pentru mâinile mici. Garanție de siguranță 100% sau îți returnăm banii.",
+          text: "Toate jucăriile noastre sunt certificate CE, ASTM F963, și EN71 pentru siguranța maximă. Materialele sunt non-toxice, testate pentru durabilitate, și proiectate special pentru mâinile mici. Siguranța este prioritatea noastră numărul unu.",
         },
       },
       {
@@ -132,7 +120,7 @@ export default function FAQPage() {
         name: "Cum știu că jucăriile STEM chiar îmbunătățesc învățarea?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Rezultatele noastre dovedite: 87% îmbunătățire la matematică, 92% creșterea angajamentului în învățare, transformare medie în 30 de zile. Colaborăm cu educatori STEM și folosim metodologii validate științific. Fiecare jucărie vine cu ghid de învățare și activități structurate pentru rezultate măsurabile.",
+          text: "Jucăriile STEM folosesc metodologii validate științific și sunt recomandate de educatori. Fiecare jucărie vine cu ghid de învățare și activități structurate pentru rezultate măsurabile. Colaborăm cu educatori STEM pentru a asigura calitatea educațională.",
         },
       },
       {
@@ -140,7 +128,7 @@ export default function FAQPage() {
         name: "Ce se întâmplă dacă nu sunt mulțumit de achiziție?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Susținem calitatea produselor noastre. Dacă nu ești mulțumit de achiziție, te rugăm să contactezi echipa noastră de servicii pentru clienți și vom lucra cu tine pentru a găsi o soluție. Include consultare gratuită personalizată pentru a găsi alternativa perfectă. Satisfacția ta este prioritatea noastră.",
+          text: "Susținem calitatea produselor noastre. Dacă nu ești mulțumit de achiziție, contactează echipa noastră de servicii pentru clienți și vom lucra cu tine pentru a găsi o soluție. Include consultare pentru a găsi alternativa perfectă. Satisfacția ta este prioritatea noastră.",
         },
       },
       {
@@ -149,6 +137,14 @@ export default function FAQPage() {
         acceptedAnswer: {
           "@type": "Answer",
           text: `Refuzul la livrare sau nepreluarea coletului este tratat ca retur la expeditor (RTO). ${RETURN_POLICY_COD_RTO_RO} Dreptul de retragere în ${RETURN_WINDOW_LABEL_RO} se aplică după recepția produsului. ${RETURN_POLICY_CUSTOMER_PAYS_RO} ${RETURN_POLICY_SELLER_PAYS_RO} Pentru diferențe peste garanția COD autorizată se aplică procedurile legale și contabile din România.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Care este politica de contact și livrare?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Telefon: +40771248029 | Email: info@techtots.ro | Livrare în România în 1-4 zile lucrătoare. Pentru întrebări sau asistență, echipa noastră este disponibilă în zilele lucrătoare.",
         },
       },
     ],
@@ -173,7 +169,7 @@ export default function FAQPage() {
               </p>
 
               <div className="mt-6 flex flex-wrap justify-center gap-3">
-                {socialProofBadges.map(({ icon: Icon, label }) => (
+                {trustBadges.map(({ icon: Icon, label }) => (
                   <Badge
                     key={label}
                     variant="secondary"
@@ -216,7 +212,6 @@ export default function FAQPage() {
                 bodyKey,
                 highlight,
                 certifications,
-                highlightStats,
                 commitments,
               }) => (
                 <section
@@ -247,9 +242,9 @@ export default function FAQPage() {
                       {certifications && (
                         <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
                           <p className="text-xs font-semibold text-white sm:text-sm md:text-base">
-                            🔒 Safety Certifications:
+                            🔒 Certificări de Siguranță:
                           </p>
-                          <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-200 sm:text-sm md:grid-cols-4">
+                          <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-200 sm:text-sm md:grid-cols-3">
                             {certifications.map(cert => (
                               <div
                                 key={cert.title}
@@ -267,31 +262,10 @@ export default function FAQPage() {
                         </div>
                       )}
 
-                      {highlightStats && (
-                        <div className="rounded-2xl border border-purple-300/40 bg-purple-500/10 p-4 text-xs text-slate-900 shadow-inner sm:text-sm md:text-base">
-                          <p className="font-semibold">📈 Proven Results:</p>
-                          <div className="mt-3 grid grid-cols-3 gap-3 text-center">
-                            {highlightStats.map(stat => (
-                              <div
-                                key={stat.label}
-                                className="rounded-xl border border-purple-200/60 bg-white/70 p-3"
-                              >
-                                <div className="text-lg font-bold text-purple-700 sm:text-xl md:text-2xl">
-                                  {stat.value}
-                                </div>
-                                <div className="text-[10px] text-purple-700/80 sm:text-xs md:text-sm">
-                                  {stat.label}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
                       {commitments && (
                         <div className="rounded-2xl border border-rose-300/40 bg-rose-500/10 p-4 text-xs text-slate-900 shadow-inner sm:text-sm md:text-base">
                           <p className="font-semibold">
-                            💯 Our Commitment to You:
+                            💯 Angajamentul nostru față de tine:
                           </p>
                           <div className="mt-3 space-y-2 text-slate-700">
                             {commitments.map(item => (
@@ -348,12 +322,10 @@ export default function FAQPage() {
 
           <section className="mt-8 rounded-3xl border border-sky-500/40 bg-gradient-to-br from-sky-500/20 via-indigo-900/50 to-slate-950/80 p-6 text-center text-slate-100 shadow-xl shadow-sky-500/30 sm:mt-12 sm:p-8 md:mt-16 md:p-12">
             <h2 className="text-base font-bold text-white sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
-              Ready to Transform Your Child's Learning?
+              Gata să descoperi jucării STEM pentru copilul tău?
             </h2>
             <p className="mt-3 text-xs text-slate-200 sm:text-sm md:text-base lg:text-lg xl:text-xl">
-              Families worldwide are discovering how STEM education prepares
-              children for tomorrow's AI-driven world. Start today with quality
-              guaranteed products.
+              Explorează colecția noastră de jucării educaționale STEM de calitate, certificate și sigure pentru copii.
             </p>
             <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <Button
@@ -373,8 +345,7 @@ export default function FAQPage() {
               </Button>
             </div>
             <p className="mt-4 text-[10px] text-slate-200 sm:text-xs md:text-sm">
-              ⚡ Limited time: Free consultation worth €50 - Only 50 spots this
-              month
+              📞 Contact: info@techtots.ro | +40771248029
             </p>
           </section>
         </section>

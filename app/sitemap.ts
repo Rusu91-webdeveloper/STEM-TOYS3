@@ -2,14 +2,36 @@ import { MetadataRoute } from "next";
 
 import { db } from "@/lib/db";
 import { regionalStemCities } from "@/lib/seo/regional-search";
-import {
-  isRemovedCategoryPageSlug,
-  REMOVED_CATEGORY_PAGE_SLUGS,
-} from "@/lib/utils/category-page-links";
 
 export const dynamic = "force-dynamic";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
+
+// Soft-404 product slugs (return "Product Not Found" page) - exclude from sitemap
+const SOFT_404_PRODUCT_SLUGS = new Set([
+  "cubologic-16-piese-pentru-creativitate-spatiala-gigi-Fr_12023",
+  "cubologic-9-piese-pentru-gandire-logica-gigi-Fr_12025",
+  "instrument-optic-3-in-1-telescop-periscop-microscop-navir-N_8097",
+  "iq-test-tangram-joc-logic-din-lemn-gigi-Fr_17323",
+  "joc-circuit-domino-djeco-DJ06756",
+  "joc-logic-iq-colour-code-stimuleaza-gandirea-critica-gigi-Fr_17366",
+  "kit-constructie-robot---t-rex-glow-in-the-dark-4M-03460",
+  "kit-stem-energia-eoliana-cu-turbina-si-masinuta-electrica-genius-toy-G_7087",
+  "kit-stem-fabrica-de-roboti-motorizedcu-cutie-organizare-genius-toy-G_7449",
+  "kit-stem-kai-robotul-programabil-pentru-incepatori-kaiserkids-K_620392",
+  "kit-stem-manusa-robotica-genius-toy-G_7080",
+  "kit-stem-puterea-solara-14-in-1-stem-fs-F_559882",
+  "microscop-portabil-educativ-pentru-incepatori-levenhuk-MP-250",
+  "mini-experiment-sparge-o-geoda-si-descopera-cristalele-4M-03925",
+  "orbita-spatiala-joc-cu-bila-pentru-logica-si-fizica-djeco-DJ00817",
+  "set-constructie-plus-plus-basic-600-copii-3-12-ani-PP4105",
+  "set-de-activitati-plus-plus-big-50-buc-copii-1-5-ani-PP3989",
+  "set-magnetic-circuit-100-smartmax-CC-1004",
+  "terariu-cristale-fa-ti-propriul-mediu-4M-03926",
+  "zig-go-roll-25-de-piese-pentru-circuite-dinamice-djeco-DJ05640",
+  // Hard 404 with trailing slash-slug:
+  "giroscop-navir-N_6010/CB",
+]);
 
 const staticRoutes: MetadataRoute.Sitemap = [
   {
@@ -112,13 +134,22 @@ const staticRoutes: MetadataRoute.Sitemap = [
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  const [products, blogs, categories] = await Promise.all([
+  // Categories that actually render (from app/categories/[slug]/page.tsx KNOWN_SLUGS)
+  const KNOWN_CATEGORY_SLUGS = [
+    "science",
+    "technology",
+    "engineering",
+    "math",
+    "educational-books",
+  ] as const;
+
+  const [products, blogs] = await Promise.all([
     db.product.findMany({
       where: {
         isActive: true,
         status: "APPROVED",
-        // A10 FIX: Exclude out-of-stock products from sitemap
         stockQuantity: { gt: 0 },
+        slug: { notIn: Array.from(SOFT_404_PRODUCT_SLUGS) },
       },
       select: {
         slug: true,
@@ -134,17 +165,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         updatedAt: true,
       },
     }),
-    db.category.findMany({
-      where: {
-        isActive: true,
-        slug: {
-          notIn: [...REMOVED_CATEGORY_PAGE_SLUGS],
-        },
-      },
-      select: {
-        slug: true,
-      },
-    }),
   ]);
 
   const regionalPages = regionalStemCities.map(city => ({
@@ -155,18 +175,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       city.slug === "bucuresti" || city.slug === "cluj-napoca" ? 0.84 : 0.78,
   }));
 
-  const categoryPages = categories
-    .filter(
-      category =>
-        !["science-experiments", "magnetic-building"].includes(category.slug) &&
-        !isRemovedCategoryPageSlug(category.slug)
-    )
-    .map(category => ({
-      url: `${baseUrl}/categories/${category.slug}`,
-      lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: 0.62,
-    }));
+  const categoryPages = KNOWN_CATEGORY_SLUGS.map(slug => ({
+    url: `${baseUrl}/categories/${slug}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.62,
+  }));
 
   const productPages = products.map(product => ({
     url: `${baseUrl}/products/${product.slug}`,
