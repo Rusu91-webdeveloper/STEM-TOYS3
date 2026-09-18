@@ -23,12 +23,14 @@ const ages = [
     benefit:
       "Proiecte de construit și provocări STEM pentru idei tot mai îndrăznețe.",
   },
-  {
-    age: "13+ ani",
-    group: "TEENS_13_PLUS",
-    benefit:
-      "Circuite, inginerie și robotică pentru următorul proiect personal.",
-  },
+  // A01+A02 FIX: TEENS_13_PLUS hidden until products are available
+  // Uncomment when 13+ inventory exists to avoid showing empty category
+  // {
+  //   age: "13+ ani",
+  //   group: "TEENS_13_PLUS",
+  //   benefit:
+  //     "Circuite, inginerie și robotică pentru următorul proiect personal.",
+  // },
 ];
 
 export function AgeCategoriesSection({
@@ -55,7 +57,7 @@ export function AgeCategoriesSection({
           Selectat cu grijă pentru fiecare etapă.
         </p>
       </div>
-      <div className="grid gap-2 sm:grid-cols-4 sm:gap-3">
+      <div className="grid gap-2 sm:grid-cols-3 sm:gap-3">
         {ages.map(item => (
           <div
             key={item.group}

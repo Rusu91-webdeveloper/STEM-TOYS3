@@ -117,6 +117,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       where: {
         isActive: true,
         status: "APPROVED",
+        // A10 FIX: Exclude out-of-stock products from sitemap
+        stockQuantity: { gt: 0 },
       },
       select: {
         slug: true,
