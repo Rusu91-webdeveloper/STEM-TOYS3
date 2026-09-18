@@ -29,7 +29,11 @@ const UPGRADE_COPY: Record<string, string> = {
   [GIFT_SLUGS[3]]:
     "Telescop, periscop și microscop într-un singur instrument pentru explorare.",
   [GLOVE_SLUG]:
-    "Și pentru 8+: mănușă robotică de construit. De la 8 ani cu ajutor; de la 10 ani pentru lucru individual.",
+    // A14 FIX: Honest age badge for 8+ item on 6-8 landing
+    "Pentru 8+ ani: mănușă robotică de construit. De la 8 ani cu ajutor; de la 10 ani pentru lucru individual.",
+  [GIFT_SLUGS[2]]:
+    // A14 FIX: Honest age badge for 8+ item on 6-8 landing
+    "Pentru 8+ ani: kit cu turbină eoliană și mașinuță electrică pentru experimente cu energie.",
 };
 
 const FAQS = [

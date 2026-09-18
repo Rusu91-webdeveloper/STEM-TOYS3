@@ -1118,15 +1118,15 @@ export default async function CategoryDetailPage({
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-indigo-700 sm:gap-2.5 sm:text-sm">
               <Link
-                href="/ghid-jucarii-stem-2025"
+                href="/ghid-jucarii-stem-2026"
                 className="transition-colors hover:text-indigo-900"
                 data-conversion="cta"
                 data-conversion-type="click"
                 data-conversion-category="category"
                 data-conversion-action="category_resources_click"
-                data-conversion-element={`cat_${slug}_ghid_2025`}
+                data-conversion-element={`cat_${slug}_ghid_2026`}
               >
-                Ghid 2025
+                Ghid 2026
               </Link>
               <span className="text-slate-400">·</span>
               <Link

@@ -45,6 +45,10 @@ export default async function ProductsPage({
 
   const requestedCategory =
     typeof params.category === "string" ? params.category : undefined;
+  
+  // A01+A02 FIX: Extract ageGroup for SSR filtering
+  const requestedAgeGroup =
+    typeof params.ageGroup === "string" ? params.ageGroup : undefined;
 
   try {
     let booksData: Book[] = [];
@@ -59,11 +63,10 @@ export default async function ProductsPage({
     // Fetch all categories for sidebar (always show all categories)
     const allSidebarCategories = await getAllCategoriesForSidebar(locale);
 
-    // 🚀 PERFORMANCE & LOGIC FIX: Always fetch all products for client-side filtering
-    // This allows the client-side filtering to work properly with all available products
+    // A01+A02 FIX: Fetch all products for proper SSR + client filtering
+    // When ageGroup is specified, we filter server-side for correct SSR HTML
     const [booksResult, productsResult] = await Promise.allSettled([
       getBooks(),
-      // Fetch a large batch to enable client-side filtering + pagination
       getProducts({ limit: 1000 }),
     ]);
 
@@ -148,7 +151,16 @@ export default async function ProductsPage({
     });
 
     // Combine both books and STEM products
-    const products = [...bookProducts, ...stemProducts];
+    let products = [...bookProducts, ...stemProducts];
+
+    // A01+A02 FIX: Server-side filter by ageGroup for correct SSR HTML
+    // This ensures each age band shows the correct product count in initial render
+    if (requestedAgeGroup) {
+      products = products.filter(product => {
+        const productAgeGroup = (product as any).ageGroup;
+        return productAgeGroup === requestedAgeGroup;
+      });
+    }
 
     if (products.length === 0) {
       // Show a more informative message if no products were found

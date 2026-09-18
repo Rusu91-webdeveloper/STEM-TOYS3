@@ -53,7 +53,7 @@ export async function getAppConfig(): Promise<AppConfig> {
   const contactEmail =
     settings?.contactEmail ||
     process.env.EMAIL_FROM ||
-    "contact@techtots.ro";
+    "info@techtots.ro";
 
   const contactPhone =
     settings?.contactPhone ||
@@ -115,10 +115,10 @@ export async function getAppConfig(): Promise<AppConfig> {
 // ---------------------------------------------------------------------------
 export const appConfig = {
   get contactEmail() {
-    return process.env.EMAIL_FROM || "contact@techtots.ro";
+    return process.env.EMAIL_FROM || "info@techtots.ro";
   },
   get supportEmail() {
-    return process.env.EMAIL_FROM || "contact@techtots.ro";
+    return process.env.EMAIL_FROM || "info@techtots.ro";
   },
   get adminEmail() {
     return process.env.ADMIN_EMAIL || process.env.ALERT_EMAIL || "admin@techtots.ro";
@@ -157,10 +157,10 @@ export const appConfig = {
 // ---------------------------------------------------------------------------
 export const publicConfig = {
   get contactEmail() {
-    return process.env.NEXT_PUBLIC_CONTACT_EMAIL || "contact@techtots.ro";
+    return process.env.NEXT_PUBLIC_CONTACT_EMAIL || "info@techtots.ro";
   },
   get supportEmail() {
-    return process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "contact@techtots.ro";
+    return process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@techtots.ro";
   },
   get storePhone() {
     return process.env.NEXT_PUBLIC_STORE_PHONE || "+40771248029";

@@ -13,7 +13,6 @@ interface TrustBadgesRowProps {
 
 export default function TrustBadgesRow({ t }: TrustBadgesRowProps) {
   const items: Array<{ icon: string; label: string }> = [
-    { icon: "⭐", label: t("fourNineStars", "4.9/5 din recenzii reale") },
     { icon: "🎯", label: t("trustAgeFit", "Recomandări pe vârstă") },
     { icon: "📦", label: t("trustBundleSavings", "Pachete cu economii clare") },
     { icon: "🔒", label: t("secureCheckout", "Plată securizată") },

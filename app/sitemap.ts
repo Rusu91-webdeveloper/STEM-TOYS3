@@ -73,7 +73,7 @@ const staticRoutes: MetadataRoute.Sitemap = [
     priority: 0.8,
   },
   {
-    url: `${baseUrl}/ghid-jucarii-stem-2025`,
+    url: `${baseUrl}/ghid-jucarii-stem-2026`,
     changeFrequency: "monthly",
     priority: 0.72,
   },
@@ -117,6 +117,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       where: {
         isActive: true,
         status: "APPROVED",
+        // A10 FIX: Exclude out-of-stock products from sitemap
+        stockQuantity: { gt: 0 },
       },
       select: {
         slug: true,

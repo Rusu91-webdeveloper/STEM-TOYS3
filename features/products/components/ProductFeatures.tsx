@@ -150,14 +150,14 @@ export function ProductFeatures({
         <div className="flex flex-wrap gap-3 text-sm">
           <a
             className="font-medium text-emerald-700 underline decoration-emerald-500/40 underline-offset-4 transition hover:text-emerald-800"
-            href="/ghid-jucarii-stem-2025"
+            href="/ghid-jucarii-stem-2026"
             data-conversion="cta"
             data-conversion-type="click"
             data-conversion-category="product"
             data-conversion-action="learn_more_click"
-            data-conversion-element={`prod_${productSlug}_ghid_2025`}
+            data-conversion-element={`prod_${productSlug}_ghid_2026`}
           >
-            {t("guide2025", "Ghid 2025")}
+            {t("guide2026", "Ghid 2026")}
           </a>
           <span className={productMutedTextClass}>·</span>
           <a
