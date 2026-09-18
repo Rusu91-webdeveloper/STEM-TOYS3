@@ -26,6 +26,15 @@ function getProductBrand(product: Product): string | undefined {
     "Elenco",
     "Djeco",
     "CreativaMente",
+    // A15 FIX: Add missing brands
+    "Cleverclixx",
+    "Bakoba",
+    "Magblox",
+    "Fischertechnik",
+    "Navir",
+    "TopBright",
+    "Genius Toy",
+    "Gigo Toys",
   ];
 
   return brands.find(brand => product.name.includes(brand));

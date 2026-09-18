@@ -8,8 +8,9 @@ const ages = [
   {
     age: "3–5 ani",
     group: "PRESCHOOL_3_5",
+    // A17 FIX: Honest copy - band includes some 5+ items
     benefit:
-      "Forme, culori și construcții simple pentru coordonare și primele descoperiri.",
+      "Forme, culori și construcții simple – primele descoperiri prin manipulare.",
   },
   {
     age: "6–8 ani",
@@ -20,8 +21,9 @@ const ages = [
   {
     age: "9–12 ani",
     group: "MIDDLE_SCHOOL_9_12",
+    // A16 FIX: Honest copy for thin band (only 2 products)
     benefit:
-      "Proiecte de construit și provocări STEM pentru idei tot mai îndrăznețe.",
+      "Primele proiecte mai complexe – construcții și experimente pentru curiozitate practică.",
   },
   // A01+A02 FIX: TEENS_13_PLUS hidden until products are available
   // Uncomment when 13+ inventory exists to avoid showing empty category
