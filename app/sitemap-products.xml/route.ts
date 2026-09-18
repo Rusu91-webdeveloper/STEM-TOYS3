@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
 
@@ -20,6 +21,9 @@ export async function GET() {
     const products = await prisma.product.findMany({
       where: {
         isActive: true,
+        status: "APPROVED",
+        stockQuantity: { gt: 0 },
+        slug: { notIn: Array.from(SOFT_404_PRODUCT_SLUGS) },
       },
       select: {
         slug: true,

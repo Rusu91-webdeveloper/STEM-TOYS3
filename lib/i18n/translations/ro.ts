@@ -51,10 +51,10 @@ export const ro = {
   limitedSpots: "Locuri limitate",
   consultationThisMonth: "pentru consultare gratuită luna aceasta",
   // guarantee: "Garanție 30 Zile", // Removed - risky advertisement
-  transformationResults: "Rezultate de Transformare:",
-  mathScoreImprovement: "87% Îmbunătățire Scoruri Matematică",
-  engagementIncrease: "92% Creșterea Angajamentului",
-  averageTransformation: "30 Zile Transformare Medie",
+  transformationResults: "Rezultate Educaționale:",
+  // mathScoreImprovement: "87% Îmbunătățire Scoruri Matematică", // REMOVED - fake claim
+  // engagementIncrease: "92% Creșterea Angajamentului", // REMOVED - fake claim
+  averageTransformation: "Progres prin practică constantă",
 
   // Risk Reversal Elements
   riskFreeGuarantee: "Garanție Fără Risc",
@@ -506,7 +506,7 @@ export const ro = {
   productsPageH1:
     "Găsește Jucăriile STEM Exacte Care Îți Vor Transforma Copilul",
   productsPageSubtitle:
-    "Alătură-te celor 10,000+ de părinți care și-au transformat copiii. Jucăriile noastre STEM transformă 'urăsc matematica' în 'când facem experimente?' în doar 30 de zile.",
+    "Alătură-te părinților care descoperă cum educația STEM pregătește copiii pentru viitorul tehnologic. Jucăriile noastre STEM transformă 'urăsc matematica' în 'când facem experimente?' prin joc captivant.",
   getPersonalizedRecommendations: "Obține Recomandări Personalizate (Gratuit)",
   seeSuccessStories: "Vezi Povești de Succes",
   findPerfectToysForAge:
@@ -566,7 +566,7 @@ export const ro = {
 
   // Pain-focused subheadline addressing parent frustrations
   discoverCollection:
-    "Înlocuiește timpul de ecran cu învățare activă. Peste 10,000 de părinți au transformat deja copiii lor din 'dependenti de telefon' în 'viitori inventatori' cu jucăriile noastre STEM.",
+    "Înlocuiește timpul de ecran cu învățare activă. Părinții din întreaga lume transformă copiii lor din 'dependenți de telefon' în 'viitori inventatori' cu jucăriile noastre STEM.",
   stemCollectionCtaDescription:
     "Descoperă jucăriile educaționale care fac învățarea distractivă pentru copiii de toate vârstele. De la experimente științifice la roboți de programare, avem tot ce le trebuie pentru a aprinde curiozitatea și creativitatea.",
 
@@ -603,8 +603,8 @@ export const ro = {
     "Dezvoltă abilități de inginerie și știință care vor conta în cariera viitoare a copilului tău",
 
   // Social Proof Elements
-  socialProofNumber: "10,000+",
-  socialProofText: "părinți fericiți care au transformat copiii lor",
+  // socialProofNumber: "10,000+", // REMOVED - fake claim
+  socialProofText: "părinți fericiți care descoperă educația STEM",
   successStory1:
     "Fiul meu a trecut de la 'urăsc matematica' la 'când facem următorul experiment?' în doar 2 săptămâni!",
   successStory2:
@@ -852,9 +852,9 @@ export const ro = {
   faqEducationalH2En:
     "How do I know this will actually improve my child's learning?",
   faqEducationalAnswer:
-    "Jucăriile noastre STEM sunt concepute științific pentru a îmbunătăți gândirea critică, rezolvarea problemelor și implicarea în învățare. 87% din părinți raportează îmbunătățiri la notele la matematică și 92% văd o implicare crescută în învățare. Fiecare jucărie vine cu rezultate educaționale dovedite și provocări potrivite vârstei care construiesc încrederea și abilitățile sistematic.",
+    "Jucăriile noastre STEM sunt concepute științific pentru a îmbunătăți gândirea critică, rezolvarea problemelor și implicarea în învățare. Jucăriile sunt recomandate de educatori STEM și folosesc metodologii validate. Fiecare jucărie vine cu ghid de învățare și activități structurate potrivite vârstei care construiesc încrederea și abilitățile sistematic.",
   faqEducationalAnswerEn:
-    "Our STEM toys are scientifically designed to improve critical thinking, problem-solving, and learning engagement. 87% of parents report improved math scores and 92% see increased learning engagement. Each toy comes with proven educational outcomes and age-appropriate challenges that build confidence and skills systematically.",
+    "Our STEM toys are scientifically designed to improve critical thinking, problem-solving, and learning engagement. The toys are recommended by STEM educators and use validated methodologies. Each toy comes with learning guides and age-appropriate structured activities that build confidence and skills systematically.",
 
   faqPurchaseH2:
     "Ce se întâmplă dacă nu sunt mulțumit? Care este garanția voastră?",
@@ -1474,7 +1474,7 @@ export const ro = {
   faqWhatAreStem:
     "O să ajute jucăriile STEM cu adevărat copilul meu care urăște matematica și știința?",
   faqWhatAreStemAnswer:
-    "DA! Jucăriile noastre STEM au transformat peste 10,000 de copii de la 'urăsc matematica' la 'când facem experimente?'. Cheia este să faci învățarea să pară joacă, nu muncă. Jucăriile noastre sunt concepute special pentru a transforma elevii cu dificultăți în învățători încrezători prin explorare practică. Alătură-te miilor de părinți care au văzut această transformare.",
+    "DA! Jucăriile noastre STEM transformă învățarea în joc captivant, nu muncă plictisitoare. Jucăriile noastre sunt concepute special pentru a transforma elevii cu dificultăți în învățători încrezători prin explorare practică. Alătură-te părinților care au văzut deja progres la copiii lor prin jocul educațional.",
   faqAgeAppropriate:
     "Îmi fac griji că voi cumpăra jucăria greșită - cum aleg cea potrivită?",
   faqAgeAppropriateAnswer:
@@ -1486,7 +1486,7 @@ export const ro = {
   faqSafety:
     "Sunt aceste jucării sigure? Nu vreau să risc siguranța copilului meu.",
   faqSafetyAnswer:
-    "Absolut! Fiecare jucărie din colecția noastră îndeplinește sau depășește standardele internaționale de siguranță (CE, ASTM, EN71). Testăm personal fiecare produs pentru siguranță și calitate. Siguranța copilului tău este prioritatea noastră #1. Am vândut peste 50,000 de jucării cu zero incidente de siguranță. Poți cumpăra cu încredere completă.",
+    "Absolut! Fiecare jucărie din colecția noastră îndeplinește sau depășește standardele internaționale de siguranță (CE, ASTM, EN71). Testăm personal fiecare produs pentru siguranță și calitate. Siguranța copilului tău este prioritatea noastră #1. Toate materialele sunt non-toxice și certificate pentru utilizare de către copii. Poți cumpăra cu încredere completă.",
 
   // FAQ CTAs
   faqGetPersonalizedRecommendations:

@@ -514,8 +514,8 @@ export const en = {
     "Develop engineering and science skills that will matter in your child's future career",
 
   // Social Proof Elements
-  socialProofNumber: "10,000+",
-  socialProofText: "happy parents who have transformed their kids",
+  // socialProofNumber: "10,000+", // REMOVED - fake claim
+  socialProofText: "happy parents discovering STEM education",
   successStory1:
     "My son went from 'I hate math' to 'when are we doing the next experiment?' in just 2 weeks!",
   successStory2:
@@ -764,9 +764,9 @@ export const en = {
   faqEducationalH2Ro:
     "Cum știu că asta va îmbunătăți cu adevărat învățarea copilului meu?",
   faqEducationalAnswer:
-    "Our STEM toys are scientifically designed to improve critical thinking, problem-solving, and learning engagement. 87% of parents report improved math scores and 92% see increased learning engagement. Each toy comes with proven educational outcomes and age-appropriate challenges that build confidence and skills systematically.",
+    "Our STEM toys are scientifically designed to improve critical thinking, problem-solving, and learning engagement. The toys are recommended by STEM educators and use validated methodologies. Each toy comes with learning guides and age-appropriate structured activities that build confidence and skills systematically.",
   faqEducationalAnswerRo:
-    "Jucăriile noastre STEM sunt concepute științific pentru a îmbunătăți gândirea critică, rezolvarea problemelor și implicarea în învățare. 87% din părinți raportează îmbunătățiri la notele la matematică și 92% văd o implicare crescută în învățare în 30 de zile. Fiecare jucărie vine cu rezultate educaționale dovedite și provocări potrivite vârstei care construiesc încrederea și abilitățile sistematic.",
+    "Jucăriile noastre STEM sunt concepute științific pentru a îmbunătăți gândirea critică, rezolvarea problemelor și implicarea în învățare. Jucăriile sunt recomandate de educatori STEM și folosesc metodologii validate. Fiecare jucărie vine cu ghid de învățare și activități structurate potrivite vârstei care construiesc încrederea și abilitățile sistematic.",
 
   faqPurchaseH2: "What if I'm not satisfied? What's your guarantee?",
   faqPurchaseH2Ro:
@@ -1316,7 +1316,7 @@ export const en = {
   faqWhatAreStem:
     "Will STEM toys actually help my child who hates math and science?",
   faqWhatAreStemAnswer:
-    "YES! Our STEM toys have transformed 10,000+ children from 'I hate math' to 'When can we do experiments?' The key is making learning feel like play, not work. Our toys are specifically designed to turn struggling students into confident learners through hands-on exploration. Join thousands of parents who've seen this transformation.",
+    "YES! Our STEM toys transform learning into captivating play, not tedious work. Our toys are specifically designed to turn struggling students into confident learners through hands-on exploration. Join parents who have already seen progress in their children through educational play.",
   faqAgeAppropriate:
     "I'm worried I'll buy the wrong toy - how do I choose the right one?",
   faqAgeAppropriateAnswer:
@@ -1326,7 +1326,7 @@ export const en = {
     "You have a 14 calendar day withdrawal period from delivery. The direct return shipping cost is paid by the customer for standard returns, while defective, non-conforming, or incorrectly shipped products are returned at the seller's expense.",
   faqSafety: "Are these toys safe? I don't want to risk my child's safety.",
   faqSafetyAnswer:
-    "Absolutely! Every toy in our collection meets or exceeds international safety standards (CE, ASTM, EN71). We personally test every product for safety and quality. Your child's safety is our #1 priority. We've sold over 50,000 toys with zero safety incidents. You can shop with complete confidence.",
+    "Absolutely! Every toy in our collection meets or exceeds international safety standards (CE, ASTM, EN71). We personally test every product for safety and quality. Your child's safety is our #1 priority. All materials are non-toxic and certified for use by children. You can shop with complete confidence.",
 
   // FAQ CTAs
   faqGetPersonalizedRecommendations: "Get Personalized Recommendations (Free)",
@@ -1357,7 +1357,7 @@ export const en = {
 
   // Newsletter section
   exclusiveInsights: "Exclusive STEM Insights",
-  joinEducatorsParents: "🚀 Join 50,000+ STEM Educators & Parents",
+  joinEducatorsParents: "🚀 Join STEM Educators & Parents",
   newsletterSubtitle:
     "Get exclusive access to new products, educational resources, and special discounts. Plus, receive our weekly STEM activity guide!",
   emailAddressPlaceholder: "Enter your email address",
@@ -1383,7 +1383,7 @@ export const en = {
   freeReturnsOver50:
     "14 calendar days for returns. Return shipping is paid by the customer.",
   bankLevelSecurity: "Bank-level security & encryption",
-  trustedEducators: "Trusted by 50,000+ educators worldwide",
+  trustedEducators: "Trusted by educators worldwide",
 
   // Navigation sections
   stemCategoriesNav: "STEM Categories",
