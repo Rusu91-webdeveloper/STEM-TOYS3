@@ -1,12 +1,8 @@
 /** Editorial selection; order is not a sales or popularity claim. */
 export const GIFT_SLUGS = [
   "kit-stem-racheta-cu-propulsie-pe-apa-topbright-tb-160142",
-  "kit-stem-manusa-robotica-genius-toy-G_7080",
-  "kit-stem-energia-eoliana-cu-turbina-si-masinuta-electrica-genius-toy-G_7087",
-  "instrument-optic-3-in-1-telescop-periscop-microscop-navir-N_8097",
 ] as const;
 export const ROCKET_SLUG = GIFT_SLUGS[0];
-export const GLOVE_SLUG = GIFT_SLUGS[1];
 type BrowseProduct = {
   slug: string;
   name: string;

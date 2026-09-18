@@ -2,14 +2,37 @@ import { MetadataRoute } from "next";
 
 import { db } from "@/lib/db";
 import { regionalStemCities } from "@/lib/seo/regional-search";
-import {
-  isRemovedCategoryPageSlug,
-  REMOVED_CATEGORY_PAGE_SLUGS,
-} from "@/lib/utils/category-page-links";
 
 export const dynamic = "force-dynamic";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
+
+// Soft-404 product slugs (verified live - return "Product Not Found | TechTots")
+// Exclude from sitemap - these products don't exist or can't be rendered
+const SOFT_404_PRODUCT_SLUGS = new Set([
+  "cubologic-16-joc-de-logica-DJ08576",
+  "cubologic-9-joc-de-logica-DJ08581",
+  "instrument-optic-3-in-1-telescop-periscop-microscop-navir-N_8097",
+  "iq-test-tangram-in-cutie-metalica-fridolin-Fr_17323",
+  "joc-circuit-domino-egmont-toys-Egm_570135",
+  "joc-logic-iq-colour-sudoku-cube-fridolin-Fr_17366",
+  "kit-constructie-robot---t-rex-kidz-robotix-4M-03460",
+  "kit-stem-energia-eoliana-cu-turbina-si-masinuta-electrica-genius-toy-G_7087",
+  "kit-stem-fabrica-de-roboti-genius-toy-G_7449",
+  "kit-stem-kai-robotul-cu-inteligenta-artificiala-thames-kosmos-K_620392",
+  "kit-stem-manusa-robotica-genius-toy-G_7080",
+  "kit-stem-puterea-solara-fischertechnik-F_559882",
+  "microscop-portabil-cu-led-si-uv-cu-adaptor-de-smartphone-marire-100-250x-microflip-MP-250",
+  "mini-experiment-sparge-o-geoda-cristal-4M-03925",
+  "orbita-spatiala-joc-de-logica-DJ00817",
+  "set-constructie-plus-plus-tub-100-piese-robot-PP4105",
+  "set-de-activitati-plus-plus-125-piese-spatiu-PP3989",
+  "set-magnetic-circuit-cu-bile-compact-60-piese-cleverclixx-CC-1004",
+  "terariu-cristale-cu-dinozauri-4m-experiment-stem-4M-03926",
+  "zig-go-roll-traseu-reactie-in-lant-DJ05640",
+  // Hard 404 with trailing slash-slug:
+  "giroscop-navir-N_6010/CB",
+]);
 
 const staticRoutes: MetadataRoute.Sitemap = [
   {
@@ -112,13 +135,22 @@ const staticRoutes: MetadataRoute.Sitemap = [
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  const [products, blogs, categories] = await Promise.all([
+  // Categories that actually render (from app/categories/[slug]/page.tsx KNOWN_SLUGS)
+  const KNOWN_CATEGORY_SLUGS = [
+    "science",
+    "technology",
+    "engineering",
+    "math",
+    "educational-books",
+  ] as const;
+
+  const [products, blogs] = await Promise.all([
     db.product.findMany({
       where: {
         isActive: true,
         status: "APPROVED",
-        // A10 FIX: Exclude out-of-stock products from sitemap
         stockQuantity: { gt: 0 },
+        slug: { notIn: Array.from(SOFT_404_PRODUCT_SLUGS) },
       },
       select: {
         slug: true,
@@ -134,17 +166,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         updatedAt: true,
       },
     }),
-    db.category.findMany({
-      where: {
-        isActive: true,
-        slug: {
-          notIn: [...REMOVED_CATEGORY_PAGE_SLUGS],
-        },
-      },
-      select: {
-        slug: true,
-      },
-    }),
   ]);
 
   const regionalPages = regionalStemCities.map(city => ({
@@ -155,18 +176,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       city.slug === "bucuresti" || city.slug === "cluj-napoca" ? 0.84 : 0.78,
   }));
 
-  const categoryPages = categories
-    .filter(
-      category =>
-        !["science-experiments", "magnetic-building"].includes(category.slug) &&
-        !isRemovedCategoryPageSlug(category.slug)
-    )
-    .map(category => ({
-      url: `${baseUrl}/categories/${category.slug}`,
-      lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: 0.62,
-    }));
+  const categoryPages = KNOWN_CATEGORY_SLUGS.map(slug => ({
+    url: `${baseUrl}/categories/${slug}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.62,
+  }));
 
   const productPages = products.map(product => ({
     url: `${baseUrl}/products/${product.slug}`,
