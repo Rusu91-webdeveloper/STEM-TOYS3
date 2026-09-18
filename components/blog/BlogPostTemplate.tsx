@@ -261,14 +261,14 @@ export default function BlogPostTemplate({
             <div className="flex flex-wrap gap-3 text-sm">
               <Link
                 className="underline"
-                href="/ghid-jucarii-stem-2025"
+                href="/ghid-jucarii-stem-2026"
                 data-conversion="cta"
                 data-conversion-type="click"
                 data-conversion-category="blog"
                 data-conversion-action="related_reading_click"
-                data-conversion-element="blog_related_ghid_2025"
+                data-conversion-element="blog_related_ghid_2026"
               >
-                Ghid 2025
+                Ghid 2026
               </Link>
               <span>·</span>
               <Link

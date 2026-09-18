@@ -166,6 +166,7 @@ test("catalog, gift landing page, Hover Racer and updated guide resolve", async 
     expect(response?.status(), path).toBe(200);
     await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
   }
+  // Test 2025 redirects to 2026
   await page.goto("/ghid-jucarii-stem-2025");
   await expect(page).toHaveURL(/ghid-jucarii-stem-2026/);
 });

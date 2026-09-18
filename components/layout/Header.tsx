@@ -636,17 +636,17 @@ export default function Header() {
                                 },
                                 {
                                   id: "PRESCHOOL_3_5",
-                                  label: t("age3to5", "4–6 ani"),
+                                  label: t("age3to5", "3–5 ani"),
                                   color: "bg-emerald-400",
                                 },
                                 {
                                   id: "ELEMENTARY_6_8",
-                                  label: t("age6to8", "7–9 ani"),
+                                  label: t("age6to8", "6–8 ani"),
                                   color: "bg-sky-400",
                                 },
                                 {
                                   id: "MIDDLE_SCHOOL_9_12",
-                                  label: t("age9to12", "10–12 ani"),
+                                  label: t("age9to12", "9–12 ani"),
                                   color: "bg-violet-400",
                                 },
                                 {

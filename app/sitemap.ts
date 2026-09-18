@@ -73,7 +73,7 @@ const staticRoutes: MetadataRoute.Sitemap = [
     priority: 0.8,
   },
   {
-    url: `${baseUrl}/ghid-jucarii-stem-2025`,
+    url: `${baseUrl}/ghid-jucarii-stem-2026`,
     changeFrequency: "monthly",
     priority: 0.72,
   },
