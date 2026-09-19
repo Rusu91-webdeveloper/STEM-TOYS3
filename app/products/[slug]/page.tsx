@@ -39,21 +39,16 @@ export async function generateMetadata({
     const product = await getCombinedProduct(slug);
 
     if (!product) {
-      // Return basic metadata for non-existent products
-      return {
-        title: "Product Not Found | TechTots",
-        description: "The requested product could not be found.",
-      };
+      // Trigger 404 for non-existent products
+      notFound();
     }
 
     // Use our SEO utility to generate metadata with the actual product data
     return generateProductMetadata(product);
   } catch (error) {
     console.error("Error generating product metadata:", error);
-    return {
-      title: "Product Not Found | TechTots",
-      description: "The requested product could not be found.",
-    };
+    // Trigger 404 on error
+    notFound();
   }
 }
 
