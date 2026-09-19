@@ -4,12 +4,15 @@ import React from "react";
 
 import ProductDetailServer from "@/features/products/components/ProductDetailServer";
 import { getCombinedProduct } from "@/lib/api/products";
+import { prisma } from "@/lib/prisma";
 import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
 import { generateProductMetadata } from "@/lib/utils/seo";
 
-// Force dynamic rendering to ensure notFound() produces HTTP 404 (not cached as 200)
-// Note: Removed conflicting 'revalidate = 300' which prevented proper 404 status in Next.js 15
-export const dynamic = "force-dynamic";
+// 🚀 PERFORMANCE: Enable ISR with 10 minutes revalidation (matching categories)
+export const revalidate = 600;
+
+// Force routing-level HTTP 404 for unknown product slugs (matching categories pattern)
+export const dynamicParams = false;
 
 /**
  * Normalize slug to handle special characters and redirects
@@ -28,6 +31,38 @@ type ProductPageProps = {
     slug: string;
   }>;
 };
+
+/**
+ * Generate static params for all active, sellable products
+ * Excludes soft-404 (blocklisted) products
+ * This enables routing-level HTTP 404 for unknown slugs (same pattern as categories)
+ */
+export async function generateStaticParams() {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        isActive: true,
+        status: "APPROVED",
+        stockQuantity: { gt: 0 },
+        // Exclude soft-404 products (case-insensitive)
+        AND: Array.from(SOFT_404_PRODUCT_SLUGS).map(blockedSlug => ({
+          slug: { not: { equals: blockedSlug, mode: "insensitive" } },
+        })),
+      },
+      select: {
+        slug: true,
+      },
+    });
+
+    return products.map(product => ({
+      slug: product.slug,
+    }));
+  } catch (error) {
+    console.error("[generateStaticParams] Error fetching product slugs:", error);
+    // Return empty array on error - all products will 404
+    return [];
+  }
+}
 
 export async function generateMetadata({
   params,
