@@ -1,8 +1,8 @@
 import React from "react";
 
-import { metadata as productsMetadata } from "./metadata";
-
-export const metadata = productsMetadata;
+// No static metadata - product pages set their own via generateMetadata
+// The generic "Jucarii STEM..." metadata was causing soft-404 pages to show
+// homepage title instead of proper 404 page
 
 export default function ProductsLayout({
   children,

@@ -98,11 +98,11 @@ export async function GET(
 ) {
   const { slug } = await params;
   try {
-    // 🚀 PERFORMANCE: Execute both queries in parallel instead of sequential
+    // 🚀 PERFORMANCE: Execute both queries in parallel with case-insensitive slug matching
     const [dbProduct, dbBook] = await Promise.all([
       db.product.findFirst({
         where: {
-          slug,
+          slug: { equals: slug, mode: "insensitive" },
           isActive: true,
         },
         include: {
@@ -116,7 +116,7 @@ export async function GET(
       }),
       db.book.findFirst({
         where: {
-          slug,
+          slug: { equals: slug, mode: "insensitive" },
           isActive: true,
         },
         include: {
