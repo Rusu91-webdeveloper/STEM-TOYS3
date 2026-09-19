@@ -163,7 +163,7 @@ export function CodRambursGuaranteePanel({
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500" />
                 {t(
                   "codGuaranteePostRefusalNotice",
-                  "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale și contabile aplicabile în România."
+                  "Dacă refuzi coletul sau nu îl ridici, putem încasa cel mult suma autorizată pentru transportul tur. TechTots suportă returul la expeditor."
                 )}
               </li>
             </ul>

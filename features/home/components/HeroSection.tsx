@@ -91,6 +91,18 @@ export const HeroSection = React.memo(
                 </li>
               ))}
             </ul>
+            <p className="mt-4 max-w-xl text-xs leading-5 text-slate-300">
+              Ramburs: pentru unele comenzi solicităm o autorizare temporară pe
+              card, limitată la transportul tur. La refuz sau nepreluare putem
+              încasa cel mult suma autorizată; TechTots suportă returul la
+              expeditor.{" "}
+              <Link
+                href="/shipping#rto"
+                className="font-semibold text-emerald-200 underline underline-offset-4 hover:text-white"
+              >
+                Detalii
+              </Link>
+            </p>
           </div>
           <BrandScene />
         </div>

@@ -276,11 +276,11 @@ export function OrderReview({
                       {isLockerShippingForOrder
                         ? t(
                             "codLockerReviewNotice",
-                            "Plătești la ridicare, cu cardul la terminalul FANbox. Dacă nu ridici coletul, returul la expeditor este suportat de noi, iar dacă a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur."
+                            "Plătești la ridicare, cu cardul la terminalul FANbox. Pentru FANbox nu solicităm autorizarea temporară pentru transportul tur; TechTots suportă returul la expeditor dacă nu ridici coletul."
                           )
                         : t(
                             "codReviewNotice",
-                            "Plătești la primirea coletului. Dacă refuzi livrarea sau nu ridici coletul, returul la expeditor este suportat de noi, iar dacă a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur."
+                            "Plătești produsele la primirea coletului. Autorizarea temporară acoperă numai transportul tur; la refuz sau nepreluare putem încasa cel mult suma autorizată."
                           )}
                     </p>
                   </div>
@@ -330,12 +330,6 @@ export function OrderReview({
                       </p>
                     </div>
                   </div>
-                  <p className="text-amber-300/85">
-                    {t(
-                      "codReviewPostRefusal",
-                      "Dacă există diferențe peste garanția COD autorizată, acestea se gestionează prin fluxuri legale/contabile aplicabile în România."
-                    )}
-                  </p>
                 </div>
               </div>
             </div>

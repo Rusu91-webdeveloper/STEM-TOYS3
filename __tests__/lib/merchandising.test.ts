@@ -3,7 +3,10 @@ import {
   selectHomepageGifts,
   visibleInBrowse,
 } from "@/lib/products/merchandising";
-import { applyProductContentOverride } from "@/lib/products/catalog-content-overrides";
+import {
+  applyProductContentOverride,
+  GLOVE_SLUG,
+} from "@/lib/products/catalog-content-overrides";
 const gifts = GIFT_SLUGS.map((slug, i) => ({
   slug,
   name: `Gift ${i}`,
@@ -44,7 +47,9 @@ test("browse hides books, add-ons, broken titles and low stock with explicit kee
 });
 test("glove age survives stale cached supplier bucket without changing stock", () => {
   const product = applyProductContentOverride({
-    ...gifts[1],
+    slug: GLOVE_SLUG,
+    name: "Kit STEM Mănușă robotică",
+    stockQuantity: 4,
     ageGroup: "ELEMENTARY_6_8",
   } as any);
   expect(product.ageRange).toBe("8+");

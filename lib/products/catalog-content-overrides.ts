@@ -1,5 +1,7 @@
-import { GLOVE_SLUG, ROCKET_SLUG } from "./merchandising";
+import { ROCKET_SLUG } from "./merchandising";
 import type { Product } from "@/types/product";
+
+export const GLOVE_SLUG = "kit-stem-manusa-robotica-genius-toy-G_7080";
 
 export const CRISTALE_4M_SLUG =
   "set-cristale-rosu-4m-experiment-stem-viral-4M-03929";

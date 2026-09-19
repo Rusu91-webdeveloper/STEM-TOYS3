@@ -5,11 +5,7 @@ import Link from "next/link";
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { db } from "@/lib/db";
 import { getProductContentOverride } from "@/lib/products/catalog-content-overrides";
-import {
-  GIFT_SLUGS,
-  GLOVE_SLUG,
-  ROCKET_SLUG,
-} from "@/lib/products/merchandising";
+import { ROCKET_SLUG } from "@/lib/products/merchandising";
 import {
   merchantOfferPolicies,
   type MerchantShippingSettings,
@@ -24,16 +20,10 @@ const PAGE_PATH = "/cadouri-stem-6-8-ani";
 const PAGE_URL = `https://www.techtots.ro${PAGE_PATH}`;
 const AGE_FILTER_URL = "/products?ageGroup=ELEMENTARY_6_8";
 
-const PRODUCT_SLUGS = [GIFT_SLUGS[0], GIFT_SLUGS[3], GIFT_SLUGS[1]];
+const PRODUCT_SLUGS = [ROCKET_SLUG];
 const UPGRADE_COPY: Record<string, string> = {
-  [GIFT_SLUGS[3]]:
-    "Telescop, periscop și microscop într-un singur instrument pentru explorare.",
-  [GLOVE_SLUG]:
-    // A14 FIX: Honest age badge for 8+ item on 6-8 landing
-    "Pentru 8+ ani: mănușă robotică de construit. De la 8 ani cu ajutor; de la 10 ani pentru lucru individual.",
-  [GIFT_SLUGS[2]]:
-    // A14 FIX: Honest age badge for 8+ item on 6-8 landing
-    "Pentru 8+ ani: kit cu turbină eoliană și mașinuță electrică pentru experimente cu energie.",
+  [ROCKET_SLUG]:
+    "Experiment în aer liber cu propulsie pe apă și presiunea aerului. Vârsta recomandată de producător: 6+.",
 };
 
 const FAQS = [

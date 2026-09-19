@@ -2054,7 +2054,7 @@ export const ro = {
   codInfoTitle: "Informare COD (ramburs)",
   codSelectorPreviewTitle: "Ramburs la livrare",
   codSelectorPreviewBody:
-    "Plătești la curier la primire. Dacă refuzi coletul sau nu îl ridici, returul la expeditor este suportat de noi, iar dacă a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur.",
+    "Plătești produsele la curier. Pentru unele comenzi solicităm o autorizare temporară pe card, limitată la transportul tur; TechTots suportă returul la expeditor.",
   codSelectorPreviewLinksLead: "Documente:",
   codRambursHeroTitle: "Ramburs — plătești la livrare",
   codRambursHeroBadge: "Informare obligatorie",
@@ -2068,19 +2068,19 @@ export const ro = {
     "Dacă refuzi coletul la livrare sau nu îl ridici în termen, acesta poate fi returnat expeditorului (RTO).",
   codKeyPointRoundTripTitle: "Reținem doar transportul tur",
   codKeyPointRoundTripBody:
-    "Dacă o comandă ramburs este refuzată sau neridicată, suportăm returul la expeditor și putem reține doar costul logistic al transportului tur, dacă a fost comunicat înainte de comandă.",
+    "La checkout poate fi solicitată o autorizare temporară pe card, limitată la transportul tur. La refuz sau nepreluare putem încasa cel mult suma autorizată; TechTots suportă returul la expeditor.",
   codKeyPointAckTitle: "Confirmare înainte de plată",
   codKeyPointAckBody:
     "Continuarea comenzii cu ramburs necesită acceptarea explicită a acestor condiții.",
   codInfoBody:
-    "Refuzul la livrare sau nepreluarea coletului sunt tratate ca RTO (retur la expeditor). În acest caz suportăm returul la expeditor și putem reține doar costul logistic al transportului tur, dacă acesta a fost afișat înainte de comandă.",
+    "Refuzul sau nepreluarea sunt tratate ca retur la expeditor (RTO). Autorizarea temporară acoperă numai transportul tur; putem încasa cel mult suma autorizată, iar TechTots suportă returul la expeditor.",
   codLockerInfoTitle: "Informare plată la FANbox",
   codLockerInfoBody:
-    "Pentru livrarea la FANbox, plata se face la ridicare, cu cardul la terminalul locker-ului. Nepreluarea coletului este tratată ca RTO (retur la expeditor), iar dacă acest lucru a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur.",
+    "Pentru livrarea la FANbox, plata se face la ridicare, cu cardul la terminalul locker-ului. Nu solicităm autorizarea temporară pentru transportul tur; TechTots suportă returul la expeditor dacă nu ridici coletul.",
   codReviewNotice:
-    "Plătești cash la primirea coletului. Dacă refuzi livrarea sau nu ridici coletul, returul la expeditor este suportat de noi, iar dacă a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur.",
+    "Plătești produsele la primirea coletului. Autorizarea temporară acoperă numai transportul tur; la refuz sau nepreluare putem încasa cel mult suma autorizată.",
   codLockerReviewNotice:
-    "Plătești la ridicare, cu cardul la terminalul FANbox. Dacă nu ridici coletul, returul la expeditor este suportat de noi, iar dacă a fost comunicat înainte de comandă putem reține doar costul logistic al transportului tur.",
+    "Plătești la ridicare, cu cardul la terminalul FANbox. Pentru FANbox nu solicităm autorizarea temporară pentru transportul tur; TechTots suportă returul la expeditor dacă nu ridici coletul.",
   codLockerFee: "Taxă plată la FANbox",
   totalWithLockerCOD: "Total cu plată la FANbox",
   codLockerNotice:

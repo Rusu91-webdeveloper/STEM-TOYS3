@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  ArrowLeftRight,
-  BadgeCheck,
-  Banknote,
-  PackageX,
-} from "lucide-react";
+import { ArrowLeftRight, BadgeCheck, Banknote, PackageX } from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -55,7 +50,7 @@ export function CodRambursConsentPanel({
       title: t("codKeyPointRoundTripTitle", "Reținem doar transportul tur"),
       body: t(
         "codKeyPointRoundTripBody",
-        "Dacă o comandă ramburs este refuzată sau neridicată, suportăm returul la expeditor și putem reține doar costul logistic al transportului tur, dacă a fost comunicat înainte de comandă."
+        "La checkout poate fi solicitată o autorizare temporară pe card, limitată la transportul tur. La refuz sau nepreluare putem încasa cel mult suma autorizată; TechTots suportă returul la expeditor."
       ),
       accent: "text-amber-900 bg-amber-50/90 border-amber-100",
     },
@@ -82,10 +77,7 @@ export function CodRambursConsentPanel({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-base font-semibold tracking-tight text-slate-900 sm:text-lg">
-                  {t(
-                    "codRambursHeroTitle",
-                    "Ramburs — plătești la livrare"
-                  )}
+                  {t("codRambursHeroTitle", "Ramburs — plătești la livrare")}
                 </h3>
                 <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-900">
                   {t("codRambursHeroBadge", "Informare obligatorie")}
@@ -164,7 +156,7 @@ export function CodRambursConsentPanel({
             <span className="text-sm font-medium leading-relaxed text-slate-900">
               {t(
                 "codConsentLabel",
-                "Confirm că am citit condițiile COD și înțeleg că, în caz de refuz sau nepreluare, returul la expeditor este suportat de comerciant, iar dacă a fost comunicat în prealabil poate fi reținut doar costul logistic al transportului tur."
+                "Confirm că am citit condițiile COD și înțeleg că autorizarea temporară acoperă numai transportul tur. La refuz sau nepreluare poate fi încasată cel mult suma autorizată; TechTots suportă returul la expeditor."
               )}
             </span>
           </label>
@@ -172,12 +164,16 @@ export function CodRambursConsentPanel({
           <p className="mt-3 text-xs leading-relaxed text-slate-500">
             {t(
               "codConsentShortNote",
-              "Pe scurt: la livrare plătești produsele și taxa COD. Dacă refuzi coletul sau nu îl ridici, suportăm returul la expeditor și putem reține doar costul logistic al transportului tur, dacă acesta a fost afișat înainte de comandă."
+              "Pe scurt: autorizarea nu se încasează la plasarea comenzii. Dacă refuzi coletul sau nu îl ridici, putem încasa cel mult suma autorizată pentru transportul tur."
             )}
           </p>
         </div>
 
-        <Accordion type="single" collapsible className="rounded-xl border border-slate-200 bg-white px-1">
+        <Accordion
+          type="single"
+          collapsible
+          className="rounded-xl border border-slate-200 bg-white px-1"
+        >
           <AccordionItem value="full-agreement" className="border-none px-3">
             <AccordionTrigger className="py-3 text-sm font-semibold text-slate-900 hover:no-underline">
               {t(

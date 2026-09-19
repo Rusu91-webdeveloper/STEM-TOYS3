@@ -196,17 +196,10 @@ export default async function ReturnsPage() {
                   reprezintă retur la expeditor (RTO). Nu este același lucru cu
                   dreptul de retragere exercitat după recepția produsului.
                 </p>
-                <p>
-                  {RETURN_POLICY_COD_RTO_RO}
-                </p>
+                <p>{RETURN_POLICY_COD_RTO_RO}</p>
                 <p>
                   Pentru produsele defecte/neconforme, costurile aferente
                   remedierii și transportului rămân în sarcina vânzătorului.
-                </p>
-                <p>
-                  Dacă există diferențe peste garanția COD autorizată, acestea
-                  nu sunt colectate printr-un debit automat separat post-refuz,
-                  ci prin fluxuri legale și contabile aplicabile în România.
                 </p>
                 <p className="text-slate-600">
                   Vezi detalii complete în{" "}
@@ -585,11 +578,6 @@ export default async function ReturnsPage() {
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-                <p className="mt-3 text-slate-600">
-                  Pentru refuz/nepreluare colet (RTO), orice diferență peste
-                  garanția COD autorizată se gestionează prin procedurile
-                  comerciale, legale și contabile aplicabile în România.
-                </p>
                 <p className="mt-4 text-slate-500">
                   <strong>Ultimă actualizare:</strong> {lastUpdated} | Versiunea
                   2.2

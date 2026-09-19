@@ -173,15 +173,7 @@ export default function TermsPage() {
                   punctul de ridicare reprezintă retur la expeditor (RTO) și nu
                   drept de retragere după livrare.
                 </li>
-                <li>
-                  {RETURN_POLICY_COD_RTO_RO}
-                </li>
-                <li>
-                  Dacă există diferențe de recuperat peste garanția COD
-                  autorizată, acestea se gestionează prin fluxurile
-                  legale/contabile aplicabile în România (ex. facturare),
-                  nefiind un debit automat separat post-refuz.
-                </li>
+                <li>{RETURN_POLICY_COD_RTO_RO}</li>
                 <li>
                   Pentru detalii complete, consultați{" "}
                   <Link href="/shipping">Politica de Livrare</Link>.

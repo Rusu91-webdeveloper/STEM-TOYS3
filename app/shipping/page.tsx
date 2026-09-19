@@ -106,8 +106,8 @@ export default async function ShippingPage() {
             </li>
             <li className="flex items-center gap-2 md:col-span-2">
               <span className="text-green-600">✓</span>
-              Refuz/nepreluare colet (RTO): se pot aplica costuri logistice tur
-              + retur
+              Refuz/nepreluare colet (RTO): putem încasa cel mult garanția
+              autorizată pentru transportul tur
             </li>
           </ul>
         </div>
@@ -251,18 +251,12 @@ export default async function ShippingPage() {
                   logistic, acestea pot fi reținute în limita costurilor
                   logistice reale.
                 </li>
-                <li>
-                  • Dacă există diferențe peste garanția COD autorizată,
-                  recuperarea se face prin fluxuri legale/contabile aplicabile
-                  în România (ex. facturare), nu prin debit automat separat
-                  post-refuz.
-                </li>
               </ul>
             </div>
           </div>
         </section>
 
-        <section className="mb-10">
+        <section id="rto" className="mb-10 scroll-mt-24">
           <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
             <AlertTriangle className="w-6 h-6 text-amber-600" />
             Refuz la Livrare și Colet Nepreluat (RTO)
@@ -279,9 +273,14 @@ export default async function ShippingPage() {
                 la expeditor.
               </li>
               <li>
-                • <strong>Costuri:</strong> returul la expeditor este suportat
-                de noi, iar dacă a fost comunicat înainte de comandă putem
-                reține doar costul logistic al transportului tur.
+                • <strong>Garanția logistică:</strong> la checkout poate fi
+                solicitată o autorizare temporară pe card, limitată la costul
+                transportului tur. Suma nu se încasează la plasarea comenzii.
+              </li>
+              <li>
+                • <strong>La refuz sau nepreluare:</strong> putem încasa cel
+                mult suma autorizată pentru transportul tur. TechTots suportă
+                costul returului la expeditor.
               </li>
               <li>
                 • <strong>Conformitate:</strong> pentru produse
@@ -450,9 +449,7 @@ export default async function ShippingPage() {
               </summary>
               <p className="mt-4 text-slate-600">
                 Refuzul la livrare sau nepreluarea coletului sunt tratate ca
-                retur la expeditor (RTO). {RETURN_POLICY_COD_RTO_RO} Dacă rămâne
-                o diferență peste garanția COD autorizată, aceasta se
-                gestionează prin fluxuri legale/contabile.
+                retur la expeditor (RTO). {RETURN_POLICY_COD_RTO_RO}
               </p>
             </details>
           </div>
@@ -493,13 +490,9 @@ export default async function ShippingPage() {
           </p>
           <p className="mt-2">
             Prevederile privind refuzul la livrare/nepreluarea coletului se
-            aplică exclusiv costurilor logistice efective, comunicate
-            precontractual.
-          </p>
-          <p className="mt-2">
-            Dacă există diferențe peste garanția COD autorizată, acestea sunt
-            gestionate prin procesele comerciale, legale și contabile aplicabile
-            în România.
+            aplică exclusiv sumei autorizate pentru transportul tur, comunicată
+            înainte de finalizarea comenzii. TechTots suportă costul returului
+            la expeditor.
           </p>
           <p className="mt-4">
             Ultima actualizare:{" "}
