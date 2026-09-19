@@ -1864,7 +1864,7 @@ export const en = {
   codInfoTitle: "COD information",
   codSelectorPreviewTitle: "Cash on delivery",
   codSelectorPreviewBody:
-    "You pay the courier on delivery. If you refuse the parcel or do not collect it, we cover the return to sender and, if disclosed before checkout, may retain only the outbound logistics cost.",
+    "Pay for the products when the courier arrives. For some orders we request a temporary card authorization limited to outbound shipping; TechTots covers the return-to-sender leg.",
   codSelectorPreviewLinksLead: "Policies:",
   codRambursHeroTitle: "Cash on delivery",
   codRambursHeroBadge: "Required information",
@@ -1878,19 +1878,19 @@ export const en = {
     "If you refuse the parcel at delivery or do not collect it in time, it may be returned to the sender (RTO).",
   codKeyPointRoundTripTitle: "Only outbound transport may be retained",
   codKeyPointRoundTripBody:
-    "If a COD order is refused or not collected, we cover the return to sender and may retain only the outbound logistics cost if this was disclosed before checkout.",
+    "Checkout may require a temporary card authorization limited to outbound shipping. If you refuse or do not collect the parcel, we may capture no more than the authorized amount; TechTots covers the return-to-sender leg.",
   codKeyPointAckTitle: "Acknowledgement before checkout",
   codKeyPointAckBody:
     "Continuing with cash on delivery requires explicit acceptance of these terms.",
   codInfoBody:
-    "Delivery refusal or parcel non-collection are treated as RTO (return to sender). In this case, we cover the return to sender and may retain only the outbound logistics cost if this was shown before the order was placed.",
+    "Delivery refusal or parcel non-collection are treated as RTO. The temporary authorization covers outbound shipping only; we may capture no more than the authorized amount, and TechTots covers the return-to-sender leg.",
   codLockerInfoTitle: "FANbox payment information",
   codLockerInfoBody:
-    "For FANbox delivery, payment is made at pickup with your card at the locker terminal. Non-collection is treated as RTO (return to sender), and if this was disclosed before checkout, only the outbound logistics cost may be retained.",
+    "For FANbox delivery, payment is made at pickup with your card at the locker terminal. We do not request the temporary outbound-shipping authorization for FANbox; TechTots covers return to sender if the parcel is not collected.",
   codReviewNotice:
-    "Pay in cash when the courier delivers your package. If you refuse delivery or do not collect the parcel, we cover the return to sender and may retain only the outbound logistics cost if disclosed before checkout.",
+    "Pay for the products when the courier delivers your parcel. The temporary authorization covers outbound shipping only; if you refuse or do not collect it, we may capture no more than the authorized amount.",
   codLockerReviewNotice:
-    "Pay at pickup with your card at the FANbox terminal. If you do not collect the parcel, we cover the return to sender and may retain only the outbound logistics cost if disclosed before checkout.",
+    "Pay at pickup with your card at the FANbox terminal. We do not request the temporary outbound-shipping authorization for FANbox; TechTots covers return to sender if the parcel is not collected.",
   codLockerFee: "FANbox payment fee",
   totalWithLockerCOD: "Total with FANbox payment",
   codLockerNotice:
