@@ -55,6 +55,16 @@ const staticRoutes: MetadataRoute.Sitemap = [
     priority: 0.82,
   },
   {
+    url: `${baseUrl}/privacy`,
+    changeFrequency: "monthly",
+    priority: 0.4,
+  },
+  {
+    url: `${baseUrl}/terms`,
+    changeFrequency: "monthly",
+    priority: 0.4,
+  },
+  {
     url: `${baseUrl}/jucarii-stem-dupa-varsta`,
     changeFrequency: "weekly",
     priority: 0.82,

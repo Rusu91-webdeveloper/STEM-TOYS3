@@ -5,6 +5,7 @@ import { getCached } from "@/lib/cache";
 import { TIME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { withPerformanceMonitoring } from "@/lib/performance";
+import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
 import { getCacheKey } from "@/lib/utils/cache-key";
 import { getFilterParams } from "@/lib/utils/filtering";
 import { getPaginationParams } from "@/lib/utils/pagination";
@@ -257,6 +258,8 @@ async function fetchProductsFromDatabase(params: {
   const where: Prisma.ProductWhereInput = {
     isActive: true,
     status: "APPROVED",
+    // Exclude soft-404 products (blocklisted slugs)
+    slug: { notIn: Array.from(SOFT_404_PRODUCT_SLUGS) },
   };
 
   // Always exclude products in "educational-books" category

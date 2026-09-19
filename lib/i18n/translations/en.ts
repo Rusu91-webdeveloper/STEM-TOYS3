@@ -5,6 +5,7 @@ export const en = {
   products: "Products",
   categories: "Categories",
   blog: "Blog",
+  blogLabel: "TechTots Blog",
   about: "About",
   age: "Age",
   giftIdeas: "Gift Ideas",
@@ -1799,6 +1800,8 @@ export const en = {
   // Missing translation keys from console errors
   All: "All",
   Close: "Close",
+  Filters: "Filters",
+  Filtered: "Filtered",
   "Filter by Category": "Filter by Category",
   best: "Best Sellers",
   new: "New Arrivals",

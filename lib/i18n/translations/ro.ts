@@ -65,6 +65,7 @@ export const ro = {
   products: "Produse",
   categories: "Categorii",
   blog: "Blog",
+  blogLabel: "Blog TechTots",
   about: "Despre noi",
   age: "Vârstă",
   giftIdeas: "Idei de cadouri",
@@ -2024,6 +2025,8 @@ export const ro = {
   // Missing translation keys from console errors
   All: "Toate",
   Close: "Închide",
+  Filters: "Filtre",
+  Filtered: "Filtrat",
   "Filter by Category": "Filtrează după Categorie",
 
   // COD (Cash on Delivery) translations
