@@ -4,10 +4,14 @@ import React from "react";
 
 import ProductDetailServer from "@/features/products/components/ProductDetailServer";
 import { getCombinedProduct } from "@/lib/api/products";
+import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
 import { generateProductMetadata } from "@/lib/utils/seo";
 
-// 🚀 PERFORMANCE: Enable ISR for faster subsequent loads
-export const revalidate = 300; // Revalidate every 5 minutes
+// Force dynamic rendering to ensure notFound() produces HTTP 404 (not cached as 200)
+export const dynamic = "force-dynamic";
+
+// Revalidate cache every 5 minutes for product data
+export const revalidate = 300;
 
 /**
  * Normalize slug to handle special characters and redirects
@@ -33,6 +37,11 @@ export async function generateMetadata({
   // Await params for Next.js 15
   const { slug: rawSlug } = await params;
   const slug = normalizeProductSlug(rawSlug);
+
+  // CRITICAL: Check blocklist BEFORE fetching product to ensure HTTP 404 for blocked products
+  if (SOFT_404_PRODUCT_SLUGS.has(slug)) {
+    notFound();
+  }
 
   // Fetch the actual product for metadata generation
   const product = await getCombinedProduct(slug);
