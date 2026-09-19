@@ -8,10 +8,8 @@ import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
 import { generateProductMetadata } from "@/lib/utils/seo";
 
 // Force dynamic rendering to ensure notFound() produces HTTP 404 (not cached as 200)
+// Note: Removed conflicting 'revalidate = 300' which prevented proper 404 status in Next.js 15
 export const dynamic = "force-dynamic";
-
-// Revalidate cache every 5 minutes for product data
-export const revalidate = 300;
 
 /**
  * Normalize slug to handle special characters and redirects
@@ -61,6 +59,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const resolvedParams = await params;
   const rawSlug = resolvedParams.slug;
   const slug = normalizeProductSlug(rawSlug);
+
+  // CRITICAL: Check blocklist BEFORE rendering to ensure HTTP 404
+  // This early check ensures Next.js sets proper 404 status before any component rendering
+  if (SOFT_404_PRODUCT_SLUGS.has(slug)) {
+    notFound();
+  }
 
   // 🚀 PERFORMANCE: Pass slug to server component with improved error handling
   return <ProductDetailServer slug={slug} />;
