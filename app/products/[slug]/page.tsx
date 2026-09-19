@@ -33,34 +33,64 @@ type ProductPageProps = {
 };
 
 /**
- * Generate static params for all active, sellable products
+ * Generate static params for all active products AND books
  * Excludes soft-404 (blocklisted) products
  * This enables routing-level HTTP 404 for unknown slugs (same pattern as categories)
+ * 
+ * IMPORTANT: 
+ * - Includes both products AND books (combined API serves both under /products/[slug])
+ * - Allows OOS products (historically show out-of-stock pages, not hard 404)
+ * - Only hard-404s the blocklist (SOFT_404_PRODUCT_SLUGS)
+ * - Normalizes slugs same as page to prevent case/slash bypass
  */
 export async function generateStaticParams() {
   try {
-    const products = await prisma.product.findMany({
-      where: {
-        isActive: true,
-        status: "APPROVED",
-        stockQuantity: { gt: 0 },
-        // Exclude soft-404 products (case-insensitive)
-        AND: Array.from(SOFT_404_PRODUCT_SLUGS).map(blockedSlug => ({
-          slug: { not: { equals: blockedSlug, mode: "insensitive" } },
-        })),
-      },
-      select: {
-        slug: true,
-      },
-    });
+    // Query both products and books in parallel (combined API serves both)
+    const [products, books] = await Promise.all([
+      prisma.product.findMany({
+        where: {
+          isActive: true,
+          status: "APPROVED",
+          // NOTE: No stockQuantity filter - OOS products show OOS page, not 404
+        },
+        select: {
+          slug: true,
+        },
+      }),
+      prisma.book.findMany({
+        where: {
+          isActive: true,
+        },
+        select: {
+          slug: true,
+        },
+      }),
+    ]);
 
-    return products.map(product => ({
-      slug: product.slug,
+    // Combine product and book slugs
+    const allSlugs = [
+      ...products.map(p => p.slug),
+      ...books.map(b => b.slug),
+    ];
+
+    // Normalize slugs (same as page does) and dedupe
+    const normalizedSlugs = Array.from(
+      new Set(allSlugs.map(slug => normalizeProductSlug(slug)))
+    );
+
+    // Exclude blocklist (case-insensitive check)
+    const validSlugs = normalizedSlugs.filter(
+      slug => !SOFT_404_PRODUCT_SLUGS.has(slug.toLowerCase())
+    );
+
+    return validSlugs.map(slug => ({
+      slug,
     }));
   } catch (error) {
-    console.error("[generateStaticParams] Error fetching product slugs:", error);
-    // Return empty array on error - all products will 404
-    return [];
+    console.error("[generateStaticParams] Error fetching product/book slugs:", error);
+    // IMPORTANT: Throw error instead of returning [] to fail the build
+    // Returning [] would 404 the entire catalog on deploy
+    throw error;
   }
 }
 
@@ -71,7 +101,7 @@ export async function generateMetadata({
   const { slug: rawSlug } = await params;
   const slug = normalizeProductSlug(rawSlug);
 
-  // CRITICAL: Check blocklist BEFORE fetching product to ensure HTTP 404 for blocked products
+  // Belt-and-suspenders: Block soft-404 products early (in addition to generateStaticParams)
   if (SOFT_404_PRODUCT_SLUGS.has(slug)) {
     notFound();
   }
@@ -95,8 +125,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const rawSlug = resolvedParams.slug;
   const slug = normalizeProductSlug(rawSlug);
 
-  // CRITICAL: Check blocklist BEFORE rendering to ensure HTTP 404
-  // This early check ensures Next.js sets proper 404 status before any component rendering
+  // Belt-and-suspenders: Block soft-404 products early (in addition to generateStaticParams)
   if (SOFT_404_PRODUCT_SLUGS.has(slug)) {
     notFound();
   }
