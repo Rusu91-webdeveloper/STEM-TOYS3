@@ -11,6 +11,12 @@ export const metadata: Metadata = {
     url: "https://www.techtots.ro/privacy",
     type: "website",
   },
+  twitter: {
+    card: "summary",
+    title: "Politica de confidențialitate | TechTots",
+    description:
+      "Politica de confidențialitate TechTots. Aflați cum colectăm, folosim și protejăm datele personale conform GDPR și legislației române.",
+  },
 };
 
 export default function PrivacyLayout({

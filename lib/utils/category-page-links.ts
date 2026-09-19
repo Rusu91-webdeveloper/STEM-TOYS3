@@ -7,6 +7,7 @@ export const REMOVED_CATEGORY_PAGE_SLUGS = [
   "educaie-stem", // should be "educatie-stem"
   "matematic", // should be "mathematics" or "matematica"
   "mathematics", // if this is the English version causing issues
+  "matematica", // Romanian word - should use "math" slug instead
 ] as const;
 
 type RemovedCategoryPageSlug = (typeof REMOVED_CATEGORY_PAGE_SLUGS)[number];

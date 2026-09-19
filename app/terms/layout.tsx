@@ -11,6 +11,12 @@ export const metadata: Metadata = {
     url: "https://www.techtots.ro/terms",
     type: "website",
   },
+  twitter: {
+    card: "summary",
+    title: "Termeni și condiții | TechTots",
+    description:
+      "Termeni și condiții TechTots. Reguli și condiții pentru utilizarea platformei și achiziționarea produselor educaționale STEM.",
+  },
 };
 
 export default function TermsLayout({
