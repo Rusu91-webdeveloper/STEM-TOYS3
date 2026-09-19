@@ -7,6 +7,7 @@ import { getCombinedProduct } from "@/lib/api/products";
 import { db } from "@/lib/db";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
 import { buildDefaultProductFaq } from "@/lib/seo/product-faq";
+import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
 import type { Product } from "@/types/product";
 
 import type { BundleContentItem } from "./BundleContents";
@@ -99,6 +100,11 @@ async function fetchBundleContents(
 }
 
 const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
+  // Block soft-404 products (exist in DB but should 404)
+  if (SOFT_404_PRODUCT_SLUGS.has(slug)) {
+    notFound();
+  }
+
   // 🚀 PERFORMANCE: First get product data
   const product: Product | null = await getCombinedProduct(slug);
 
