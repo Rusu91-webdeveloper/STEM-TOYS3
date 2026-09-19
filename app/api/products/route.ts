@@ -259,7 +259,10 @@ async function fetchProductsFromDatabase(params: {
     isActive: true,
     status: "APPROVED",
     // Exclude soft-404 products (blocklisted slugs)
-    slug: { notIn: Array.from(SOFT_404_PRODUCT_SLUGS) },
+    // Using AND + NOT for case-insensitive matching since notIn doesn't support mode
+    AND: Array.from(SOFT_404_PRODUCT_SLUGS).map(blockedSlug => ({
+      slug: { not: { equals: blockedSlug, mode: "insensitive" } },
+    })),
   };
 
   // Always exclude products in "educational-books" category

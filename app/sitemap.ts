@@ -134,7 +134,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         isActive: true,
         status: "APPROVED",
         stockQuantity: { gt: 0 },
-        slug: { notIn: Array.from(SOFT_404_PRODUCT_SLUGS) },
+        // Exclude soft-404 products (case-insensitive)
+        AND: Array.from(SOFT_404_PRODUCT_SLUGS).map(blockedSlug => ({
+          slug: { not: { equals: blockedSlug, mode: "insensitive" } },
+        })),
       },
       select: {
         slug: true,
