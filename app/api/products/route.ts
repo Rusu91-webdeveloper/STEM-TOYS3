@@ -217,9 +217,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { 
         error: "Internal server error",
-        details: process.env.NODE_ENV === "development" 
-          ? error instanceof Error ? error.message : "Unknown error"
-          : undefined
+        // Temporarily expose error message for debugging (remove after fix confirmed)
+        message: error instanceof Error ? error.message : "Unknown error"
       },
       { status: 500 }
     );
@@ -285,15 +284,22 @@ async function fetchProductsFromDatabase(params: {
     // Include uncategorized products in the default listing
     whereConditions.push({
       OR: [
-        { category: { slug: { not: "educational-books" } } },
+        { 
+          AND: [
+            { categoryId: { not: null } },
+            { category: { slug: { not: "educational-books" } } }
+          ]
+        },
         { categoryId: null },
       ],
     });
   } else {
+    // Only filter by category slug if the product has a category
     whereConditions.push({
-      category: {
-        slug: { not: "educational-books" },
-      },
+      AND: [
+        { categoryId: { not: null } },
+        { category: { slug: { not: "educational-books" } } }
+      ]
     });
   }
 
