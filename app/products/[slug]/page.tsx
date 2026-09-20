@@ -4,12 +4,15 @@ import React from "react";
 
 import ProductDetailServer from "@/features/products/components/ProductDetailServer";
 import { getCombinedProduct } from "@/lib/api/products";
+import { prisma } from "@/lib/prisma";
 import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
 import { generateProductMetadata } from "@/lib/utils/seo";
 
-// Force dynamic rendering to ensure notFound() produces HTTP 404 (not cached as 200)
-// Note: Removed conflicting 'revalidate = 300' which prevented proper 404 status in Next.js 15
-export const dynamic = "force-dynamic";
+// 🚀 PERFORMANCE: Enable ISR with 10 minutes revalidation (matching categories)
+export const revalidate = 600;
+
+// Force routing-level HTTP 404 for unknown product slugs (matching categories pattern)
+export const dynamicParams = false;
 
 /**
  * Normalize slug to handle special characters and redirects
@@ -29,6 +32,68 @@ type ProductPageProps = {
   }>;
 };
 
+/**
+ * Generate static params for all active products AND books
+ * Excludes soft-404 (blocklisted) products
+ * This enables routing-level HTTP 404 for unknown slugs (same pattern as categories)
+ * 
+ * IMPORTANT: 
+ * - Includes both products AND books (combined API serves both under /products/[slug])
+ * - Allows OOS products (historically show out-of-stock pages, not hard 404)
+ * - Only hard-404s the blocklist (SOFT_404_PRODUCT_SLUGS)
+ * - Normalizes slugs same as page to prevent case/slash bypass
+ */
+export async function generateStaticParams() {
+  try {
+    // Query both products and books in parallel (combined API serves both)
+    const [products, books] = await Promise.all([
+      prisma.product.findMany({
+        where: {
+          isActive: true,
+          status: "APPROVED",
+          // NOTE: No stockQuantity filter - OOS products show OOS page, not 404
+        },
+        select: {
+          slug: true,
+        },
+      }),
+      prisma.book.findMany({
+        where: {
+          isActive: true,
+        },
+        select: {
+          slug: true,
+        },
+      }),
+    ]);
+
+    // Combine product and book slugs
+    const allSlugs = [
+      ...products.map(p => p.slug),
+      ...books.map(b => b.slug),
+    ];
+
+    // Normalize slugs (same as page does) and dedupe
+    const normalizedSlugs = Array.from(
+      new Set(allSlugs.map(slug => normalizeProductSlug(slug)))
+    );
+
+    // Exclude blocklist (case-insensitive check)
+    const validSlugs = normalizedSlugs.filter(
+      slug => !SOFT_404_PRODUCT_SLUGS.has(slug.toLowerCase())
+    );
+
+    return validSlugs.map(slug => ({
+      slug,
+    }));
+  } catch (error) {
+    console.error("[generateStaticParams] Error fetching product/book slugs:", error);
+    // IMPORTANT: Throw error instead of returning [] to fail the build
+    // Returning [] would 404 the entire catalog on deploy
+    throw error;
+  }
+}
+
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
@@ -36,7 +101,7 @@ export async function generateMetadata({
   const { slug: rawSlug } = await params;
   const slug = normalizeProductSlug(rawSlug);
 
-  // CRITICAL: Check blocklist BEFORE fetching product to ensure HTTP 404 for blocked products
+  // Belt-and-suspenders: Block soft-404 products early (in addition to generateStaticParams)
   if (SOFT_404_PRODUCT_SLUGS.has(slug)) {
     notFound();
   }
@@ -60,8 +125,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const rawSlug = resolvedParams.slug;
   const slug = normalizeProductSlug(rawSlug);
 
-  // CRITICAL: Check blocklist BEFORE rendering to ensure HTTP 404
-  // This early check ensures Next.js sets proper 404 status before any component rendering
+  // Belt-and-suspenders: Block soft-404 products early (in addition to generateStaticParams)
   if (SOFT_404_PRODUCT_SLUGS.has(slug)) {
     notFound();
   }
