@@ -161,21 +161,21 @@ export function CategoryHeroHormozi({ slug, t }: CategoryHeroHormoziProps) {
               {/* Trust Indicators */}
               <div className="flex flex-wrap gap-4 mb-8">
                 <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm">
+                  <Shield className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-medium">
+                    Calitate Garantată
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm">
                   <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                  <span className="text-sm font-medium">4.9/5 Stele</span>
+                  <span className="text-sm font-medium">Produse Verificate</span>
                 </div>
 
                 <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm">
                   <Users className="w-4 h-4 text-blue-600" />
                   <span className="text-sm font-medium">
-                    2,500+ Copii Transformați
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm">
-                  <Shield className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-medium">
-                    Calitate Garantată
+                    Educație STEM
                   </span>
                 </div>
               </div>
@@ -255,9 +255,9 @@ export function CategoryHeroHormozi({ slug, t }: CategoryHeroHormoziProps) {
 
                   <div className="text-center">
                     <div className="text-3xl font-bold text-blue-600 mb-1">
-                      95%
+                      100%
                     </div>
-                    <div className="text-xs text-gray-600">Copii Pasionați</div>
+                    <div className="text-xs text-gray-600">Garanție Calitate</div>
                   </div>
 
                   <div className="text-center">

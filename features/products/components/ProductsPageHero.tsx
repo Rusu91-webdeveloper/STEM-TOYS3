@@ -103,11 +103,6 @@ export function ProductsPageHero({ t }: ProductsPageHeroProps) {
           {/* Trust Indicators */}
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-8">
             <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm">
-              <Star className="w-5 h-5 text-yellow-500 fill-current" />
-              <span className="text-sm font-medium">4.9/5 Stele</span>
-            </div>
-
-            <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm">
               <Shield className="w-5 h-5 text-green-600" />
               <span className="text-sm font-medium">Calitate Garantată</span>
             </div>
@@ -115,6 +110,11 @@ export function ProductsPageHero({ t }: ProductsPageHeroProps) {
             <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm">
               <Clock className="w-5 h-5 text-blue-600" />
               <span className="text-sm font-medium">Livrare Rapidă</span>
+            </div>
+
+            <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm">
+              <Star className="w-5 h-5 text-yellow-500 fill-current" />
+              <span className="text-sm font-medium">Produse Verificate</span>
             </div>
           </div>
 

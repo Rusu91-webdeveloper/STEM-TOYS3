@@ -1849,7 +1849,7 @@ export const en = {
   codChipSecure: "Pay only when you receive the parcel",
   codPopular: "Popular in Romania",
   codFee: "Cash on delivery fee",
-  codFeeBreakdown: "Fee: {percentage} RON (3%) + {fixed} RON fixed",
+  codFeeBreakdown: "Fee: {percentage} RON (1%) + {fixed} RON fixed",
   codTotalWithFee: "Total with COD: {total} RON",
   codNotice: "Pay cash on delivery. The courier will collect the total amount.",
   codOrderSuccess: "Order placed successfully!",

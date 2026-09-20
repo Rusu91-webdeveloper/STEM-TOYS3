@@ -2038,7 +2038,7 @@ export const ro = {
   codChipSecure: "Plătești doar când primești coletul",
   codPopular: "Popular în România",
   codFee: "Taxă ramburs",
-  codFeeBreakdown: "Taxă: {percentage} RON (3%) + {fixed} RON fix",
+  codFeeBreakdown: "Taxă: {percentage} RON (1%) + {fixed} RON fix",
   codTotalWithFee: "Total cu ramburs: {total} RON",
   codNotice:
     "💡 Plătești cash la primirea coletului. Curierul va colecta suma totală.",

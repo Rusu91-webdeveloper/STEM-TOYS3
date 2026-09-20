@@ -110,7 +110,7 @@ export const ROMANIAN_TESTIMONIALS: RomanianTestimonial[] = [
     testimonial:
       "Elevii mei de la clasa pregătitoare învață concepte de programare și robotică pe care eu le-am învățat la facultate. E uimitor cum aceste jucării fac învățarea distractivă și eficientă!",
     results:
-      "Competențe digitale dezvoltate la 95% dintre elevi, entuziasm pentru STEM +300%",
+      "Competențe digitale dezvoltate, entuziasm pentru STEM crescut semnificativ",
     category: "technical",
     impact: "high",
     verified: true,
@@ -236,10 +236,10 @@ export const ROMANIAN_TRUST_BADGES: TrustBadge[] = [
     type: "certification",
     name: "Testat de Părinți și Profesori",
     description:
-      "Peste 10.000 de părinti și profesori au testat și aprobat produsele",
+      "Produsele noastre sunt testate și aprobate de părinți și profesori",
     issuer: "Comunitatea TechTots",
     validity: "2024-2025",
-    displayText: "👨‍👩‍👧‍👦 Testat de 10.000+ Părinți și Profesori",
+    displayText: "👨‍👩‍👧‍👦 Testat de Părinți și Profesori",
   },
 ];
 

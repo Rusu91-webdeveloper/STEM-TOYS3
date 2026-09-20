@@ -4,13 +4,18 @@ import { Lock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import type { Session } from "next-auth";
 
 import { StripeBypassProvider } from "@/components/checkout/StripeBypassProvider";
 import { CheckoutFlow } from "@/features/checkout/components/CheckoutFlow";
 import { checkoutPageShellClass } from "@/features/checkout/lib/checkoutTheme";
 import { useTranslation } from "@/lib/i18n";
 
-export function CheckoutContent() {
+interface CheckoutContentProps {
+  session: Session | null;
+}
+
+export function CheckoutContent({ session }: CheckoutContentProps) {
   const { t } = useTranslation();
 
   return (

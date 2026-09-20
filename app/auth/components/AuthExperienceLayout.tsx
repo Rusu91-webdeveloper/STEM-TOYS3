@@ -25,9 +25,9 @@ type AuthExperienceLayoutProps = {
 };
 
 const defaultStats: Stat[] = [
-  { label: "Familii transformate", value: "10.000+" },
   { label: "Durata configurării", value: "< 5 min" },
-  { label: "Grad de recomandare", value: "4.9/5" },
+  { label: "Garanție", value: "100%" },
+  { label: "Livrare", value: "Rapidă" },
 ];
 
 export function AuthExperienceLayout({

@@ -6,7 +6,7 @@
  */
 
 export interface CODFeeConfig {
-  /** Percentage fee (e.g., 0.03 for 3%) */
+  /** Percentage fee (e.g., 0.01 for 1%) */
   percentage: number;
   /** Fixed fee in RON */
   fixedFee: number;
@@ -33,10 +33,10 @@ export interface CODFeeResult {
 
 /**
  * Default COD fee configuration for Romanian market
- * 3% percentage + 5 RON fixed fee
+ * 1% percentage + 5 RON fixed fee
  */
 export const DEFAULT_COD_CONFIG: CODFeeConfig = {
-  percentage: 0.03, // 3%
+  percentage: 0.01, // 1%
   fixedFee: 5.0, // 5 RON
   minimumOrderValue: 0, // No minimum
   maximumCODAmount: undefined, // No maximum
@@ -51,8 +51,8 @@ export const DEFAULT_COD_CONFIG: CODFeeConfig = {
  * 
  * @example
  * ```typescript
- * const result = calculateCODFee(100, { percentage: 0.03, fixedFee: 5 });
- * // result.fee = 8 RON (3% of 100 = 3, + 5 = 8)
+ * const result = calculateCODFee(100, { percentage: 0.01, fixedFee: 5 });
+ * // result.fee = 6 RON (1% of 100 = 1, + 5 = 6)
  * // result.orderTotalWithFee = 108 RON
  * ```
  */
@@ -148,7 +148,7 @@ export async function getCODFeeConfig(): Promise<CODFeeConfig> {
     
     if (codSettings?.active) {
       return {
-        percentage: parseFloat(codSettings.percentage || "3") / 100, // Convert percentage to decimal
+        percentage: parseFloat(codSettings.percentage || "1") / 100, // Convert percentage to decimal
         fixedFee: parseFloat(codSettings.fixedFee || "5.00"),
         minimumOrderValue: undefined,
         maximumCODAmount: undefined,
@@ -160,7 +160,7 @@ export async function getCODFeeConfig(): Promise<CODFeeConfig> {
 
   // Fallback to environment variables or defaults
   const percentage = parseFloat(
-    process.env.COD_FEE_PERCENTAGE || "0.03"
+    process.env.COD_FEE_PERCENTAGE || "0.01"
   );
   const fixedFee = parseFloat(process.env.COD_FIXED_FEE || "5.0");
   const minimumOrderValue = process.env.COD_MINIMUM_ORDER_VALUE

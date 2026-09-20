@@ -186,7 +186,7 @@ const PaymentMethodSelectorComponent = ({
         name: t("cashOnDelivery", "Ramburs"),
         icon: <Banknote className="h-6 w-6" />,
         provider: "cod",
-        fee: "3% + 5 RON",
+        fee: "1% + 5 RON",
         description: t(
           "codHomeMethodDescription",
           "Plătești la primirea coletului. Vezi condițiile înainte de finalizare."
