@@ -344,22 +344,17 @@ async function fetchProductsFromDatabase(params: {
     }
   }
 
-  // Combine all conditions with AND
-  const where: Prisma.ProductWhereInput = {
-    AND: whereConditions,
-  };
-
   // **PERFORMANCE**: Optimized price filtering
   if (minPrice !== undefined || maxPrice !== undefined) {
     const priceCondition: any = {};
     if (minPrice !== undefined) priceCondition.gte = minPrice;
     if (maxPrice !== undefined) priceCondition.lte = maxPrice;
-    where.AND.push({ price: priceCondition });
+    whereConditions.push({ price: priceCondition });
   }
 
   // Handle featured products filter
   if (featured === "true") {
-    where.AND.push({ featured: true });
+    whereConditions.push({ featured: true });
   }
 
   // **PERFORMANCE**: Ultra-optimized search using database full-text search
@@ -388,18 +383,23 @@ async function fetchProductsFromDatabase(params: {
       }
 
       // Add search as an OR condition in the AND array
-      where.AND.push({ OR: searchConditions });
+      whereConditions.push({ OR: searchConditions });
     }
   }
 
   // New categorization filters
   if (ageGroup) {
-    where.AND.push({ ageGroup });
+    whereConditions.push({ ageGroup });
   }
 
   if (stemDiscipline) {
-    where.AND.push({ stemDiscipline });
+    whereConditions.push({ stemDiscipline });
   }
+
+  // Combine all conditions with AND
+  const where: Prisma.ProductWhereInput = {
+    AND: whereConditions,
+  };
 
   // learningOutcomes, productType, specialCategories are in metadata (JSON), not columns.
   // Filtering is done client-side after extraction from metadata in the response.
