@@ -209,8 +209,18 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Products API error:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      searchParams: Object.fromEntries(request.nextUrl.searchParams),
+    });
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "Internal server error",
+        details: process.env.NODE_ENV === "development" 
+          ? error instanceof Error ? error.message : "Unknown error"
+          : undefined
+      },
       { status: 500 }
     );
   }
@@ -752,7 +762,18 @@ async function fetchProductsFromDatabase(params: {
     return responseData;
   } catch (dbError) {
     console.error("Database error when fetching products:", dbError);
-    throw new Error("Database query failed");
+    console.error("Query params:", {
+      category,
+      featured,
+      search,
+      limit,
+      page,
+      ageGroup,
+      stemDiscipline,
+    });
+    throw new Error(
+      `Database query failed: ${dbError instanceof Error ? dbError.message : "Unknown error"}`
+    );
   }
 }
 
