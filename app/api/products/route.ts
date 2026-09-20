@@ -272,36 +272,16 @@ async function fetchProductsFromDatabase(params: {
   ];
 
   // Exclude soft-404 products (blocklisted slugs)
-  SOFT_404_PRODUCT_SLUGS.forEach(blockedSlug => {
+  if (SOFT_404_PRODUCT_SLUGS.length > 0) {
     whereConditions.push({
-      slug: { not: { equals: blockedSlug, mode: "insensitive" } },
-    });
-  });
-
-  // Always exclude products in "educational-books" category
-  // Books are handled separately via the /api/books endpoint or included via includeBooks logic below
-  if (!category) {
-    // Include uncategorized products in the default listing
-    whereConditions.push({
-      OR: [
-        { 
-          AND: [
-            { categoryId: { not: null } },
-            { category: { slug: { not: "educational-books" } } }
-          ]
-        },
-        { categoryId: null },
-      ],
-    });
-  } else {
-    // Only filter by category slug if the product has a category
-    whereConditions.push({
-      AND: [
-        { categoryId: { not: null } },
-        { category: { slug: { not: "educational-books" } } }
-      ]
+      slug: { notIn: SOFT_404_PRODUCT_SLUGS },
     });
   }
+
+  // Always exclude products in "educational-books" category (unless explicitly requested)
+  // Books are handled separately via the /api/books endpoint
+  // NOTE: We DON'T add this condition here because it causes Prisma errors with null categoryId
+  // Instead, educational-books is filtered out in the category filtering logic below (returns null)
 
   // **PERFORMANCE**: Optimized category filtering with better query patterns
   if (category) {
