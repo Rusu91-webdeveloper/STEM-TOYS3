@@ -217,8 +217,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { 
         error: "Internal server error",
-        // Temporarily expose error message for debugging (remove after fix confirmed)
-        message: error instanceof Error ? error.message : "Unknown error"
+        // Error details are logged server-side for debugging
+        ...(process.env.NODE_ENV === "development" && {
+          message: error instanceof Error ? error.message : "Unknown error"
+        })
       },
       { status: 500 }
     );
