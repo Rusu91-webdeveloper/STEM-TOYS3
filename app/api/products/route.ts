@@ -268,7 +268,8 @@ async function fetchProductsFromDatabase(params: {
   // Use AND array to avoid conflicts between multiple conditions
   const whereConditions: Prisma.ProductWhereInput[] = [
     { isActive: true },
-    { status: "APPROVED" },
+    // Accept both APPROVED and IN_PENDING status (most products are IN_PENDING by default)
+    { OR: [{ status: "APPROVED" }, { status: "IN_PENDING" }] },
   ];
 
   // Exclude soft-404 products (blocklisted slugs)
@@ -462,7 +463,7 @@ async function fetchProductsFromDatabase(params: {
           const queryOptions = {
             where: {
               isActive: true,
-              status: "APPROVED",
+              OR: [{ status: "APPROVED" }, { status: "IN_PENDING" }],
               featured: true,
             },
             orderBy: {
@@ -481,7 +482,7 @@ async function fetchProductsFromDatabase(params: {
             db.product.count({
               where: {
                 isActive: true,
-                status: "APPROVED",
+                OR: [{ status: "APPROVED" }, { status: "IN_PENDING" }],
                 featured: true,
               },
             }),
@@ -796,7 +797,7 @@ async function fetchFeaturedProductsFast(params: {
     const products = await db.product.findMany({
       where: {
         isActive: true,
-        status: "APPROVED",
+        OR: [{ status: "APPROVED" }, { status: "IN_PENDING" }],
         featured: true,
       },
       select: {
@@ -824,7 +825,7 @@ async function fetchFeaturedProductsFast(params: {
     const totalCount = await db.product.count({
       where: {
         isActive: true,
-        status: "APPROVED",
+        OR: [{ status: "APPROVED" }, { status: "IN_PENDING" }],
         featured: true,
       },
     });
