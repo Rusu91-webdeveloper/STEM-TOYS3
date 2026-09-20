@@ -117,7 +117,8 @@ const staticRoutes: MetadataRoute.Sitemap = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
+  try {
+    const now = new Date();
 
   // Categories that actually render (from app/categories/[slug]/page.tsx KNOWN_SLUGS)
   const KNOWN_CATEGORY_SLUGS = [
@@ -184,7 +185,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.66,
   }));
 
-  return staticRoutes
-    .map(route => ({ ...route, lastModified: now }))
-    .concat(regionalPages, categoryPages, productPages, blogPages);
+    return staticRoutes
+      .map(route => ({ ...route, lastModified: now }))
+      .concat(regionalPages, categoryPages, productPages, blogPages);
+  } catch (error) {
+    console.error("Sitemap generation error:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    
+    // Return minimal sitemap on error so the site doesn't completely break
+    const now = new Date();
+    return staticRoutes.map(route => ({ ...route, lastModified: now }));
+  }
 }

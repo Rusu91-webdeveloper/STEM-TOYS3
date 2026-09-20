@@ -209,8 +209,18 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Products API error:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      searchParams: Object.fromEntries(request.nextUrl.searchParams),
+    });
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "Internal server error",
+        details: process.env.NODE_ENV === "development" 
+          ? error instanceof Error ? error.message : "Unknown error"
+          : undefined
+      },
       { status: 500 }
     );
   }
@@ -255,28 +265,35 @@ async function fetchProductsFromDatabase(params: {
     .some(cat => cat.trim().toLowerCase() === "educational-books");
 
   // **PERFORMANCE**: Build optimized where clause
-  const where: Prisma.ProductWhereInput = {
-    isActive: true,
-    status: "APPROVED",
-    // Exclude soft-404 products (blocklisted slugs)
-    // Using AND + NOT for case-insensitive matching since notIn doesn't support mode
-    AND: Array.from(SOFT_404_PRODUCT_SLUGS).map(blockedSlug => ({
+  // Use AND array to avoid conflicts between multiple conditions
+  const whereConditions: Prisma.ProductWhereInput[] = [
+    { isActive: true },
+    { status: "APPROVED" },
+  ];
+
+  // Exclude soft-404 products (blocklisted slugs)
+  SOFT_404_PRODUCT_SLUGS.forEach(blockedSlug => {
+    whereConditions.push({
       slug: { not: { equals: blockedSlug, mode: "insensitive" } },
-    })),
-  };
+    });
+  });
 
   // Always exclude products in "educational-books" category
   // Books are handled separately via the /api/books endpoint or included via includeBooks logic below
   if (!category) {
     // Include uncategorized products in the default listing
-    where.OR = [
-      { category: { slug: { not: "educational-books" } } },
-      { categoryId: null },
-    ];
+    whereConditions.push({
+      OR: [
+        { category: { slug: { not: "educational-books" } } },
+        { categoryId: null },
+      ],
+    });
   } else {
-    where.category = {
-      slug: { not: "educational-books" },
-    };
+    whereConditions.push({
+      category: {
+        slug: { not: "educational-books" },
+      },
+    });
   }
 
   // **PERFORMANCE**: Optimized category filtering with better query patterns
@@ -319,25 +336,30 @@ async function fetchProductsFromDatabase(params: {
           condition !== null
       );
 
-    // **PERFORMANCE**: Use more efficient OR conditions
-    if (categoryConditions.length > 1) {
-      where.OR = categoryConditions;
-    } else if (categoryConditions.length === 1) {
-      // Merge single condition directly to avoid OR wrapper
-      Object.assign(where, categoryConditions[0]);
+    // Add category conditions properly
+    if (categoryConditions.length > 0) {
+      whereConditions.push({
+        OR: categoryConditions,
+      });
     }
   }
 
+  // Combine all conditions with AND
+  const where: Prisma.ProductWhereInput = {
+    AND: whereConditions,
+  };
+
   // **PERFORMANCE**: Optimized price filtering
   if (minPrice !== undefined || maxPrice !== undefined) {
-    where.price = {};
-    if (minPrice !== undefined) where.price.gte = minPrice;
-    if (maxPrice !== undefined) where.price.lte = maxPrice;
+    const priceCondition: any = {};
+    if (minPrice !== undefined) priceCondition.gte = minPrice;
+    if (maxPrice !== undefined) priceCondition.lte = maxPrice;
+    where.AND.push({ price: priceCondition });
   }
 
   // Handle featured products filter
   if (featured === "true") {
-    where.featured = true;
+    where.AND.push({ featured: true });
   }
 
   // **PERFORMANCE**: Ultra-optimized search using database full-text search
@@ -350,13 +372,13 @@ async function fetchProductsFromDatabase(params: {
 
       // Primary search: name field (fastest, most relevant)
       searchConditions.push({
-        name: { contains: searchTerm, mode: "insensitive" },
+        name: { contains: searchTerm, mode: "insensitive" as const },
       });
 
       // Secondary search: description for longer terms
       if (searchTerm.length >= 3) {
         searchConditions.push({
-          description: { contains: searchTerm, mode: "insensitive" },
+          description: { contains: searchTerm, mode: "insensitive" as const },
         });
       }
 
@@ -365,25 +387,18 @@ async function fetchProductsFromDatabase(params: {
         searchConditions.push({ tags: { hasSome: [searchTerm] } });
       }
 
-      // **PERFORMANCE**: Optimized OR logic to prevent query planner issues
-      if (where.OR) {
-        where.AND = where.AND || [];
-        where.AND.push({ OR: where.OR });
-        where.AND.push({ OR: searchConditions });
-        delete where.OR;
-      } else {
-        where.OR = searchConditions;
-      }
+      // Add search as an OR condition in the AND array
+      where.AND.push({ OR: searchConditions });
     }
   }
 
   // New categorization filters
   if (ageGroup) {
-    (where as any).ageGroup = ageGroup;
+    where.AND.push({ ageGroup });
   }
 
   if (stemDiscipline) {
-    (where as any).stemDiscipline = stemDiscipline;
+    where.AND.push({ stemDiscipline });
   }
 
   // learningOutcomes, productType, specialCategories are in metadata (JSON), not columns.
@@ -752,7 +767,18 @@ async function fetchProductsFromDatabase(params: {
     return responseData;
   } catch (dbError) {
     console.error("Database error when fetching products:", dbError);
-    throw new Error("Database query failed");
+    console.error("Query params:", {
+      category,
+      featured,
+      search,
+      limit,
+      page,
+      ageGroup,
+      stemDiscipline,
+    });
+    throw new Error(
+      `Database query failed: ${dbError instanceof Error ? dbError.message : "Unknown error"}`
+    );
   }
 }
 
