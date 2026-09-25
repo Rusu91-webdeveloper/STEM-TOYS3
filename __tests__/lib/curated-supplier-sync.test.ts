@@ -84,3 +84,15 @@ it("closes Kidstory availability on a failed refresh", async () => {
   expect(result.map(p => p.status)).toEqual(["SUCCESS", "FAILED"]);
   expect(kidstory.closeKidstoryStock).toHaveBeenCalled();
 });
+it("does not close Boribon stock when UPSELL portfolio entry is uninstalled", async () => {
+  // Simulate an uninstalled UPSELL entry causing syncBoribonPortfolio to succeed
+  // (not throw) because UPSELL entries are skipped with a warning.
+  boribon.syncBoribonPortfolio.mockResolvedValue({
+    imported: 0,
+    updated: 63,
+    failed: 0,
+  });
+  const result = await runSupplierFeedSync();
+  expect(result.map(p => p.status)).toEqual(["SUCCESS", "SUCCESS"]);
+  expect(boribon.closeBoribonStock).not.toHaveBeenCalled();
+});

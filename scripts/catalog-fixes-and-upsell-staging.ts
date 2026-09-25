@@ -6,14 +6,17 @@
  * 
  * FIXES:
  * 1. Carson MicroFlip: Keep MP-250 plain (139 RON), deactivate MP-250BUN bundle
- * 2. Djeco Cubologic pricing: Investigate and fix if needed, evidence-based
- * 3. Aqua Dragons: Fix refill pairing (AD4004 vs AD6102/AD6103)
+ * 2. Aqua Dragons: Deactivate mismatched refill AD4004
  * 
- * NEW PRODUCTS (staged as inactive):
+ * NEW PRODUCTS (staged as inactive, tracked by Boribon sync):
  * - 3x T&K Gecko Run expansions @ 103 RON each
  * - Djeco Zig & Go Cultubo 7 pieces @ 80 RON
  * - Cleverclixx mini tiles @ 126 RON
  * - Cleverclixx glitter tiles 16 pieces @ 164 RON
+ * 
+ * The 6 add-ons are added to lib/suppliers/boribon/portfolio.json
+ * and will have stock and price synced by the Boribon sync (06:00/18:00).
+ * Images are NOT part of the Boribon feed/sync and must be added manually.
  */
 
 import { PrismaClient } from "@prisma/client";
@@ -35,7 +38,9 @@ const DRY_RUN = !process.argv.includes("--apply");
 const BACKUP_DIR = path.join(process.cwd(), ".backups", `catalog-fixes-${Date.now()}`);
 
 // Real supplier feed data from Boribon (2026-09-25)
-// Images will be synced via supplier feed; using product URLs as placeholders
+// These products are added to lib/suppliers/boribon/portfolio.json
+// and tracked by the Boribon sync (06:00/18:00) which will update stock and price.
+// NOTE: Boribon feed/sync does NOT include images. Images must be set manually or via admin.
 const NEW_PRODUCTS_DATA = [
   {
     sku: "K_550202",
@@ -143,8 +148,7 @@ async function createBackup(): Promise<void> {
     where: {
       OR: [
         { sku: { in: ["MP-250", "MP-250BUN"] } },
-        { sku: { in: ["DJ08576", "DJ08581"] } },
-        { sku: { in: ["AD4004", "AD6102", "AD6103"] } },
+        { sku: { in: ["AD4004", "AD6102"] } },
         ...NEW_PRODUCTS_DATA.map(p => ({ sku: p.sku }))
       ]
     }
@@ -243,111 +247,13 @@ async function fixMicroFlipDuplicate(): Promise<FixResult> {
 }
 
 /**
- * FIX 2: Djeco Cubologic pricing
- * From feed: DJ08576 (16 pieces) = 130 RON, DJ08581 (9 pieces) = 137 RON
- * This is the actual supplier pricing. Investigate if correction needed.
- */
-async function fixCubologicPricing(): Promise<FixResult> {
-  const result: FixResult = {
-    fixNumber: 2,
-    name: "Djeco Cubologic Pricing",
-    status: "success",
-    details: "",
-    skusOrSlugs: [],
-    rootCause: ""
-  };
-  
-  try {
-    const cubologic9 = await prisma.product.findFirst({
-      where: { sku: "DJ08581" }
-    });
-    
-    const cubologic16 = await prisma.product.findFirst({
-      where: { sku: "DJ08576" }
-    });
-    
-    if (!cubologic9 || !cubologic16) {
-      result.status = "skipped";
-      result.details = `Missing products: Cubologic 9 ${cubologic9 ? "found" : "NOT FOUND"}, Cubologic 16 ${cubologic16 ? "found" : "NOT FOUND"}`;
-      return result;
-    }
-    
-    const price9 = Number(cubologic9.price);
-    const price16 = Number(cubologic16.price);
-    
-    // Evidence from Boribon feed (2026-09-25):
-    // DJ08576 (Cubologic 16): 130.0 RON, 27 in stock
-    // DJ08581 (Cubologic 9): 137.0 RON, 14 in stock
-    // Both are in "Logica" category, ages "6 - 9 ani, 9 - 12 ani"
-    
-    result.rootCause = "Supplier (Boribon) feed shows Cubologic 9-piece (DJ08581) priced at 137 RON and 16-piece (DJ08576) at 130 RON. This pricing inversion exists at the source. Investigation shows these are same product line (Cubologic logic puzzles by Djeco), so the larger set should not be cheaper. Correcting to logical pricing order while maintaining similar markup.";
-    
-    if (price9 <= price16) {
-      result.status = "skipped";
-      result.details = `Prices are already in correct order: Cubologic 9 (${price9} RON) ≤ Cubologic 16 (${price16} RON)`;
-      result.skusOrSlugs = [cubologic9.slug, cubologic16.slug];
-      return result;
-    }
-    
-    // Price inversion confirmed - apply correction
-    if (!DRY_RUN) {
-      const currentMetadata9 = typeof cubologic9.metadata === 'object' && cubologic9.metadata !== null
-        ? cubologic9.metadata as Record<string, unknown>
-        : {};
-      const currentMetadata16 = typeof cubologic16.metadata === 'object' && cubologic16.metadata !== null
-        ? cubologic16.metadata as Record<string, unknown>
-        : {};
-        
-      await prisma.$transaction([
-        prisma.product.update({
-          where: { id: cubologic9.id },
-          data: { 
-            price: 130,
-            metadata: {
-              ...currentMetadata9,
-              priceCorrectionApplied: true,
-              priceCorrectionReason: "Fixed supplier pricing inversion: 9-piece set should not cost more than 16-piece set",
-              priceCorrectionDate: new Date().toISOString(),
-              originalSupplierPrice: 137
-            }
-          }
-        }),
-        prisma.product.update({
-          where: { id: cubologic16.id },
-          data: { 
-            price: 137,
-            metadata: {
-              ...currentMetadata16,
-              priceCorrectionApplied: true,
-              priceCorrectionReason: "Fixed supplier pricing inversion: 16-piece set should cost more than 9-piece set",
-              priceCorrectionDate: new Date().toISOString(),
-              originalSupplierPrice: 130
-            }
-          }
-        })
-      ]);
-    }
-    
-    result.details = `Fixed pricing inversion: Cubologic 9 (DJ08581, ${cubologic9.slug}): ${price9} → 130 RON; Cubologic 16 (DJ08576, ${cubologic16.slug}): ${price16} → 137 RON. Price corrections saved in metadata to survive supplier sync.`;
-    result.skusOrSlugs = [cubologic9.slug, cubologic16.slug];
-    result.filesChanged = ["scripts/catalog-fixes-and-upsell-staging.ts", "Product table"];
-    
-  } catch (error) {
-    result.status = "error";
-    result.details = `Error: ${error instanceof Error ? error.message : String(error)}`;
-  }
-  
-  return result;
-}
-
-/**
- * FIX 3: Aqua Dragons refill mismatch
+ * FIX 2: Aqua Dragons refill mismatch
  * AD4004 is for "Lumea subacvatica" line, not Vulcan (AD6102)
  * Correct Vulcan refill (AD6103) is out of stock
  */
 async function fixAquaDragonsRefill(): Promise<FixResult> {
   const result: FixResult = {
-    fixNumber: 3,
+    fixNumber: 2,
     name: "Aqua Dragons Refill Alignment",
     status: "success",
     details: "",
@@ -540,16 +446,17 @@ async function addUpsellProducts(): Promise<ProductResult[]> {
         result.slug = newProduct.slug;
         
         // Create SupplierProduct for sync
+        // Note: price field is purchase cost, not retail price. Boribon sync does not set it (stays null).
+        // Stock from feed is initial value; sync will update it.
         await prisma.supplierProduct.create({
           data: {
             supplierId: boribon.id,
             supplierSku: productData.sku,
             name: productData.name,
             description: `${productData.name}. ${productData.age}.`,
-            price: productData.price,
             currency: "RON",
             stock: productData.stock,
-            images: [], // Supplier sync will populate
+            images: [], // Boribon feed/sync does NOT include images. Must be set manually.
             productId: newProduct.id,
             status: "MAPPED",
             attributes: {
@@ -587,7 +494,7 @@ async function main() {
     await createBackup();
   }
   
-  // Execute three fixes
+  // Execute two fixes
   console.log("📋 EXECUTING FIXES:\n");
   
   const fix1 = await fixMicroFlipDuplicate();
@@ -597,19 +504,12 @@ async function main() {
   if (fix1.rootCause) console.log(`Root Cause: ${fix1.rootCause}`);
   if (fix1.skusOrSlugs?.length) console.log(`SKUs/Slugs: ${fix1.skusOrSlugs.join(", ")}`);
   
-  const fix2 = await fixCubologicPricing();
+  const fix2 = await fixAquaDragonsRefill();
   console.log(`\nFix #2: ${fix2.name}`);
   console.log(`Status: ${fix2.status.toUpperCase()}`);
   console.log(`Details: ${fix2.details}`);
   if (fix2.rootCause) console.log(`Root Cause: ${fix2.rootCause}`);
   if (fix2.skusOrSlugs?.length) console.log(`SKUs/Slugs: ${fix2.skusOrSlugs.join(", ")}`);
-  
-  const fix3 = await fixAquaDragonsRefill();
-  console.log(`\nFix #3: ${fix3.name}`);
-  console.log(`Status: ${fix3.status.toUpperCase()}`);
-  console.log(`Details: ${fix3.details}`);
-  if (fix3.rootCause) console.log(`Root Cause: ${fix3.rootCause}`);
-  if (fix3.skusOrSlugs?.length) console.log(`SKUs/Slugs: ${fix3.skusOrSlugs.join(", ")}`);
   
   // Add new upsell products
   console.log("\n\n📦 STAGING NEW UPSELL PRODUCTS:\n");
@@ -626,7 +526,7 @@ async function main() {
   
   // Summary
   console.log("\n\n📊 SUMMARY:\n");
-  console.log(`Fixes Applied: ${[fix1, fix2, fix3].filter(f => f.status === "success").length}/3`);
+  console.log(`Fixes Applied: ${[fix1, fix2].filter(f => f.status === "success").length}/2`);
   console.log(`Products Created: ${productResults.filter(p => p.status === "created").length}/${productResults.length}`);
   console.log(`Products Already Exist: ${productResults.filter(p => p.status === "exists").length}`);
   console.log(`Errors: ${productResults.filter(p => p.status === "error").length}`);
@@ -639,7 +539,7 @@ async function main() {
     const summary = {
       mode: "applied",
       timestamp: new Date().toISOString(),
-      fixes: [fix1, fix2, fix3],
+      fixes: [fix1, fix2],
       newProducts: productResults,
       backupDir: BACKUP_DIR
     };

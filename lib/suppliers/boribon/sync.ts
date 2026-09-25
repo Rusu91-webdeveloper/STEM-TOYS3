@@ -21,8 +21,17 @@ export async function syncBoribonPortfolio(
       });
       for (const item of items) {
         const link = links.find(p => p.supplierSku === item.entry.model);
-        if (!link?.productId)
+        if (!link?.productId) {
+          // UPSELL entries can be uninstalled without closing stock for the whole catalog.
+          // Core catalog entries must be installed or the sync fails.
+          if (item.entry.tier === "UPSELL") {
+            console.warn(
+              `[Boribon sync] Skipping uninstalled UPSELL: ${item.entry.model}`
+            );
+            continue;
+          }
           throw new Error(`Portfolio is not installed: ${item.entry.model}`);
+        }
         // stockQuantity is sellable stock; reservedQuantity is already deducted.
         // Preserve reservations until the existing order lifecycle releases them.
         const changed = await tx.$executeRaw(Prisma.sql`
@@ -49,12 +58,29 @@ export async function syncBoribonPortfolio(
     },
     { timeout: 25000, maxWait: 5000 }
   );
-  const failed = items.filter(item => !item.valid).length;
-  if (failed)
-    throw new Error(
-      `${failed} Boribon products unavailable because supplier data failed validation`
+  // Count failures, but exclude UPSELL entries from critical failures.
+  // UPSELL entries failing validation should not close stock for the entire catalog.
+  const failedCore = items.filter(
+    item => !item.valid && item.entry.tier !== "UPSELL"
+  );
+  const failedUpsell = items.filter(
+    item => !item.valid && item.entry.tier === "UPSELL"
+  );
+  
+  if (failedUpsell.length > 0) {
+    console.warn(
+      `[Boribon sync] ${failedUpsell.length} UPSELL items failed validation:`,
+      failedUpsell.map(i => i.entry.model).join(", ")
     );
-  return { imported: 0, updated: items.length, failed: 0 };
+  }
+  
+  if (failedCore.length > 0) {
+    throw new Error(
+      `${failedCore.length} core Boribon products unavailable because supplier data failed validation`
+    );
+  }
+  
+  return { imported: 0, updated: items.length - failedUpsell.length, failed: failedUpsell.length };
 }
 
 export async function closeBoribonStock(db: PrismaClient) {

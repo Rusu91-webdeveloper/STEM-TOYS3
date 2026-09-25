@@ -2,17 +2,16 @@
 
 ## What It Does
 
-Three catalog fixes + six staged upsell products for TechTots:
+Two catalog fixes + six staged upsell products for TechTots:
 
 ### Fixes
 
 1. **MicroFlip**: Keeps MP-250 plain (139 RON), deactivates MP-250BUN bundle
-2. **Cubologic**: Corrects pricing inversion (9-piece vs 16-piece)
-3. **Aqua Dragons**: Deactivates mismatched refill AD4004
+2. **Aqua Dragons**: Deactivates mismatched refill AD4004
 
-### Staged Products (Inactive)
+### Staged Products (Inactive, Tracked by Boribon Sync)
 
-Six expansion products from Boribon, staged as `isActive: false`:
+Six expansion products from Boribon, staged as `isActive: false` and added to `lib/suppliers/boribon/portfolio.json`:
 
 | SKU | EAN | Name | Price | Pairs With |
 |-----|-----|------|-------|------------|
@@ -22,6 +21,13 @@ Six expansion products from Boribon, staged as `isActive: false`:
 | DJ05648 | 3070900056480 | Djeco Zig & Go Cultubo 7 | 80 RON | DJ05640 |
 | CC-1027 | 6152121148100 | Cleverclixx mini tiles | 126 RON | CC- 1009 |
 | CC-1029 | 6152121374356 | Cleverclixx glitter tiles 16 | 164 RON | CC-1004 |
+
+**Boribon Sync Behavior:**
+- The 6 products are now tracked by the Boribon sync (runs at 06:00 and 18:00)
+- Sync will automatically update **stock** and set retail **price** from the feed
+- Sync **DOES NOT** change `isActive` — products stay hidden until manually activated
+- Sync **DOES NOT** populate images — images must be added manually via admin
+- The sync only updates `stockQuantity`, `price`, and `compareAtPrice` fields per `lib/suppliers/boribon/sync.ts`
 
 ---
 
@@ -53,20 +59,20 @@ SELECT id, slug, sku, name, price, "isActive"
 FROM "Product" 
 WHERE sku IN ('MP-250', 'MP-250BUN');
 
--- Check Cubologic pricing
-SELECT id, slug, sku, name, price 
-FROM "Product" 
-WHERE sku IN ('DJ08576', 'DJ08581');
-
 -- Check Aqua Dragons refill
 SELECT id, slug, sku, name, "isActive" 
 FROM "Product" 
 WHERE sku IN ('AD4004', 'AD6102');
 
 -- List staged products
-SELECT id, slug, sku, name, price, "isActive", metadata->'staged' as staged
+SELECT id, slug, sku, name, price, "isActive", "stockQuantity", metadata->'staged' as staged
 FROM "Product" 
 WHERE sku IN ('K_550202', 'K_550203', 'K_550204', 'DJ05648', 'CC-1027', 'CC-1029');
+
+-- Check SupplierProduct links (price stays NULL, sync does not set purchase cost)
+SELECT id, "supplierSku", name, price, stock, "lastSyncAt", status
+FROM "SupplierProduct"
+WHERE "supplierSku" IN ('K_550202', 'K_550203', 'K_550204', 'DJ05648', 'CC-1027', 'CC-1029');
 ```
 
 ---
@@ -144,21 +150,14 @@ WHERE sku = 'UPSELL_PRODUCT_SKU';
 ### Fix 1: MicroFlip
 **Root Cause**: Two SKUs exist for same product line - MP-250 (plain, 139 RON) vs MP-250BUN (bundle with 24 slides, 224 RON). Keeping plain version as lower-priced entry point.
 
-**Files Changed**: `scripts/catalog-fixes-and-upsell-staging.ts`, Product table
+**Files Changed**: `scripts/catalog-fixes-and-upsell-staging.ts`, `Product` table
 
 **SKUs**: MP-250, MP-250BUN
 
-### Fix 2: Cubologic
-**Root Cause**: Supplier (Boribon) feed shows Cubologic 9-piece (DJ08581) at 137 RON and 16-piece (DJ08576) at 130 RON. Both are same product line (Djeco logic puzzles), so larger set should not be cheaper. Corrected to logical pricing order with metadata lock to survive supplier sync.
-
-**Files Changed**: `scripts/catalog-fixes-and-upsell-staging.ts`, Product table
-
-**SKUs**: DJ08576 (16-piece), DJ08581 (9-piece)
-
-### Fix 3: Aqua Dragons
+### Fix 2: Aqua Dragons
 **Root Cause**: Refill AD4004 belongs to "Lumea subacvatica" habitat line, not Vulcan (AD6102). Correct Vulcan refill is AD6103 (out of stock per Kidstory feed). Deactivated mismatched refill.
 
-**Files Changed**: `scripts/catalog-fixes-and-upsell-staging.ts`, Product table
+**Files Changed**: `scripts/catalog-fixes-and-upsell-staging.ts`, `Product` table
 
 **SKUs**: AD4004 (deactivated), AD6102 (Vulcan habitat)
 
@@ -180,11 +179,43 @@ WHERE sku = 'UPSELL_PRODUCT_SKU';
 The script is safe to re-run:
 - Skips already-deactivated products
 - Skips already-existing staged products
-- Skips pricing corrections already applied
 - Each run creates a new timestamped backup
+
+---
+
+## How Boribon Sync Works
+
+The 6 add-on products are added to `lib/suppliers/boribon/portfolio.json` with `tier: "UPSELL"`, which tells the Boribon sync to manage them.
+
+**Sync Schedule**: Runs at 06:00 and 18:00 daily
+
+**What the Sync Updates** (per `lib/suppliers/boribon/sync.ts`):
+- `Product.stockQuantity` — Updates available stock (preserves reservations)
+- `Product.price` — Updates retail price from feed
+- `Product.compareAtPrice` — Set to NULL
+- `SupplierProduct.stock` — Updated from feed
+- `SupplierProduct.raw` — Raw feed row data
+- `SupplierProduct.status` — `MAPPED` or `ERROR`
+
+**What the Sync NEVER Touches**:
+- `Product.isActive` — Products stay inactive until manually activated
+- `Product.featured` — No changes
+- `Product.metadata` — No changes (upsell pairing preserved)
+- `Product.images` — **NOT synced** (Boribon feed has no image data)
+- `SupplierProduct.price` — Stays NULL (purchase cost not in feed)
+- Product name, slug, description — No changes
+
+**UPSELL-Tier Safety**: 
+- If a UPSELL entry is uninstalled or missing, sync skips it with a warning (does NOT close stock for entire catalog)
+- If a UPSELL entry fails validation, sync logs warning and continues (does NOT close stock)
+- Core catalog entries (non-UPSELL) still trigger stock closure on failure for safety
+
+**Images**: The Boribon feed/sync does NOT include product images. Images must be added manually via admin panel or separate import.
 
 ---
 
 ## Not Completed
 
-Air Toobz tubes pack (F4641DT) - **NOT INCLUDED** (explicitly deferred per user request).
+**Cubologic Pricing** — NOT FIXED. Both products (DJ08576, DJ08581) stay at supplier feed prices. The Boribon sync overwrites price on every run, so manual overrides don't persist. Any price correction would need a pricing rules system that the sync respects.
+
+**Air Toobz F4641DT** — NOT INCLUDED (explicitly deferred per user request).
