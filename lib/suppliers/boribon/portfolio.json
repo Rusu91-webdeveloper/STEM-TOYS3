@@ -817,5 +817,83 @@
     "minAge": 8,
     "existingProductId": null,
     "url": "https://www.boribon.ro/cumpara/joc-stem-telescop-horizon-star-topbright-8919"
+  },
+  {
+    "sourceId": "4406",
+    "model": "K_550202",
+    "ean": "814743017887",
+    "name": "Kit STEM Trambulina - extindere pentru cursa cu obstacole cu bila metalica, Thames & Kosmos",
+    "brand": "Thames & Kosmos",
+    "tier": "UPSELL",
+    "learningCategory": "Early engineering",
+    "recommendedAge": "6 - 9 ani",
+    "minAge": 6,
+    "existingProductId": null,
+    "url": "https://www.boribon.ro/cumpara/kit-stem-trambulina-extindere-pentru-cursa-cu-obstacole-cu-bila-4406"
+  },
+  {
+    "sourceId": "4407",
+    "model": "K_550203",
+    "ean": "814743017894",
+    "name": "Kit STEM Bucla - extindere pentru cursa cu obstacole cu bilă metalica, Thames & Kosmos",
+    "brand": "Thames & Kosmos",
+    "tier": "UPSELL",
+    "learningCategory": "Early engineering",
+    "recommendedAge": "6 - 9 ani",
+    "minAge": 6,
+    "existingProductId": null,
+    "url": "https://www.boribon.ro/cumpara/kit-stem-bucla-extindere-pentru-cursa-cu-obstacole-cu-bila-metalica-4407"
+  },
+  {
+    "sourceId": "4408",
+    "model": "K_550204",
+    "ean": "814743018785",
+    "name": "Kit STEM Palnie - extindere pentru cursa cu obstacole cu bila metalica, Thames & Kosmos",
+    "brand": "Thames & Kosmos",
+    "tier": "UPSELL",
+    "learningCategory": "Early engineering",
+    "recommendedAge": "6 - 9 ani",
+    "minAge": 6,
+    "existingProductId": null,
+    "url": "https://www.boribon.ro/cumpara/kit-stem-palnie-extindere-pentru-cursa-cu-obstacole-cu-bila-metalica-4408"
+  },
+  {
+    "sourceId": "69286",
+    "model": "DJ05648",
+    "ean": "3070900056480",
+    "name": "Set de constructie trasee Zig & Go Cultubo 7 piese, Djeco",
+    "brand": "Djeco",
+    "tier": "UPSELL",
+    "learningCategory": "Early engineering",
+    "recommendedAge": "6 - 9 ani",
+    "minAge": 6,
+    "existingProductId": null,
+    "url": "https://www.boribon.ro/cumpara/set-de-constructie-trasee-zig-go-cultubo-7-piese-djeco-2955"
+  },
+  {
+    "sourceId": "8410",
+    "model": "CC-1027",
+    "ean": "6152121148100",
+    "name": "Set magnetic de construit cu placute mici, Cleverclixx",
+    "brand": "Cleverclixx",
+    "tier": "UPSELL",
+    "learningCategory": "Early engineering",
+    "recommendedAge": "3 - 6 ani",
+    "minAge": 3,
+    "existingProductId": null,
+    "url": "https://www.boribon.ro/cumpara/set-magnetic-de-construit-cu-placute-mici-cleverclixx-8410"
+  },
+  {
+    "sourceId": "8408",
+    "model": "CC-1029",
+    "ean": "6152121374356",
+    "name": "Set magnetic de construit cu placi stralucitoare, Cleverclixx",
+    "brand": "Cleverclixx",
+    "tier": "UPSELL",
+    "learningCategory": "Early engineering",
+    "recommendedAge": "3 - 6 ani",
+    "minAge": 3,
+    "existingProductId": null,
+    "url": "https://www.boribon.ro/cumpara/set-magnetic-de-construit-cu-placi-stralucitoare-cleverclixx-8408"
   }
 ]
