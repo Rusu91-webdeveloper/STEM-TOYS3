@@ -41,10 +41,10 @@ if (fs.existsSync(envLocalPath)) {
 const prisma = new PrismaClient();
 
 const DRY_RUN = !process.argv.includes("--apply");
-const BACKUP_DIR = path.join(process.cwd(), ".backups", `upsell-batch-2-${Date.now()}`);
+const BACKUP_DIR = path.join(process.cwd(), "backups", `upsell-batch-2_${Date.now()}`);
 const CSV_PATH = process.argv.includes("--csv")
   ? process.argv[process.argv.indexOf("--csv") + 1]
-  : path.join(process.cwd(), "uploads", "upsell-candidates_26fc.csv");
+  : path.join(process.cwd(), "data", "upsell", "upsell-candidates-batch-2.csv");
 
 // SKUs already installed in PR #31 - exclude from this batch
 const EXISTING_UPSELLS = ["K_550202", "K_550203", "K_550204", "DJ05648", "CC-1027", "CC-1029"];
@@ -74,6 +74,7 @@ interface ValidationResult {
   name: string;
   supplier: "Boribon" | "Kidstory";
   baseSku: string;
+  baseSkus?: string[]; // For deduped results with multiple base pairings
   status: "create" | "skip" | "reject";
   reason?: string;
   feedPrice?: number;
@@ -84,6 +85,7 @@ interface ValidationResult {
   brand?: string;
   ean?: string;
   age?: string;
+  ageGroup?: string | null;
 }
 
 interface ProductCreationResult {
@@ -93,6 +95,35 @@ interface ProductCreationResult {
   slug?: string;
   pairings?: string[];
   error?: string;
+}
+
+/**
+ * Map Kidstory age strings to standard ageGroup values
+ * Based on common age ranges found in Kidstory feed
+ */
+function mapKidstoryAgeGroup(age: string | undefined): string | null {
+  if (!age) return null;
+  
+  const ageLower = age.toLowerCase().trim();
+  
+  // Extract numbers from strings like "3+", "6-8", "8-12 ani", etc.
+  const match = ageLower.match(/(\d+)[\s\-+]*(?:(\d+))?/);
+  if (!match) return null;
+  
+  const minAge = parseInt(match[1]);
+  const maxAge = match[2] ? parseInt(match[2]) : minAge;
+  
+  // Map to standard age groups
+  if (maxAge <= 3) return "TODDLERS_1_3";
+  if (maxAge <= 5) return "PRESCHOOL_3_5";
+  if (maxAge <= 8 || (minAge >= 6 && maxAge <= 10)) return "ELEMENTARY_6_8";
+  if (maxAge <= 12 || (minAge >= 9 && maxAge <= 14)) return "MIDDLE_SCHOOL_9_12";
+  if (minAge >= 13) return "TEENS_13_PLUS";
+  
+  // Default for unclear ranges
+  if (minAge >= 6 && maxAge >= 8) return "ELEMENTARY_6_8";
+  
+  return null;
 }
 
 /**
@@ -125,11 +156,13 @@ function parseResearchCsv(csvPath: string): CandidateRow[] {
     { raw: false }
   );
   
-  // Filter to high and medium confidence, exclude already-installed SKUs
-  return rows.filter(row => 
-    (row.confidence === "high" || row.confidence === "medium") &&
-    !EXISTING_UPSELLS.includes(row.candidate_sku)
-  );
+  // Filter to high and medium confidence (case-insensitive), exclude already-installed SKUs
+  // Accept "med" as synonym for "medium"
+  return rows.filter(row => {
+    const confidence = row.confidence?.toLowerCase() || "";
+    const isHighOrMed = confidence === "high" || confidence === "medium" || confidence === "med";
+    return isHighOrMed && !EXISTING_UPSELLS.includes(row.candidate_sku);
+  });
 }
 
 /**
@@ -307,6 +340,7 @@ async function validateCandidates(candidates: CandidateRow[]): Promise<{
         result.ean = feedItem.entry.ean;
         result.brand = content.attributes.brand;
         result.age = content.attributes.age || content.attributes.ageRange;
+        result.ageGroup = mapKidstoryAgeGroup(result.age);
         
         if (!result.images.length) {
           result.status = "reject";
@@ -340,14 +374,40 @@ async function validateCandidates(candidates: CandidateRow[]): Promise<{
 }
 
 /**
- * Create backup before any changes
+ * Deduplicate validation results by candidate SKU, merging base SKUs into arrays
+ * when a candidate pairs with multiple base products.
  */
-async function createBackup(): Promise<void> {
-  if (DRY_RUN) return;
+function deduplicateResults(results: ValidationResult[]): ValidationResult[] {
+  const dedupedMap = new Map<string, ValidationResult>();
   
+  for (const result of results) {
+    const existing = dedupedMap.get(result.sku);
+    
+    if (!existing) {
+      // First occurrence: initialize baseSkus array
+      dedupedMap.set(result.sku, {
+        ...result,
+        baseSkus: [result.baseSku],
+      });
+    } else if (existing.status === "create" && result.status === "create") {
+      // Duplicate candidate SKU - merge base SKUs
+      if (!existing.baseSkus!.includes(result.baseSku)) {
+        existing.baseSkus!.push(result.baseSku);
+      }
+    }
+    // If status differs (e.g., one is "skip", one is "create"), keep the first one
+  }
+  
+  return Array.from(dedupedMap.values());
+}
+
+/**
+ * Create backup (in both dry-run and apply modes)
+ */
+async function createBackup(mode: "dry-run" | "apply"): Promise<void> {
   fs.mkdirSync(BACKUP_DIR, { recursive: true });
   
-  // Backup products that might be affected
+  // Backup Boribon and Kidstory products that might be affected
   const products = await prisma.product.findMany({
     where: {
       OR: [
@@ -357,12 +417,29 @@ async function createBackup(): Promise<void> {
     },
   });
   
+  // Backup SupplierProduct rows
+  const supplierProducts = await prisma.supplierProduct.findMany({
+    where: {
+      OR: [
+        { supplierId: BORIBON_ID },
+        { supplierId: KIDSTORY_ID },
+      ],
+    },
+  });
+  
+  const backup = {
+    mode,
+    timestamp: new Date().toISOString(),
+    products,
+    supplierProducts,
+  };
+  
   fs.writeFileSync(
-    path.join(BACKUP_DIR, "products-before.json"),
-    JSON.stringify(products, null, 2)
+    path.join(BACKUP_DIR, `backup-${mode}.json`),
+    JSON.stringify(backup, null, 2)
   );
   
-  console.log(`✓ Backup created: ${BACKUP_DIR}/products-before.json`);
+  console.log(`✓ Backup created: ${BACKUP_DIR}/backup-${mode}.json`);
 }
 
 /**
@@ -392,14 +469,15 @@ async function createProducts(results: ValidationResult[]): Promise<ProductCreat
         continue;
       }
       
-      // Find base product(s) for pairing
+      // Find base product(s) for pairing - use baseSkus array if available
+      const baseSkusToQuery = item.baseSkus || [item.baseSku];
       const baseProducts = await prisma.product.findMany({
-        where: { sku: item.baseSku },
+        where: { sku: { in: baseSkusToQuery } },
       });
       
       if (baseProducts.length === 0) {
         result.status = "error";
-        result.error = `Base product ${item.baseSku} not found`;
+        result.error = `Base product(s) not found: ${baseSkusToQuery.join(", ")}`;
         productResults.push(result);
         continue;
       }
@@ -407,6 +485,13 @@ async function createProducts(results: ValidationResult[]): Promise<ProductCreat
       const slug = generateSlug(item.name, item.sku);
       
       if (!DRY_RUN) {
+        // Prepare metadata with backwards-compatible format:
+        // - Single base: upsellFor as string (legacy format)
+        // - Multiple bases: upsellFor as array (new format)
+        const upsellForValue = baseSkusToQuery.length === 1 
+          ? baseSkusToQuery[0] 
+          : baseSkusToQuery;
+        
         // Create product
         const newProduct = await prisma.product.create({
           data: {
@@ -426,6 +511,7 @@ async function createProducts(results: ValidationResult[]): Promise<ProductCreat
             stockQuantity: typeof item.feedStock === "number" ? item.feedStock : 1,
             reservedQuantity: 0,
             status: "APPROVED",
+            ageGroup: item.ageGroup || null,
             attributes: {
               brand: item.brand || "",
               age: item.age || "",
@@ -434,7 +520,7 @@ async function createProducts(results: ValidationResult[]): Promise<ProductCreat
               staged: true,
               stagedAt: new Date().toISOString(),
               stagedReason: "Upsell add-on batch 2 - awaiting activation",
-              upsellFor: item.baseSku,
+              upsellFor: upsellForValue,
               upsellForProductIds: baseProducts.map(p => p.id),
               supplier: item.supplier,
             },
@@ -444,7 +530,7 @@ async function createProducts(results: ValidationResult[]): Promise<ProductCreat
         
         result.productId = newProduct.id;
         result.slug = newProduct.slug;
-        result.pairings = baseProducts.map(p => `${p.name} (${p.slug})`);
+        result.pairings = baseProducts.map(p => `${p.name} (${p.sku})`);
         
         // Create SupplierProduct for sync
         await prisma.supplierProduct.create({
@@ -467,7 +553,7 @@ async function createProducts(results: ValidationResult[]): Promise<ProductCreat
         });
       } else {
         result.slug = slug;
-        result.pairings = baseProducts.map(p => `${p.name} (${p.slug})`);
+        result.pairings = baseProducts.map(p => `${p.name} (${p.sku})`);
       }
       
     } catch (error) {
@@ -495,10 +581,16 @@ async function main() {
   console.log(`  Found ${candidates.length} high/medium confidence candidates (excluding ${EXISTING_UPSELLS.length} already-installed SKUs)\n`);
   
   // Validate against live feeds
-  const { results: validationResults, boribonFeed, kidstoryFeed } = await validateCandidates(candidates);
+  const { results: rawValidationResults, boribonFeed, kidstoryFeed } = await validateCandidates(candidates);
+  
+  // Deduplicate by candidate SKU, merging base SKUs for multi-pairing add-ons
+  const validationResults = deduplicateResults(rawValidationResults);
   
   // Print validation summary
   console.log("\n📊 VALIDATION SUMMARY:\n");
+  console.log(`  Raw CSV rows (high/med): ${candidates.length}`);
+  console.log(`  Unique candidate SKUs: ${validationResults.length}`);
+  
   const toCreate = validationResults.filter(r => r.status === "create");
   const toSkip = validationResults.filter(r => r.status === "skip");
   const toReject = validationResults.filter(r => r.status === "reject");
@@ -522,14 +614,16 @@ async function main() {
   }
   
   if (toCreate.length > 0) {
-    console.log("\n  ✅ Products to create:");
+    console.log(`\n  ✅ Products ${DRY_RUN ? "that WOULD BE created" : "to create"}:`);
     toCreate.forEach(r => {
+      const bases = r.baseSkus || [r.baseSku];
       console.log(`\n    ${r.sku} (${r.supplier})`);
       console.log(`      Name: ${r.name}`);
-      console.log(`      Base: ${r.baseSku}`);
+      console.log(`      Base SKUs: ${bases.join(", ")}`);
       console.log(`      Price: ${r.feedPrice} RON`);
       console.log(`      Stock: ${r.feedStock}`);
       console.log(`      Images: ${r.images?.length || 0}`);
+      console.log(`      AgeGroup: ${r.ageGroup || "null"}`);
       console.log(`      Description: ${(r.description || "").substring(0, 100)}...`);
     });
   }
@@ -540,20 +634,21 @@ async function main() {
   }
   
   // Create backup
-  if (!DRY_RUN) {
-    console.log("\n💾 Creating backup...\n");
-    await createBackup();
-  }
+  console.log("\n💾 Creating backup...\n");
+  await createBackup(DRY_RUN ? "dry-run" : "apply");
   
   // Create products
-  console.log("\n📦 Creating products...\n");
+  console.log(`\n📦 ${DRY_RUN ? "Simulating product creation..." : "Creating products..."}\n`);
   const productResults = await createProducts(validationResults);
   
   productResults.forEach((result, index) => {
+    const statusLabel = DRY_RUN 
+      ? (result.status === "created" ? "WOULD CREATE" : result.status.toUpperCase())
+      : result.status.toUpperCase();
     console.log(`\n  ${index + 1}. ${result.sku}`);
-    console.log(`     Status: ${result.status.toUpperCase()}`);
+    console.log(`     Status: ${statusLabel}`);
     if (result.slug) console.log(`     Slug: ${result.slug}`);
-    if (result.productId) console.log(`     Product ID: ${result.productId}`);
+    if (result.productId && !DRY_RUN) console.log(`     Product ID: ${result.productId}`);
     if (result.pairings?.length) {
       console.log(`     Pairs with: ${result.pairings.join(", ")}`);
     }
@@ -598,7 +693,7 @@ async function main() {
   console.log("   - Portfolio files already updated in this PR - syncs will maintain price and stock");
   console.log("   - Run dry-run command: pnpm exec tsx --env-file=.env.production.local scripts/stage-upsell-batch-2.ts");
   console.log("   - Run apply command: pnpm exec tsx --env-file=.env.production.local scripts/stage-upsell-batch-2.ts --apply");
-  console.log(`   - Backup location: ${BACKUP_DIR}/products-before.json`);
+  console.log(`   - Backup location: ${BACKUP_DIR}`);
 }
 
 main()
