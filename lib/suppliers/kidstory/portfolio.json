@@ -173,5 +173,110 @@
     "ean": "4893156039262",
     "role": "TEST",
     "theme": "Chemistry, geology & dinosaurs"
+  },
+  {
+    "sourceId": "6911",
+    "sku": "06806IS",
+    "ean": "4893156068064",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "6913",
+    "sku": "06808IS",
+    "ean": "4893156068088",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "24631",
+    "sku": "F4641DT",
+    "ean": "810074274630",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "30410",
+    "sku": "F5311ML",
+    "ean": "810074277730",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "28512",
+    "sku": "PP3828",
+    "ean": "5710409104760",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "6912",
+    "sku": "06807IS",
+    "ean": "4893156068071",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "23331",
+    "sku": "4M-03479",
+    "ean": "4893156034793",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "30433",
+    "sku": "4M-03291",
+    "ean": "4893156032911",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "21998",
+    "sku": "4M-03463",
+    "ean": "4893156034632",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "21997",
+    "sku": "4M-03462",
+    "ean": "4893156034625",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "14983",
+    "sku": "4M-03295",
+    "ean": "4893156032959",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "23334",
+    "sku": "4M-03929/EU",
+    "ean": "4893156039293",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "23335",
+    "sku": "4M-03930/EU",
+    "ean": "4893156039309",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "13969",
+    "sku": "4M-03257",
+    "ean": "4893156032577",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "23048",
+    "sku": "PP4185",
+    "ean": "5710409104227",
+    "role": "UPSELL",
+    "theme": "Add-on / Expansion"
   }
 ]
