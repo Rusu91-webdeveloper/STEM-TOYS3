@@ -19,7 +19,9 @@ export function visibleInBrowse(product: BrowseProduct): boolean {
   if (product.isBook) return false;
   const editorial = product.metadata?.merchandising;
   if (editorial?.browseHidden) return false;
-  if (product.stockQuantity <= 1 && editorial?.keepLowStock !== true)
+  // Only hide products that are actually out of stock (0), not low stock (1)
+  // Supplier capacity model uses stockQuantity=1 for "available" products
+  if (product.stockQuantity === 0 && editorial?.keepLowStock !== true)
     return false;
   return !/air.toobz|aqua.*(?:reumplere|refill)|fridge.rover|E tiintific|miE care|Ã|�/i.test(
     product.name

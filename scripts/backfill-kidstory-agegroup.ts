@@ -121,8 +121,8 @@ async function backfillKidstoryAgeGroup() {
   console.log();
 
   // Show sample of products to be updated
-  console.log("📋 Sample of products to be updated (first 10):\n");
-  for (let i = 0; i < Math.min(10, updatable.length); i++) {
+  console.log(`📋 All products to be updated (${updatable.length} total):\n`);
+  for (let i = 0; i < updatable.length; i++) {
     const p = updatable[i];
     console.log(`${i + 1}. ${p.name.substring(0, 60)}...`);
     console.log(`   Slug: ${p.slug.substring(0, 60)}...`);
@@ -144,38 +144,44 @@ async function backfillKidstoryAgeGroup() {
     }
   }
 
-  if (isDryRun) {
-    console.log("🔍 DRY RUN: No changes made. Run with --apply to execute updates.\n");
-    await db.$disconnect();
-    return;
-  }
-
-  // Create backup before applying changes
+  // Create backup before any action (both dry-run and apply)
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const backupDir = path.join(process.cwd(), "backups");
-  const backupFile = path.join(backupDir, `kidstory-agegroup-backup-${timestamp}.json`);
+  const backupDir = path.join(process.cwd(), "backups", `kidstory-agegroup_${timestamp}`);
+  const backupFile = path.join(backupDir, "affected-products-backup.json");
 
   if (!fs.existsSync(backupDir)) {
     fs.mkdirSync(backupDir, { recursive: true });
   }
+
+  // Backup full affected rows (id, slug, ageGroup, attributes)
+  const backupData = updatable.map(p => {
+    const fullProduct = productsWithNullAgeGroup.find(prod => prod.id === p.id);
+    return {
+      id: p.id,
+      slug: p.slug,
+      ageGroup: p.ageGroup,
+      attributes: fullProduct?.attributes || {},
+      derivedAgeGroup: p.newAgeGroup,
+      ageRange: p.ageRange,
+    };
+  });
 
   fs.writeFileSync(
     backupFile,
     JSON.stringify({
       timestamp: new Date().toISOString(),
       totalProducts: updatable.length,
-      products: updatable.map(p => ({
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        oldAgeGroup: p.ageGroup,
-        newAgeGroup: p.newAgeGroup,
-        ageRange: p.ageRange,
-      })),
+      products: backupData,
     }, null, 2)
   );
 
   console.log(`💾 Backup created: ${backupFile}\n`);
+
+  if (isDryRun) {
+    console.log("🔍 DRY RUN: No changes made. Run with --apply to execute updates.\n");
+    await db.$disconnect();
+    return;
+  }
 
   // Apply updates
   console.log("🚀 Applying updates...\n");

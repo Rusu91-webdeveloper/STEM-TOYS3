@@ -450,6 +450,11 @@ function ClientProductsPageContent({
     state.searchQuery,
   ]);
 
+  // Calculate total browseable products (excludes books which are filtered by visibleInBrowse)
+  const totalBrowseableProducts = useMemo(() => {
+    return products.filter(p => !p.isBook).length;
+  }, [products]);
+
   const bundleFilteredProducts = useMemo(() => {
     if (bundleViewMode === "bundles") {
       return filteredProducts.filter(product => product.isBundle === true);
@@ -860,7 +865,7 @@ function ClientProductsPageContent({
                   </span>{" "}
                   {t("outOf", "din")}{" "}
                   <span className="font-bold text-white">
-                    {products.length}
+                    {totalBrowseableProducts}
                   </span>{" "}
                   {t("productsLabel", "produse")}
                 </p>
