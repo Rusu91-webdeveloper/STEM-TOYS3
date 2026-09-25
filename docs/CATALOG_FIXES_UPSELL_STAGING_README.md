@@ -24,8 +24,9 @@ Six expansion products from Boribon, staged as `isActive: false` and added to `l
 
 **Boribon Sync Behavior:**
 - The 6 products are now tracked by the Boribon sync (runs at 06:00 and 18:00)
-- Sync will automatically populate **images**, update **stock**, and set retail **price** from the feed
+- Sync will automatically update **stock** and set retail **price** from the feed
 - Sync **DOES NOT** change `isActive` — products stay hidden until manually activated
+- Sync **DOES NOT** populate images — images must be added manually via admin
 - The sync only updates `stockQuantity`, `price`, and `compareAtPrice` fields per `lib/suppliers/boribon/sync.ts`
 
 ---
@@ -68,8 +69,8 @@ SELECT id, slug, sku, name, price, "isActive", "stockQuantity", metadata->'stage
 FROM "Product" 
 WHERE sku IN ('K_550202', 'K_550203', 'K_550204', 'DJ05648', 'CC-1027', 'CC-1029');
 
--- Check SupplierProduct links (price should be NULL initially, filled by sync)
-SELECT id, "supplierSku", name, price, stock, "lastSyncAt"
+-- Check SupplierProduct links (price stays NULL, sync does not set purchase cost)
+SELECT id, "supplierSku", name, price, stock, "lastSyncAt", status
 FROM "SupplierProduct"
 WHERE "supplierSku" IN ('K_550202', 'K_550203', 'K_550204', 'DJ05648', 'CC-1027', 'CC-1029');
 ```
@@ -184,23 +185,32 @@ The script is safe to re-run:
 
 ## How Boribon Sync Works
 
-The 6 add-on products are added to `lib/suppliers/boribon/portfolio.json`, which tells the Boribon sync to manage them.
+The 6 add-on products are added to `lib/suppliers/boribon/portfolio.json` with `tier: "UPSELL"`, which tells the Boribon sync to manage them.
 
 **Sync Schedule**: Runs at 06:00 and 18:00 daily
 
 **What the Sync Updates** (per `lib/suppliers/boribon/sync.ts`):
-- `stockQuantity` — Updates available stock (preserves reservations)
-- `price` — Updates retail price from feed
-- `compareAtPrice` — Set to NULL
-- `images` — Populated in SupplierProduct (via feed)
+- `Product.stockQuantity` — Updates available stock (preserves reservations)
+- `Product.price` — Updates retail price from feed
+- `Product.compareAtPrice` — Set to NULL
+- `SupplierProduct.stock` — Updated from feed
+- `SupplierProduct.raw` — Raw feed row data
+- `SupplierProduct.status` — `MAPPED` or `ERROR`
 
 **What the Sync NEVER Touches**:
-- `isActive` — Products stay inactive until manually activated
-- `featured` — No changes
-- `metadata` — No changes (upsell pairing preserved)
+- `Product.isActive` — Products stay inactive until manually activated
+- `Product.featured` — No changes
+- `Product.metadata` — No changes (upsell pairing preserved)
+- `Product.images` — **NOT synced** (Boribon feed has no image data)
+- `SupplierProduct.price` — Stays NULL (purchase cost not in feed)
 - Product name, slug, description — No changes
 
-**Risk**: If a product is removed from the Boribon feed, the sync will fail for that SKU but won't delete the product. Monitor sync logs after deployment.
+**UPSELL-Tier Safety**: 
+- If a UPSELL entry is uninstalled or missing, sync skips it with a warning (does NOT close stock for entire catalog)
+- If a UPSELL entry fails validation, sync logs warning and continues (does NOT close stock)
+- Core catalog entries (non-UPSELL) still trigger stock closure on failure for safety
+
+**Images**: The Boribon feed/sync does NOT include product images. Images must be added manually via admin panel or separate import.
 
 ---
 

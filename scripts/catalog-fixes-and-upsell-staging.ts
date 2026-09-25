@@ -15,7 +15,8 @@
  * - Cleverclixx glitter tiles 16 pieces @ 164 RON
  * 
  * The 6 add-ons are added to lib/suppliers/boribon/portfolio.json
- * and will have images, stock, and price synced by the Boribon sync (06:00/18:00).
+ * and will have stock and price synced by the Boribon sync (06:00/18:00).
+ * Images are NOT part of the Boribon feed/sync and must be added manually.
  */
 
 import { PrismaClient } from "@prisma/client";
@@ -38,7 +39,8 @@ const BACKUP_DIR = path.join(process.cwd(), ".backups", `catalog-fixes-${Date.no
 
 // Real supplier feed data from Boribon (2026-09-25)
 // These products are added to lib/suppliers/boribon/portfolio.json
-// and tracked by the Boribon sync (06:00/18:00) which will populate images, update stock and price
+// and tracked by the Boribon sync (06:00/18:00) which will update stock and price.
+// NOTE: Boribon feed/sync does NOT include images. Images must be set manually or via admin.
 const NEW_PRODUCTS_DATA = [
   {
     sku: "K_550202",
@@ -444,7 +446,8 @@ async function addUpsellProducts(): Promise<ProductResult[]> {
         result.slug = newProduct.slug;
         
         // Create SupplierProduct for sync
-        // Note: price field is purchase cost, not retail price. Left null for sync to fill.
+        // Note: price field is purchase cost, not retail price. Boribon sync does not set it (stays null).
+        // Stock from feed is initial value; sync will update it.
         await prisma.supplierProduct.create({
           data: {
             supplierId: boribon.id,
@@ -453,7 +456,7 @@ async function addUpsellProducts(): Promise<ProductResult[]> {
             description: `${productData.name}. ${productData.age}.`,
             currency: "RON",
             stock: productData.stock,
-            images: [], // Boribon sync will populate from feed
+            images: [], // Boribon feed/sync does NOT include images. Must be set manually.
             productId: newProduct.id,
             status: "MAPPED",
             attributes: {
