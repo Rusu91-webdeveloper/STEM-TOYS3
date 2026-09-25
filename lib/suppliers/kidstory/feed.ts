@@ -4,7 +4,7 @@ export { portfolio };
 export const KIDSTORY_ID = "26f5418c-965d-4630-994c-b51947cdec04";
 export const KIDSTORY_SYNC_MODE = "kidstory-curated-v1";
 
-export type KidstoryIdentity = { sourceId: string; sku: string; ean: string };
+export type KidstoryIdentity = { sourceId: string; sku: string; ean: string; role?: string };
 export type KidstoryRow = Record<string, string>;
 
 /** Kidstory publishes availability, not a quantity or a purchase cost. */

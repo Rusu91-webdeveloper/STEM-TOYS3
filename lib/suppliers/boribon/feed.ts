@@ -94,3 +94,40 @@ export function isCuratedBoribon(supplierId: string | null, metadata: unknown) {
     "boribon" in metadata
   );
 }
+
+/**
+ * Extract content from Boribon feed row (images, description)
+ * Similar to kidstoryContent() for Kidstory
+ */
+export function boribonContent(row: BoribonRow) {
+  // Collect images: avatar + up to 4 additional images
+  const images = [
+    row.avatar,
+    row.image_additional1,
+    row.image_additional2,
+    row.image_additional3,
+    row.image_additional4,
+  ]
+    .filter(Boolean)
+    .filter(url => /^https?:\/\//.test(url));
+  
+  // Extract description and name
+  const description = row.description?.trim() || "";
+  const name = row.name?.trim() || "";
+  
+  if (!name || !description || !images.length) {
+    throw new Error(`Missing or invalid Boribon content: ${row.model}`);
+  }
+  
+  return {
+    name,
+    description,
+    images,
+    attributes: {
+      brand: row.brand || "",
+      age: row.varsta || "", // "varsta" is Romanian for age
+      supplierCategory: row.categories || "",
+      supplierUrl: row.url || "",
+    },
+  };
+}
