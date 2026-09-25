@@ -13,6 +13,7 @@ import type { Product } from "@/types/product";
 import type { BundleContentItem } from "./BundleContents";
 import ProductDetailClient from "./ProductDetailClient";
 import { Review } from "./ProductReviews";
+import CompleteSetUpsell from "./CompleteSetUpsell";
 
 interface ProductDetailServerProps {
   slug: string;
@@ -181,7 +182,7 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: productFaq.map(item => ({
+    mainEntity: productFaq.map((item: { question: string; answer: string }) => ({
       "@type": "Question",
       name: item.question,
       acceptedAnswer: {
@@ -210,6 +211,7 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
         bundleContents={bundleContents}
         faq={productFaq}
       />
+      {product.sku && <CompleteSetUpsell productSku={product.sku} />}
     </>
   );
 };
