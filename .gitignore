@@ -77,6 +77,10 @@ storybook-static
 
 # Database backups
 backups/
+.backups/
 *.sql
 *.sql.gz
 !prisma/migrations/**/migration.sql
+
+# Catalog fixes summary
+/tmp/catalog-fixes-summary.json
