@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
-import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
+import { toPublicProductSlug } from "@/lib/products/public-slug";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
 
@@ -23,10 +24,6 @@ export async function GET() {
         isActive: true,
         status: "APPROVED",
         stockQuantity: { gt: 0 },
-        // Exclude soft-404 products (case-insensitive)
-        AND: Array.from(SOFT_404_PRODUCT_SLUGS).map(blockedSlug => ({
-          slug: { not: { equals: blockedSlug, mode: "insensitive" } },
-        })),
       },
       select: {
         slug: true,
@@ -38,7 +35,7 @@ export async function GET() {
     });
 
     products.forEach(product => {
-      const url = `${baseUrl}/products/${product.slug}`;
+      const url = `${baseUrl}/products/${toPublicProductSlug(product.slug)}`;
       const lastmod = new Date(product.updatedAt || new Date()).toISOString();
 
       sitemap += `

@@ -9,6 +9,7 @@ import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import { useProductActions } from "@/features/products/hooks/useProductActions";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
+import { productPublicPath } from "@/lib/products/public-slug";
 import { cn } from "@/lib/utils";
 import { Product } from "@/types/product";
 
@@ -38,6 +39,7 @@ export function ProductCard({
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const productHref = productPublicPath(product.slug);
 
   const isOnSale =
     product.compareAtPrice && product.compareAtPrice > product.price;
@@ -55,7 +57,10 @@ export function ProductCard({
         )
       : 0;
   const isOutOfStock = stockQuantity <= 0;
-  const isLowStock = product.attributes?.inventoryMode !== "supplier-availability" && stockQuantity > 0 && stockQuantity < 4;
+  const isLowStock =
+    product.attributes?.inventoryMode !== "supplier-availability" &&
+    stockQuantity > 0 &&
+    stockQuantity < 4;
 
   const productImages =
     Array.isArray(product.images) && product.images.length > 0
@@ -160,10 +165,7 @@ export function ProductCard({
         )}
       >
         <div className="relative w-full xs:w-2/5 sm:w-1/3 aspect-[5/4] xs:aspect-auto min-h-[200px] xs:min-h-0 overflow-hidden bg-slate-50">
-          <Link
-            href={`/products/${product.slug}`}
-            className="block h-full w-full"
-          >
+          <Link href={productHref} className="block h-full w-full">
             <OptimizedProductImage
               src={imageUrl}
               alt={product.name}
@@ -221,7 +223,7 @@ export function ProductCard({
               </span>
             )}
             <Link
-              href={`/products/${product.slug}`}
+              href={productHref}
               className="block hover:text-slate-700 transition-colors"
             >
               <h3 className="font-semibold text-base text-slate-900 leading-tight line-clamp-2">
@@ -230,7 +232,9 @@ export function ProductCard({
             </Link>
             {renderRating()}
             <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
-              {product.description?.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ")}
+              {product.description
+                ?.replace(/<[^>]*>/g, " ")
+                .replace(/&nbsp;/g, " ")}
             </p>
           </div>
 
@@ -303,10 +307,7 @@ export function ProductCard({
     >
       {/* Image area */}
       <div className="relative aspect-square overflow-hidden bg-[linear-gradient(145deg,#f8fafc,#eef2f7)]">
-        <Link
-          href={`/products/${product.slug}`}
-          className="block w-full h-full"
-        >
+        <Link href={productHref} className="block w-full h-full">
           <OptimizedProductImage
             src={imageUrl}
             alt={product.name}
@@ -449,7 +450,7 @@ export function ProductCard({
 
         {/* Name */}
         <Link
-          href={`/products/${product.slug}`}
+          href={productHref}
           className="block transition-colors hover:text-slate-700"
         >
           <h3 className="line-clamp-2 text-xs font-bold leading-snug tracking-[-0.01em] text-slate-950 sm:text-sm">
@@ -459,7 +460,9 @@ export function ProductCard({
 
         {/* Description */}
         <p className="line-clamp-2 text-[11px] sm:text-xs text-slate-500 leading-relaxed">
-          {product.description?.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ")}
+          {product.description
+            ?.replace(/<[^>]*>/g, " ")
+            .replace(/&nbsp;/g, " ")}
         </p>
 
         {/* Price */}

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
-import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import type { AddToCartItemInput } from "@/features/cart/context/CartContext";
+import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
+import { productPublicPath } from "@/lib/products/public-slug";
 
 interface Product {
   id: string;
@@ -70,7 +71,7 @@ export function useProductActions(
         return;
       }
 
-      const url = `${window.location.origin}/products/${product.slug}`;
+      const url = `${window.location.origin}${productPublicPath(product.slug)}`;
       const title = product.name;
       const text = t("shareProductText", "Vezi acest produs pe STEM Toys");
 
@@ -150,8 +151,8 @@ export function useProductActions(
       toast({
         title: "Eroare",
         description: t(
-            "sharingNotSupported",
-            "Partajarea nu este disponibilă în acest moment."
+          "sharingNotSupported",
+          "Partajarea nu este disponibilă în acest moment."
         ),
         variant: "destructive",
       });

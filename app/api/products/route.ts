@@ -5,7 +5,7 @@ import { getCached } from "@/lib/cache";
 import { TIME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { withPerformanceMonitoring } from "@/lib/performance";
-import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
+import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { getCacheKey } from "@/lib/utils/cache-key";
 import { getFilterParams } from "@/lib/utils/filtering";
 import { getPaginationParams } from "@/lib/utils/pagination";
@@ -215,12 +215,12 @@ export async function GET(request: NextRequest) {
       searchParams: Object.fromEntries(request.nextUrl.searchParams),
     });
     return NextResponse.json(
-      { 
+      {
         error: "Internal server error",
         // Error details are logged server-side for debugging
         ...(process.env.NODE_ENV === "development" && {
-          message: error instanceof Error ? error.message : "Unknown error"
-        })
+          message: error instanceof Error ? error.message : "Unknown error",
+        }),
       },
       { status: 500 }
     );
@@ -272,13 +272,6 @@ async function fetchProductsFromDatabase(params: {
     // Accept both APPROVED and IN_PENDING status (most products are IN_PENDING by default)
     { OR: [{ status: "APPROVED" }, { status: "IN_PENDING" }] },
   ];
-
-  // Exclude soft-404 products (blocklisted slugs)
-  if (SOFT_404_PRODUCT_SLUGS.length > 0) {
-    whereConditions.push({
-      slug: { notIn: SOFT_404_PRODUCT_SLUGS },
-    });
-  }
 
   // Always exclude products in "educational-books" category (unless explicitly requested)
   // Books are handled separately via the /api/books endpoint
@@ -576,7 +569,7 @@ async function fetchProductsFromDatabase(params: {
     const transformedBooks = books.map((book: any) => ({
       id: book.id,
       name: book.name,
-      slug: book.slug,
+      slug: toPublicProductSlug(book.slug),
       description: book.description,
       price: book.price,
       compareAtPrice: null,
@@ -624,7 +617,7 @@ async function fetchProductsFromDatabase(params: {
       const productData = {
         id: product.id,
         name: product.name,
-        slug: product.slug,
+        slug: toPublicProductSlug(product.slug),
         description: product.description,
         price: product.price,
         compareAtPrice: product.compareAtPrice,

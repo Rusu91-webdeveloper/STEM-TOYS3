@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { withErrorHandler } from "@/lib/api-error-handler";
 import { db } from "@/lib/db";
+import { toPublicProductSlug } from "@/lib/products/public-slug";
 
 interface RecommendationProduct {
   id: string;
@@ -445,7 +446,7 @@ function transformProduct(product: any): RecommendationProduct {
   return {
     id: product.id,
     name: product.name,
-    slug: product.slug,
+    slug: toPublicProductSlug(product.slug),
     price: product.price,
     images: Array.isArray(product.images) ? product.images : [],
     category: product.category,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
+import { resolveProductId } from "@/lib/products/public-catalog";
 import type { Product } from "@/types/product";
 
 export async function GET(
@@ -14,14 +15,17 @@ export async function GET(
       return NextResponse.json({ error: "Slug is required" }, { status: 400 });
     }
 
-    const dbProduct = await db.product.findUnique({
-      where: {
-        slug,
-      },
-      include: {
-        category: true,
-      },
-    });
+    const productId = await resolveProductId(slug, "any");
+    const dbProduct = productId
+      ? await db.product.findFirst({
+          where: {
+            id: productId,
+          },
+          include: {
+            category: true,
+          },
+        })
+      : null;
 
     if (!dbProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });

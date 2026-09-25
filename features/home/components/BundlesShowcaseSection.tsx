@@ -11,6 +11,7 @@ import {
   trackHomepageConversionEvent,
 } from "@/lib/analytics/homepage-conversion-events";
 import { useTranslation } from "@/lib/i18n";
+import { productPublicPath } from "@/lib/products/public-slug";
 
 interface BundlesShowcaseSectionProps {
   bundles: HomeBundle[];
@@ -142,7 +143,7 @@ export const BundlesShowcaseSection = React.memo(
                 return (
                   <Link
                     key={bundle.id}
-                    href={`/products/${bundle.slug}`}
+                    href={productPublicPath(bundle.slug)}
                     onClick={() =>
                       trackHomepageConversionEvent(
                         HOMEPAGE_CONVERSION_EVENTS.BUNDLE_CARD_CLICK,

@@ -1,7 +1,9 @@
 import { Metadata } from "next";
 
-import { createMetadata } from "../metadata";
+import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { SITE_URL } from "@/lib/site";
+
+import { createMetadata } from "../metadata";
 
 type SeoMetadata = {
   metaTitle?: string;
@@ -133,9 +135,11 @@ export function generateProductMetadata(product: any): Metadata {
     title: translations.ro.title,
     description: translations.ro.description,
     keywords,
-    canonicalUrl: seoData.canonical || `${SITE_URL}/products/${product.slug}`,
+    canonicalUrl:
+      seoData.canonical ||
+      `${SITE_URL}/products/${toPublicProductSlug(product.slug)}`,
     ogImage: product.images?.[0] || "/opengraph-image.png",
-    pathWithoutLocale: `/products/${product.slug}`,
+    pathWithoutLocale: `/products/${toPublicProductSlug(product.slug)}`,
     translations,
   });
 }

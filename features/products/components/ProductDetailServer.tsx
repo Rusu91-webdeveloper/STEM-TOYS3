@@ -1,19 +1,19 @@
-import { getShippingSettings } from "@/lib/utils/store-settings";
 import { notFound } from "next/navigation";
 import React from "react";
 
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { getCombinedProduct } from "@/lib/api/products";
 import { db } from "@/lib/db";
+import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
 import { buildDefaultProductFaq } from "@/lib/seo/product-faq";
-import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
+import { getShippingSettings } from "@/lib/utils/store-settings";
 import type { Product } from "@/types/product";
 
 import type { BundleContentItem } from "./BundleContents";
+import CompleteSetUpsell from "./CompleteSetUpsell";
 import ProductDetailClient from "./ProductDetailClient";
 import { Review } from "./ProductReviews";
-import CompleteSetUpsell from "./CompleteSetUpsell";
 
 interface ProductDetailServerProps {
   slug: string;
@@ -78,7 +78,9 @@ async function fetchBundleContents(
     },
   });
 
-  const bundleProductsById = new Map(bundleProducts.map(item => [item.id, item]));
+  const bundleProductsById = new Map(
+    bundleProducts.map(item => [item.id, item])
+  );
 
   // Preserve bundle item order from bundleItems.
   const orderedItems: BundleContentItem[] = [];
@@ -88,7 +90,7 @@ async function fetchBundleContents(
     orderedItems.push({
       id: item.id,
       name: item.name,
-      slug: item.slug,
+      slug: toPublicProductSlug(item.slug),
       description: item.description ?? "",
       images: item.images as string[],
       price: item.price,
@@ -101,26 +103,25 @@ async function fetchBundleContents(
 }
 
 const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
-  // Block soft-404 products (exist in DB but should 404)
-  if (SOFT_404_PRODUCT_SLUGS.has(slug)) {
+  const loadedProduct: Product | null = await getCombinedProduct(slug);
+
+  if (!loadedProduct || loadedProduct.isActive === false) {
     notFound();
   }
 
-  // 🚀 PERFORMANCE: First get product data
-  const product: Product | null = await getCombinedProduct(slug);
-
-  // If product not found, trigger Next.js 404 page
-  if (!product) {
-    notFound();
-  }
+  const product: Product = {
+    ...loadedProduct,
+    slug: toPublicProductSlug(loadedProduct.slug),
+  };
 
   const isBook = product.isBook === true;
 
   // 🚀 PERFORMANCE: Fetch secondary data in parallel.
   const reviewsPromise = fetchReviews(product.id);
-  const bundleContentsPromise = isBook || product.isBundle !== true
-    ? Promise.resolve([])
-    : fetchBundleContents(product.id);
+  const bundleContentsPromise =
+    isBook || product.isBundle !== true
+      ? Promise.resolve([])
+      : fetchBundleContents(product.id);
 
   const [reviews, bundleContents] = await Promise.all([
     reviewsPromise,
@@ -182,14 +183,16 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: productFaq.map((item: { question: string; answer: string }) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
+    mainEntity: productFaq.map(
+      (item: { question: string; answer: string }) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })
+    ),
   };
 
   const filteredProductSchemas = Array.isArray(productSchemas)
@@ -198,7 +201,11 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
       )
     : [];
 
-  const structuredData = [breadcrumbSchema, faqSchema, ...filteredProductSchemas];
+  const structuredData = [
+    breadcrumbSchema,
+    faqSchema,
+    ...filteredProductSchemas,
+  ];
 
   return (
     <>
