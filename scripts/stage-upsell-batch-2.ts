@@ -135,7 +135,11 @@ function parseResearchCsv(csvPath: string): CandidateRow[] {
 /**
  * Validate candidates against live feeds
  */
-async function validateCandidates(candidates: CandidateRow[]): Promise<ValidationResult[]> {
+async function validateCandidates(candidates: CandidateRow[]): Promise<{
+  results: ValidationResult[];
+  boribonFeed: any[];
+  kidstoryFeed: any[];
+}> {
   console.log("\n📋 Validating candidates against live feeds...\n");
   
   // Fetch both feeds
@@ -247,6 +251,7 @@ async function validateCandidates(candidates: CandidateRow[]): Promise<Validatio
       result.images = []; // Boribon feed doesn't include images
       result.description = candidate.candidate_title; // Use title as description
       result.ean = feedItem.entry.ean;
+      result.brand = feedItem.row.brand || feedItem.entry.brand || "";
       
       // Check for duplicate with base product (name similarity)
       const baseName = candidate.base_title.toLowerCase();
@@ -316,7 +321,7 @@ async function validateCandidates(candidates: CandidateRow[]): Promise<Validatio
     results.push(result);
   }
   
-  return results;
+  return { results, boribonFeed, kidstoryFeed };
 }
 
 /**
@@ -358,9 +363,14 @@ async function createBackup(): Promise<void> {
 
 /**
  * Update portfolio files to register new products
+ * 
+ * IMPORTANT: Portfolio entries need sourceId from the feeds to work with the sync.
+ * This function uses the raw feed data that was already fetched during validation.
  */
 async function updatePortfolioFiles(
-  results: ValidationResult[]
+  results: ValidationResult[],
+  boribonFeedData: any[],
+  kidstoryFeedData: any[]
 ): Promise<{ boribon: number; kidstory: number }> {
   const createResults = results.filter(r => r.status === "create");
   
@@ -373,23 +383,26 @@ async function updatePortfolioFiles(
       const boribonPath = path.join(process.cwd(), "lib/suppliers/boribon/portfolio.json");
       const currentBoribon = JSON.parse(fs.readFileSync(boribonPath, "utf-8"));
       
-      // Add new entries - we need to find the sourceId and other details from the feed
-      // For now, we'll create placeholder entries that match the expected structure
       const newEntries = boribonAdds.map(add => {
-        // Find existing portfolio entry to get structure
-        const sampleEntry = currentBoribon[0];
+        // Find the feed item for this SKU to get sourceId
+        const feedItem = boribonFeedData.find(item => item.entry.model === add.sku);
+        
+        if (!feedItem) {
+          throw new Error(`Cannot add ${add.sku} to portfolio: not found in Boribon feed`);
+        }
+        
         return {
-          sourceId: "TBD", // Will be populated from feed
+          sourceId: feedItem.row.id || "",
           model: add.sku,
           ean: add.ean || "",
           name: add.name,
-          brand: add.brand || "",
+          brand: add.brand || feedItem.row.brand || "",
           tier: "UPSELL",
           learningCategory: "Add-on / Expansion",
           recommendedAge: add.age || "",
           minAge: 0,
           existingProductId: null,
-          url: "",
+          url: feedItem.row.url || "",
         };
       });
       
@@ -403,13 +416,22 @@ async function updatePortfolioFiles(
       const kidstoryPath = path.join(process.cwd(), "lib/suppliers/kidstory/portfolio.json");
       const currentKidstory = JSON.parse(fs.readFileSync(kidstoryPath, "utf-8"));
       
-      const newEntries = kidstoryAdds.map(add => ({
-        sourceId: "TBD", // Will be populated from feed
-        sku: add.sku,
-        ean: add.ean || "",
-        role: "UPSELL",
-        theme: "Add-on / Expansion",
-      }));
+      const newEntries = kidstoryAdds.map(add => {
+        // Find the feed item for this SKU to get sourceId
+        const feedItem = kidstoryFeedData.find(item => item.entry.sku === add.sku);
+        
+        if (!feedItem) {
+          throw new Error(`Cannot add ${add.sku} to portfolio: not found in Kidstory feed`);
+        }
+        
+        return {
+          sourceId: feedItem.row.id || "",
+          sku: add.sku,
+          ean: add.ean || "",
+          role: "UPSELL",
+          theme: "Add-on / Expansion",
+        };
+      });
       
       const updatedKidstory = [...currentKidstory, ...newEntries];
       fs.writeFileSync(kidstoryPath, JSON.stringify(updatedKidstory, null, 2) + "\n");
@@ -550,7 +572,7 @@ async function main() {
   console.log(`  Found ${candidates.length} high/medium confidence candidates (excluding ${EXISTING_UPSELLS.length} already-installed SKUs)\n`);
   
   // Validate against live feeds
-  const validationResults = await validateCandidates(candidates);
+  const { results: validationResults, boribonFeed, kidstoryFeed } = await validateCandidates(candidates);
   
   // Print validation summary
   console.log("\n📊 VALIDATION SUMMARY:\n");
@@ -602,7 +624,7 @@ async function main() {
   
   // Update portfolio files
   console.log("\n📝 Updating portfolio files...\n");
-  const portfolioUpdates = await updatePortfolioFiles(validationResults);
+  const portfolioUpdates = await updatePortfolioFiles(validationResults, boribonFeed, kidstoryFeed);
   console.log(`  Boribon: +${portfolioUpdates.boribon} UPSELL entries`);
   console.log(`  Kidstory: +${portfolioUpdates.kidstory} UPSELL entries`);
   
