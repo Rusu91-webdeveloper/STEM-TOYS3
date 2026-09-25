@@ -6,31 +6,82 @@ import { visibleInBrowse } from "../../lib/products/merchandising";
 
 describe("Product listing visibility", () => {
   describe("visibleInBrowse function", () => {
-    it("includes products with stockQuantity=1 (supplier capacity model)", () => {
-      const product = {
-        slug: "test-product",
-        name: "Test Product",
-        stockQuantity: 1,
-        isBook: false,
-        metadata: {},
-      };
-      
-      expect(visibleInBrowse(product)).toBe(true);
+    describe("Kidstory capacity model (inventoryMode: supplier-availability)", () => {
+      it("shows products with stockQuantity=1 (available in capacity model)", () => {
+        const product = {
+          slug: "kidstory-product",
+          name: "Kidstory STEM Kit",
+          stockQuantity: 1,
+          isBook: false,
+          metadata: {},
+          attributes: {
+            inventoryMode: "supplier-availability",
+          },
+        };
+        
+        expect(visibleInBrowse(product)).toBe(true);
+      });
+
+      it("hides products with stockQuantity=0 (out of stock)", () => {
+        const product = {
+          slug: "kidstory-product-oos",
+          name: "Kit Constructie Robot T-Rex",
+          stockQuantity: 0,
+          isBook: false,
+          metadata: {},
+          attributes: {
+            inventoryMode: "supplier-availability",
+          },
+        };
+        
+        expect(visibleInBrowse(product)).toBe(false);
+      });
     });
 
-    it("excludes products with stockQuantity=0 (out of stock)", () => {
-      const product = {
-        slug: "test-product",
-        name: "Test Product",
-        stockQuantity: 0,
-        isBook: false,
-        metadata: {},
-      };
-      
-      expect(visibleInBrowse(product)).toBe(false);
+    describe("Boribon/others quantity model (no inventoryMode flag)", () => {
+      it("hides products with stockQuantity=1 (running low)", () => {
+        const product = {
+          slug: "boribon-product",
+          name: "Boribon Product",
+          stockQuantity: 1,
+          isBook: false,
+          metadata: {},
+          attributes: {
+            // No inventoryMode or different value
+          },
+        };
+        
+        expect(visibleInBrowse(product)).toBe(false);
+      });
+
+      it("hides products with stockQuantity=0 (out of stock)", () => {
+        const product = {
+          slug: "boribon-product-oos",
+          name: "Boribon Product OOS",
+          stockQuantity: 0,
+          isBook: false,
+          metadata: {},
+          attributes: {},
+        };
+        
+        expect(visibleInBrowse(product)).toBe(false);
+      });
+
+      it("shows products with stockQuantity >= 2 (adequate stock)", () => {
+        const product = {
+          slug: "boribon-product-stock",
+          name: "Boribon Product In Stock",
+          stockQuantity: 5,
+          isBook: false,
+          metadata: {},
+          attributes: {},
+        };
+        
+        expect(visibleInBrowse(product)).toBe(true);
+      });
     });
 
-    it("includes products with stockQuantity=0 if keepLowStock is true", () => {
+    it("shows low-stock products if keepLowStock is true", () => {
       const product = {
         slug: "test-product",
         name: "Test Product",
@@ -41,6 +92,7 @@ describe("Product listing visibility", () => {
             keepLowStock: true,
           },
         },
+        attributes: {},
       };
       
       expect(visibleInBrowse(product)).toBe(true);
@@ -53,6 +105,7 @@ describe("Product listing visibility", () => {
         stockQuantity: 999,
         isBook: true,
         metadata: {},
+        attributes: {},
       };
       
       expect(visibleInBrowse(product)).toBe(false);
@@ -69,6 +122,7 @@ describe("Product listing visibility", () => {
             browseHidden: true,
           },
         },
+        attributes: {},
       };
       
       expect(visibleInBrowse(product)).toBe(false);
@@ -91,36 +145,11 @@ describe("Product listing visibility", () => {
           stockQuantity: 5,
           isBook: false,
           metadata: {},
+          attributes: {},
         };
         
         expect(visibleInBrowse(product)).toBe(false);
       });
-    });
-
-    it("includes Kidstory products with stockQuantity=1 and null ageGroup", () => {
-      // Simulates a Kidstory product after sync (capacity model)
-      const product = {
-        slug: "kidstory-product-sku123",
-        name: "STEM Kit pentru copii 3-5 ani",
-        stockQuantity: 1, // Supplier capacity model
-        isBook: false,
-        metadata: {},
-      };
-      
-      // Should be visible even with stockQuantity=1
-      expect(visibleInBrowse(product)).toBe(true);
-    });
-
-    it("includes products with normal stock levels", () => {
-      const product = {
-        slug: "test-product",
-        name: "Normal Product",
-        stockQuantity: 10,
-        isBook: false,
-        metadata: {},
-      };
-      
-      expect(visibleInBrowse(product)).toBe(true);
     });
   });
 

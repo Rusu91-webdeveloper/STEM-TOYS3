@@ -9,6 +9,7 @@ type BrowseProduct = {
   stockQuantity: number;
   isBook?: boolean;
   metadata?: any;
+  attributes?: any;
   featured?: boolean;
 };
 export function giftOrder(product: BrowseProduct): number {
@@ -19,10 +20,15 @@ export function visibleInBrowse(product: BrowseProduct): boolean {
   if (product.isBook) return false;
   const editorial = product.metadata?.merchandising;
   if (editorial?.browseHidden) return false;
-  // Only hide products that are actually out of stock (0), not low stock (1)
-  // Supplier capacity model uses stockQuantity=1 for "available" products
-  if (product.stockQuantity === 0 && editorial?.keepLowStock !== true)
+  
+  // Capacity model (Kidstory): stockQuantity=1 means "available", hide only at 0
+  // Quantity model (Boribon, others): hide at stockQuantity <= 1 (running low or out)
+  const isCapacityModel = product.attributes?.inventoryMode === "supplier-availability";
+  const stockThreshold = isCapacityModel ? 0 : 1;
+  
+  if (product.stockQuantity <= stockThreshold && editorial?.keepLowStock !== true)
     return false;
+    
   return !/air.toobz|aqua.*(?:reumplere|refill)|fridge.rover|E tiintific|miE care|Ã|�/i.test(
     product.name
   );

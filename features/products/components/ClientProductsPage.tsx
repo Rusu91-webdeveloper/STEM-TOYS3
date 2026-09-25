@@ -452,7 +452,12 @@ function ClientProductsPageContent({
 
   // Calculate total browseable products (excludes books which are filtered by visibleInBrowse)
   const totalBrowseableProducts = useMemo(() => {
-    return products.filter(p => !p.isBook).length;
+    // Apply the same visibility rules as the filtered listing
+    return products.filter(p => {
+      if (p.isBook) return false;
+      // Apply visibleInBrowse filter for accurate count
+      return visibleInBrowse(p as any);
+    }).length;
   }, [products]);
 
   const bundleFilteredProducts = useMemo(() => {
