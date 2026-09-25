@@ -22,8 +22,17 @@ export async function syncKidstoryPortfolio(
             },
           },
         });
-        if (!link?.productId)
+        if (!link?.productId) {
+          // UPSELL entries can be uninstalled without closing stock for the whole catalog.
+          // Core catalog entries must be installed or the sync fails.
+          if (item.entry.role === "UPSELL") {
+            console.warn(
+              `[Kidstory sync] Skipping uninstalled UPSELL: ${item.entry.sku}`
+            );
+            continue;
+          }
           throw new Error(`Portfolio not installed: ${item.entry.sku}`);
+        }
         const changed = await tx.product.updateMany({
           where: {
             id: link.productId,
@@ -70,9 +79,29 @@ export async function syncKidstoryPortfolio(
     },
     { timeout: 25000 }
   );
-  const failed = items.filter(p => !p.valid).length;
-  if (failed) throw new Error(`${failed} invalid Kidstory products`);
-  return { imported: 0, updated: items.length, failed: 0 };
+  // Count failures, but exclude UPSELL entries from critical failures.
+  // UPSELL entries failing validation should not close stock for the entire catalog.
+  const failedCore = items.filter(
+    item => !item.valid && item.entry.role !== "UPSELL"
+  );
+  const failedUpsell = items.filter(
+    item => !item.valid && item.entry.role === "UPSELL"
+  );
+  
+  if (failedUpsell.length > 0) {
+    console.warn(
+      `[Kidstory sync] ${failedUpsell.length} UPSELL items failed validation:`,
+      failedUpsell.map(i => i.entry.sku).join(", ")
+    );
+  }
+  
+  if (failedCore.length > 0) {
+    throw new Error(
+      `${failedCore.length} core Kidstory products unavailable because supplier data failed validation`
+    );
+  }
+  
+  return { imported: 0, updated: items.length - failedUpsell.length, failed: failedUpsell.length };
 }
 
 export async function closeKidstoryStock(db: PrismaClient) {
