@@ -4,10 +4,13 @@
  * Tests the pure functions: deduplication, confidence parsing, age mapping, CSV parsing, etc.
  */
 
-import { describe, it, expect } from "@jest/globals";
 import * as fs from "fs";
 import * as path from "path";
+
+import { describe, it, expect } from "@jest/globals";
 import * as XLSX from "xlsx";
+
+import { mapAgeRangeToAgeGroup } from "../../../lib/suppliers/kidstory/age-mapper";
 import {
   filterCandidatesByConfidence,
   deduplicateResults,
@@ -15,7 +18,6 @@ import {
   type CandidateRow,
   type ValidationResult,
 } from "../../../lib/upsell/batch-2";
-import { mapAgeRangeToAgeGroup } from "../../../lib/suppliers/kidstory/age-mapper";
 
 describe("Upsell Batch 2 Logic", () => {
   describe("Confidence filtering", () => {
