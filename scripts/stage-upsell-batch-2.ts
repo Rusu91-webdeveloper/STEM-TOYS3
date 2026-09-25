@@ -27,8 +27,16 @@ import * as dotenv from "dotenv";
 import * as XLSX from "xlsx";
 import { fetchBoribonProducts, boribonContent } from "../lib/suppliers/boribon/feed";
 import { fetchKidstoryProducts, kidstoryContent } from "../lib/suppliers/kidstory/feed";
+import { mapAgeRangeToAgeGroup } from "../lib/suppliers/kidstory/age-mapper";
 import boribonPortfolio from "../lib/suppliers/boribon/portfolio.json";
 import kidstoryPortfolio from "../lib/suppliers/kidstory/portfolio.json";
+import {
+  filterCandidatesByConfidence,
+  deduplicateResults,
+  buildUpsellForValue,
+  type CandidateRow,
+  type ValidationResult,
+} from "../lib/upsell/batch-2";
 
 // Load environment variables
 const envLocalPath = path.resolve(process.cwd(), ".env.local");
@@ -53,41 +61,6 @@ const EXISTING_UPSELLS = ["K_550202", "K_550203", "K_550204", "DJ05648", "CC-102
 const BORIBON_ID = "ee75eea8-9f64-4076-96a2-52f5d6926c14";
 const KIDSTORY_ID = "26f5418c-965d-4630-994c-b51947cdec04";
 
-interface CandidateRow {
-  supplier: string;
-  base_sku: string;
-  base_title: string;
-  candidate_sku: string;
-  candidate_title: string;
-  feed_price: string;
-  suggested_retail_if_known: string;
-  stock: string;
-  has_images: string;
-  image_count: string;
-  has_description: string;
-  fit_reason: string;
-  confidence: string;
-}
-
-interface ValidationResult {
-  sku: string;
-  name: string;
-  supplier: "Boribon" | "Kidstory";
-  baseSku: string;
-  baseSkus?: string[]; // For deduped results with multiple base pairings
-  status: "create" | "skip" | "reject";
-  reason?: string;
-  feedPrice?: number;
-  feedStock?: number | string;
-  images?: string[];
-  description?: string;
-  categoryId?: string;
-  brand?: string;
-  ean?: string;
-  age?: string;
-  ageGroup?: string | null;
-}
-
 interface ProductCreationResult {
   sku: string;
   status: "created" | "exists" | "error";
@@ -95,35 +68,6 @@ interface ProductCreationResult {
   slug?: string;
   pairings?: string[];
   error?: string;
-}
-
-/**
- * Map Kidstory age strings to standard ageGroup values
- * Based on common age ranges found in Kidstory feed
- */
-function mapKidstoryAgeGroup(age: string | undefined): string | null {
-  if (!age) return null;
-  
-  const ageLower = age.toLowerCase().trim();
-  
-  // Extract numbers from strings like "3+", "6-8", "8-12 ani", etc.
-  const match = ageLower.match(/(\d+)[\s\-+]*(?:(\d+))?/);
-  if (!match) return null;
-  
-  const minAge = parseInt(match[1]);
-  const maxAge = match[2] ? parseInt(match[2]) : minAge;
-  
-  // Map to standard age groups
-  if (maxAge <= 3) return "TODDLERS_1_3";
-  if (maxAge <= 5) return "PRESCHOOL_3_5";
-  if (maxAge <= 8 || (minAge >= 6 && maxAge <= 10)) return "ELEMENTARY_6_8";
-  if (maxAge <= 12 || (minAge >= 9 && maxAge <= 14)) return "MIDDLE_SCHOOL_9_12";
-  if (minAge >= 13) return "TEENS_13_PLUS";
-  
-  // Default for unclear ranges
-  if (minAge >= 6 && maxAge >= 8) return "ELEMENTARY_6_8";
-  
-  return null;
 }
 
 /**
@@ -156,13 +100,8 @@ function parseResearchCsv(csvPath: string): CandidateRow[] {
     { raw: false }
   );
   
-  // Filter to high and medium confidence (case-insensitive), exclude already-installed SKUs
-  // Accept "med" as synonym for "medium"
-  return rows.filter(row => {
-    const confidence = row.confidence?.toLowerCase() || "";
-    const isHighOrMed = confidence === "high" || confidence === "medium" || confidence === "med";
-    return isHighOrMed && !EXISTING_UPSELLS.includes(row.candidate_sku);
-  });
+  // Filter using imported pure function
+  return filterCandidatesByConfidence(rows, EXISTING_UPSELLS);
 }
 
 /**
@@ -340,7 +279,7 @@ async function validateCandidates(candidates: CandidateRow[]): Promise<{
         result.ean = feedItem.entry.ean;
         result.brand = content.attributes.brand;
         result.age = content.attributes.age || content.attributes.ageRange;
-        result.ageGroup = mapKidstoryAgeGroup(result.age);
+        result.ageGroup = mapAgeRangeToAgeGroup(result.age);
         
         if (!result.images.length) {
           result.status = "reject";
@@ -371,34 +310,6 @@ async function validateCandidates(candidates: CandidateRow[]): Promise<{
   }
   
   return { results, boribonFeed, kidstoryFeed };
-}
-
-/**
- * Deduplicate validation results by candidate SKU, merging base SKUs into arrays
- * when a candidate pairs with multiple base products.
- */
-function deduplicateResults(results: ValidationResult[]): ValidationResult[] {
-  const dedupedMap = new Map<string, ValidationResult>();
-  
-  for (const result of results) {
-    const existing = dedupedMap.get(result.sku);
-    
-    if (!existing) {
-      // First occurrence: initialize baseSkus array
-      dedupedMap.set(result.sku, {
-        ...result,
-        baseSkus: [result.baseSku],
-      });
-    } else if (existing.status === "create" && result.status === "create") {
-      // Duplicate candidate SKU - merge base SKUs
-      if (!existing.baseSkus!.includes(result.baseSku)) {
-        existing.baseSkus!.push(result.baseSku);
-      }
-    }
-    // If status differs (e.g., one is "skip", one is "create"), keep the first one
-  }
-  
-  return Array.from(dedupedMap.values());
 }
 
 /**
@@ -485,12 +396,8 @@ async function createProducts(results: ValidationResult[]): Promise<ProductCreat
       const slug = generateSlug(item.name, item.sku);
       
       if (!DRY_RUN) {
-        // Prepare metadata with backwards-compatible format:
-        // - Single base: upsellFor as string (legacy format)
-        // - Multiple bases: upsellFor as array (new format)
-        const upsellForValue = baseSkusToQuery.length === 1 
-          ? baseSkusToQuery[0] 
-          : baseSkusToQuery;
+        // Prepare metadata with backwards-compatible format using imported function
+        const upsellForValue = buildUpsellForValue(baseSkusToQuery);
         
         // Create product
         const newProduct = await prisma.product.create({

@@ -1,82 +1,141 @@
 /**
  * Tests for upsell batch 2 staging script logic
  * 
- * Tests the pure functions: deduplication, confidence parsing, age mapping, etc.
+ * Tests the pure functions: deduplication, confidence parsing, age mapping, CSV parsing, etc.
  */
 
 import { describe, it, expect } from "@jest/globals";
+import * as fs from "fs";
+import * as path from "path";
+import * as XLSX from "xlsx";
+import {
+  filterCandidatesByConfidence,
+  deduplicateResults,
+  buildUpsellForValue,
+  type CandidateRow,
+  type ValidationResult,
+} from "../../../lib/upsell/batch-2";
+import { mapAgeRangeToAgeGroup } from "../../../lib/suppliers/kidstory/age-mapper";
 
 describe("Upsell Batch 2 Logic", () => {
-  describe("Confidence parsing", () => {
+  describe("Confidence filtering", () => {
     it("accepts 'high' as valid", () => {
-      const confidence = "high";
-      const isValid = ["high", "medium", "med"].includes(confidence.toLowerCase());
-      expect(isValid).toBe(true);
+      const rows: CandidateRow[] = [
+        {
+          supplier: "Boribon",
+          base_sku: "BASE1",
+          base_title: "Base Product",
+          candidate_sku: "CAND1",
+          candidate_title: "Candidate",
+          feed_price: "100",
+          suggested_retail_if_known: "100",
+          stock: "10",
+          has_images: "yes",
+          image_count: "5",
+          has_description: "yes",
+          fit_reason: "Compatible",
+          confidence: "high",
+        },
+      ];
+      const filtered = filterCandidatesByConfidence(rows, []);
+      expect(filtered).toHaveLength(1);
     });
 
     it("accepts 'medium' as valid", () => {
-      const confidence = "medium";
-      const isValid = ["high", "medium", "med"].includes(confidence.toLowerCase());
-      expect(isValid).toBe(true);
+      const rows: CandidateRow[] = [
+        {
+          supplier: "Boribon",
+          base_sku: "BASE1",
+          base_title: "Base",
+          candidate_sku: "CAND1",
+          candidate_title: "Candidate",
+          feed_price: "100",
+          suggested_retail_if_known: "100",
+          stock: "10",
+          has_images: "yes",
+          image_count: "5",
+          has_description: "yes",
+          fit_reason: "Compatible",
+          confidence: "medium",
+        },
+      ];
+      const filtered = filterCandidatesByConfidence(rows, []);
+      expect(filtered).toHaveLength(1);
     });
 
-    it("accepts 'med' as valid (synonym for medium)", () => {
-      const confidence = "med";
-      const isValid = ["high", "medium", "med"].includes(confidence.toLowerCase());
-      expect(isValid).toBe(true);
+    it("accepts 'med' as synonym for medium", () => {
+      const rows: CandidateRow[] = [
+        {
+          supplier: "Boribon",
+          base_sku: "BASE1",
+          base_title: "Base",
+          candidate_sku: "CAND1",
+          candidate_title: "Candidate",
+          feed_price: "100",
+          suggested_retail_if_known: "100",
+          stock: "10",
+          has_images: "yes",
+          image_count: "5",
+          has_description: "yes",
+          fit_reason: "Compatible",
+          confidence: "med",
+        },
+      ];
+      const filtered = filterCandidatesByConfidence(rows, []);
+      expect(filtered).toHaveLength(1);
     });
 
-    it("accepts case-insensitive 'HIGH', 'MED', 'MEDIUM'", () => {
-      expect(["high", "medium", "med"].includes("HIGH".toLowerCase())).toBe(true);
-      expect(["high", "medium", "med"].includes("MED".toLowerCase())).toBe(true);
-      expect(["high", "medium", "med"].includes("Medium".toLowerCase())).toBe(true);
+    it("is case-insensitive", () => {
+      const rows: CandidateRow[] = [
+        { confidence: "HIGH" } as CandidateRow,
+        { confidence: "MED" } as CandidateRow,
+        { confidence: "Medium" } as CandidateRow,
+      ];
+      const filtered = filterCandidatesByConfidence(rows, []);
+      expect(filtered).toHaveLength(3);
     });
 
     it("rejects 'low' confidence", () => {
-      const confidence = "low";
-      const isValid = ["high", "medium", "med"].includes(confidence.toLowerCase());
-      expect(isValid).toBe(false);
+      const rows: CandidateRow[] = [
+        { confidence: "low", candidate_sku: "CAND1" } as CandidateRow,
+      ];
+      const filtered = filterCandidatesByConfidence(rows, []);
+      expect(filtered).toHaveLength(0);
+    });
+
+    it("excludes already-installed SKUs", () => {
+      const rows: CandidateRow[] = [
+        { confidence: "high", candidate_sku: "K_550202" } as CandidateRow,
+        { confidence: "high", candidate_sku: "NEW_SKU" } as CandidateRow,
+      ];
+      const filtered = filterCandidatesByConfidence(rows, ["K_550202"]);
+      expect(filtered).toHaveLength(1);
+      expect(filtered[0].candidate_sku).toBe("NEW_SKU");
     });
   });
 
   describe("Deduplication by candidate SKU", () => {
     it("merges duplicate SKUs with different base SKUs into array", () => {
-      const rawResults = [
+      const rawResults: ValidationResult[] = [
         {
           sku: "CC-1026",
           name: "Set mini placi magnetice",
-          supplier: "Boribon" as const,
+          supplier: "Boribon",
           baseSku: "CC- 1009",
-          status: "create" as const,
+          status: "create",
           feedPrice: 126,
         },
         {
           sku: "CC-1026",
           name: "Set mini placi magnetice",
-          supplier: "Boribon" as const,
+          supplier: "Boribon",
           baseSku: "CC-1004",
-          status: "create" as const,
+          status: "create",
           feedPrice: 126,
         },
       ];
 
-      // Simulate deduplication
-      const dedupedMap = new Map();
-      for (const result of rawResults) {
-        const existing = dedupedMap.get(result.sku);
-        if (!existing) {
-          dedupedMap.set(result.sku, {
-            ...result,
-            baseSkus: [result.baseSku],
-          });
-        } else if (existing.status === "create" && result.status === "create") {
-          if (!existing.baseSkus.includes(result.baseSku)) {
-            existing.baseSkus.push(result.baseSku);
-          }
-        }
-      }
-
-      const deduped = Array.from(dedupedMap.values());
+      const deduped = deduplicateResults(rawResults);
 
       expect(deduped).toHaveLength(1);
       expect(deduped[0].sku).toBe("CC-1026");
@@ -84,35 +143,24 @@ describe("Upsell Batch 2 Logic", () => {
     });
 
     it("keeps unique SKUs as-is", () => {
-      const rawResults = [
+      const rawResults: ValidationResult[] = [
         {
           sku: "DJ05641",
           name: "Zig & Go Bila",
-          supplier: "Boribon" as const,
+          supplier: "Boribon",
           baseSku: "DJ05640",
-          status: "create" as const,
+          status: "create",
         },
         {
           sku: "DJ05642",
           name: "Zig & Go Dring",
-          supplier: "Boribon" as const,
+          supplier: "Boribon",
           baseSku: "DJ05640",
-          status: "create" as const,
+          status: "create",
         },
       ];
 
-      const dedupedMap = new Map();
-      for (const result of rawResults) {
-        const existing = dedupedMap.get(result.sku);
-        if (!existing) {
-          dedupedMap.set(result.sku, {
-            ...result,
-            baseSkus: [result.baseSku],
-          });
-        }
-      }
-
-      const deduped = Array.from(dedupedMap.values());
+      const deduped = deduplicateResults(rawResults);
 
       expect(deduped).toHaveLength(2);
       expect(deduped[0].sku).toBe("DJ05641");
@@ -122,105 +170,71 @@ describe("Upsell Batch 2 Logic", () => {
     });
 
     it("does not create duplicate entries for same baseSku", () => {
-      const rawResults = [
+      const rawResults: ValidationResult[] = [
         {
           sku: "CC-1026",
           name: "Set mini placi magnetice",
-          supplier: "Boribon" as const,
+          supplier: "Boribon",
           baseSku: "CC- 1009",
-          status: "create" as const,
+          status: "create",
         },
         {
           sku: "CC-1026",
           name: "Set mini placi magnetice",
-          supplier: "Boribon" as const,
+          supplier: "Boribon",
           baseSku: "CC- 1009", // Same base SKU
-          status: "create" as const,
+          status: "create",
         },
       ];
 
-      const dedupedMap = new Map();
-      for (const result of rawResults) {
-        const existing = dedupedMap.get(result.sku);
-        if (!existing) {
-          dedupedMap.set(result.sku, {
-            ...result,
-            baseSkus: [result.baseSku],
-          });
-        } else if (existing.status === "create" && result.status === "create") {
-          if (!existing.baseSkus.includes(result.baseSku)) {
-            existing.baseSkus.push(result.baseSku);
-          }
-        }
-      }
-
-      const deduped = Array.from(dedupedMap.values());
+      const deduped = deduplicateResults(rawResults);
 
       expect(deduped).toHaveLength(1);
       expect(deduped[0].baseSkus).toEqual(["CC- 1009"]); // Not ["CC- 1009", "CC- 1009"]
     });
   });
 
-  describe("Kidstory age mapping", () => {
-    function mapKidstoryAgeGroup(age: string | undefined): string | null {
-      if (!age) return null;
-
-      const ageLower = age.toLowerCase().trim();
-
-      const match = ageLower.match(/(\d+)[\s\-+]*(?:(\d+))?/);
-      if (!match) return null;
-
-      const minAge = parseInt(match[1]);
-      const maxAge = match[2] ? parseInt(match[2]) : minAge;
-
-      if (maxAge <= 3) return "TODDLERS_1_3";
-      if (maxAge <= 5) return "PRESCHOOL_3_5";
-      if (maxAge <= 8 || (minAge >= 6 && maxAge <= 10)) return "ELEMENTARY_6_8";
-      if (maxAge <= 12 || (minAge >= 9 && maxAge <= 14)) return "MIDDLE_SCHOOL_9_12";
-      if (minAge >= 13) return "TEENS_13_PLUS";
-
-      if (minAge >= 6 && maxAge >= 8) return "ELEMENTARY_6_8";
-
-      return null;
-    }
-
-    it('maps "3+" to PRESCHOOL_3_5', () => {
-      expect(mapKidstoryAgeGroup("3+")).toBe("PRESCHOOL_3_5");
+  describe("Kidstory age mapping (uses YOUNGEST band)", () => {
+    it('maps "3-5 ani" to PRESCHOOL_3_5', () => {
+      expect(mapAgeRangeToAgeGroup("3-5 ani")).toBe("PRESCHOOL_3_5");
     });
 
-    it('maps "6-8" to ELEMENTARY_6_8', () => {
-      expect(mapKidstoryAgeGroup("6-8")).toBe("ELEMENTARY_6_8");
+    it('maps "5-7 ani" to PRESCHOOL_3_5 (youngest age is 5)', () => {
+      expect(mapAgeRangeToAgeGroup("5-7 ani")).toBe("PRESCHOOL_3_5");
     });
 
-    it('maps "8-12 ani" to MIDDLE_SCHOOL_9_12', () => {
-      expect(mapKidstoryAgeGroup("8-12 ani")).toBe("MIDDLE_SCHOOL_9_12");
+    it('maps "6-8 ani" to ELEMENTARY_6_8', () => {
+      expect(mapAgeRangeToAgeGroup("6-8 ani")).toBe("ELEMENTARY_6_8");
     });
 
-    it('maps "10+" to MIDDLE_SCHOOL_9_12', () => {
-      expect(mapKidstoryAgeGroup("10+")).toBe("MIDDLE_SCHOOL_9_12");
+    it('maps "10 ani+" to MIDDLE_SCHOOL_9_12', () => {
+      expect(mapAgeRangeToAgeGroup("10 ani+")).toBe("MIDDLE_SCHOOL_9_12");
     });
 
     it('maps "13+" to TEENS_13_PLUS', () => {
-      expect(mapKidstoryAgeGroup("13+")).toBe("TEENS_13_PLUS");
+      expect(mapAgeRangeToAgeGroup("13+")).toBe("TEENS_13_PLUS");
     });
 
-    it('maps "1-3" to TODDLERS_1_3', () => {
-      expect(mapKidstoryAgeGroup("1-3")).toBe("TODDLERS_1_3");
+    it('maps "1-3 ani" to TODDLERS_1_3', () => {
+      expect(mapAgeRangeToAgeGroup("1-3 ani")).toBe("TODDLERS_1_3");
+    });
+
+    it('maps multi-range "3-5 ani, 5-7 ani" to PRESCHOOL_3_5 (youngest is 3)', () => {
+      expect(mapAgeRangeToAgeGroup("3-5 ani, 5-7 ani")).toBe("PRESCHOOL_3_5");
     });
 
     it("returns null for invalid age strings", () => {
-      expect(mapKidstoryAgeGroup("unknown")).toBe(null);
-      expect(mapKidstoryAgeGroup("")).toBe(null);
-      expect(mapKidstoryAgeGroup(undefined)).toBe(null);
+      expect(mapAgeRangeToAgeGroup("unknown")).toBe(null);
+      expect(mapAgeRangeToAgeGroup("")).toBe(null);
+      expect(mapAgeRangeToAgeGroup(null)).toBe(null);
+      expect(mapAgeRangeToAgeGroup(undefined)).toBe(null);
     });
   });
 
   describe("Metadata format for product creation", () => {
     it("uses string format for single base SKU", () => {
       const baseSkusToQuery = ["DJ05640"];
-      const upsellForValue = baseSkusToQuery.length === 1 
-        ? baseSkusToQuery[0] 
-        : baseSkusToQuery;
+      const upsellForValue = buildUpsellForValue(baseSkusToQuery);
 
       expect(typeof upsellForValue).toBe("string");
       expect(upsellForValue).toBe("DJ05640");
@@ -228,33 +242,82 @@ describe("Upsell Batch 2 Logic", () => {
 
     it("uses array format for multiple base SKUs", () => {
       const baseSkusToQuery = ["CC- 1009", "CC-1004"];
-      const upsellForValue = baseSkusToQuery.length === 1 
-        ? baseSkusToQuery[0] 
-        : baseSkusToQuery;
+      const upsellForValue = buildUpsellForValue(baseSkusToQuery);
 
       expect(Array.isArray(upsellForValue)).toBe(true);
       expect(upsellForValue).toEqual(["CC- 1009", "CC-1004"]);
     });
   });
 
-  describe("Summary counts", () => {
-    it("deduplication reduces count from 48 rows to 43 unique SKUs", () => {
-      // CSV has 48 high/med rows after filtering
-      // 5 duplicate candidate SKUs = 5 rows to merge
-      // Expected: 48 - 5 = 43 unique SKUs
-      const rawRowCount = 48;
-      const duplicateCount = 5;
-      const uniqueSkuCount = rawRowCount - duplicateCount;
+  describe("CSV parsing and deduplication (real data)", () => {
+    it("parses committed CSV and finds 48 high/med rows", () => {
+      const csvPath = path.join(process.cwd(), "data/upsell/upsell-candidates-batch-2.csv");
+      
+      if (!fs.existsSync(csvPath)) {
+        console.warn("Skipping CSV test: file not found");
+        return;
+      }
 
-      expect(uniqueSkuCount).toBe(43);
+      const csvContent = fs.readFileSync(csvPath, "utf-8");
+      const workbook = XLSX.read(csvContent, { type: "string", raw: false });
+      const rows = XLSX.utils.sheet_to_json<CandidateRow>(
+        workbook.Sheets[workbook.SheetNames[0]],
+        { raw: false }
+      );
+
+      // Exclude PR #31 SKUs
+      const excludedSkus = ["K_550202", "K_550203", "K_550204", "DJ05648", "CC-1027", "CC-1029"];
+      const filtered = filterCandidatesByConfidence(rows, excludedSkus);
+
+      expect(filtered.length).toBe(48); // 11 high + 37 med
     });
 
-    it("with 4 already staged, 39 new SKUs should be created", () => {
-      const uniqueSkuCount = 43;
-      const alreadyStaged = 4; // DJ05641, B_2901, DJ05642, F_569016
-      const newToCreate = uniqueSkuCount - alreadyStaged;
+    it("deduplicates to 43 unique SKUs with 5 merged pairs", () => {
+      const csvPath = path.join(process.cwd(), "data/upsell/upsell-candidates-batch-2.csv");
+      
+      if (!fs.existsSync(csvPath)) {
+        console.warn("Skipping CSV test: file not found");
+        return;
+      }
 
-      expect(newToCreate).toBe(39);
+      const csvContent = fs.readFileSync(csvPath, "utf-8");
+      const workbook = XLSX.read(csvContent, { type: "string", raw: false });
+      const rows = XLSX.utils.sheet_to_json<CandidateRow>(
+        workbook.Sheets[workbook.SheetNames[0]],
+        { raw: false }
+      );
+
+      const excludedSkus = ["K_550202", "K_550203", "K_550204", "DJ05648", "CC-1027", "CC-1029"];
+      const filtered = filterCandidatesByConfidence(rows, excludedSkus);
+
+      // Simulate validation results (all "create" status)
+      const mockResults: ValidationResult[] = filtered.map(row => ({
+        sku: row.candidate_sku,
+        name: row.candidate_title,
+        supplier: row.supplier as "Boribon" | "Kidstory",
+        baseSku: row.base_sku,
+        status: "create",
+      }));
+
+      const deduped = deduplicateResults(mockResults);
+
+      expect(deduped.length).toBe(43); // 48 - 5 duplicates = 43 unique
+
+      // Verify the 5 known duplicate SKUs have multiple base SKUs
+      const duplicates = [
+        { sku: "CC-1026", bases: ["CC- 1009", "CC-1004"] },
+        { sku: "G_7445", bases: ["G_7268", "G_7449"] },
+        { sku: "MR_712432", bases: ["MR_712031", "TB_160285"] },
+        { sku: "4M-03479", bases: ["4M-03299", "4M-05545"] },
+        { sku: "PP4185", bases: ["PP3989", "PP4105"] },
+      ];
+
+      for (const { sku, bases } of duplicates) {
+        const result = deduped.find(r => r.sku === sku);
+        expect(result).toBeDefined();
+        expect(result?.baseSkus).toEqual(expect.arrayContaining(bases));
+        expect(result?.baseSkus?.length).toBe(bases.length);
+      }
     });
   });
 });

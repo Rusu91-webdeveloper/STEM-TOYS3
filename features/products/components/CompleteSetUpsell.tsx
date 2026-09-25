@@ -37,7 +37,7 @@ async function getUpsellProducts(baseSku: string): Promise<UpsellProduct[]> {
           {
             metadata: {
               path: ["upsellFor"],
-              array_contains: baseSku,
+              array_contains: [baseSku],
             },
           },
         ],
