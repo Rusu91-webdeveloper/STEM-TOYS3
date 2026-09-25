@@ -74,21 +74,15 @@ describe("Upsell Pairing Metadata", () => {
 
   it("CompleteSetUpsell query pattern", () => {
     // Document the exact query pattern from CompleteSetUpsell.tsx
-    const query = {
-      where: {
-        isActive: true,
-        status: "APPROVED",
-        metadata: {
-          path: ["upsellFor"],
-          equals: "K_550201",  // baseSku
-        },
-      },
+    const queryMetadata = {
+      path: ["upsellFor"],
+      equals: "K_550201",  // baseSku
     };
 
     // The path: ["upsellFor"] means: traverse metadata object and read metadata.upsellFor
     // equals: baseSku means: check if metadata.upsellFor === baseSku
     
-    expect(query.metadata.path).toEqual(["upsellFor"]);
-    expect(query.metadata.equals).toBe("K_550201");
+    expect(queryMetadata.path).toEqual(["upsellFor"]);
+    expect(queryMetadata.equals).toBe("K_550201");
   });
 });
