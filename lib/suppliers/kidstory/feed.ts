@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
-import portfolio from "./portfolio.json";
+
 import { mapAgeRangeToAgeGroup } from "./age-mapper";
+import portfolio from "./portfolio.json";
 
 export { portfolio };
 export const KIDSTORY_ID = "26f5418c-965d-4630-994c-b51947cdec04";
@@ -97,11 +98,11 @@ export function kidstoryContent(row: KidstoryRow) {
     description: row.description,
     images,
     tags: [row.brand_name].filter(Boolean),
-    ageGroup: ageGroup,
+    ageGroup,
     attributes: {
       brand: row.brand_name || "",
       age: row.varsta || "",
-      ageRange: ageRange,
+      ageRange,
       shortDescription: row.short_description || "",
       supplierCategory: row.category_name_concat || row.category_name || "",
       availability: row.disponibilitate || row.stock_status_string,

@@ -105,9 +105,8 @@ export function mapAgeRangeToAgeGroup(ageRangeString: string | null | undefined)
     return "ELEMENTARY_6_8";
   } else if (minAge >= 9 && minAge <= 12) {
     return "MIDDLE_SCHOOL_9_12";
-  } else {
-    return "TEENS_13_PLUS";
   }
+  return "TEENS_13_PLUS";
 }
 
 /**
