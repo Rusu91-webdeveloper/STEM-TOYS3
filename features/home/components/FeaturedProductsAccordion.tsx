@@ -9,6 +9,7 @@ import {
   glassPanelClass,
   gradientButtonClass,
 } from "@/features/home/components/homeTheme";
+import { productPublicPath } from "@/lib/products/public-slug";
 
 interface Product {
   id: string;
@@ -188,7 +189,7 @@ export const FeaturedProductsAccordion = React.memo(
                         {formatPrice(products[activeIndex].price)}
                       </span>
                       <a
-                        href={`/products/${products[activeIndex].slug}`}
+                        href={productPublicPath(products[activeIndex].slug)}
                         aria-label={`View details for ${products[activeIndex].name}`}
                         tabIndex={0}
                         data-conversion="cta"

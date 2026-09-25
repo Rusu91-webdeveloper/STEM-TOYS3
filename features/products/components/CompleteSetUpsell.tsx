@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
+import { productPublicPath } from "@/lib/products/public-slug";
 
 interface CompleteSetUpsellProps {
   productSku: string;
@@ -25,8 +26,8 @@ async function getUpsellProducts(baseSku: string): Promise<UpsellProduct[]> {
         status: "APPROVED",
         metadata: {
           path: ["upsellFor"],
-          equals: baseSku
-        }
+          equals: baseSku,
+        },
       },
       select: {
         id: true,
@@ -34,14 +35,14 @@ async function getUpsellProducts(baseSku: string): Promise<UpsellProduct[]> {
         slug: true,
         price: true,
         images: true,
-        stockQuantity: true
+        stockQuantity: true,
       },
-      take: 6 // Limit to 6 upsells max
+      take: 6, // Limit to 6 upsells max
     });
-    
+
     return upsellProducts.map(p => ({
       ...p,
-      images: Array.isArray(p.images) ? p.images : []
+      images: Array.isArray(p.images) ? p.images : [],
     }));
   } catch (error) {
     console.error("Failed to fetch upsell products:", error);
@@ -51,20 +52,20 @@ async function getUpsellProducts(baseSku: string): Promise<UpsellProduct[]> {
 
 const CompleteSetUpsell = async ({ productSku }: CompleteSetUpsellProps) => {
   const upsellProducts = await getUpsellProducts(productSku);
-  
+
   // Don't render if no upsells
   if (upsellProducts.length === 0) {
     return null;
   }
-  
+
   return (
     <div className="mt-12 border-t pt-8">
       <h2 className="text-2xl font-bold mb-6">Completează setul</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {upsellProducts.map((product) => (
+        {upsellProducts.map(product => (
           <Link
             key={product.id}
-            href={`/products/${product.slug}`}
+            href={productPublicPath(product.slug)}
             className="group border rounded-lg p-4 hover:shadow-lg transition-shadow"
           >
             {product.images[0] && (

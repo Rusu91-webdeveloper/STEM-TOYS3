@@ -3,6 +3,8 @@
 import Image from "next/image";
 import React from "react";
 
+import { productPublicPath } from "@/lib/products/public-slug";
+
 interface Product {
   id: string;
   name: string;
@@ -57,7 +59,7 @@ const FeaturedProductsSectionComponent = ({
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6 max-w-none">
           {products.map(product => (
             <a
-              href={`/products/${product.slug}`}
+              href={productPublicPath(product.slug)}
               key={product.id}
               aria-label={`View details for ${product.name}`}
               tabIndex={0}

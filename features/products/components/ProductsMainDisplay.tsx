@@ -14,6 +14,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import { ProductGrid } from "@/features/products";
+import { productPublicPath } from "@/lib/products/public-slug";
 import type { Product } from "@/types/product";
 
 import { OptimizedProductImage } from "./OptimizedProductImage";
@@ -323,7 +324,7 @@ export function ProductsMainDisplay({
                   )}
 
                   <Link
-                    href={`/products/${product.slug}`}
+                    href={productPublicPath(product.slug)}
                     className="relative z-10 w-24 h-24 sm:h-44 sm:w-40 lg:w-48 flex-shrink-0 overflow-hidden bg-slate-50 block"
                   >
                     {product.images && product.images.length > 0 ? (
@@ -350,7 +351,7 @@ export function ProductsMainDisplay({
                         </span>
                       )}
                       <Link
-                        href={`/products/${product.slug}`}
+                        href={productPublicPath(product.slug)}
                         className="font-semibold text-sm sm:text-base text-slate-900 leading-snug line-clamp-2 mb-1 hover:text-slate-700 transition-colors block"
                       >
                         {displayName}

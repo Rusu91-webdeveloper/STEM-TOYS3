@@ -1,96 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
+import {
+  resolveActiveBookId,
+  resolveProductId,
+} from "@/lib/products/public-catalog";
+import {
+  resolveProductPageDecision,
+  toPublicProductSlug,
+} from "@/lib/products/public-slug";
 import type { Product } from "@/types/product";
 
-const fallbackProducts: Record<string, Product> = {
-  "arduino-starter-kit": {
-    id: "fallback-arduino-starter-kit",
-    name: "Arduino Starter Kit",
-    slug: "arduino-starter-kit",
-    description:
-      "Complete electronics kit for learning Arduino programming and building interactive projects. Includes board, sensors, and guided lessons for aspiring makers.",
-    price: 89.99,
-    priceCurrency: "RON",
-    compareAtPrice: 109.99,
-    compareAtPriceCurrency: "RON",
-    sku: "ARD-START-001",
-    barcode: "8991234567890",
-    images: [
-      "https://images.unsplash.com/photo-1553406830-ef2513450d76?w=960&h=720&fit=crop",
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=960&h=720&fit=crop",
-    ],
-    metadata: {
-      title: "Arduino Starter Kit - Complete Electronics Learning Bundle",
-      description:
-        "Learn electronics and coding with the Arduino Starter Kit. Build real hardware projects with step-by-step lessons and high-quality components.",
-      keywords: [
-        "arduino kit",
-        "electronics for beginners",
-        "STEM engineering kit",
-        "arduino starter bundle",
-        "hardware coding projects",
-      ],
-      schema: {
-        "@type": "Product",
-        brand: "TechTots",
-        category: "Engineering/Electronics",
-        sku: "ARD-START-001",
-      },
-    },
-    category: {
-      id: "electronics",
-      name: "Electronics",
-      slug: "electronics",
-      description:
-        "STEM electronics and coding kits that help learners explore circuits, sensors, and hardware prototyping.",
-    },
-    tags: ["electronics", "arduino", "coding", "hardware", "teens"],
-    attributes: {
-      componentsIncluded: ["Arduino board", "breadboard", "LEDs", "sensors"],
-      difficulty: "Beginner",
-      lessons: 12,
-    },
-    isActive: true,
-    createdAt: new Date("2024-01-01T00:00:00Z"),
-    updatedAt: new Date("2024-01-01T00:00:00Z"),
-    stockQuantity: 50,
-    reservedQuantity: 0,
-    featured: true,
-    isBook: false,
-    weight: 0.8,
-    dimensions: {
-      width: 25,
-      height: 7,
-      depth: 17,
-      unit: "cm",
-    },
-    averageRating: 4.8,
-    reviewCount: 124,
-    totalSold: 860,
-    ageRange: "13+ years",
-    ageGroup: "TEENS_13_PLUS",
-    stemDiscipline: "ENGINEERING",
-    learningOutcomes: ["PROBLEM_SOLVING", "LOGIC"],
-    productType: "EXPERIMENT_KITS",
-    specialCategories: ["NEW_ARRIVALS"],
-    supplier: {
-      id: "static-supplier",
-      companyName: "TechTots STEM Labs",
-      companySlug: "techtots-stem-labs",
-    },
-    imageMetadata: [
-      {
-        alt: "Arduino starter kit components laid out on a workbench",
-        tags: ["arduino", "electronics", "stem"],
-      },
-      {
-        alt: "Teen assembling an Arduino robotics project",
-        tags: ["arduino", "robotics", "coding"],
-      },
-    ],
-  },
-};
+import { fallbackProducts } from "../fallback-product";
 
 export async function GET(
   request: NextRequest,
@@ -98,34 +19,44 @@ export async function GET(
 ) {
   const { slug } = await params;
   try {
-    // 🚀 PERFORMANCE: Execute both queries in parallel with case-insensitive slug matching
-    const [dbProduct, dbBook] = await Promise.all([
-      db.product.findFirst({
-        where: {
-          slug: { equals: slug, mode: "insensitive" },
-          isActive: true,
-        },
-        include: {
-          category: {
-            select: { id: true, name: true, slug: true, description: true },
-          },
-          supplier: {
-            select: { id: true, companyName: true, companySlug: true },
-          },
-        },
-      }),
-      db.book.findFirst({
-        where: {
-          slug: { equals: slug, mode: "insensitive" },
-          isActive: true,
-        },
-        include: {
-          languages: true,
-        },
-      }),
+    const publicSlug = toPublicProductSlug(slug);
+    const [productId, bookId] = await Promise.all([
+      resolveProductId(publicSlug, "public"),
+      resolveActiveBookId(publicSlug),
     ]);
 
-    if (dbProduct) {
+    const [dbProduct, dbBook] = await Promise.all([
+      productId
+        ? db.product.findFirst({
+            where: { id: productId },
+            include: {
+              category: {
+                select: { id: true, name: true, slug: true, description: true },
+              },
+              supplier: {
+                select: { id: true, companyName: true, companySlug: true },
+              },
+            },
+          })
+        : Promise.resolve(null),
+      bookId
+        ? db.book.findFirst({
+            where: { id: bookId },
+            include: {
+              languages: true,
+            },
+          })
+        : Promise.resolve(null),
+    ]);
+
+    if (
+      dbProduct &&
+      resolveProductPageDecision({
+        kind: "product",
+        isActive: dbProduct.isActive,
+        status: dbProduct.status,
+      }) === "render"
+    ) {
       const attributes =
         (dbProduct.attributes as Record<string, any>) || undefined;
       const dimensions =
@@ -134,7 +65,7 @@ export async function GET(
       const transformed: Product = {
         id: dbProduct.id,
         name: dbProduct.name,
-        slug: dbProduct.slug,
+        slug: toPublicProductSlug(dbProduct.slug),
         description: dbProduct.description ?? "",
         price: dbProduct.price,
         priceCurrency: dbProduct.priceCurrency,
@@ -215,12 +146,18 @@ export async function GET(
       });
     }
 
-    if (dbBook) {
+    if (
+      dbBook &&
+      resolveProductPageDecision({
+        kind: "book",
+        isActive: dbBook.isActive,
+      }) === "render"
+    ) {
       // Transform book to product-like structure
       const bookAsProduct: Product = {
         id: dbBook.id,
         name: dbBook.name,
-        slug: dbBook.slug,
+        slug: toPublicProductSlug(dbBook.slug),
         description: dbBook.description,
         price: dbBook.price,
         priceCurrency: "RON",
@@ -260,7 +197,7 @@ export async function GET(
       });
     }
 
-    const fallbackProduct = fallbackProducts[slug];
+    const fallbackProduct = fallbackProducts[publicSlug];
 
     if (fallbackProduct) {
       return NextResponse.json(fallbackProduct, {

@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
+import { productPublicPath } from "@/lib/products/public-slug";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
 
@@ -332,7 +333,7 @@ export function ProductRecommendations({
 
           {/* Title */}
           <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
-            <Link href={`/products/${product.slug}`}>{product.name}</Link>
+            <Link href={productPublicPath(product.slug)}>{product.name}</Link>
           </h3>
 
           {/* Rating */}

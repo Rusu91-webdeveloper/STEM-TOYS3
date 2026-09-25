@@ -1,30 +1,27 @@
 import { Metadata } from "next";
+import { unstable_noStore as noStore } from "next/cache";
 import { notFound } from "next/navigation";
 import React from "react";
 
 import ProductDetailServer from "@/features/products/components/ProductDetailServer";
 import { getCombinedProduct } from "@/lib/api/products";
 import { prisma } from "@/lib/prisma";
-import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
+import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { generateProductMetadata } from "@/lib/utils/seo";
 
-// 🚀 PERFORMANCE: Enable ISR with 10 minutes revalidation (matching categories)
+// ISR for known products. Unknown slugs are rendered on demand (see dynamicParams).
 export const revalidate = 600;
 
-// Force routing-level HTTP 404 for unknown product slugs (matching categories pattern)
-export const dynamicParams = false;
-
 /**
- * Normalize slug to handle special characters and redirects
- * Fixes: A04 - giroscop slug with slash issue
+ * Allow slugs that were not known at build time.
+ * `dynamicParams = false` returned HTTP 404 for every product created or
+ * activated after the last deploy, and it was also how a stale slug blocklist
+ * hard-404'd live products. Missing, inactive, and unapproved products call
+ * `notFound()` in this segment so the response status is 404 (never a
+ * "not found" page with HTTP 200). `noStore()` on that path keeps a 404 from
+ * being cached over a product that appears later.
  */
-function normalizeProductSlug(slug: string): string {
-  return slug
-    .replace(/\//g, "-") // Replace slashes with hyphens
-    .replace(/%2F/gi, "-") // Replace URL-encoded slashes with hyphens
-    .toLowerCase()
-    .trim();
-}
+export const dynamicParams = true;
 
 type ProductPageProps = {
   params: Promise<{
@@ -32,26 +29,23 @@ type ProductPageProps = {
   }>;
 };
 
+function productNotFound(): never {
+  noStore();
+  notFound();
+}
+
 /**
- * Generate static params for all active products AND books
- * Excludes soft-404 (blocklisted) products
- * This enables routing-level HTTP 404 for unknown slugs (same pattern as categories)
- * 
- * IMPORTANT: 
- * - Includes both products AND books (combined API serves both under /products/[slug])
- * - Allows OOS products (historically show out-of-stock pages, not hard 404)
- * - Only hard-404s the blocklist (SOFT_404_PRODUCT_SLUGS)
- * - Normalizes slugs same as page to prevent case/slash bypass
+ * Prebuild active approved products and active books.
+ * Out-of-stock products stay renderable. Slugs are the public form so a
+ * stored slash becomes a single path segment.
  */
 export async function generateStaticParams() {
   try {
-    // Query both products and books in parallel (combined API serves both)
     const [products, books] = await Promise.all([
       prisma.product.findMany({
         where: {
           isActive: true,
           status: "APPROVED",
-          // NOTE: No stockQuantity filter - OOS products show OOS page, not 404
         },
         select: {
           slug: true,
@@ -67,69 +61,62 @@ export async function generateStaticParams() {
       }),
     ]);
 
-    // Combine product and book slugs
-    const allSlugs = [
-      ...products.map(p => p.slug),
-      ...books.map(b => b.slug),
-    ];
-
-    // Normalize slugs (same as page does) and dedupe
     const normalizedSlugs = Array.from(
-      new Set(allSlugs.map(slug => normalizeProductSlug(slug)))
+      new Set(
+        [
+          ...products.map(product => product.slug),
+          ...books.map(book => book.slug),
+        ].map(slug => toPublicProductSlug(slug))
+      )
     );
 
-    // Exclude blocklist (case-insensitive check)
-    const validSlugs = normalizedSlugs.filter(
-      slug => !SOFT_404_PRODUCT_SLUGS.has(slug.toLowerCase())
-    );
-
-    return validSlugs.map(slug => ({
+    return normalizedSlugs.map(slug => ({
       slug,
     }));
   } catch (error) {
-    console.error("[generateStaticParams] Error fetching product/book slugs:", error);
-    // IMPORTANT: Throw error instead of returning [] to fail the build
-    // Returning [] would 404 the entire catalog on deploy
+    console.error(
+      "[generateStaticParams] Error fetching product/book slugs:",
+      error
+    );
+    // Throw so the build fails instead of publishing an empty catalog.
     throw error;
   }
+}
+
+async function loadPublicProduct(rawSlug: string) {
+  const slug = toPublicProductSlug(rawSlug);
+  const product = await getCombinedProduct(slug);
+
+  if (!product || product.isActive === false) {
+    return null;
+  }
+
+  return {
+    ...product,
+    slug: toPublicProductSlug(product.slug),
+  };
 }
 
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
-  // Await params for Next.js 15
   const { slug: rawSlug } = await params;
-  const slug = normalizeProductSlug(rawSlug);
-
-  // Belt-and-suspenders: Block soft-404 products early (in addition to generateStaticParams)
-  if (SOFT_404_PRODUCT_SLUGS.has(slug)) {
-    notFound();
-  }
-
-  // Fetch the actual product for metadata generation
-  const product = await getCombinedProduct(slug);
+  const product = await loadPublicProduct(rawSlug);
 
   if (!product) {
-    // Trigger 404 for non-existent products
-    // Don't wrap in try/catch - let Next.js handle the notFound() throw
-    notFound();
+    productNotFound();
   }
 
-  // Use our SEO utility to generate metadata with the actual product data
   return generateProductMetadata(product);
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  // Ensure params is resolved if it's a promise
-  const resolvedParams = await params;
-  const rawSlug = resolvedParams.slug;
-  const slug = normalizeProductSlug(rawSlug);
+  const { slug: rawSlug } = await params;
+  const product = await loadPublicProduct(rawSlug);
 
-  // Belt-and-suspenders: Block soft-404 products early (in addition to generateStaticParams)
-  if (SOFT_404_PRODUCT_SLUGS.has(slug)) {
-    notFound();
+  if (!product) {
+    productNotFound();
   }
 
-  // 🚀 PERFORMANCE: Pass slug to server component with improved error handling
-  return <ProductDetailServer slug={slug} />;
+  return <ProductDetailServer slug={product.slug} />;
 }

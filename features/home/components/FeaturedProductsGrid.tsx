@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useCurrency } from "@/lib/currency";
-import type { Product } from "@/types/product";
-
 import { ROCKET_SLUG, selectHomepageGifts } from "@/lib/products/merchandising";
+import { productPublicPath } from "@/lib/products/public-slug";
+import type { Product } from "@/types/product";
 
 export function FeaturedProductsGrid({
   products,
@@ -57,7 +57,7 @@ export function FeaturedProductsGrid({
                   className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white"
                 >
                   <Link
-                    href={`/products/${product.slug}`}
+                    href={productPublicPath(product.slug)}
                     aria-label={product.name}
                     className="relative block aspect-square bg-slate-50"
                   >
@@ -76,7 +76,7 @@ export function FeaturedProductsGrid({
                         : "Selectat de TechTots"}
                     </p>
                     <h3 className="mb-2 line-clamp-3 min-h-[3.75rem] text-sm font-bold leading-5 text-slate-950">
-                      <Link href={`/products/${product.slug}`}>
+                      <Link href={productPublicPath(product.slug)}>
                         {product.name}
                       </Link>
                     </h3>
@@ -96,7 +96,7 @@ export function FeaturedProductsGrid({
                       {formatPrice(product.price)}
                     </p>
                     <Link
-                      href={`/products/${product.slug}`}
+                      href={productPublicPath(product.slug)}
                       className="flex min-h-11 items-center justify-center rounded-lg bg-[#0b1b32] px-2 py-3 text-xs font-semibold text-white hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                     >
                       Vezi produsul

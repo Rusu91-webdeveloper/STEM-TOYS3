@@ -1,10 +1,14 @@
-import { merchantOfferPolicies, type MerchantShippingSettings } from "./merchant-policy";
+import {
+  merchantOfferPolicies,
+  type MerchantShippingSettings,
+} from "./merchant-policy";
 /**
  * Structured data helpers for STEM-focused ecommerce pages.
  * Keep claims factual and tied to visible page content.
  */
 
 import { appConfig } from "@/lib/config/app-config";
+import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { getCategoryPageHref } from "@/lib/utils/category-page-links";
 import type { Product } from "@/types/product";
 
@@ -144,7 +148,7 @@ function buildOffer(product: Product, shipping?: MerchantShippingSettings) {
   return {
     "@type": "Offer",
     ...merchantOfferPolicies(product.price, shipping),
-    url: `https://www.techtots.ro/products/${product.slug}`,
+    url: `https://www.techtots.ro/products/${toPublicProductSlug(product.slug)}`,
     priceCurrency: "RON",
     price: product.price,
     availability:
@@ -159,7 +163,10 @@ function buildOffer(product: Product, shipping?: MerchantShippingSettings) {
   };
 }
 
-export function generateEducationalProductSchema(product: Product, shipping?: MerchantShippingSettings) {
+export function generateEducationalProductSchema(
+  product: Product,
+  shipping?: MerchantShippingSettings
+) {
   const brand = getProductBrand(product);
   const manufacturerAge = getManufacturerAge(product);
   const audienceAge = manufacturerAge
@@ -168,7 +175,7 @@ export function generateEducationalProductSchema(product: Product, shipping?: Me
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
-    "@id": `https://www.techtots.ro/products/${product.slug}#product`,
+    "@id": `https://www.techtots.ro/products/${toPublicProductSlug(product.slug)}#product`,
     name: product.name,
     description: product.description || product.name,
     image: product.images || [],
@@ -346,7 +353,7 @@ export function generateSTEMLearningPathSchema(products: Product[]) {
       item: {
         "@type": "Product",
         name: product.name,
-        url: `https://www.techtots.ro/products/${product.slug}`,
+        url: `https://www.techtots.ro/products/${toPublicProductSlug(product.slug)}`,
       },
     })),
   };
@@ -432,7 +439,7 @@ export function generateEducationalBreadcrumbSchema(product: Product) {
         "@type": "ListItem",
         position: 5,
         name: product.name,
-        item: `https://www.techtots.ro/products/${product.slug}`,
+        item: `https://www.techtots.ro/products/${toPublicProductSlug(product.slug)}`,
       },
     ],
   };
@@ -456,7 +463,7 @@ export function generateProductCollectionSchema(
         item: {
           "@type": "Product",
           name: product.name,
-          url: `https://www.techtots.ro/products/${product.slug}`,
+          url: `https://www.techtots.ro/products/${toPublicProductSlug(product.slug)}`,
           image: product.images?.[0],
         },
       })),
@@ -490,7 +497,7 @@ export function generateAgeGroupSchema(ageGroup: string, products: Product[]) {
         item: {
           "@type": "Product",
           name: product.name,
-          url: `https://www.techtots.ro/products/${product.slug}`,
+          url: `https://www.techtots.ro/products/${toPublicProductSlug(product.slug)}`,
         },
       })),
     },

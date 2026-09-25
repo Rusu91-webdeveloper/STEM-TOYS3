@@ -1,8 +1,8 @@
 import { MetadataRoute } from "next";
 
 import { db } from "@/lib/db";
+import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { regionalStemCities } from "@/lib/seo/regional-search";
-import { SOFT_404_PRODUCT_SLUGS } from "@/lib/sitemap/blocklist";
 
 export const dynamic = "force-dynamic";
 
@@ -120,70 +120,66 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const now = new Date();
 
-  // Categories that actually render (from app/categories/[slug]/page.tsx KNOWN_SLUGS)
-  const KNOWN_CATEGORY_SLUGS = [
-    "science",
-    "technology",
-    "engineering",
-    "math",
-    "educational-books",
-  ] as const;
+    // Categories that actually render (from app/categories/[slug]/page.tsx KNOWN_SLUGS)
+    const KNOWN_CATEGORY_SLUGS = [
+      "science",
+      "technology",
+      "engineering",
+      "math",
+      "educational-books",
+    ] as const;
 
-  const [products, blogs] = await Promise.all([
-    db.product.findMany({
-      where: {
-        isActive: true,
-        status: "APPROVED",
-        stockQuantity: { gt: 0 },
-        // Exclude soft-404 products (case-insensitive)
-        AND: Array.from(SOFT_404_PRODUCT_SLUGS).map(blockedSlug => ({
-          slug: { not: { equals: blockedSlug, mode: "insensitive" } },
-        })),
-      },
-      select: {
-        slug: true,
-        updatedAt: true,
-      },
-    }),
-    db.blog.findMany({
-      where: {
-        isPublished: true,
-      },
-      select: {
-        slug: true,
-        updatedAt: true,
-      },
-    }),
-  ]);
+    const [products, blogs] = await Promise.all([
+      db.product.findMany({
+        where: {
+          isActive: true,
+          status: "APPROVED",
+          stockQuantity: { gt: 0 },
+        },
+        select: {
+          slug: true,
+          updatedAt: true,
+        },
+      }),
+      db.blog.findMany({
+        where: {
+          isPublished: true,
+        },
+        select: {
+          slug: true,
+          updatedAt: true,
+        },
+      }),
+    ]);
 
-  const regionalPages = regionalStemCities.map(city => ({
-    url: `${baseUrl}/jucarii-stem/${city.slug}`,
-    lastModified: now,
-    changeFrequency: "weekly" as const,
-    priority:
-      city.slug === "bucuresti" || city.slug === "cluj-napoca" ? 0.84 : 0.78,
-  }));
+    const regionalPages = regionalStemCities.map(city => ({
+      url: `${baseUrl}/jucarii-stem/${city.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority:
+        city.slug === "bucuresti" || city.slug === "cluj-napoca" ? 0.84 : 0.78,
+    }));
 
-  const categoryPages = KNOWN_CATEGORY_SLUGS.map(slug => ({
-    url: `${baseUrl}/categories/${slug}`,
-    lastModified: now,
-    changeFrequency: "weekly" as const,
-    priority: 0.62,
-  }));
+    const categoryPages = KNOWN_CATEGORY_SLUGS.map(slug => ({
+      url: `${baseUrl}/categories/${slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.62,
+    }));
 
-  const productPages = products.map(product => ({
-    url: `${baseUrl}/products/${product.slug}`,
-    lastModified: product.updatedAt,
-    changeFrequency: "weekly" as const,
-    priority: 0.7,
-  }));
+    const productPages = products.map(product => ({
+      url: `${baseUrl}/products/${toPublicProductSlug(product.slug)}`,
+      lastModified: product.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }));
 
-  const blogPages = blogs.map(blog => ({
-    url: `${baseUrl}/blog/${blog.slug}`,
-    lastModified: blog.updatedAt,
-    changeFrequency: "monthly" as const,
-    priority: 0.66,
-  }));
+    const blogPages = blogs.map(blog => ({
+      url: `${baseUrl}/blog/${blog.slug}`,
+      lastModified: blog.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.66,
+    }));
 
     return staticRoutes
       .map(route => ({ ...route, lastModified: now }))
@@ -194,7 +190,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       message: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
     });
-    
+
     // Return minimal sitemap on error so the site doesn't completely break
     const now = new Date();
     return staticRoutes.map(route => ({ ...route, lastModified: now }));

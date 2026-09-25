@@ -7,6 +7,7 @@ import React, { useState, useEffect } from "react";
 
 import { LazyProductReviews } from "@/components/lazy/client";
 import { useTranslation } from "@/lib/i18n";
+import { productPublicPath } from "@/lib/products/public-slug";
 
 import { useProductActions } from "../hooks/useProductActions";
 
@@ -133,7 +134,7 @@ export default function ProductDetailClient({
           {showBackToBundle && (
             <div className="mt-3">
               <Link
-                href={`/products/${fromBundleSlug}`}
+                href={productPublicPath(fromBundleSlug)}
                 className="inline-flex items-center gap-2 rounded-md border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold text-cyan-800 transition hover:border-cyan-300 hover:bg-cyan-100"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />

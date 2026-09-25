@@ -4,6 +4,11 @@ import { Package, ArrowRight, CircleCheck, CircleAlert } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
+import {
+  productPublicPath,
+  toPublicProductSlug,
+} from "@/lib/products/public-slug";
+
 import { OptimizedProductImage } from "./OptimizedProductImage";
 import {
   productBodyTextClass,
@@ -39,8 +44,9 @@ export function BundleContents({ items, bundleSlug, t }: BundleContentsProps) {
   if (items.length === 0) return null;
 
   const buildProductHref = (itemSlug: string) => {
-    if (!bundleSlug) return `/products/${itemSlug}`;
-    return `/products/${itemSlug}?fromBundle=${encodeURIComponent(bundleSlug)}`;
+    const path = productPublicPath(itemSlug);
+    if (!bundleSlug) return path;
+    return `${path}?fromBundle=${encodeURIComponent(toPublicProductSlug(bundleSlug))}`;
   };
 
   return (
