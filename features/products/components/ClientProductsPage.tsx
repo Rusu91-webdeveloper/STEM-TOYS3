@@ -1,6 +1,5 @@
 "use client";
 
-import { giftOrder, visibleInBrowse } from "@/lib/products/merchandising";
 import {
   Lightbulb,
   Atom,
@@ -19,6 +18,7 @@ import React, { useState, useEffect, useMemo, Suspense } from "react";
 
 import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
+import { giftOrder, visibleInBrowse } from "@/lib/products/merchandising";
 import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import type { Product } from "@/types/product";
 
@@ -450,6 +450,12 @@ function ClientProductsPageContent({
     state.searchQuery,
   ]);
 
+  // Calculate total browseable products (excludes books which are filtered by visibleInBrowse)
+  const totalBrowseableProducts = useMemo(() => {
+    // Apply the same visibility rules as the filtered listing
+    return products.filter(p => !p.isBook && visibleInBrowse(p as any)).length;
+  }, [products]);
+
   const bundleFilteredProducts = useMemo(() => {
     if (bundleViewMode === "bundles") {
       return filteredProducts.filter(product => product.isBundle === true);
@@ -860,7 +866,7 @@ function ClientProductsPageContent({
                   </span>{" "}
                   {t("outOf", "din")}{" "}
                   <span className="font-bold text-white">
-                    {products.length}
+                    {totalBrowseableProducts}
                   </span>{" "}
                   {t("productsLabel", "produse")}
                 </p>

@@ -1,5 +1,8 @@
 import * as XLSX from "xlsx";
+
+import { mapAgeRangeToAgeGroup } from "./age-mapper";
 import portfolio from "./portfolio.json";
+
 export { portfolio };
 export const KIDSTORY_ID = "26f5418c-965d-4630-994c-b51947cdec04";
 export const KIDSTORY_SYNC_MODE = "kidstory-curated-v1";
@@ -85,15 +88,21 @@ export function kidstoryContent(row: KidstoryRow) {
     images.some(url => !/^https?:\/\//.test(url))
   )
     throw new Error(`Missing or invalid Kidstory content: ${row.sku}`);
+  
+  // Map Kidstory age range to standard AgeGroup enum
+  const ageRange = row.varsta || "";
+  const ageGroup = mapAgeRangeToAgeGroup(ageRange);
+  
   return {
     name: row.name,
     description: row.description,
     images,
     tags: [row.brand_name].filter(Boolean),
+    ageGroup,
     attributes: {
       brand: row.brand_name || "",
       age: row.varsta || "",
-      ageRange: row.varsta || "",
+      ageRange,
       shortDescription: row.short_description || "",
       supplierCategory: row.category_name_concat || row.category_name || "",
       availability: row.disponibilitate || row.stock_status_string,
