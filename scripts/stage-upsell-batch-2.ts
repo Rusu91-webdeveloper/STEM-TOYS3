@@ -25,7 +25,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from "dotenv";
 import * as XLSX from "xlsx";
-import { fetchBoribonProducts } from "../lib/suppliers/boribon/feed";
+import { fetchBoribonProducts, boribonContent } from "../lib/suppliers/boribon/feed";
 import { fetchKidstoryProducts, kidstoryContent } from "../lib/suppliers/kidstory/feed";
 import boribonPortfolio from "../lib/suppliers/boribon/portfolio.json";
 import kidstoryPortfolio from "../lib/suppliers/kidstory/portfolio.json";
@@ -244,14 +244,29 @@ async function validateCandidates(candidates: CandidateRow[]): Promise<{
         continue;
       }
       
-      // For Boribon, we need to check if images exist in the raw feed
-      // The feed doesn't include images, so we'll need to note this
-      result.feedPrice = feedItem.price;
-      result.feedStock = feedItem.stock;
-      result.images = []; // Boribon feed doesn't include images
-      result.description = candidate.candidate_title; // Use title as description
-      result.ean = feedItem.entry.ean;
-      result.brand = feedItem.row.brand || feedItem.entry.brand || "";
+      // Extract content from Boribon feed (images, description)
+      try {
+        const content = boribonContent(feedItem.row);
+        result.feedPrice = feedItem.price;
+        result.feedStock = feedItem.stock;
+        result.images = content.images;
+        result.description = content.description;
+        result.ean = feedItem.entry.ean;
+        result.brand = content.attributes.brand;
+        result.age = content.attributes.age;
+        
+        if (!result.images.length) {
+          result.status = "reject";
+          result.reason = "No images in feed";
+          results.push(result);
+          continue;
+        }
+      } catch (error) {
+        result.status = "reject";
+        result.reason = `Failed to extract content: ${error}`;
+        results.push(result);
+        continue;
+      }
       
       // Check for duplicate with base product (name similarity)
       const baseName = candidate.base_title.toLowerCase();
@@ -347,99 +362,7 @@ async function createBackup(): Promise<void> {
     JSON.stringify(products, null, 2)
   );
   
-  // Backup portfolio files
-  fs.copyFileSync(
-    path.join(process.cwd(), "lib/suppliers/boribon/portfolio.json"),
-    path.join(BACKUP_DIR, "boribon-portfolio-before.json")
-  );
-  
-  fs.copyFileSync(
-    path.join(process.cwd(), "lib/suppliers/kidstory/portfolio.json"),
-    path.join(BACKUP_DIR, "kidstory-portfolio-before.json")
-  );
-  
-  console.log(`✓ Backup created: ${BACKUP_DIR}`);
-}
-
-/**
- * Update portfolio files to register new products
- * 
- * IMPORTANT: Portfolio entries need sourceId from the feeds to work with the sync.
- * This function uses the raw feed data that was already fetched during validation.
- */
-async function updatePortfolioFiles(
-  results: ValidationResult[],
-  boribonFeedData: any[],
-  kidstoryFeedData: any[]
-): Promise<{ boribon: number; kidstory: number }> {
-  const createResults = results.filter(r => r.status === "create");
-  
-  const boribonAdds = createResults.filter(r => r.supplier === "Boribon");
-  const kidstoryAdds = createResults.filter(r => r.supplier === "Kidstory");
-  
-  if (!DRY_RUN) {
-    // Update Boribon portfolio
-    if (boribonAdds.length > 0) {
-      const boribonPath = path.join(process.cwd(), "lib/suppliers/boribon/portfolio.json");
-      const currentBoribon = JSON.parse(fs.readFileSync(boribonPath, "utf-8"));
-      
-      const newEntries = boribonAdds.map(add => {
-        // Find the feed item for this SKU to get sourceId
-        const feedItem = boribonFeedData.find(item => item.entry.model === add.sku);
-        
-        if (!feedItem) {
-          throw new Error(`Cannot add ${add.sku} to portfolio: not found in Boribon feed`);
-        }
-        
-        return {
-          sourceId: feedItem.row.id || "",
-          model: add.sku,
-          ean: add.ean || "",
-          name: add.name,
-          brand: add.brand || feedItem.row.brand || "",
-          tier: "UPSELL",
-          learningCategory: "Add-on / Expansion",
-          recommendedAge: add.age || "",
-          minAge: 0,
-          existingProductId: null,
-          url: feedItem.row.url || "",
-        };
-      });
-      
-      const updatedBoribon = [...currentBoribon, ...newEntries];
-      fs.writeFileSync(boribonPath, JSON.stringify(updatedBoribon, null, 2) + "\n");
-      console.log(`  ✓ Updated Boribon portfolio (+${newEntries.length} entries)`);
-    }
-    
-    // Update Kidstory portfolio
-    if (kidstoryAdds.length > 0) {
-      const kidstoryPath = path.join(process.cwd(), "lib/suppliers/kidstory/portfolio.json");
-      const currentKidstory = JSON.parse(fs.readFileSync(kidstoryPath, "utf-8"));
-      
-      const newEntries = kidstoryAdds.map(add => {
-        // Find the feed item for this SKU to get sourceId
-        const feedItem = kidstoryFeedData.find(item => item.entry.sku === add.sku);
-        
-        if (!feedItem) {
-          throw new Error(`Cannot add ${add.sku} to portfolio: not found in Kidstory feed`);
-        }
-        
-        return {
-          sourceId: feedItem.row.id || "",
-          sku: add.sku,
-          ean: add.ean || "",
-          role: "UPSELL",
-          theme: "Add-on / Expansion",
-        };
-      });
-      
-      const updatedKidstory = [...currentKidstory, ...newEntries];
-      fs.writeFileSync(kidstoryPath, JSON.stringify(updatedKidstory, null, 2) + "\n");
-      console.log(`  ✓ Updated Kidstory portfolio (+${newEntries.length} entries)`);
-    }
-  }
-  
-  return { boribon: boribonAdds.length, kidstory: kidstoryAdds.length };
+  console.log(`✓ Backup created: ${BACKUP_DIR}/products-before.json`);
 }
 
 /**
@@ -622,12 +545,6 @@ async function main() {
     await createBackup();
   }
   
-  // Update portfolio files
-  console.log("\n📝 Updating portfolio files...\n");
-  const portfolioUpdates = await updatePortfolioFiles(validationResults, boribonFeed, kidstoryFeed);
-  console.log(`  Boribon: +${portfolioUpdates.boribon} UPSELL entries`);
-  console.log(`  Kidstory: +${portfolioUpdates.kidstory} UPSELL entries`);
-  
   // Create products
   console.log("\n📦 Creating products...\n");
   const productResults = await createProducts(validationResults);
@@ -678,9 +595,10 @@ async function main() {
   console.log("\n⚠️  IMPORTANT:");
   console.log("   - All products created as active=false (HIDDEN)");
   console.log("   - They will appear in CompleteSetUpsell only after manual activation");
-  console.log("   - Portfolio files updated - syncs will maintain price and stock");
-  console.log("   - Run dry-run command: pnpm tsx scripts/stage-upsell-batch-2.ts --dry-run");
-  console.log("   - Run apply command: pnpm tsx scripts/stage-upsell-batch-2.ts --apply");
+  console.log("   - Portfolio files already updated in this PR - syncs will maintain price and stock");
+  console.log("   - Run dry-run command: pnpm exec tsx --env-file=.env.production.local scripts/stage-upsell-batch-2.ts");
+  console.log("   - Run apply command: pnpm exec tsx --env-file=.env.production.local scripts/stage-upsell-batch-2.ts --apply");
+  console.log(`   - Backup location: ${BACKUP_DIR}/products-before.json`);
 }
 
 main()
