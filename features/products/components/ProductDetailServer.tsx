@@ -11,7 +11,7 @@ import { getShippingSettings } from "@/lib/utils/store-settings";
 import type { Product } from "@/types/product";
 
 import type { BundleContentItem } from "./BundleContents";
-import CompleteSetUpsell from "./CompleteSetUpsell";
+import { getUpsellProducts } from "./CompleteSetUpsell";
 import ProductDetailClient from "./ProductDetailClient";
 import { Review } from "./ProductReviews";
 
@@ -123,9 +123,12 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
       ? Promise.resolve([])
       : fetchBundleContents(product.id);
 
-  const [reviews, bundleContents] = await Promise.all([
+  const [reviews, bundleContents, upsellProducts] = await Promise.all([
     reviewsPromise,
     bundleContentsPromise,
+    product.sku && !isBook
+      ? getUpsellProducts(product.sku)
+      : Promise.resolve([]),
   ]);
 
   const reviewsForSchema = reviews
@@ -217,8 +220,8 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
         userLoggedIn={false}
         bundleContents={bundleContents}
         faq={productFaq}
+        upsellProducts={upsellProducts}
       />
-      {product.sku && <CompleteSetUpsell productSku={product.sku} />}
     </>
   );
 };
