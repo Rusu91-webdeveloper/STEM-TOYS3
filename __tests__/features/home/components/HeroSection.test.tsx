@@ -10,9 +10,9 @@ const t = (key: string, fallback?: string) => fallback ?? key;
 
 it("keeps the product-led message and shopping paths with a brand scene", () => {
   render(<HeroSection t={t} />);
-  const hero = screen.getByRole("region", { name: /STEM fără ecran/ });
+  const hero = screen.getByRole("region", { name: /Joacă de azi/ });
   expect(within(hero).getByRole("heading", { level: 1 })).toHaveTextContent(
-    "Cadouri care merită despachetate"
+    "Idei mari pentru mâine"
   );
   expect(
     within(hero).getByRole("link", { name: /Explorează colecția/ })
@@ -27,6 +27,6 @@ it("keeps the product-led message and shopping paths with a brand scene", () => 
   );
   expect(within(hero).getByRole("img")).toHaveAttribute(
     "src",
-    expect.stringContaining("brand-unboxing")
+    expect.stringContaining("stem-play-hero")
   );
 });
