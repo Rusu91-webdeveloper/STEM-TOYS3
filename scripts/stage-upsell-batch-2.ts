@@ -1,613 +1,306 @@
-/**
- * TechTots Upsell Add-Ons Batch 2 Staging Script
- * 
- * Creates hidden (active=false) add-on products from research CSV
- * with images and descriptions from supplier feeds, paired to their
- * base products for the CompleteSetUpsell component.
- * 
- * Run with --dry-run (default) to preview changes.
- * Run with --apply to execute changes.
- * 
- * Requirements:
- * - Excludes the 6 add-ons from PR #31 (already in production)
- * - Excludes any products already active in catalog
- * - Validates against live feeds: still in stock, has images, not duplicate
- * - Creates products as active=false, status=APPROVED, featured=false
- * - Includes supplier images and descriptions from feeds
- * - Updates portfolio.json files to register for supplier syncs
- * - Idempotent: re-running skips existing SKUs
- * - Takes backup before any writes
- * - Prints clear dry-run report
- */
-
-import { PrismaClient } from "@prisma/client";
-import * as fs from "fs";
-import * as path from "path";
+/** Reviewed compatible add-ons. Dry-run by default; --production --apply --activate publishes only launch-selection.json. */
+import fs from "fs";
+import os from "os";
+import path from "path";
 import * as dotenv from "dotenv";
-import * as XLSX from "xlsx";
-import { fetchBoribonProducts, boribonContent } from "../lib/suppliers/boribon/feed";
-import { fetchKidstoryProducts, kidstoryContent } from "../lib/suppliers/kidstory/feed";
-import { mapAgeRangeToAgeGroup } from "../lib/suppliers/kidstory/age-mapper";
-import boribonPortfolio from "../lib/suppliers/boribon/portfolio.json";
-import kidstoryPortfolio from "../lib/suppliers/kidstory/portfolio.json";
+import { Prisma, PrismaClient } from "@prisma/client";
 import {
-  filterCandidatesByConfidence,
-  deduplicateResults,
-  buildUpsellForValue,
-  type CandidateRow,
-  type ValidationResult,
-} from "../lib/upsell/batch-2";
+  BORIBON_ID,
+  fetchBoribonProducts,
+  boribonContent,
+} from "../lib/suppliers/boribon/feed";
+import {
+  KIDSTORY_ID,
+  fetchKidstoryProducts,
+  kidstoryContent,
+} from "../lib/suppliers/kidstory/feed";
+import {
+  launchSelection,
+  jsonObject,
+  rolloutMetadata,
+  rolloutAgeGroup,
+  validateRolloutIdentity,
+} from "../lib/upsell/rollout";
 
-// Load environment variables
-const envLocalPath = path.resolve(process.cwd(), ".env.local");
-if (fs.existsSync(envLocalPath)) {
-  dotenv.config({ path: envLocalPath });
-} else {
-  dotenv.config();
+const env = Object.assign(
+  {},
+  ...[".env", ".env.local"]
+    .filter(fs.existsSync)
+    .map(p => dotenv.parse(fs.readFileSync(p))),
+  process.env
+);
+const production = process.argv.includes("--production");
+const apply = process.argv.includes("--apply");
+const activate = process.argv.includes("--activate");
+const url = production ? env.DATABASE_URL_PRODUCTION : env.DATABASE_URL;
+if (
+  !url ||
+  (!production && !["localhost", "127.0.0.1"].includes(new URL(url).hostname))
+) {
+  throw new Error("Explicit --production required for remote database");
 }
-
-const prisma = new PrismaClient();
-
-const DRY_RUN = !process.argv.includes("--apply");
-const BACKUP_DIR = path.join(process.cwd(), "backups", `upsell-batch-2_${Date.now()}`);
-const CSV_PATH = process.argv.includes("--csv")
-  ? process.argv[process.argv.indexOf("--csv") + 1]
-  : path.join(process.cwd(), "data", "upsell", "upsell-candidates-batch-2.csv");
-
-// SKUs already installed in PR #31 - exclude from this batch
-const EXISTING_UPSELLS = ["K_550202", "K_550203", "K_550204", "DJ05648", "CC-1027", "CC-1029"];
-
-// Supplier IDs (from feed files)
-const BORIBON_ID = "ee75eea8-9f64-4076-96a2-52f5d6926c14";
-const KIDSTORY_ID = "26f5418c-965d-4630-994c-b51947cdec04";
-
-interface ProductCreationResult {
-  sku: string;
-  status: "created" | "exists" | "error";
-  productId?: string;
-  slug?: string;
-  pairings?: string[];
-  error?: string;
-}
-
-/**
- * Generate a deterministic slug from product name and SKU
- */
-function generateSlug(name: string, sku: string): string {
-  const slugBase = name
-    .toLowerCase()
+const db = new PrismaClient({ datasources: { db: { url } } });
+const slug = (text: string) =>
+  text
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  
-  const skuSlug = sku.toLowerCase().replace(/[^a-z0-9]+/g, "");
-  return `${slugBase}-${skuSlug}`;
-}
+    .replace(/^-|-$/g, "");
 
-/**
- * Parse the research CSV
- */
-function parseResearchCsv(csvPath: string): CandidateRow[] {
-  if (!fs.existsSync(csvPath)) {
-    throw new Error(`CSV file not found: ${csvPath}`);
-  }
-  
-  const csvContent = fs.readFileSync(csvPath, "utf-8");
-  const workbook = XLSX.read(csvContent, { type: "string", raw: false });
-  const rows = XLSX.utils.sheet_to_json<CandidateRow>(
-    workbook.Sheets[workbook.SheetNames[0]],
-    { raw: false }
-  );
-  
-  // Filter using imported pure function
-  return filterCandidatesByConfidence(rows, EXISTING_UPSELLS);
-}
-
-/**
- * Validate candidates against live feeds
- */
-async function validateCandidates(candidates: CandidateRow[]): Promise<{
-  results: ValidationResult[];
-  boribonFeed: any[];
-  kidstoryFeed: any[];
-}> {
-  console.log("\n📋 Validating candidates against live feeds...\n");
-  
-  // Fetch both feeds
-  let boribonFeed: Awaited<ReturnType<typeof fetchBoribonProducts>> = [];
-  let kidstoryFeed: Awaited<ReturnType<typeof fetchKidstoryProducts>> = [];
-  
-  try {
-    console.log("  Fetching Boribon feed...");
-    boribonFeed = await fetchBoribonProducts();
-    console.log(`  ✓ Boribon feed fetched (${boribonFeed.length} portfolio items)`);
-  } catch (error) {
-    console.error(`  ✗ Failed to fetch Boribon feed: ${error}`);
-    throw error;
-  }
-  
-  try {
-    console.log("  Fetching Kidstory feed...");
-    const kidstoryFeedRecord = await prisma.supplierFeed.findFirst({
-      where: { supplierId: KIDSTORY_ID },
-      select: { sourceUrl: true },
-    });
-    if (kidstoryFeedRecord?.sourceUrl) {
-      kidstoryFeed = await fetchKidstoryProducts(kidstoryFeedRecord.sourceUrl);
-      console.log(`  ✓ Kidstory feed fetched (${kidstoryFeed.length} portfolio items)`);
-    } else {
-      console.warn("  ⚠ Kidstory feed URL not configured");
-    }
-  } catch (error) {
-    console.error(`  ✗ Failed to fetch Kidstory feed: ${error}`);
-    // Continue without Kidstory - will reject those candidates
-  }
-  
-  // Check existing products in database
-  const existingProducts = await prisma.product.findMany({
-    where: {
-      OR: [
-        { isActive: true },
-        { sku: { in: candidates.map(c => c.candidate_sku) } },
-      ],
-    },
-    select: { id: true, sku: true, name: true, slug: true, isActive: true },
-  });
-  
-  const existingSkuSet = new Set(existingProducts.filter(p => p.isActive).map(p => p.sku));
-  const existingStagedSkuSet = new Set(
-    existingProducts.filter(p => !p.isActive).map(p => p.sku)
-  );
-  
-  // Get base products for category inheritance
-  const baseSkus = [...new Set(candidates.map(c => c.base_sku))];
-  const baseProducts = await prisma.product.findMany({
-    where: { sku: { in: baseSkus }, isActive: true },
-    select: { sku: true, categoryId: true, category: { select: { name: true } } },
-  });
-  
-  const baseProductMap = new Map(baseProducts.map(p => [p.sku, p]));
-  
-  const results: ValidationResult[] = [];
-  
-  for (const candidate of candidates) {
-    const result: ValidationResult = {
-      sku: candidate.candidate_sku,
-      name: candidate.candidate_title,
-      supplier: candidate.supplier as "Boribon" | "Kidstory",
-      baseSku: candidate.base_sku,
-      status: "create",
-    };
-    
-    // Check if already active
-    if (existingSkuSet.has(candidate.candidate_sku)) {
-      result.status = "skip";
-      result.reason = "Already active in catalog";
-      results.push(result);
-      continue;
-    }
-    
-    // Check if already staged
-    if (existingStagedSkuSet.has(candidate.candidate_sku)) {
-      result.status = "skip";
-      result.reason = "Already staged (inactive product exists)";
-      results.push(result);
-      continue;
-    }
-    
-    // Validate against appropriate feed
-    if (candidate.supplier === "Boribon") {
-      const feedItem = boribonFeed.find(
-        item => item.entry.model === candidate.candidate_sku
-      );
-      
-      if (!feedItem) {
-        result.status = "reject";
-        result.reason = "Not found in Boribon feed";
-        results.push(result);
-        continue;
-      }
-      
-      if (!feedItem.valid || feedItem.stock <= 0) {
-        result.status = "reject";
-        result.reason = `Out of stock or invalid in feed (stock: ${feedItem.stock})`;
-        results.push(result);
-        continue;
-      }
-      
-      // Extract content from Boribon feed (images, description)
-      try {
-        const content = boribonContent(feedItem.row);
-        result.feedPrice = feedItem.price;
-        result.feedStock = feedItem.stock;
-        result.images = content.images;
-        result.description = content.description;
-        result.ean = feedItem.entry.ean;
-        result.brand = content.attributes.brand;
-        result.age = content.attributes.age;
-        
-        if (!result.images.length) {
-          result.status = "reject";
-          result.reason = "No images in feed";
-          results.push(result);
-          continue;
-        }
-      } catch (error) {
-        result.status = "reject";
-        result.reason = `Failed to extract content: ${error}`;
-        results.push(result);
-        continue;
-      }
-      
-      // Check for duplicate with base product (name similarity)
-      const baseName = candidate.base_title.toLowerCase();
-      const candName = candidate.candidate_title.toLowerCase();
-      if (baseName === candName) {
-        result.status = "reject";
-        result.reason = "Near-duplicate of base product (same name)";
-        results.push(result);
-        continue;
-      }
-      
-    } else if (candidate.supplier === "Kidstory") {
-      const feedItem = kidstoryFeed.find(
-        item => item.entry.sku === candidate.candidate_sku
-      );
-      
-      if (!feedItem) {
-        result.status = "reject";
-        result.reason = "Not found in Kidstory feed";
-        results.push(result);
-        continue;
-      }
-      
-      if (!feedItem.valid || !feedItem.available) {
-        result.status = "reject";
-        result.reason = `Not available in feed (available: ${feedItem.available})`;
-        results.push(result);
-        continue;
-      }
-      
-      // Extract content from Kidstory feed
-      try {
-        const content = kidstoryContent(feedItem.row);
-        result.feedPrice = feedItem.retailPrice;
-        result.feedStock = "instock"; // Kidstory doesn't provide quantity
-        result.images = content.images;
-        result.description = content.description;
-        result.ean = feedItem.entry.ean;
-        result.brand = content.attributes.brand;
-        result.age = content.attributes.age || content.attributes.ageRange;
-        result.ageGroup = mapAgeRangeToAgeGroup(result.age);
-        
-        if (!result.images.length) {
-          result.status = "reject";
-          result.reason = "No images in feed";
-          results.push(result);
-          continue;
-        }
-      } catch (error) {
-        result.status = "reject";
-        result.reason = `Failed to extract content: ${error}`;
-        results.push(result);
-        continue;
-      }
-    }
-    
-    // Get category from base product
-    const baseProduct = baseProductMap.get(candidate.base_sku);
-    if (baseProduct?.categoryId) {
-      result.categoryId = baseProduct.categoryId;
-    } else {
-      result.status = "reject";
-      result.reason = `Base product ${candidate.base_sku} not found or has no category`;
-      results.push(result);
-      continue;
-    }
-    
-    results.push(result);
-  }
-  
-  return { results, boribonFeed, kidstoryFeed };
-}
-
-/**
- * Create backup (in both dry-run and apply modes)
- */
-async function createBackup(mode: "dry-run" | "apply"): Promise<void> {
-  fs.mkdirSync(BACKUP_DIR, { recursive: true });
-  
-  // Backup Boribon and Kidstory products that might be affected
-  const products = await prisma.product.findMany({
-    where: {
-      OR: [
-        { supplierId: BORIBON_ID },
-        { supplierId: KIDSTORY_ID },
-      ],
-    },
-  });
-  
-  // Backup SupplierProduct rows
-  const supplierProducts = await prisma.supplierProduct.findMany({
-    where: {
-      OR: [
-        { supplierId: BORIBON_ID },
-        { supplierId: KIDSTORY_ID },
-      ],
-    },
-  });
-  
-  const backup = {
-    mode,
-    timestamp: new Date().toISOString(),
-    products,
-    supplierProducts,
-  };
-  
-  fs.writeFileSync(
-    path.join(BACKUP_DIR, `backup-${mode}.json`),
-    JSON.stringify(backup, null, 2)
-  );
-  
-  console.log(`✓ Backup created: ${BACKUP_DIR}/backup-${mode}.json`);
-}
-
-/**
- * Create products in database
- */
-async function createProducts(results: ValidationResult[]): Promise<ProductCreationResult[]> {
-  const createResults = results.filter(r => r.status === "create");
-  const productResults: ProductCreationResult[] = [];
-  
-  for (const item of createResults) {
-    const result: ProductCreationResult = {
-      sku: item.sku,
-      status: "created",
-    };
-    
-    try {
-      // Get supplier
-      const supplierId = item.supplier === "Boribon" ? BORIBON_ID : KIDSTORY_ID;
-      const supplier = await prisma.supplier.findUnique({
-        where: { id: supplierId },
-      });
-      
-      if (!supplier) {
-        result.status = "error";
-        result.error = `Supplier not found: ${item.supplier}`;
-        productResults.push(result);
-        continue;
-      }
-      
-      // Find base product(s) for pairing - use baseSkus array if available
-      const baseSkusToQuery = item.baseSkus || [item.baseSku];
-      const baseProducts = await prisma.product.findMany({
-        where: { sku: { in: baseSkusToQuery } },
-      });
-      
-      if (baseProducts.length === 0) {
-        result.status = "error";
-        result.error = `Base product(s) not found: ${baseSkusToQuery.join(", ")}`;
-        productResults.push(result);
-        continue;
-      }
-      
-      const slug = generateSlug(item.name, item.sku);
-      
-      if (!DRY_RUN) {
-        // Prepare metadata with backwards-compatible format using imported function
-        const upsellForValue = buildUpsellForValue(baseSkusToQuery);
-        
-        // Create product
-        const newProduct = await prisma.product.create({
-          data: {
-            name: item.name,
-            slug,
-            sku: item.sku,
-            barcode: item.ean,
-            description: item.description || item.name,
-            price: item.feedPrice || 0,
-            compareAtPrice: null,
-            costPrice: null,
-            categoryId: item.categoryId,
-            supplierId: supplier.id,
-            images: item.images || [],
-            isActive: false, // HIDDEN - not visible to customers
-            featured: false,
-            stockQuantity: typeof item.feedStock === "number" ? item.feedStock : 1,
-            reservedQuantity: 0,
-            status: "APPROVED",
-            ageGroup: item.ageGroup || null,
-            attributes: {
-              brand: item.brand || "",
-              age: item.age || "",
-            },
-            metadata: {
-              staged: true,
-              stagedAt: new Date().toISOString(),
-              stagedReason: "Upsell add-on batch 2 - awaiting activation",
-              upsellFor: upsellForValue,
-              upsellForProductIds: baseProducts.map(p => p.id),
-              supplier: item.supplier,
-            },
-            tags: ["upsell", "add-on", "expansion", "staged", "batch-2"],
-          },
-        });
-        
-        result.productId = newProduct.id;
-        result.slug = newProduct.slug;
-        result.pairings = baseProducts.map(p => `${p.name} (${p.sku})`);
-        
-        // Create SupplierProduct for sync
-        await prisma.supplierProduct.create({
-          data: {
-            supplierId: supplier.id,
-            supplierSku: item.sku,
-            name: item.name,
-            description: item.description || item.name,
-            currency: "RON",
-            stock: typeof item.feedStock === "number" ? item.feedStock : 0,
-            images: item.images || [],
-            productId: newProduct.id,
-            status: "MAPPED",
-            attributes: {
-              ean: item.ean,
-              brand: item.brand || "",
-              age: item.age || "",
-            },
-          },
-        });
-      } else {
-        result.slug = slug;
-        result.pairings = baseProducts.map(p => `${p.name} (${p.sku})`);
-      }
-      
-    } catch (error) {
-      result.status = "error";
-      result.error = error instanceof Error ? error.message : String(error);
-    }
-    
-    productResults.push(result);
-  }
-  
-  return productResults;
-}
-
-/**
- * Main execution
- */
 async function main() {
-  console.log("🎯 TechTots Upsell Add-Ons Batch 2 Staging\n");
-  console.log(`Mode: ${DRY_RUN ? "DRY RUN (preview only)" : "APPLY (executing changes)"}\n`);
-  console.log(`CSV: ${CSV_PATH}\n`);
-  
-  // Parse research CSV
-  console.log("📄 Parsing research CSV...\n");
-  const candidates = parseResearchCsv(CSV_PATH);
-  console.log(`  Found ${candidates.length} high/medium confidence candidates (excluding ${EXISTING_UPSELLS.length} already-installed SKUs)\n`);
-  
-  // Validate against live feeds
-  const { results: rawValidationResults, boribonFeed, kidstoryFeed } = await validateCandidates(candidates);
-  
-  // Deduplicate by candidate SKU, merging base SKUs for multi-pairing add-ons
-  const validationResults = deduplicateResults(rawValidationResults);
-  
-  // Print validation summary
-  console.log("\n📊 VALIDATION SUMMARY:\n");
-  console.log(`  Raw CSV rows (high/med): ${candidates.length}`);
-  console.log(`  Unique candidate SKUs: ${validationResults.length}`);
-  
-  const toCreate = validationResults.filter(r => r.status === "create");
-  const toSkip = validationResults.filter(r => r.status === "skip");
-  const toReject = validationResults.filter(r => r.status === "reject");
-  
-  console.log(`  ✅ Create: ${toCreate.length}`);
-  console.log(`  ⏭️  Skip: ${toSkip.length}`);
-  console.log(`  ❌ Reject: ${toReject.length}`);
-  
-  if (toSkip.length > 0) {
-    console.log("\n  Skipped (already exist):");
-    toSkip.forEach(r => {
-      console.log(`    - ${r.sku}: ${r.reason}`);
-    });
-  }
-  
-  if (toReject.length > 0) {
-    console.log("\n  Rejected (failed validation):");
-    toReject.forEach(r => {
-      console.log(`    - ${r.sku}: ${r.reason}`);
-    });
-  }
-  
-  if (toCreate.length > 0) {
-    console.log(`\n  ✅ Products ${DRY_RUN ? "that WOULD BE created" : "to create"}:`);
-    toCreate.forEach(r => {
-      const bases = r.baseSkus || [r.baseSku];
-      console.log(`\n    ${r.sku} (${r.supplier})`);
-      console.log(`      Name: ${r.name}`);
-      console.log(`      Base SKUs: ${bases.join(", ")}`);
-      console.log(`      Price: ${r.feedPrice} RON`);
-      console.log(`      Stock: ${r.feedStock}`);
-      console.log(`      Images: ${r.images?.length || 0}`);
-      console.log(`      AgeGroup: ${r.ageGroup || "null"}`);
-      console.log(`      Description: ${(r.description || "").substring(0, 100)}...`);
-    });
-  }
-  
-  if (toCreate.length === 0) {
-    console.log("\n✨ Nothing to create. Done!");
-    return;
-  }
-  
-  // Create backup
-  console.log("\n💾 Creating backup...\n");
-  await createBackup(DRY_RUN ? "dry-run" : "apply");
-  
-  // Create products
-  console.log(`\n📦 ${DRY_RUN ? "Simulating product creation..." : "Creating products..."}\n`);
-  const productResults = await createProducts(validationResults);
-  
-  productResults.forEach((result, index) => {
-    const statusLabel = DRY_RUN 
-      ? (result.status === "created" ? "WOULD CREATE" : result.status.toUpperCase())
-      : result.status.toUpperCase();
-    console.log(`\n  ${index + 1}. ${result.sku}`);
-    console.log(`     Status: ${statusLabel}`);
-    if (result.slug) console.log(`     Slug: ${result.slug}`);
-    if (result.productId && !DRY_RUN) console.log(`     Product ID: ${result.productId}`);
-    if (result.pairings?.length) {
-      console.log(`     Pairs with: ${result.pairings.join(", ")}`);
-    }
-    if (result.error) console.log(`     Error: ${result.error}`);
+  const feeds = await db.supplierFeed.findMany({
+    where: { supplierId: { in: [BORIBON_ID, KIDSTORY_ID] }, isActive: true },
   });
-  
-  // Final summary
-  console.log("\n\n🎉 FINAL SUMMARY:\n");
-  console.log(`  Validated: ${validationResults.length} candidates`);
-  console.log(`  To create: ${toCreate.length}`);
-  console.log(`  Skipped: ${toSkip.length}`);
-  console.log(`  Rejected: ${toReject.length}`);
-  console.log(`  Successfully created: ${productResults.filter(p => p.status === "created").length}`);
-  console.log(`  Errors: ${productResults.filter(p => p.status === "error").length}`);
-  
-  if (!DRY_RUN) {
-    console.log(`\n✅ Changes applied successfully!`);
-    console.log(`📁 Backup location: ${BACKUP_DIR}`);
-    
-    // Write summary
-    const summary = {
-      mode: "applied",
-      timestamp: new Date().toISOString(),
-      validation: validationResults,
-      products: productResults,
-      backupDir: BACKUP_DIR,
+  const bFeed = feeds.filter(f => f.supplierId === BORIBON_ID);
+  const kFeed = feeds.filter(f => f.supplierId === KIDSTORY_ID);
+  if (bFeed.length !== 1 || kFeed.length !== 1 || !kFeed[0].sourceUrl)
+    throw new Error("Expected one active feed per supplier");
+  const [boribon, kidstory] = await Promise.all([
+    fetchBoribonProducts(),
+    fetchKidstoryProducts(kFeed[0].sourceUrl),
+  ]);
+  const checkedAt = new Date();
+  const skus = launchSelection.map(p => p.sku);
+  if (new Set(skus).size !== skus.length)
+    throw new Error("Duplicate launch SKU");
+  const state = await db.$transaction(async tx => {
+    await tx.$executeRawUnsafe("SET TRANSACTION READ ONLY");
+    return {
+      products: await tx.product.findMany({
+        where: { supplierId: { in: [BORIBON_ID, KIDSTORY_ID] } },
+      }),
+      links: await tx.supplierProduct.findMany({
+        where: { supplierId: { in: [BORIBON_ID, KIDSTORY_ID] } },
+      }),
     };
-    
-    fs.writeFileSync(
-      path.join("/tmp", "upsell-batch-2-summary.json"),
-      JSON.stringify(summary, null, 2)
-    );
-    console.log(`📄 Summary written to /tmp/upsell-batch-2-summary.json`);
-  } else {
-    console.log(`\n✨ This was a DRY RUN. No changes were made.`);
-    console.log(`   Run with --apply to execute changes.`);
-  }
-  
-  console.log("\n⚠️  IMPORTANT:");
-  console.log("   - All products created as active=false (HIDDEN)");
-  console.log("   - They will appear in CompleteSetUpsell only after manual activation");
-  console.log("   - Portfolio files already updated in this PR - syncs will maintain price and stock");
-  console.log("   - Run dry-run command: pnpm exec tsx --env-file=.env.production.local scripts/stage-upsell-batch-2.ts");
-  console.log("   - Run apply command: pnpm exec tsx --env-file=.env.production.local scripts/stage-upsell-batch-2.ts --apply");
-  console.log(`   - Backup location: ${BACKUP_DIR}`);
-}
-
-main()
-  .catch((error) => {
-    console.error("\n❌ Fatal error:", error);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
   });
+  const plan = launchSelection.map(selected => {
+    const isKidstory = selected.supplier === "Kidstory";
+    const supplierId = isKidstory ? KIDSTORY_ID : BORIBON_ID;
+    const b = boribon.find(p => p.entry.model === selected.sku);
+    const k = kidstory.find(p => p.entry.sku === selected.sku);
+    const item = isKidstory ? k : b;
+    if (!item?.valid || (isKidstory ? !k?.available : !b?.stock))
+      throw new Error(`Unavailable or invalid feed identity: ${selected.sku}`);
+    const content = isKidstory
+      ? kidstoryContent(k!.row)
+      : boribonContent(b!.row);
+    const supplierQuantity = isKidstory ? 1 : b!.stock;
+    const price = isKidstory ? k!.retailPrice! : b!.price!;
+    const ean = item.entry.ean;
+    const existing = state.products.find(p => p.sku === selected.sku);
+    const link = state.links.find(
+      p => p.supplierId === supplierId && p.supplierSku === selected.sku
+    );
+    validateRolloutIdentity(selected.sku, supplierId, ean, existing, link);
+    const bases = selected.baseSkus.map(sku => {
+      const p = state.products.find(p => p.sku === sku);
+      if (!p?.isActive || p.status !== "APPROVED" || !p.categoryId)
+        throw new Error(`Base not available: ${sku}`);
+      return p;
+    });
+    if (
+      existing?.reservedQuantity &&
+      supplierQuantity <= existing.reservedQuantity
+    )
+      throw new Error(`No sellable stock: ${selected.sku}`);
+    const identity = isKidstory
+      ? {
+          sourceId: k!.entry.sourceId,
+          ean,
+          role: "UPSELL",
+          sourceUrl: k!.row.url,
+          inventoryMode: "supplier-availability",
+          checkoutCapacity: 1,
+        }
+      : {
+          sourceId: b!.entry.sourceId,
+          ean,
+          tier: "UPSELL",
+          sourceUrl: b!.row.url,
+          recommendedAge: content.attributes.age,
+        };
+    const active = activate || existing?.isActive || false;
+    const metadata = rolloutMetadata(
+      existing?.metadata,
+      selected.supplier,
+      identity,
+      selected.baseSkus,
+      active
+    );
+    const data = {
+      name: existing?.name || content.name,
+      description: content.description,
+      images: content.images,
+      attributes: {
+        ...jsonObject(existing?.attributes),
+        ...content.attributes,
+      },
+      ageGroup: rolloutAgeGroup(
+        content.attributes.age,
+        existing?.ageGroup || null
+      ),
+      price,
+      compareAtPrice: null,
+      barcode: ean,
+      categoryId: existing?.categoryId || bases[0].categoryId!,
+      status: "APPROVED" as const,
+      isActive: active,
+      metadata,
+    };
+    return {
+      selected,
+      supplierId,
+      existing,
+      link,
+      data,
+      content,
+      row: item.row,
+      supplierQuantity,
+      price,
+      ean,
+      feedId: isKidstory ? kFeed[0].id : bFeed[0].id,
+      isKidstory,
+    };
+  });
+  // Reject cross-supplier SKU/EAN collisions, not just records in our supplier snapshot.
+  const collisions = await db.product.findMany({
+    where: {
+      OR: [{ sku: { in: skus } }, { barcode: { in: plan.map(p => p.ean) } }],
+    },
+  });
+  for (const p of plan) {
+    const matches = collisions.filter(
+      c => c.sku === p.selected.sku || c.barcode === p.ean
+    );
+    if (matches.some(c => c.id !== p.existing?.id))
+      throw new Error(`SKU/EAN collision: ${p.selected.sku}`);
+  }
+  const backupDir = path.join(
+    os.homedir(),
+    ".codex",
+    "backups",
+    `upsell-rollout-${Date.now()}`
+  );
+  fs.mkdirSync(backupDir, { recursive: true, mode: 0o700 });
+  const preview = plan.map(p => ({
+    sku: p.selected.sku,
+    name: p.data.name,
+    action: p.existing ? "update" : "create",
+    active: p.data.isActive,
+    price: p.price,
+    stock: p.supplierQuantity,
+    imageCount: p.content.images.length,
+    baseSkus: p.selected.baseSkus,
+  }));
+  fs.writeFileSync(
+    path.join(backupDir, "preview.json"),
+    JSON.stringify(preview, null, 2),
+    { mode: 0o600 }
+  );
+  console.log(
+    JSON.stringify(
+      { production, apply, activate, backupDir, products: preview },
+      null,
+      2
+    )
+  );
+  if (!apply) return;
+  // Roll back the entire batch on any conflict; share supplier locks with scheduled syncs.
+  await db.$transaction(
+    async tx => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(74261025)`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(74261063)`;
+      const beforeProducts = await tx.product.findMany({
+        where: { sku: { in: skus } },
+      });
+      const beforeLinks = await tx.supplierProduct.findMany({
+        where: {
+          supplierId: { in: [BORIBON_ID, KIDSTORY_ID] },
+          supplierSku: { in: skus },
+        },
+      });
+      fs.writeFileSync(
+        path.join(backupDir, "before.json"),
+        JSON.stringify(
+          { products: beforeProducts, links: beforeLinks, preview },
+          null,
+          2
+        ),
+        { mode: 0o600 }
+      );
+      for (const p of plan) {
+        const current = beforeProducts.find(c => c.sku === p.selected.sku);
+        if (current?.updatedAt.getTime() !== p.existing?.updatedAt.getTime())
+          throw new Error(`Product changed after preview: ${p.selected.sku}`);
+        validateRolloutIdentity(
+          p.selected.sku,
+          p.supplierId,
+          p.ean,
+          current,
+          beforeLinks.find(
+            l =>
+              l.supplierId === p.supplierId && l.supplierSku === p.selected.sku
+          )
+        );
+        const product = current
+          ? await tx.product.update({ where: { id: current.id }, data: p.data })
+          : await tx.product.create({
+              data: {
+                ...p.data,
+                sku: p.selected.sku,
+                slug: `${slug(p.content.name)}-${slug(p.selected.sku)}`,
+                supplierId: p.supplierId,
+                costPrice: null,
+                featured: false,
+                stockQuantity: 0,
+              },
+            });
+        await tx.$executeRaw`UPDATE "Product" SET "stockQuantity" = GREATEST(0, ${p.supplierQuantity} - "reservedQuantity") WHERE id = ${product.id}`;
+        const linkData = {
+          feedId: p.feedId,
+          productId: product.id,
+          name: p.content.name,
+          description: p.content.description,
+          images: p.content.images,
+          stock: p.isKidstory ? 0 : p.supplierQuantity,
+          raw: p.row,
+          status: "MAPPED" as const,
+          lastSyncAt: checkedAt,
+          lastError: null,
+          attributes: p.isKidstory
+            ? {
+                availabilityFlag: true,
+                quantityKnown: false,
+                retailReferenceRon: p.price,
+              }
+            : { ean: p.ean },
+        };
+        await tx.supplierProduct.upsert({
+          where: {
+            supplierId_supplierSku: {
+              supplierId: p.supplierId,
+              supplierSku: p.selected.sku,
+            },
+          },
+          create: {
+            ...linkData,
+            supplierId: p.supplierId,
+            supplierSku: p.selected.sku,
+            currency: "RON",
+          },
+          update: linkData,
+        });
+      }
+    },
+    { timeout: 45000, maxWait: 10000 }
+  );
+  console.log(`Applied ${plan.length} reviewed add-ons. Backup: ${backupDir}`);
+}
+main()
+  .catch(error => {
+    console.error(error instanceof Error ? error.message : "Rollout failed");
+    process.exitCode = 1;
+  })
+  .finally(() => db.$disconnect());

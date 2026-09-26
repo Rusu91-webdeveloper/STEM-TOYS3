@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient, SupplierFeed } from "@prisma/client";
+
 import { BORIBON_ID, fetchBoribonProducts, portfolio } from "./feed";
 
 export async function syncBoribonPortfolio(
@@ -10,6 +11,7 @@ export async function syncBoribonPortfolio(
   // Fetch before locking. Serialize updates with checkout's atomic product reservation.
   const items = await fetchBoribonProducts();
   const checkedAt = new Date();
+  let updated = 0;
   await db.$transaction(
     async tx => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(74261063)`;
@@ -42,6 +44,7 @@ export async function syncBoribonPortfolio(
       `);
         if (changed !== 1)
           throw new Error(`Product identity changed: ${item.entry.model}`);
+        if (item.valid) updated++;
         await tx.supplierProduct.update({
           where: { id: link.id },
           data: {
@@ -66,21 +69,21 @@ export async function syncBoribonPortfolio(
   const failedUpsell = items.filter(
     item => !item.valid && item.entry.tier === "UPSELL"
   );
-  
+
   if (failedUpsell.length > 0) {
     console.warn(
       `[Boribon sync] ${failedUpsell.length} UPSELL items failed validation:`,
       failedUpsell.map(i => i.entry.model).join(", ")
     );
   }
-  
+
   if (failedCore.length > 0) {
     throw new Error(
       `${failedCore.length} core Boribon products unavailable because supplier data failed validation`
     );
   }
-  
-  return { imported: 0, updated: items.length - failedUpsell.length, failed: failedUpsell.length };
+
+  return { imported: 0, updated, failed: failedUpsell.length };
 }
 
 export async function closeBoribonStock(db: PrismaClient) {

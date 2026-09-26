@@ -14,9 +14,12 @@ const rows = () =>
     quantity: "12",
   }));
 describe("curated Boribon feed", () => {
-  it("selects exactly 63 identities and accepts B2C without invented purchase cost", () => {
+  it("selects the core catalog and registered upsells without inventing purchase cost", () => {
     const result = selectBoribonProducts(rows());
-    expect(result).toHaveLength(63);
+    expect(result).toHaveLength(portfolio.length);
+    expect(result.filter(item => item.entry.tier !== "UPSELL")).toHaveLength(
+      63
+    );
     expect(
       result.every(p => p.valid && p.price === 206 && p.stock === 12)
     ).toBe(true);
