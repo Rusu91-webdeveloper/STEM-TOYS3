@@ -21,6 +21,7 @@ import { ProductHeader } from "./ProductHeader";
 import { ProductImageGallery } from "./ProductImageGallery";
 import type { Review } from "./ProductReviews";
 import ProductSpecs from "./ProductSpecs";
+import ProductUpsellPicker, { type ProductUpsell } from "./ProductUpsellPicker";
 import {
   productBackgroundClass,
   productContentWrapperClass,
@@ -34,6 +35,7 @@ import {
 
 interface ProductDetailClientProps {
   product: any;
+  upsellProducts?: ProductUpsell[];
   relatedProducts?: any[];
   initialReviews?: Review[];
   userLoggedIn?: boolean;
@@ -50,6 +52,7 @@ export default function ProductDetailClient({
   isBook,
   bundleContents = [],
   faq = [],
+  upsellProducts = [],
 }: ProductDetailClientProps) {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
@@ -200,6 +203,11 @@ export default function ProductDetailClient({
                     </p>
                   )}
                 </div>
+
+                <ProductUpsellPicker
+                  key={product.id}
+                  products={upsellProducts}
+                />
 
                 <ProductDescription
                   description={product.description}
