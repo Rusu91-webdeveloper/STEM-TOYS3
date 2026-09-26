@@ -15,7 +15,7 @@ describe("HeroSection accessibility", () => {
     const h1s = screen.getAllByRole("heading", { level: 1 });
     expect(h1s.length).toBe(1);
     expect(
-      screen.getByRole("region", { name: /STEM fără ecran/ })
+      screen.getByRole("region", { name: /Joacă de azi/ })
     ).toBeInTheDocument();
   });
 });
