@@ -1,6 +1,7 @@
-import React from "react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import React from "react";
+
 import { prisma } from "@/lib/prisma";
 import { productPublicPath } from "@/lib/products/public-slug";
 
@@ -20,14 +21,27 @@ interface UpsellProduct {
 async function getUpsellProducts(baseSku: string): Promise<UpsellProduct[]> {
   try {
     // Find products where metadata.upsellFor matches this product's SKU
+    // Supports both legacy string format and new array format
     const upsellProducts = await prisma.product.findMany({
       where: {
         isActive: true,
         status: "APPROVED",
-        metadata: {
-          path: ["upsellFor"],
-          equals: baseSku,
-        },
+        OR: [
+          // Legacy format: metadata.upsellFor is a string
+          {
+            metadata: {
+              path: ["upsellFor"],
+              equals: baseSku,
+            },
+          },
+          // New format: metadata.upsellFor is an array containing baseSku
+          {
+            metadata: {
+              path: ["upsellFor"],
+              array_contains: [baseSku],
+            },
+          },
+        ],
       },
       select: {
         id: true,
