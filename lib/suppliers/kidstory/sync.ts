@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+
 import { fetchKidstoryProducts, kidstoryContent, KIDSTORY_ID } from "./feed";
 
 export async function syncKidstoryPortfolio(
@@ -10,6 +11,7 @@ export async function syncKidstoryPortfolio(
   if (!feed.sourceUrl) throw new Error("Missing Kidstory feed URL");
   const items = await fetchKidstoryProducts(feed.sourceUrl);
   const checkedAt = new Date();
+  let updated = 0;
   await db.$transaction(
     async tx => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(74261025)`;
@@ -52,6 +54,7 @@ export async function syncKidstoryPortfolio(
         // A capacity of one is a conservative store limit, not supplier unit stock.
         // Pending reservations remain deducted until fulfillment reconciles them.
         await tx.$executeRaw`UPDATE "Product" SET "stockQuantity" = GREATEST(0, ${item.available ? 1 : 0} - "reservedQuantity") WHERE id = ${link.productId}`;
+        if (item.valid) updated++;
         await tx.supplierProduct.update({
           where: { id: link.id },
           data: {
@@ -87,21 +90,21 @@ export async function syncKidstoryPortfolio(
   const failedUpsell = items.filter(
     item => !item.valid && item.entry.role === "UPSELL"
   );
-  
+
   if (failedUpsell.length > 0) {
     console.warn(
       `[Kidstory sync] ${failedUpsell.length} UPSELL items failed validation:`,
       failedUpsell.map(i => i.entry.sku).join(", ")
     );
   }
-  
+
   if (failedCore.length > 0) {
     throw new Error(
       `${failedCore.length} core Kidstory products unavailable because supplier data failed validation`
     );
   }
-  
-  return { imported: 0, updated: items.length - failedUpsell.length, failed: failedUpsell.length };
+
+  return { imported: 0, updated, failed: failedUpsell.length };
 }
 
 export async function closeKidstoryStock(db: PrismaClient) {

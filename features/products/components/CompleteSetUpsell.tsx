@@ -4,6 +4,10 @@ import React from "react";
 
 import { prisma } from "@/lib/prisma";
 import { productPublicPath } from "@/lib/products/public-slug";
+import {
+  curatedStockIsFresh,
+  isCuratedSupplier,
+} from "@/lib/suppliers/curated-stock";
 
 interface CompleteSetUpsellProps {
   productSku: string;
@@ -18,7 +22,9 @@ interface UpsellProduct {
   stockQuantity: number;
 }
 
-async function getUpsellProducts(baseSku: string): Promise<UpsellProduct[]> {
+export async function getUpsellProducts(
+  baseSku: string
+): Promise<UpsellProduct[]> {
   try {
     // Find products where metadata.upsellFor matches this product's SKU
     // Supports both legacy string format and new array format
@@ -26,6 +32,8 @@ async function getUpsellProducts(baseSku: string): Promise<UpsellProduct[]> {
       where: {
         isActive: true,
         status: "APPROVED",
+        stockQuantity: { gt: 0 },
+        sku: { not: baseSku },
         OR: [
           // Legacy format: metadata.upsellFor is a string
           {
@@ -50,14 +58,39 @@ async function getUpsellProducts(baseSku: string): Promise<UpsellProduct[]> {
         price: true,
         images: true,
         stockQuantity: true,
+        supplierId: true,
+        metadata: true,
+        supplierProducts: { select: { status: true, lastSyncAt: true } },
       },
-      take: 6, // Limit to 6 upsells max
+      orderBy: [{ price: "asc" }, { slug: "asc" }],
     });
 
-    return upsellProducts.map(p => ({
-      ...p,
-      images: Array.isArray(p.images) ? p.images : [],
-    }));
+    return upsellProducts
+      .filter(
+        p =>
+          Array.isArray(p.images) &&
+          p.images.some(
+            image => typeof image === "string" && /^https?:\/\//.test(image)
+          )
+      )
+      .filter(
+        p =>
+          !isCuratedSupplier(p.supplierId, p.metadata) ||
+          p.supplierProducts.some(
+            link =>
+              link.status === "MAPPED" && curatedStockIsFresh(link.lastSyncAt)
+          )
+      )
+      .slice(0, 6)
+      .map(p => ({
+        ...p,
+        images: Array.isArray(p.images)
+          ? p.images.filter(
+              (image): image is string =>
+                typeof image === "string" && /^https?:\/\//.test(image)
+            )
+          : [],
+      }));
   } catch (error) {
     console.error("Failed to fetch upsell products:", error);
     return [];
