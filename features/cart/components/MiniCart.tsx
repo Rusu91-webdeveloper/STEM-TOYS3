@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils";
 
 import { fetchShippingSettings } from "@/features/checkout/lib/checkoutApi";
 
+import { CartProductImage } from "./CartProductImage";
+
 import { BulkCartOperations } from "./BulkCartOperations";
 
 interface MiniCartProps {
@@ -338,19 +340,11 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                           </div>
 
                           {/* Item image */}
-                          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
-                            {item.image ? (
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="h-full w-full object-cover object-center"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-slate-300">
-                                <ShoppingBag className="h-6 w-6" />
-                              </div>
-                            )}
-                          </div>
+                          <CartProductImage
+                            src={item.image}
+                            name={item.name}
+                            className="h-20 w-20 rounded-xl border border-slate-100"
+                          />
 
                           {/* Item details */}
                           <div className="flex flex-1 flex-col justify-between">

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
+import { CartProductImage } from "@/features/cart/components/CartProductImage";
+
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/features/cart/context/CartContext";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
@@ -157,13 +159,7 @@ export default function CartPage() {
                     )}
                   >
                     <div className="flex gap-6">
-                      {item.image && (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-24 h-24 object-cover rounded-lg"
-                        />
-                      )}
+                      <CartProductImage src={item.image} name={item.name} sizes="96px" className="w-24 h-24 rounded-lg" />
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-semibold text-slate-900">

@@ -4,6 +4,7 @@ import { BadgeCheck, RotateCcw, Shield } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { useCart } from "@/features/cart";
+import { CartProductImage } from "@/features/cart/components/CartProductImage";
 import CouponInput from "@/features/cart/components/CouponInput";
 import {
   checkoutCardClass,
@@ -228,16 +229,7 @@ export function CheckoutSummary({
         <div className="max-h-60 space-y-3 overflow-y-auto sm:max-h-80">
           {cartItems.map(item => (
             <div key={item.id} className="flex gap-3 sm:gap-4">
-              {item.image ? (
-                // eslint-disable-next-line @next/next/no-img-element -- cart URLs may be external; avoid layout shift
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="h-12 w-12 flex-shrink-0 rounded-md border border-slate-100 object-cover sm:h-16 sm:w-16"
-                />
-              ) : (
-                <div className="h-12 w-12 flex-shrink-0 rounded-md border border-slate-200 bg-slate-100 sm:h-16 sm:w-16" />
-              )}
+              <CartProductImage src={item.image} name={item.name} sizes="(max-width: 640px) 48px, 64px" className="h-12 w-12 rounded-md border border-slate-100 sm:h-16 sm:w-16" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-slate-900 sm:text-base">
                   {item.name}
