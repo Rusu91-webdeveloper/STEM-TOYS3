@@ -1,5 +1,13 @@
 import Stripe from "stripe";
 
+import {
+  PaymentIntentAlreadyUsedError,
+  PaymentIntentOwnershipError,
+  paymentIntentMetadataMatchesActor,
+  paymentIntentMetadataOrderId,
+  type PaymentIntentActorRef,
+} from "@/lib/checkout/payment-intent-ownership";
+
 const REUSABLE_STATUSES: Stripe.PaymentIntent.Status[] = [
   "requires_payment_method",
   "requires_confirmation",
@@ -36,10 +44,19 @@ export async function reuseOrCreatePaymentIntent(
   metadata: Record<string, string>,
   createParams: Stripe.PaymentIntentCreateParams,
   idempotencyKey: string,
+  actor: PaymentIntentActorRef,
   receiptEmail?: string
 ): Promise<Stripe.PaymentIntent> {
   try {
     const existing = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (!paymentIntentMetadataMatchesActor(existing.metadata, actor)) {
+      throw new PaymentIntentOwnershipError();
+    }
+
+    if (paymentIntentMetadataOrderId(existing.metadata)) {
+      throw new PaymentIntentAlreadyUsedError();
+    }
 
     if (TERMINAL_STATUSES.includes(existing.status)) {
       console.log(
@@ -63,6 +80,12 @@ export async function reuseOrCreatePaymentIntent(
       `PaymentIntent ${paymentIntentId} has status ${existing.status} which is not reusable. Creating new PaymentIntent.`
     );
   } catch (intentError) {
+    if (
+      intentError instanceof PaymentIntentOwnershipError ||
+      intentError instanceof PaymentIntentAlreadyUsedError
+    ) {
+      throw intentError;
+    }
     console.warn(
       `Unable to reuse payment intent ${paymentIntentId}:`,
       intentError

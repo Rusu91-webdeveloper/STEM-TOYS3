@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { normalizeCheckoutEmail } from "@/lib/checkout/guest-customer";
-import { enforceGuestOrderRateLimit } from "@/lib/checkout/guest-order-rate-limit";
+import { enforceGuestGuaranteeIntentRateLimit } from "@/lib/checkout/guest-order-rate-limit";
 
 const GUEST_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -23,8 +23,8 @@ interface AccessInput {
 
 /**
  * Logged-in shoppers keep the existing payment-intent path.
- * Guests may create a PaymentIntent only for a COD guarantee, and only
- * under the same per-IP limit as guest orders.
+ * Guests may create a PaymentIntent only for a COD guarantee, under a
+ * per-IP limit that is separate from guest order placement.
  */
 export async function resolvePaymentIntentActor(
   input: AccessInput
@@ -45,7 +45,7 @@ export async function resolvePaymentIntentActor(
     );
   }
 
-  const rateLimited = await enforceGuestOrderRateLimit(input.request);
+  const rateLimited = await enforceGuestGuaranteeIntentRateLimit(input.request);
   if (rateLimited) return rateLimited;
 
   if (!input.payloadValid) return input.invalidPayloadResponse;

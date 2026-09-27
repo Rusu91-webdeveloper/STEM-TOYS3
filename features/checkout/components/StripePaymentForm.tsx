@@ -5,14 +5,14 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import type { StripePaymentElementOptions } from "@stripe/stripe-js";
 import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { useCurrency } from "@/lib/currency";
-import { StripeCriticalWarning } from "@/components/checkout/StripeCriticalWarning";
 import { useStripeBypass } from "@/components/checkout/StripeBypassProvider";
+import { StripeCriticalWarning } from "@/components/checkout/StripeCriticalWarning";
+import { Button } from "@/components/ui/button";
+import { buildStripePaymentElementOptions } from "@/features/checkout/lib/stripe-payment-element-options";
+import { useCurrency } from "@/lib/currency";
 
 import { PaymentDetails } from "../types";
 
@@ -37,6 +37,8 @@ interface StripePaymentFormProps {
   };
   submitButtonClassName?: string;
   submitLabel?: string;
+  /** ISO country for the Payment Element. Omit to keep Stripe's own default. */
+  defaultBillingCountry?: string;
 }
 
 export function StripePaymentForm({
@@ -49,6 +51,7 @@ export function StripePaymentForm({
   billingDetails,
   submitButtonClassName = "stripe-submit-button",
   submitLabel,
+  defaultBillingCountry,
 }: StripePaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
@@ -100,21 +103,9 @@ export function StripePaymentForm({
 
   // Convert amount from cents to major currency for display
   const displayAmount = amount / 100;
-
-  // PaymentElement options to enable Google Pay and Apple Pay
-  const paymentElementOptions: StripePaymentElementOptions = {
-    layout: {
-      type: "tabs",
-      defaultCollapsed: false,
-    },
-    wallets: {
-      applePay: "auto",
-      googlePay: "auto",
-    },
-    business: {
-      name: "STEM Toys",
-    },
-  };
+  const paymentElementOptions = buildStripePaymentElementOptions(
+    defaultBillingCountry
+  );
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
