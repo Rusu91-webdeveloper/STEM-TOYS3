@@ -20,13 +20,13 @@ describe("guest checkout then Google sign-in", () => {
     db.user.update.mockResolvedValue({ id: "guest_1" });
   });
 
-  it("activates an inactive guest-checkout user and allows sign-in", async () => {
+  it("activates a guest-checkout user and replaces the password", async () => {
     const allowed = await activateGuestCheckoutForProviderSignIn({
       id: "guest_1",
       role: "CUSTOMER",
       isActive: false,
       password: "$2a$12$random-guest-hash",
-      tags: ["guest-checkout"],
+      tags: ["guest-checkout", "newsletter"],
     });
 
     expect(allowed).toBe(true);
@@ -35,21 +35,27 @@ describe("guest checkout then Google sign-in", () => {
       data: {
         isActive: true,
         emailVerified: expect.any(Date),
+        password: expect.any(String),
+        verificationToken: null,
+        tags: ["newsletter"],
       },
     });
+    const savedPassword = db.user.update.mock.calls[0][0].data.password;
+    expect(savedPassword).not.toBe("$2a$12$random-guest-hash");
+    expect(savedPassword.startsWith("$2")).toBe(true);
   });
 
-  it("activates an inactive customer who never set a password", async () => {
+  it("keeps an admin-deactivated passwordless customer signed out", async () => {
     const allowed = await activateGuestCheckoutForProviderSignIn({
-      id: "empty_pw",
+      id: "deactivated_1",
       role: "CUSTOMER",
       isActive: false,
       password: "",
       tags: [],
     });
 
-    expect(allowed).toBe(true);
-    expect(db.user.update).toHaveBeenCalled();
+    expect(allowed).toBe(false);
+    expect(db.user.update).not.toHaveBeenCalled();
   });
 
   it("keeps inactive staff and unverified registered accounts locked", async () => {
