@@ -136,11 +136,7 @@ export default function StandardEmailTemplate({
  *     </p>
  *
  *     <!-- Social Media Links -->
- *     <div style="margin: 15px 0;">
- *       <a href="https://facebook.com/techtots" style="text-decoration: none; margin: 0 5px; color: #3b5998;">Facebook</a>
- *       <a href="https://www.instagram.com/techtots_romania/" style="text-decoration: none; margin: 0 5px; color: #e1306c;">Instagram</a>
- *       <a href="https://linkedin.com/company/techtots" style="text-decoration: none; margin: 0 5px; color: #0077b5;">LinkedIn</a>
- *     </div>
+ *     Social links: TECHTOTS_SOCIAL_LINKS (same URLs as the site footer).
  *
  *     <!-- Legal Links -->
  *     <p>

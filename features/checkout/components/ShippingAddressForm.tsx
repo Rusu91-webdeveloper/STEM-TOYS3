@@ -47,6 +47,8 @@ interface ShippingAddressFormProps {
   initialData?: ShippingAddress;
   onSubmit: (address: ShippingAddress) => void;
   allowInternational?: boolean;
+  /** Guests enter an email on this step. Signed-in shoppers already have one. */
+  collectGuestEmail?: boolean;
 }
 
 const optionalStructuredField = (maxLength = 64) =>
@@ -263,10 +265,13 @@ const mapSavedAddressToCheckout = (
   };
 };
 
+const guestEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function ShippingAddressForm({
   initialData,
   onSubmit,
   allowInternational = false,
+  collectGuestEmail = false,
 }: ShippingAddressFormProps) {
   const { t, locale } = useTranslation();
   const defaultCountry = allowInternational ? "" : "RO";
@@ -311,6 +316,7 @@ export function ShippingAddressForm({
       postalCode: "",
       country: defaultCountry,
       phone: "",
+      email: "",
     };
   });
 
@@ -354,6 +360,21 @@ export function ShippingAddressForm({
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
 
+    if (name === "email") {
+      const emailError =
+        !collectGuestEmail || guestEmailPattern.test(value.trim())
+          ? undefined
+          : t(
+              "guestEmailInvalid",
+              "Introduceți o adresă de email validă pentru confirmarea comenzii."
+            );
+      setErrors(prev => ({
+        ...prev,
+        email: emailError,
+      }));
+      return;
+    }
+
     // Validate field on change
     const fieldError = addressValidator.validateField(name, value);
     setErrors(prev => ({
@@ -380,8 +401,24 @@ export function ShippingAddressForm({
     // Validate the entire form
     const validation = addressValidator.validateForm(composedAddress);
 
+    const guestEmail = (formData.email || "").trim();
+    if (collectGuestEmail && !guestEmailPattern.test(guestEmail)) {
+      setErrors(prev => ({
+        ...prev,
+        ...(validation.success ? {} : validation.errors),
+        email: t(
+          "guestEmailInvalid",
+          "Introduceți o adresă de email validă pentru confirmarea comenzii."
+        ),
+      }));
+      return;
+    }
+
     if (validation.success) {
-      onSubmit(composedAddress);
+      onSubmit({
+        ...composedAddress,
+        email: collectGuestEmail ? guestEmail : composedAddress.email,
+      });
     } else {
       // Update errors state with validation errors
       setErrors(validation.errors || {});
@@ -532,6 +569,28 @@ export function ShippingAddressForm({
                 {t(
                   "completeAddressForCourier",
                   "Completează strada și numărul pentru livrare corectă prin curier."
+                )}
+              </div>
+            )}
+            {collectGuestEmail && (
+              <div>
+                <Label htmlFor="email" className={checkoutFieldLabelClass}>
+                  {t("email", "Email")}
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  value={formData.email || ""}
+                  onChange={handleChange}
+                  className={cn(
+                    checkoutFieldInputClass,
+                    errors.email && "border-red-500 focus-visible:ring-red-500/20"
+                  )}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
                 )}
               </div>
             )}

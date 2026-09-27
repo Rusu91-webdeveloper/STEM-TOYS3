@@ -17,8 +17,14 @@ import {
   evaluateCodGuaranteePolicy,
   isLockerShippingMethodId,
 } from "@/lib/checkout/cod-guarantee-policy";
-import { compensateFailedOrder } from "@/lib/checkout/payment-failure-compensation";
 import { getCodGuaranteeUserStats } from "@/lib/checkout/cod-guarantee-risk";
+import {
+  createGuestCheckoutCustomer,
+  GuestCheckoutError,
+  lookupCheckoutCustomer,
+} from "@/lib/checkout/guest-customer";
+import { enforceGuestOrderRateLimit } from "@/lib/checkout/guest-order-rate-limit";
+import { compensateFailedOrder } from "@/lib/checkout/payment-failure-compensation";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
 import { AdminNotificationService } from "@/lib/email/admin-notification-service";
@@ -140,6 +146,7 @@ const orderSchema = z.object({
   codGuaranteeAmount: z.number().optional(),
   notes: z.string().nullable().optional(),
   orderNotes: z.string().optional(),
+  guestEmail: z.string().nullable().optional(),
 });
 
 // Helper function to format Zod errors
@@ -325,9 +332,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Checkout is authenticated-only at launch.
     const session = await auth();
-    const user = session?.user;
 
     // Validate request body
     const orderData = orderSchema.parse(body);
@@ -380,15 +385,37 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required",
-          error: "AUTH_REQUIRED",
-        },
-        { status: 401 }
+    const guestEmail =
+      normalizeOptionalString(orderData.guestEmail) ||
+      normalizeOptionalString(
+        (orderData.shippingAddress as { email?: string }).email
       );
+
+    const sessionUser = session?.user ?? null;
+    if (!sessionUser?.id) {
+      const rateLimited = await enforceGuestOrderRateLimit(request);
+      if (rateLimited) return rateLimited;
+    }
+
+    let user;
+    try {
+      user = await lookupCheckoutCustomer({
+        sessionUser,
+        guestEmail,
+        guestName: shippingAddressData.fullName,
+      });
+    } catch (error) {
+      if (error instanceof GuestCheckoutError) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: error.message,
+            error: error.code,
+          },
+          { status: error.status }
+        );
+      }
+      throw error;
     }
 
     // Determine payment provider from order data without trusting a broad client default.
@@ -416,9 +443,10 @@ export async function POST(request: Request) {
         : isStripePayment
           ? "stripe"
           : null;
-    const codGuaranteeUserStats = isCODPayment
-      ? await getCodGuaranteeUserStats(user.id)
-      : { priorOrderCount: 0, priorCodRtoCount: 0 };
+    const codGuaranteeUserStats =
+      isCODPayment && user
+        ? await getCodGuaranteeUserStats(user.id)
+        : { priorOrderCount: 0, priorCodRtoCount: 0 };
 
     if (lockerRequired && isCODPayment) {
       return NextResponse.json(
@@ -550,7 +578,7 @@ export async function POST(request: Request) {
     let pricing;
     try {
       pricing = await resolveCheckoutPricing({
-        userId: user.id,
+        userId: user?.id ?? "",
         items: orderData.items,
         shippingMethodId: orderData.shippingMethod?.id,
         couponCode: orderData.couponCode,
@@ -941,7 +969,7 @@ export async function POST(request: Request) {
 
         if (
           stripePaymentIntent.metadata.userId &&
-          stripePaymentIntent.metadata.userId !== user.id
+          (!user || stripePaymentIntent.metadata.userId !== user.id)
         ) {
           return NextResponse.json(
             {
@@ -1025,17 +1053,26 @@ export async function POST(request: Request) {
       }
     }
 
-    // Guest checkout: Order and Address require userId. Do not use user.id when user is null.
+    // Create the guest user only after price and stock checks succeed.
     if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Authentication required to complete checkout. Please sign in or register.",
-          error: "AUTH_REQUIRED",
-        },
-        { status: 401 }
-      );
+      try {
+        user = await createGuestCheckoutCustomer({
+          guestEmail: guestEmail ?? "",
+          guestName: shippingAddressData.fullName,
+        });
+      } catch (error) {
+        if (error instanceof GuestCheckoutError) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: error.message,
+              error: error.code,
+            },
+            { status: error.status }
+          );
+        }
+        throw error;
+      }
     }
 
     // Prepare order details for email (includes all calculated values)
@@ -2010,7 +2047,7 @@ export async function POST(request: Request) {
             `📧 Order ${dbOrder?.id || orderId}: COD order - sending confirmation email immediately`
           );
         }
-        const recipientEmail = user.email;
+        const recipientEmail = user.email || guestEmail;
 
         if (!recipientEmail) {
           console.warn(

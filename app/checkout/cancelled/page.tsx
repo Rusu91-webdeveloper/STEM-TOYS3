@@ -5,9 +5,12 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Ban, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
 
+import { useCart } from "@/features/cart";
+
 export default function CheckoutCancelledPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { clearCart } = useCart();
 
   const [status, setStatus] = useState<"idle" | "checking" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
@@ -40,6 +43,7 @@ export default function CheckoutCancelledPage() {
         if (data.status === "paid" || data.status === "refunded") {
           setStatus("success");
           setMessage("Plata a fost procesată. Te redirecționăm către confirmare...");
+          await clearCart();
 
           sessionStorage.removeItem("netopia_order_id");
           sessionStorage.removeItem("netopia_payment_method");

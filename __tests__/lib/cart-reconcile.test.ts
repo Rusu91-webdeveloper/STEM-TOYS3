@@ -27,6 +27,13 @@ describe("guest cart reload reconciliation", () => {
     expect(result.pushToServer).toBe(false);
   });
 
+  it("drops a stale server cart when the shopper explicitly emptied the local cart", () => {
+    const result = reconcileLoadedCart([], [kit], { explicitEmpty: true });
+
+    expect(result.items).toEqual([]);
+    expect(result.pushToServer).toBe(true);
+  });
+
   it("merges the same product once and keeps the higher quantity", () => {
     const result = reconcileLoadedCart(
       [{ ...kit, quantity: 1 }],

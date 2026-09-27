@@ -16,8 +16,15 @@ export interface ReconcileResult {
  */
 export function reconcileLoadedCart(
   localItems: CartItem[],
-  serverItems: CartItem[]
+  serverItems: CartItem[],
+  options?: { explicitEmpty?: boolean }
 ): ReconcileResult {
+  // The shopper removed the last item. A stale server or cookie copy must not
+  // come back on the next reload.
+  if (options?.explicitEmpty) {
+    return { items: [], pushToServer: serverItems.length > 0 };
+  }
+
   if (localItems.length === 0 && serverItems.length === 0) {
     return { items: [], pushToServer: false };
   }

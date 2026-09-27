@@ -12,8 +12,12 @@ import { useTranslation } from "@/lib/i18n";
 import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { cn } from "@/lib/utils";
 
-import { fetchShippingQuotes, fetchShippingSettings } from "../lib/checkoutApi";
-import { fetchFanboxPickupPoints, FanboxPickupPoint } from "../lib/checkoutApi";
+import {
+  fetchFanboxPickupPoints,
+  fetchShippingQuotes,
+  fetchShippingSettings,
+  type FanboxPickupPoint,
+} from "../lib/checkoutApi";
 import {
   LockerAddressSnapshot,
   ShippingAddress,
@@ -105,7 +109,7 @@ export function ShippingMethodSelector({
       }
 
       try {
-        const quoteResponse = await fetchShippingQuotes();
+        const quoteResponse = await fetchShippingQuotes(cartItems);
         const settings = await fetchShippingSettings();
 
         // Get cart total to check free shipping threshold
@@ -265,7 +269,7 @@ export function ShippingMethodSelector({
     }
 
     loadShippingSettings();
-  }, [t, isDigitalOnlyCart, getCartTotal]);
+  }, [t, isDigitalOnlyCart, getCartTotal, cartItems]);
 
   useEffect(() => {
     const selectedMethod = shippingMethods.find(

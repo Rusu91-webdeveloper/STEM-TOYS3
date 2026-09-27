@@ -1,6 +1,7 @@
 import React from "react";
 
 import { appConfig } from "@/lib/config/app-config";
+import { TECHTOTS_SOCIAL_LINKS } from "@/lib/config/social-links";
 
 interface StandardEmailFooterProps {
   isMarketing?: boolean;
@@ -41,36 +42,19 @@ export default function StandardEmailFooter({
 
       {/* Social Media Links */}
       <div style={{ margin: "15px 0" }}>
-        <a
-          href="https://facebook.com/techtots"
-          style={{
-            textDecoration: "none",
-            margin: "0 5px",
-            color: "#3b5998",
-          }}
-        >
-          Facebook
-        </a>
-        <a
-          href="https://www.instagram.com/techtots_romania/"
-          style={{
-            textDecoration: "none",
-            margin: "0 5px",
-            color: "#e1306c",
-          }}
-        >
-          Instagram
-        </a>
-        <a
-          href="https://linkedin.com/company/techtots"
-          style={{
-            textDecoration: "none",
-            margin: "0 5px",
-            color: "#0077b5",
-          }}
-        >
-          LinkedIn
-        </a>
+        {TECHTOTS_SOCIAL_LINKS.map(link => (
+          <a
+            key={link.name}
+            href={link.href}
+            style={{
+              textDecoration: "none",
+              margin: "0 5px",
+              color: "#334155",
+            }}
+          >
+            {link.name}
+          </a>
+        ))}
       </div>
 
       {/* Legal Links */}
@@ -116,11 +100,7 @@ export default function StandardEmailFooter({
  *   </p>
  *
  *   <!-- Social Media Links -->
- *   <div style="margin: 15px 0;">
- *     <a href="https://facebook.com/techtots" style="text-decoration: none; margin: 0 5px; color: #3b5998;">Facebook</a>
- *     <a href="https://www.instagram.com/techtots_romania/" style="text-decoration: none; margin: 0 5px; color: #e1306c;">Instagram</a>
- *     <a href="https://linkedin.com/company/techtots" style="text-decoration: none; margin: 0 5px; color: #0077b5;">LinkedIn</a>
- *   </div>
+ *   Social links come from TECHTOTS_SOCIAL_LINKS (same URLs as the site footer).
  *
  *   <!-- Legal Links -->
  *   <p>

@@ -117,6 +117,10 @@ jest.mock("@/lib/db", () => ({
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    user: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+    },
     product: {
       findMany: jest.fn(),
     },
@@ -427,6 +431,275 @@ describe("POST /api/checkout/order integrity", () => {
       expect.objectContaining({
         where: expect.objectContaining({
           id: "prod_1",
+        }),
+      })
+    );
+  });
+
+  it("accepts a guest COD order and emails the guest address", async () => {
+    const { COD_CONSENT_TEXT, COD_CONSENT_VERSION } = require("@/lib/checkout/cod-consent");
+    const {
+      DatabaseTemplateService,
+    } = require("@/lib/email/database-template-service");
+
+    auth.mockResolvedValue(null);
+    db.user.findUnique.mockResolvedValue(null);
+    db.user.create.mockResolvedValue({
+      id: "guest_1",
+      email: "guest@example.com",
+      name: "Ana Pop",
+      role: "CUSTOMER",
+    });
+    resolveCheckoutPricing.mockResolvedValue({
+      items: [
+        {
+          productId: "book_1",
+          name: "Server Book",
+          price: 99,
+          quantity: 1,
+          isBook: true,
+        },
+      ],
+      subtotal: 99,
+      tax: 0,
+      taxRatePercentage: "0",
+      includeInPrice: true,
+      finalShippingCost: 19.99,
+      shippingBasePrice: 19.99,
+      shippingTotalEstimate: 19.99,
+      pricingVersion: null,
+      discountAmount: 0,
+      appliedCoupon: null,
+      codFee: 0,
+      orderTotal: 118.99,
+      codGuaranteeAmount: 0,
+      isDigitalOnlyOrder: true,
+      supplierCartAnalysis: {
+        isMixedSupplierCart: false,
+        supplierCount: 0,
+        supplierNames: [],
+        fulfillmentSourceIds: [],
+        requiresPrepaid: false,
+        mixedSupplierExtraShipments: 0,
+      },
+      products: [],
+    });
+
+    const request = new NextRequest("http://localhost/api/checkout/order", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        guestEmail: "Guest@Example.com",
+        shippingAddress: {
+          fullName: "Ana Pop",
+          addressLine1: "Strada Florilor 12",
+          city: "Cluj-Napoca",
+          state: "CJ",
+          postalCode: "400001",
+          country: "RO",
+          phone: "0712345678",
+          email: "Guest@Example.com",
+        },
+        shippingMethod: {
+          id: "fancourier:standard",
+          name: "FanCourier Standard",
+          price: 19.99,
+        },
+        items: [
+          {
+            productId: "book_1",
+            name: "Server Book",
+            price: 99,
+            quantity: 1,
+            isBook: true,
+          },
+        ],
+        paymentMethod: "cash_on_delivery",
+        paymentProvider: "cod",
+        codConsentAccepted: true,
+        codConsentAcceptedAt: "2026-09-27T10:00:00.000Z",
+        codConsentVersion: COD_CONSENT_VERSION,
+        codConsentText: COD_CONSENT_TEXT,
+      }),
+    });
+
+    const response = await POST(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.success).toBe(true);
+    expect(db.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          email: "guest@example.com",
+          isActive: false,
+        }),
+      })
+    );
+    expect(txOrderCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: "guest_1",
+          paymentMethod: "cash_on_delivery",
+          paymentStatus: "PENDING",
+        }),
+      })
+    );
+    expect(DatabaseTemplateService.sendOrderConfirmationEmail).toHaveBeenCalledWith(
+      "guest@example.com",
+      expect.objectContaining({
+        customerName: "Ana Pop",
+      })
+    );
+    const createOrder = db.user.create.mock.invocationCallOrder[0];
+    const priceOrder = resolveCheckoutPricing.mock.invocationCallOrder[0];
+    expect(priceOrder).toBeLessThan(createOrder);
+  });
+
+  it("does not create a guest user when price or stock validation fails", async () => {
+    const { CheckoutPricingError } = require("@/lib/checkout/authoritative-pricing");
+    const { COD_CONSENT_TEXT, COD_CONSENT_VERSION } = require("@/lib/checkout/cod-consent");
+
+    auth.mockResolvedValue(null);
+    db.user.findUnique.mockResolvedValue(null);
+    resolveCheckoutPricing.mockRejectedValue(
+      new CheckoutPricingError("PRODUCT_NOT_FOUND", "Missing product", 400)
+    );
+
+    const request = new NextRequest("http://localhost/api/checkout/order", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": "203.0.113.77",
+      },
+      body: JSON.stringify({
+        guestEmail: "guest@example.com",
+        shippingAddress: {
+          fullName: "Ana Pop",
+          addressLine1: "Strada Florilor 12",
+          city: "Cluj-Napoca",
+          state: "CJ",
+          postalCode: "400001",
+          country: "RO",
+          phone: "0712345678",
+        },
+        items: [
+          {
+            productId: "missing",
+            name: "Missing",
+            price: 10,
+            quantity: 1,
+          },
+        ],
+        paymentMethod: "cash_on_delivery",
+        paymentProvider: "cod",
+        codConsentAccepted: true,
+        codConsentAcceptedAt: "2026-09-27T10:00:00.000Z",
+        codConsentVersion: COD_CONSENT_VERSION,
+        codConsentText: COD_CONSENT_TEXT,
+      }),
+    });
+
+    const response = await POST(request);
+    const payload = await response.json();
+    expect(response.status).toBe(400);
+    expect(payload.error).toBe("PRODUCT_NOT_FOUND");
+    expect(db.user.create).not.toHaveBeenCalled();
+  });
+
+  it("still places the guest order when the confirmation email throws", async () => {
+    const { COD_CONSENT_TEXT, COD_CONSENT_VERSION } = require("@/lib/checkout/cod-consent");
+    const {
+      DatabaseTemplateService,
+    } = require("@/lib/email/database-template-service");
+
+    auth.mockResolvedValue(null);
+    db.user.findUnique.mockResolvedValue({
+      id: "guest_existing",
+      email: "parent@example.com",
+      name: "Parent",
+      role: "CUSTOMER",
+    });
+    DatabaseTemplateService.sendOrderConfirmationEmail.mockRejectedValueOnce(
+      new Error("smtp down")
+    );
+    resolveCheckoutPricing.mockResolvedValue({
+      items: [
+        {
+          productId: "book_1",
+          name: "Server Book",
+          price: 99,
+          quantity: 1,
+          isBook: true,
+        },
+      ],
+      subtotal: 99,
+      tax: 0,
+      taxRatePercentage: "0",
+      includeInPrice: true,
+      finalShippingCost: 0,
+      shippingBasePrice: 0,
+      shippingTotalEstimate: 0,
+      pricingVersion: null,
+      discountAmount: 0,
+      appliedCoupon: null,
+      codFee: 0,
+      orderTotal: 99,
+      codGuaranteeAmount: 0,
+      isDigitalOnlyOrder: true,
+      supplierCartAnalysis: {
+        isMixedSupplierCart: false,
+        supplierCount: 0,
+        supplierNames: [],
+        fulfillmentSourceIds: [],
+        requiresPrepaid: false,
+        mixedSupplierExtraShipments: 0,
+      },
+      products: [],
+    });
+
+    const response = await POST(
+      new NextRequest("http://localhost/api/checkout/order", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          guestEmail: "parent@example.com",
+          shippingAddress: {
+            fullName: "Parent",
+            addressLine1: "Strada Florilor 12",
+            city: "Cluj-Napoca",
+            state: "CJ",
+            postalCode: "400001",
+            country: "RO",
+            phone: "0712345678",
+          },
+          items: [
+            {
+              productId: "book_1",
+              name: "Server Book",
+              price: 99,
+              quantity: 1,
+              isBook: true,
+            },
+          ],
+          paymentMethod: "cash_on_delivery",
+          paymentProvider: "cod",
+          codConsentAccepted: true,
+          codConsentAcceptedAt: "2026-09-27T10:00:00.000Z",
+          codConsentVersion: COD_CONSENT_VERSION,
+          codConsentText: COD_CONSENT_TEXT,
+        }),
+      })
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.success).toBe(true);
+    expect(db.user.create).not.toHaveBeenCalled();
+    expect(txOrderCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: "guest_existing",
         }),
       })
     );

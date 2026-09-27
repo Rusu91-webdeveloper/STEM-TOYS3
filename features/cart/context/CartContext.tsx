@@ -15,7 +15,7 @@ import {
   reconcileLoadedCart,
   selectCartSyncPayload,
 } from "../lib/cartReconcile";
-import { clearCartStorage, loadCartFromStorage, saveCartToStorage } from "../lib/cartStorage";
+import { readCartStorage, saveCartToStorage } from "../lib/cartStorage";
 import { debugCartState } from "../lib/cartSync";
 
 // Define a specific type for CartItem based on our product structure
@@ -50,7 +50,7 @@ interface CartContextType {
     variantId?: string,
     selectedLanguage?: string
   ) => void; // Updated signature
-  clearCart: () => void;
+  clearCart: () => Promise<void>;
   getTotal: () => number; // Updated to match MiniCart usage
   getItemCount: () => number;
   isLoading: boolean;
@@ -282,10 +282,14 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
   // Paint the stored cart before the server round-trip so a reload is not empty.
   useLayoutEffect(() => {
-    const stored = loadCartFromStorage();
-    if (stored.length > 0) {
-      cartItemsRef.current = stored;
-      setCartItems(stored);
+    const stored = readCartStorage();
+    if (stored.items.length > 0) {
+      cartItemsRef.current = stored.items;
+      setCartItems(stored.items);
+      allowEmptyPersistRef.current = true;
+    } else if (stored.explicitEmpty) {
+      allowEmptyPersistRef.current = true;
+      cartItemsRef.current = [];
     }
     hydratedRef.current = true;
   }, []);
@@ -293,8 +297,23 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   useEffect(() => {
     if (!hydratedRef.current) return;
     const items = cartItemsRef.current;
-    if (items.length === 0 && !allowEmptyPersistRef.current) return;
-    saveCartToStorage(items);
+    if (items.length > 0) {
+      allowEmptyPersistRef.current = true;
+      saveCartToStorage(items);
+      return;
+    }
+
+    // The first paint is empty before hydration finishes writing. Only an
+    // intentional empty cart (last item removed, or clear) is stored as [].
+    if (!allowEmptyPersistRef.current) return;
+
+    saveCartToStorage([]);
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = null;
+    }
+    pendingUpdatesRef.current.clear();
+    void saveCart([], { clear: true });
   }, [cartItems]);
 
   const loadCart = React.useCallback(async () => {
@@ -303,18 +322,23 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         setIsLoading(true);
       }
       const serverCart = await fetchCart();
+      const stored = readCartStorage();
       const localCart =
-        cartItemsRef.current.length > 0
-          ? cartItemsRef.current
-          : loadCartFromStorage();
-      const reconciled = reconcileLoadedCart(localCart, serverCart);
+        cartItemsRef.current.length > 0 ? cartItemsRef.current : stored.items;
+      const explicitEmpty =
+        cartItemsRef.current.length === 0 && stored.explicitEmpty;
+      const reconciled = reconcileLoadedCart(localCart, serverCart, {
+        explicitEmpty,
+      });
       cartItemsRef.current = reconciled.items;
       setCartItems(reconciled.items);
       if (reconciled.items.length > 0) {
         allowEmptyPersistRef.current = true;
       }
       if (reconciled.pushToServer) {
-        await saveCart(reconciled.items);
+        await saveCart(reconciled.items, {
+          clear: reconciled.items.length === 0,
+        });
       }
     } catch (error) {
       console.error("Failed to load cart:", error);
@@ -456,22 +480,32 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   const updateQuantity = (itemId: string, quantity: number) =>
     updateItemQuantity(itemId, quantity);
 
-  const clearCart = () => {
+  const clearCart = async () => {
     allowEmptyPersistRef.current = true;
     cartItemsRef.current = [];
     setCartItems([]);
     setSelectedItems(new Set());
-    clearCartStorage();
+    saveCartToStorage([]);
 
     pendingUpdatesRef.current.clear();
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = null;
     }
 
+    const CART_CLEAR_TIMEOUT_MS = 2500;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
-      saveCart([], { clear: true });
+      await Promise.race([
+        saveCart([], { clear: true }),
+        new Promise<boolean>(resolve => {
+          timeoutId = setTimeout(() => resolve(false), CART_CLEAR_TIMEOUT_MS);
+        }),
+      ]);
     } catch (error) {
       console.error("Failed to clear cart:", error);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
     }
   };
 

@@ -3,15 +3,16 @@ import { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
-import "../env"; // Load environment variables early
 import { createAuth } from "@/lib/auth-wrapper";
+import { activateGuestCheckoutForProviderSignIn } from "@/lib/checkout/guest-account-claim";
+import { sendWelcomeEmail } from "@/lib/email";
 
+import "../env"; // Load environment variables early
 import { hashAdminPassword, verifyAdminPassword } from "../admin-auth";
 import { verifyPassword } from "../auth-utils";
 import { db } from "../db";
 import { withRetry } from "../db-helpers";
 import { logger } from "../logger";
-import { sendWelcomeEmail } from "@/lib/email";
 
 interface ExtendedUser {
   id: string;
@@ -402,16 +403,35 @@ const createAuthOptions = (): NextAuthConfig => {
                 user.id = existingUser.id;
               }
 
-              // Check if the user is active
+              // Inactive guest-checkout customers can claim the row with Google.
+              // Staff and unverified registered accounts stay denied.
               if (!existingUser.isActive) {
-                logger.warn("Login attempt with inactive Google account", {
-                  userId: existingUser.id,
-                  email: profile.email,
-                });
-                return false;
+                const activated = await activateGuestCheckoutForProviderSignIn(
+                  existingUser
+                );
+                if (!activated) {
+                  logger.warn("Login attempt with inactive Google account", {
+                    userId: existingUser.id,
+                    email: profile.email,
+                  });
+                  return false;
+                }
+
+                logger.info(
+                  "Activated guest checkout account for Google sign-in",
+                  {
+                    userId: existingUser.id,
+                    email: profile.email,
+                  }
+                );
               }
 
-              // If user exists and is active, allow sign-in
+              if (user) {
+                const linkedUser = user as ExtendedUser;
+                linkedUser.isActive = true;
+                linkedUser.role = existingUser.role;
+              }
+
               return true;
             }
             // No user with this email exists - create new user for Google authentication

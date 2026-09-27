@@ -242,9 +242,21 @@ export async function fetchShippingSettings() {
   }
 }
 
-export async function fetchShippingQuotes() {
+export async function fetchShippingQuotes(
+  items: Array<{ productId: string; quantity: number; isBook?: boolean }> = []
+) {
   try {
-    const response = await fetch("/api/checkout/shipping-quote");
+    const response = await fetch("/api/checkout/shipping-quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: items.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          isBook: item.isBook === true,
+        })),
+      }),
+    });
     if (!response.ok) {
       throw new Error(`Error fetching shipping quotes: ${response.statusText}`);
     }

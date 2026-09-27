@@ -4,6 +4,8 @@ import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { issuePasswordResetForEmail } from "@/lib/auth/issue-password-reset";
+import { isClaimableGuestCheckoutUser } from "@/lib/checkout/guest-account-claim";
 import { db } from "@/lib/db";
 import {
   sendUserVerificationEmails,
@@ -35,11 +37,41 @@ async function handleRegistration(req: Request) {
     }
 
     const { name, email, password } = result.data;
+    const normalizedEmail = email.trim().toLowerCase();
 
-    // Check if user already exists
-    const existingUser = await db.user.findUnique({
-      where: { email },
-    });
+    // Check if user already exists. Guest checkout stores a lowercased email.
+    const existingUser =
+      (await db.user.findUnique({
+        where: { email },
+      })) ??
+      (normalizedEmail === email
+        ? null
+        : await db.user.findUnique({
+            where: { email: normalizedEmail },
+          }));
+
+    if (existingUser && isClaimableGuestCheckoutUser(existingUser)) {
+      // Do not store the submitted password. The inbox owner sets one via reset.
+      // The public body matches a normal registration and does not mention an order.
+      try {
+        await issuePasswordResetForEmail(existingUser.email);
+      } catch (resetError) {
+        console.error("Failed to send password reset email:", resetError);
+      }
+
+      return NextResponse.json(
+        {
+          message:
+            "Registration successful. Please check your email to verify your account.",
+          user: {
+            id: existingUser.id,
+            name: existingUser.name,
+            email: existingUser.email,
+          },
+        },
+        { status: 201 }
+      );
+    }
 
     if (existingUser) {
       // Check if this is a Google-authenticated user (empty password)
@@ -79,8 +111,7 @@ async function handleRegistration(req: Request) {
 
     console.log(`✅ User created: ${newUser.id} (${email})`);
 
-    // Trigger email automation via EmailTriggerService
-    // This will process all active triggers for NEW segment users
+    // Trigger email automation via EmailTriggerService for brand-new accounts.
     try {
       const emailTriggerService = new EmailTriggerService(db);
       await emailTriggerService.processSegmentTriggers(
