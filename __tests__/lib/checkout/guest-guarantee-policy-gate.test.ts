@@ -42,6 +42,7 @@ describe("guestGuaranteePolicyRejection", () => {
     expect(body.error).toBe("COD_GUARANTEE_NOT_REQUIRED");
     expect(resolveCodGuaranteeCustomerStats).toHaveBeenCalledWith({
       guestEmail: "guest@example.com",
+      phone: undefined,
     });
   });
 

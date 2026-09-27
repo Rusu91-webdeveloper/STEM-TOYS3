@@ -387,6 +387,7 @@ export async function fetchCodGuaranteePolicy(input: {
   recipientType: "B2B" | "B2C";
   shippingMethodId?: string;
   guestEmail?: string;
+  phone?: string;
 }): Promise<CodGuaranteePolicyResponse | null> {
   try {
     const params = new URLSearchParams({
@@ -398,6 +399,9 @@ export async function fetchCodGuaranteePolicy(input: {
     }
     if (input.guestEmail) {
       params.set("guestEmail", input.guestEmail);
+    }
+    if (input.phone) {
+      params.set("phone", input.phone);
     }
 
     const response = await fetch(

@@ -18,6 +18,7 @@ const querySchema = z.object({
   recipientType: z.enum(["B2B", "B2C"]).default("B2C"),
   shippingMethodId: z.string().optional(),
   guestEmail: z.string().optional(),
+  phone: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
       shippingMethodId:
         request.nextUrl.searchParams.get("shippingMethodId") ?? undefined,
       guestEmail: request.nextUrl.searchParams.get("guestEmail") ?? undefined,
+      phone: request.nextUrl.searchParams.get("phone") ?? undefined,
     });
 
     if (!parsedQuery.success) {
@@ -42,12 +44,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { orderTotal, recipientType, shippingMethodId, guestEmail } =
+    const { orderTotal, recipientType, shippingMethodId, guestEmail, phone } =
       parsedQuery.data;
     const userStats = await resolveCodGuaranteeCustomerStats(
       session?.user?.id
-        ? { userId: session.user.id }
-        : { guestEmail }
+        ? { userId: session.user.id, phone }
+        : { guestEmail, phone }
     );
 
     const policy = evaluateCodGuaranteePolicy({

@@ -18,9 +18,11 @@ export async function guestGuaranteePolicyRejection(input: {
   orderTotal: number;
   shippingMethodId?: string | null;
   recipientType?: RecipientType | null;
+  phone?: string | null;
 }): Promise<NextResponse | null> {
   const stats = await resolveCodGuaranteeCustomerStats({
     guestEmail: input.guestEmail,
+    phone: input.phone,
   });
   const recipientType: RecipientType =
     input.recipientType === "B2B" ? "B2B" : "B2C";

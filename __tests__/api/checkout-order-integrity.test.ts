@@ -868,6 +868,41 @@ describe("POST /api/checkout/order integrity", () => {
       delete process.env.STRIPE_SECRET_KEY;
     });
 
+    it("does not require a guarantee for a new guest under 200 lei", async () => {
+      resolveCheckoutPricing.mockResolvedValue(price(199));
+
+      const response = await POST(guestCodRequest(199));
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.success).toBe(true);
+      expect(txOrderCreate).toHaveBeenCalled();
+    });
+
+    it("requires a guarantee for a new guest at 200 lei", async () => {
+      resolveCheckoutPricing.mockResolvedValue(price(200));
+
+      const response = await POST(guestCodRequest(200));
+      const payload = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(payload.error).toBe("COD_GUARANTEE_REQUIRED");
+      expect(txOrderCreate).not.toHaveBeenCalled();
+    });
+
+    it("passes the checkout phone into the same stats function for guests", async () => {
+      const stats = require("@/lib/checkout/cod-guarantee-risk");
+      resolveCheckoutPricing.mockResolvedValue(price(120));
+
+      await POST(guestCodRequest(120));
+
+      expect(stats.resolveCodGuaranteeCustomerStats).toHaveBeenCalledWith({
+        userId: undefined,
+        guestEmail: "Guest@Example.com",
+        phone: "0712345678",
+      });
+    });
+
     it("accepts a small new-customer home COD order without a guarantee", async () => {
       resolveCheckoutPricing.mockResolvedValue(price(120));
 
@@ -1199,6 +1234,8 @@ describe("POST /api/checkout/order integrity", () => {
       expect(response.status).toBe(200);
       expect(stats.resolveCodGuaranteeCustomerStats).toHaveBeenCalledWith({
         userId: "user_1",
+        guestEmail: null,
+        phone: "0712345678",
       });
     });
   });

@@ -338,6 +338,10 @@ describe("POST /api/stripe/create-payment-intent", () => {
     const { auth } = require("@/lib/auth");
     auth.mockResolvedValue(null);
     process.env.COD_GUARANTEE_MODE = "risk_based";
+    mockResolveCheckoutPricing.mockResolvedValue({
+      orderTotal: 150,
+      codGuaranteeAmount: 18,
+    });
 
     const request = new NextRequest(
       "http://localhost/api/stripe/create-payment-intent",

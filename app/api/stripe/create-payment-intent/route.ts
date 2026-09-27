@@ -174,6 +174,7 @@ export async function POST(request: NextRequest) {
         orderTotal: pricedOrderTotal,
         shippingMethodId: checkoutContext.shippingMethodId,
         recipientType: checkoutContext.recipientType,
+        phone: checkoutContext.phone,
       });
       if (policyRejection) return policyRejection;
     }

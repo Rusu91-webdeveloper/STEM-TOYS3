@@ -20,6 +20,7 @@ export const createPaymentIntentRequestSchema = z.object({
       couponCode: z.string().nullable().optional(),
       paymentMethod: z.string().optional(),
       recipientType: z.enum(["B2B", "B2C"]).optional(),
+      phone: z.string().optional(),
     })
     .optional(),
   metadata: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),

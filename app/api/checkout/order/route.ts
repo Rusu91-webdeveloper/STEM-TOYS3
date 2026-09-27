@@ -462,11 +462,11 @@ export async function POST(request: Request) {
           ? "stripe"
           : null;
     const codGuaranteeUserStats = isCODPayment
-      ? await resolveCodGuaranteeCustomerStats(
-          sessionUser?.id
-            ? { userId: user?.id || sessionUser.id }
-            : { userId: user?.id, guestEmail }
-        )
+      ? await resolveCodGuaranteeCustomerStats({
+          userId: sessionUser?.id ? user?.id || sessionUser.id : user?.id,
+          guestEmail: sessionUser?.id ? null : guestEmail,
+          phone: shippingAddressData.phone,
+        })
       : { priorOrderCount: 0, priorCodRtoCount: 0 };
 
     if (lockerRequired && isCODPayment) {

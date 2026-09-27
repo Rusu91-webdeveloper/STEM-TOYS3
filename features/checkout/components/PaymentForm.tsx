@@ -194,8 +194,9 @@ export function PaymentForm({
       couponCode: appliedCoupon?.code || null,
       paymentMethod,
       recipientType: recipientTypeRef.current,
+      phone: shippingAddress?.phone,
     }),
-    [appliedCoupon?.code, cartItems, shippingMethod?.id]
+    [appliedCoupon?.code, cartItems, shippingAddress?.phone, shippingMethod?.id]
   );
 
   const isNetopia = useMemo(
@@ -292,6 +293,7 @@ export function PaymentForm({
           recipientType,
           shippingMethodId: shippingMethod?.id,
           guestEmail: guestCheckoutEmail,
+          phone: shippingAddress?.phone,
         });
 
         if (!isActive) return;
@@ -322,6 +324,7 @@ export function PaymentForm({
     recipientType,
     shippingMethod?.id,
     guestCheckoutEmail,
+    shippingAddress?.phone,
   ]);
 
   useEffect(() => {
