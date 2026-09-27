@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { SESSION_CART_STORAGE, getCartId } from "@/lib/cart-storage";
+import {
+  attachGuestCartCookie,
+  getCartId,
+  readCartItems,
+  writeCartItems,
+} from "@/lib/cart-storage";
 import { db } from "@/lib/db";
 
 // Schema for validating incoming cart item data
@@ -56,7 +61,7 @@ export async function POST(request: Request) {
     console.log(`🛒 [ITEMS POST] Adding item to cart for session: ${cartId}`);
 
     // Get the current cart or initialize a new one
-    const cart = SESSION_CART_STORAGE.get(cartId) || [];
+    const cart = readCartItems(cartId);
 
     // Generate a unique ID for the cart item
     const itemId = `${validatedItem.productId}${
@@ -101,21 +106,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // Save the updated cart
-    SESSION_CART_STORAGE.set(cartId, cart);
-    console.log(
-      `📊 [ITEMS POST] Session storage now has ${SESSION_CART_STORAGE.size} sessions, cart has ${cart.length} items`
-    );
+    writeCartItems(cartId, cart);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: "Item added to cart successfully",
       data: {
         id: itemId,
         ...validatedItem,
       },
-      ephemeral: true,
+      ephemeral: false,
     });
+    return attachGuestCartCookie(response, request, cart);
   } catch (error) {
     console.error("Failed to add item to cart:", error);
 

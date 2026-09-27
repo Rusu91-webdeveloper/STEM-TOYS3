@@ -58,6 +58,7 @@ function getGlobalCartStorage(): Map<string, CartItem[]> {
         30 * 60 * 1000
       ); // 30 minutes
 
+      global.__CART_CLEANUP_INTERVAL__.unref?.();
       console.log("🧹 [CART STORAGE] Cleanup interval established");
     }
   } else {
@@ -168,82 +169,17 @@ export function migrateCart(fromSessionId: string, toEmail: string): void {
   );
 }
 
-// Generate a consistent session ID for the current browser session
-export function getSessionId(request: Request): string {
-  // Use stable headers to create a consistent session identifier
-  const userAgent = request.headers.get("user-agent") || "unknown";
-  const acceptLanguage = request.headers.get("accept-language") || "unknown";
-  const acceptEncoding = request.headers.get("accept-encoding") || "unknown";
-  const secFetchSite = request.headers.get("sec-fetch-site") || "unknown";
-
-  // Create a stable hash based on browser fingerprint
-  let hash = 0;
-  const input = `${userAgent}:${acceptLanguage}:${acceptEncoding}:${secFetchSite}`;
-  for (let i = 0; i < input.length; i++) {
-    const char = input.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-
-  return `session_${Math.abs(hash)}`;
+export function readCartItems(cartId: string): CartItem[] {
+  return SESSION_CART_STORAGE.get(cartId) ?? [];
 }
 
-// Helper function to get the cart ID (either user email or session ID)
-export async function getCartId(request: Request): Promise<string> {
-  // **PERFORMANCE**: Skip auth check entirely for cart operations to improve speed
-  // Use session ID directly - auth can be checked later when needed
-  const sessionId = getSessionId(request);
-
-  // **PERFORMANCE**: Only try auth for logged-in users (check cookies first)
-  // Check specific NextAuth cookie names to avoid false positives
-  const cookieHeader = request.headers.get("cookie") || "";
-  const hasAuthCookie =
-    /(?:^|;\s*)(?:next-auth\.session-token|__Secure-next-auth\.session-token)=/.test(
-      cookieHeader
-    );
-
-  if (hasAuthCookie) {
-    try {
-      // **PERFORMANCE**: Quick session check with very short timeout
-      const authPromise = import("@/lib/auth").then(({ auth }) => auth());
-      const timeoutPromise = new Promise<any>(resolve => {
-        setTimeout(() => resolve(null), 25); // 25ms timeout for faster response
-      });
-
-      const session = await Promise.race([authPromise, timeoutPromise]);
-
-      if (session?.user?.email) {
-        // User is logged in, use their email as cart ID
-        const email = session.user.email;
-
-        console.log(`🔑 [CART ID] Authenticated user: ${email}`);
-        console.log(`🔑 [CART ID] Session fingerprint: ${sessionId}`);
-
-        // Check if we need to migrate cart from session ID to email
-        migrateCart(sessionId, email);
-
-        return email;
-      }
-    } catch (error) {
-      // Auth failed, fall back to session ID
-      console.log(
-        `⚠️ [CART ID] Auth failed, using session ID fallback:`,
-        error
-      );
-    }
-  }
-
-  // Anonymous user or auth unavailable, use ephemeral session ID
-  console.log(`🔑 [CART ID] Using session ID: ${sessionId}`);
-
-  // Log current storage state
-  console.log(
-    `📊 [CART ID] Current storage has ${SESSION_CART_STORAGE.size} sessions`
-  );
-  if (SESSION_CART_STORAGE.size > 0) {
-    const keys = Array.from(SESSION_CART_STORAGE.keys());
-    console.log(`📊 [CART ID] Storage keys: ${keys.join(", ")}`);
-  }
-
-  return sessionId;
+export function writeCartItems(cartId: string, items: CartItem[]): void {
+  SESSION_CART_STORAGE.set(cartId, items);
 }
+
+export {
+  attachGuestCartCookie,
+  getCartId,
+  resolveCartRequest,
+  type CartRequestContext,
+} from "./cart-request";

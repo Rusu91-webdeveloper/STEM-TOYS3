@@ -9,10 +9,8 @@ export async function GET() {
     const session = await auth();
 
     if (!session?.user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+      // Guests have no wishlist. An empty list avoids a 401 on catalog pages.
+      return NextResponse.json([]);
     }
 
     // Check if the db has a wishlist model

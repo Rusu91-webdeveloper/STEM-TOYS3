@@ -163,7 +163,17 @@ export async function fetchCart(): Promise<CartItem[]> {
 /**
  * Save the entire cart to the server
  */
-export async function saveCart(items: CartItem[]): Promise<boolean> {
+export async function saveCart(
+  items: CartItem[],
+  options?: { clear?: boolean }
+): Promise<boolean> {
+  const clear = options?.clear === true;
+  // An empty payload without an explicit clear used to wipe the server cart
+  // during the add-to-cart debounce, before React state had the new item.
+  if (items.length === 0 && !clear) {
+    return true;
+  }
+
   try {
     // Create an AbortController for timeout
     const controller = new AbortController();
@@ -173,6 +183,7 @@ export async function saveCart(items: CartItem[]): Promise<boolean> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(clear ? { "x-cart-intent": "clear" } : {}),
       },
       body: JSON.stringify(items),
       signal: controller.signal,
@@ -185,8 +196,8 @@ export async function saveCart(items: CartItem[]): Promise<boolean> {
       throw new Error(`Failed to save cart: ${response.statusText}`);
     }
 
-    // Update cache with saved data
-    updateCache(items);
+    const saved = await response.json();
+    updateCache(Array.isArray(saved?.data) ? saved.data : items);
 
     return true;
   } catch (error) {

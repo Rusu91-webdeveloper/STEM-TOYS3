@@ -2,8 +2,17 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { type CartItem } from "@/features/cart";
-import { SESSION_CART_STORAGE, getCartId } from "@/lib/cart-storage";
+import {
+  attachGuestCartCookie,
+  readCartItems,
+  resolveCartRequest,
+  writeCartItems,
+} from "@/lib/cart-storage";
 import { db } from "@/lib/db";
+import {
+  isExplicitCartClear,
+  shouldRejectEmptyCartReplace,
+} from "@/lib/guest-cart";
 import { withRateLimit } from "@/lib/rate-limit";
 import { sanitizeInput } from "@/lib/security";
 
@@ -21,29 +30,34 @@ const cartItemSchema = z.object({
 
 const cartSchema = z.array(cartItemSchema);
 
-// GET /api/cart - Retrieve the user's cart (session-only)
+function cartResponse(
+  request: Request,
+  cartId: string,
+  items: CartItem[],
+  message: string,
+  status = 200
+) {
+  const response = NextResponse.json(
+    {
+      success: true,
+      message,
+      data: items,
+      user: cartId.includes("@") ? cartId : null,
+      ephemeral: false,
+    },
+    { status }
+  );
+  return attachGuestCartCookie(response, request, items);
+}
+
+// GET /api/cart - Retrieve the cart bound to the guest cookie or user email
 export const GET = withRateLimit(
   async request => {
     try {
-      // Get the cart ID using shared logic
-      const cartId = await getCartId(request);
+      const { cartId } = await resolveCartRequest(request);
+      const cart = readCartItems(cartId);
 
-      console.log(`🛒 [GET] Fetching ephemeral cart for session: ${cartId}`);
-      console.log(
-        `📊 [GET] Current session storage has ${SESSION_CART_STORAGE.size} sessions`
-      );
-
-      // Get cart from session storage only (no persistence)
-      const cart = SESSION_CART_STORAGE.get(cartId) || [];
-      console.log(`📦 [GET] Found ${cart.length} items for session ${cartId}`);
-
-      return NextResponse.json({
-        success: true,
-        message: "Cart fetched from session",
-        data: cart,
-        user: cartId.includes("@") ? cartId : null, // If cartId is email, use it as user
-        ephemeral: true,
-      });
+      return cartResponse(request, cartId, cart, "Cart fetched");
     } catch (error) {
       console.error("Failed to get cart:", error);
       return NextResponse.json(
@@ -66,23 +80,16 @@ export const GET = withRateLimit(
 export const POST = withRateLimit(
   async request => {
     try {
-      const cartId = await getCartId(request);
+      const { cartId } = await resolveCartRequest(request);
+      const existingCart = readCartItems(cartId);
 
       // Gracefully handle empty/invalid JSON bodies (e.g., when clearing cart)
       const rawBody = await request.text();
       if (!rawBody) {
-        SESSION_CART_STORAGE.set(cartId, []);
-        console.warn(
-          "⚠️ [POST] Empty cart payload received; cleared session cart"
-        );
+        writeCartItems(cartId, []);
+        console.warn("⚠️ [POST] Empty cart payload received; cleared cart");
 
-        return NextResponse.json({
-          success: true,
-          message: "Cart cleared",
-          data: [],
-          user: cartId.includes("@") ? cartId : null,
-          ephemeral: true,
-        });
+        return cartResponse(request, cartId, [], "Cart cleared");
       }
 
       let body: unknown;
@@ -111,6 +118,24 @@ export const POST = withRateLimit(
 
       // Validate the cart data
       const validatedCart = cartSchema.parse(sanitizedBody);
+
+      if (
+        shouldRejectEmptyCartReplace(
+          existingCart.length,
+          validatedCart.length,
+          isExplicitCartClear(request)
+        )
+      ) {
+        console.warn(
+          "⚠️ [POST] Ignored empty cart sync that would wipe a non-empty cart"
+        );
+        return cartResponse(
+          request,
+          cartId,
+          existingCart,
+          "Empty cart sync ignored"
+        );
+      }
 
       // Optimize: Batch database queries in parallel instead of sequential
       // Separate books and products for efficient querying
@@ -200,23 +225,14 @@ export const POST = withRateLimit(
         });
       }
 
-      // Store in session storage
-      SESSION_CART_STORAGE.set(cartId, cartWithIds);
+      writeCartItems(cartId, cartWithIds);
 
-      console.log(
-        `🛒 [POST] Updated ephemeral cart for session: ${cartId} with ${cartWithIds.length} items`
+      return cartResponse(
+        request,
+        cartId,
+        cartWithIds,
+        "Cart updated successfully"
       );
-      console.log(
-        `📊 [POST] Current session storage has ${SESSION_CART_STORAGE.size} sessions`
-      );
-
-      return NextResponse.json({
-        success: true,
-        message: "Cart updated successfully",
-        data: cartWithIds,
-        user: cartId.includes("@") ? cartId : null,
-        ephemeral: true,
-      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return NextResponse.json(

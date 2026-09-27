@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
 import { resolveProductId } from "@/lib/products/public-catalog";
+import { toShopperProduct } from "@/lib/products/public-shopper";
 import type { Product } from "@/types/product";
 
 export async function GET(
@@ -69,7 +70,7 @@ export async function GET(
       stemCategory: transformedProduct.stemCategory,
     });
 
-    return NextResponse.json(transformedProduct);
+    return NextResponse.json(toShopperProduct(transformedProduct));
   } catch (error) {
     console.error("Error fetching product:", error);
     return NextResponse.json(

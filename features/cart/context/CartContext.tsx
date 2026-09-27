@@ -5,11 +5,17 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useLayoutEffect,
   useRef,
   type ReactNode,
 } from "react";
 
 import { fetchCart, saveCart } from "../lib/cartApi";
+import {
+  reconcileLoadedCart,
+  selectCartSyncPayload,
+} from "../lib/cartReconcile";
+import { clearCartStorage, loadCartFromStorage, saveCartToStorage } from "../lib/cartStorage";
 import { debugCartState } from "../lib/cartSync";
 
 // Define a specific type for CartItem based on our product structure
@@ -120,6 +126,10 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingUpdatesRef = useRef<Set<string>>(new Set());
   const isInCheckoutRef = useRef(false);
+  const cartItemsRef = useRef<CartItem[]>([]);
+  const hydratedRef = useRef(false);
+  const allowEmptyPersistRef = useRef(false);
+  cartItemsRef.current = cartItems;
 
   // Check if we're in checkout to prevent unnecessary syncs
   useEffect(() => {
@@ -129,29 +139,33 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   }, []);
 
-  // Debounced sync function to batch multiple updates
-  const debouncedSync = React.useCallback(async () => {
+  // Debounced sync reads the latest cart. The closure at schedule time is
+  // often still empty, and posting that [] used to wipe the server cart.
+  const debouncedSync = React.useCallback(() => {
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
 
     syncTimeoutRef.current = setTimeout(async () => {
-      if (pendingUpdatesRef.current.size > 0 && !isInCheckoutRef.current) {
-        try {
-          await saveCart(cartItems);
-          pendingUpdatesRef.current.clear();
-        } catch (error) {
-          console.error("Failed to sync cart with server:", error);
-        }
+      if (pendingUpdatesRef.current.size === 0 || isInCheckoutRef.current) {
+        return;
       }
-    }, 1000); // 1 second debounce
-  }, [cartItems]);
 
-  // Sync cart with server (simplified)
+      const payload = selectCartSyncPayload(cartItemsRef.current);
+      try {
+        await saveCart(payload.items, { clear: payload.clear });
+        pendingUpdatesRef.current.clear();
+      } catch (error) {
+        console.error("Failed to sync cart with server:", error);
+      }
+    }, 1000);
+  }, []);
+
   const syncWithServer = async () => {
     try {
-      if (cartItems.length > 0 && !isInCheckoutRef.current) {
-        await saveCart(cartItems);
+      const latest = cartItemsRef.current;
+      if (latest.length > 0 && !isInCheckoutRef.current) {
+        await saveCart(latest);
       }
     } catch (error) {
       console.error("Failed to sync cart with server:", error);
@@ -266,12 +280,42 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   }, [cartItems]);
 
-  // Load cart from server on mount
+  // Paint the stored cart before the server round-trip so a reload is not empty.
+  useLayoutEffect(() => {
+    const stored = loadCartFromStorage();
+    if (stored.length > 0) {
+      cartItemsRef.current = stored;
+      setCartItems(stored);
+    }
+    hydratedRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    const items = cartItemsRef.current;
+    if (items.length === 0 && !allowEmptyPersistRef.current) return;
+    saveCartToStorage(items);
+  }, [cartItems]);
+
   const loadCart = React.useCallback(async () => {
     try {
-      setIsLoading(true);
+      if (cartItemsRef.current.length === 0) {
+        setIsLoading(true);
+      }
       const serverCart = await fetchCart();
-      setCartItems(serverCart);
+      const localCart =
+        cartItemsRef.current.length > 0
+          ? cartItemsRef.current
+          : loadCartFromStorage();
+      const reconciled = reconcileLoadedCart(localCart, serverCart);
+      cartItemsRef.current = reconciled.items;
+      setCartItems(reconciled.items);
+      if (reconciled.items.length > 0) {
+        allowEmptyPersistRef.current = true;
+      }
+      if (reconciled.pushToServer) {
+        await saveCart(reconciled.items);
+      }
     } catch (error) {
       console.error("Failed to load cart:", error);
     } finally {
@@ -281,10 +325,9 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
   // **PERFORMANCE**: Defer cart loading to after hydration for better TTFB
   useEffect(() => {
-    // Only load cart after hydration to avoid blocking TTFB
     const timer = setTimeout(() => {
       loadCart();
-    }, 100); // Small delay to prioritize critical rendering
+    }, 100);
 
     return () => clearTimeout(timer);
   }, [loadCart]);
@@ -302,7 +345,8 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       itemToAdd.isBook || typeof itemToAdd.stockQuantity !== "number"
         ? null
         : Math.max(0, itemToAdd.stockQuantity);
-    const existingItem = cartItems.find(item => item.id === cartItemId);
+    const prevItems = cartItemsRef.current;
+    const existingItem = prevItems.find(item => item.id === cartItemId);
 
     if (normalizedStockQuantity !== null) {
       if (normalizedStockQuantity <= 0) {
@@ -314,39 +358,35 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       }
     }
 
-    setCartItems(prevItems => {
-      const existingCartItem = prevItems.find(item => item.id === cartItemId);
+    let nextItems: CartItem[];
 
-      if (existingCartItem) {
-        const nextQuantity = existingCartItem.quantity + quantity;
-        const cappedQuantity =
-          normalizedStockQuantity === null
-            ? nextQuantity
-            : Math.min(nextQuantity, normalizedStockQuantity);
+    if (existingItem) {
+      const nextQuantity = existingItem.quantity + quantity;
+      const cappedQuantity =
+        normalizedStockQuantity === null
+          ? nextQuantity
+          : Math.min(nextQuantity, normalizedStockQuantity);
 
-        if (cappedQuantity === existingCartItem.quantity) {
-          return prevItems;
-        }
-
-        return prevItems.map(item =>
-          item.id === cartItemId
-            ? { ...item, quantity: cappedQuantity }
-            : item
-        );
+      if (cappedQuantity === existingItem.quantity) {
+        return;
       }
 
+      nextItems = prevItems.map(item =>
+        item.id === cartItemId ? { ...item, quantity: cappedQuantity } : item
+      );
+    } else {
       const normalizedQuantity =
         normalizedStockQuantity === null
           ? quantity
           : Math.min(quantity, normalizedStockQuantity);
 
       if (normalizedQuantity <= 0) {
-        return prevItems;
+        return;
       }
 
       const { stockQuantity: _stockQuantity, ...cartItemData } = itemToAdd;
 
-      return [
+      nextItems = [
         ...prevItems,
         {
           ...cartItemData,
@@ -355,9 +395,13 @@ export const CartProvider = ({ children }: CartProviderProps) => {
           slug: itemToAdd.slug,
         },
       ];
-    });
+    }
 
-    // Add to pending updates and trigger debounced sync
+    // Write the ref before scheduling sync. setState has not re-rendered yet,
+    // and the debounce used to post the empty cart from the previous render.
+    cartItemsRef.current = nextItems;
+    setCartItems(nextItems);
+
     pendingUpdatesRef.current.add(cartItemId);
     debouncedSync();
   };
@@ -373,10 +417,10 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         ? getCartItemId(itemId, variantId, selectedLanguage)
         : itemId;
 
-    // First update the UI immediately
-    setCartItems(prevItems => prevItems.filter(item => item.id !== cartItemId));
+    const nextItems = cartItemsRef.current.filter(item => item.id !== cartItemId);
+    cartItemsRef.current = nextItems;
+    setCartItems(nextItems);
 
-    // Add to pending updates and trigger debounced sync
     pendingUpdatesRef.current.add(cartItemId);
     debouncedSync();
   };
@@ -395,20 +439,16 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         ? getCartItemId(itemId, variantId, selectedLanguage)
         : itemId;
 
-    // First update the UI immediately
-    setCartItems(
-      prevItems =>
-        prevItems
-          .map(
-            item =>
-              item.id === cartItemId
-                ? { ...item, quantity: Math.max(0, quantity) }
-                : item // Prevent negative quantity
-          )
-          .filter(item => item.quantity > 0) // Remove item if quantity is 0
-    );
+    const nextItems = cartItemsRef.current
+      .map(item =>
+        item.id === cartItemId
+          ? { ...item, quantity: Math.max(0, quantity) }
+          : item
+      )
+      .filter(item => item.quantity > 0);
+    cartItemsRef.current = nextItems;
+    setCartItems(nextItems);
 
-    // Add to pending updates and trigger debounced sync
     pendingUpdatesRef.current.add(cartItemId);
     debouncedSync();
   };
@@ -417,17 +457,19 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     updateItemQuantity(itemId, quantity);
 
   const clearCart = () => {
+    allowEmptyPersistRef.current = true;
+    cartItemsRef.current = [];
     setCartItems([]);
     setSelectedItems(new Set());
+    clearCartStorage();
 
-    // Clear pending updates and sync immediately
     pendingUpdatesRef.current.clear();
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
 
     try {
-      saveCart([]);
+      saveCart([], { clear: true });
     } catch (error) {
       console.error("Failed to clear cart:", error);
     }
@@ -526,13 +568,14 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   };
 
   // Cleanup on unmount
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (syncTimeoutRef.current) {
         clearTimeout(syncTimeoutRef.current);
       }
-    };
-  }, []);
+    },
+    []
+  );
 
   const value: CartContextType = {
     items: cartItems,

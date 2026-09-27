@@ -8,6 +8,7 @@ import {
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/db";
+import { toShopperProduct } from "@/lib/products/public-shopper";
 
 export async function GET(request: NextRequest) {
   try {
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({
-      products: productsWithRatings,
+      products: productsWithRatings.map(product => toShopperProduct(product)),
       pagination: {
         page,
         limit,

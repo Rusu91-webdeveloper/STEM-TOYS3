@@ -25,7 +25,7 @@ const SESSION_KEY = "nextcommerce_session_id";
 // Default preferences for better UX
 const DEFAULT_PREFERENCES: CartStoragePreferences = {
   persistenceMode: "smart", // Smart mode by default
-  autoExpiry: 24, // 24 hours
+  autoExpiry: 24 * 30, // 30 days — guest carts must survive a return visit
   clearOnCheckout: true,
   clearOnLogout: false,
 };
@@ -212,6 +212,11 @@ export function saveCartToStorage(items: any[]): void {
         // Persistent storage with metadata
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cartData));
         break;
+      default: {
+        const _mode: never = preferences.persistenceMode;
+        void _mode;
+        break;
+      }
     }
   } catch (error) {
     console.error("Failed to save cart to storage:", error);
