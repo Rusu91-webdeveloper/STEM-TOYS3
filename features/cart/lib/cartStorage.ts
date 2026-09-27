@@ -16,6 +16,13 @@ export interface CartStorageData {
   lastAccess: number;
   sessionId: string;
   preferences: CartStoragePreferences;
+  /** True when the shopper removed the last item. An empty list without this flag is "not loaded yet". */
+  explicitEmpty?: boolean;
+}
+
+export interface CartStorageRecord {
+  items: any[];
+  explicitEmpty: boolean;
 }
 
 const STORAGE_KEY = "nextcommerce_cart";
@@ -121,17 +128,21 @@ function shouldPersistCart(
 }
 
 /**
- * Load cart from storage with smart logic
+ * Load cart from storage with smart logic.
+ * `explicitEmpty` is set only after the shopper clears the last item, so a
+ * reload does not treat "never saved" and "removed everything" the same way.
  */
-export function loadCartFromStorage(): any[] {
-  if (typeof window === "undefined") return [];
+export function readCartStorage(): CartStorageRecord {
+  if (typeof window === "undefined") {
+    return { items: [], explicitEmpty: false };
+  }
 
   const preferences = getCartPreferences();
   const currentSessionId = getSessionId();
 
   // If persistence is disabled, return empty cart
   if (preferences.persistenceMode === "disabled") {
-    return [];
+    return { items: [], explicitEmpty: false };
   }
 
   try {
@@ -144,7 +155,7 @@ export function loadCartFromStorage(): any[] {
       if (isCartExpired(cartData, preferences)) {
         console.log("Cart expired, clearing...");
         clearCartStorage();
-        return [];
+        return { items: [], explicitEmpty: false };
       }
 
       // Check if we should load this cart based on persistence mode
@@ -152,14 +163,18 @@ export function loadCartFromStorage(): any[] {
         !shouldPersistCart(preferences, currentSessionId, cartData.sessionId)
       ) {
         console.log("Cart session mismatch, not loading");
-        return [];
+        return { items: [], explicitEmpty: false };
       }
 
       // Update last access time
       cartData.lastAccess = Date.now();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(cartData));
 
-      return cartData.items || [];
+      const items = cartData.items || [];
+      return {
+        items,
+        explicitEmpty: items.length === 0 && cartData.explicitEmpty === true,
+      };
     }
 
     // Fallback to session storage for session-only mode
@@ -167,7 +182,11 @@ export function loadCartFromStorage(): any[] {
       const sessionStored = sessionStorage.getItem(STORAGE_KEY);
       if (sessionStored) {
         const items = JSON.parse(sessionStored);
-        return items || [];
+        const list = items || [];
+        return {
+          items: list,
+          explicitEmpty: Array.isArray(list) && list.length === 0,
+        };
       }
     }
   } catch (error) {
@@ -175,7 +194,11 @@ export function loadCartFromStorage(): any[] {
     clearCartStorage(); // Clear corrupted data
   }
 
-  return [];
+  return { items: [], explicitEmpty: false };
+}
+
+export function loadCartFromStorage(): any[] {
+  return readCartStorage().items;
 }
 
 /**
@@ -198,6 +221,7 @@ export function saveCartToStorage(items: any[]): void {
     lastAccess: Date.now(),
     sessionId: currentSessionId,
     preferences,
+    explicitEmpty: items.length === 0,
   };
 
   try {

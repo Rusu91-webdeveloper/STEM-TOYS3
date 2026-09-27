@@ -114,14 +114,10 @@ export function CheckoutFlow() {
     setCurrentStep(step);
   };
 
-  // Initialize checkout step based on cart state
+  // Guests and signed-in shoppers share the same steps. Auth status only
+  // blocks the first paint while the session is still resolving.
   useEffect(() => {
     if (status === "loading") {
-      setCurrentStep("loading");
-      return;
-    }
-
-    if (!session?.user) {
       setCurrentStep("loading");
       return;
     }
@@ -144,9 +140,8 @@ export function CheckoutFlow() {
       return;
     }
 
-    // Start with shipping-address step
-    setCurrentStep("shipping-address");
-  }, [status, session, cartItems.length, router]);
+    setCurrentStep(step => (step === "loading" ? "shipping-address" : step));
+  }, [status, cartItems.length, router]);
 
   // Helper function to calculate discount amount locally
   const calculateDiscountAmount = (
@@ -357,6 +352,8 @@ export function CheckoutFlow() {
         // Mark as Netopia payment - order will be created with pending status
         paymentProvider: "netopia",
         paymentStatus: "PENDING",
+        guestEmail:
+          session?.user?.email || checkoutData.shippingAddress?.email || null,
       };
 
       // Create order first (will be in pending payment status)
@@ -378,7 +375,10 @@ export function CheckoutFlow() {
           currency: "RON",
           customerData: {
             name: orderData.billingAddress.fullName,
-            email: session?.user?.email || "",
+            email:
+              session?.user?.email ||
+              checkoutData.shippingAddress?.email ||
+              "",
             phone: orderData.billingAddress.phone,
           },
           paymentMethod: checkoutData.paymentMethod,
@@ -402,11 +402,10 @@ export function CheckoutFlow() {
           );
 
           if (paymentResult.paymentUrl) {
-            // Clear cart before redirect
-            await clearCart();
-
+            // Keep the cart until Netopia reports success. A cancelled or
+            // failed payment must still have the same items when the shopper
+            // comes back. The return page clears the cart only after payment.
             console.log("🔄 [CHECKOUT] Redirecting to Netopia payment page...");
-            // Redirect to Netopia payment page
             window.location.href = paymentResult.paymentUrl;
             return;
           }
@@ -581,6 +580,8 @@ export function CheckoutFlow() {
         codConsentText: checkoutData.codConsentText,
         codGuaranteePaymentIntentId: checkoutData.codGuaranteePaymentIntentId,
         codGuaranteeAmount: checkoutData.codGuaranteeAmount,
+        guestEmail:
+          session?.user?.email || checkoutData.shippingAddress?.email || null,
       };
 
       console.log("🚀 [CHECKOUT] Creating COD order...");
@@ -704,6 +705,8 @@ export function CheckoutFlow() {
         paymentStatus: isStripePayment ? "PENDING" : "PAID",
         paymentProvider: isStripePayment ? "stripe" : undefined,
         stripePaymentIntentId,
+        guestEmail:
+          session?.user?.email || checkoutData.shippingAddress?.email || null,
       };
 
       const order = await createOrder(orderData);
@@ -741,17 +744,6 @@ export function CheckoutFlow() {
         <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
         <p className="text-lg font-medium text-slate-700">
           {t("loading", "Loading checkout...")}
-        </p>
-      </div>
-    );
-  }
-
-  // Show error if no session
-  if (!session?.user) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-slate-900">
-        <p className="text-lg font-medium text-rose-600">
-          {t("loginRequired", "Please log in to continue with checkout")}
         </p>
       </div>
     );
@@ -806,6 +798,7 @@ export function CheckoutFlow() {
             <div className="space-y-6">
               <ShippingAddressForm
                 initialData={checkoutData.shippingAddress}
+                collectGuestEmail={!session?.user}
                 onSubmit={address => {
                   updateCheckoutData({ shippingAddress: address });
                   setCurrentStep("shipping-method");

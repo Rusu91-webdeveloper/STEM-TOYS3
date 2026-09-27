@@ -1,29 +1,93 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { SESSION_CART_STORAGE, getCartId } from "@/lib/cart-storage";
-import { db } from "@/lib/db";
+import {
+  loadAuthoritativePhysicalLines,
+  type ShippingQuoteLineInput,
+} from "@/lib/checkout/shipping-quote-lines";
 import {
   analyzeSupplierCartComposition,
   calculateMixedSupplierShippingSurcharge,
 } from "@/lib/checkout/supplier-cart-rules";
 import {
-  calculateShippingQuote,
-  resolveShippingService,
-} from "@/lib/shipping/shipping-pricing";
-import {
   buildShippingMethodId,
   DEFAULT_COURIERS,
 } from "@/lib/shipping/couriers";
+import {
+  calculateShippingQuote,
+  resolveShippingService,
+} from "@/lib/shipping/shipping-pricing";
 import { getShippingSettings } from "@/lib/utils/store-settings";
 
-export async function GET(request: NextRequest) {
-  try {
-    // No auth required — shipping quotes are public pricing info.
-    // The cart is identified by session cookie (works for guests too).
-    const cartId = await getCartId(request);
-    const cart = SESSION_CART_STORAGE.get(cartId) || [];
+const quoteRequestSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        productId: z.string().min(1),
+        quantity: z.number().int().positive(),
+        isBook: z.boolean().optional(),
+      })
+    )
+    .max(100),
+});
 
-    const physicalItems = cart.filter(item => item.isBook !== true);
+async function readRequestedLines(
+  request: NextRequest
+): Promise<
+  | { ok: true; items: ShippingQuoteLineInput[] }
+  | { ok: false; response: NextResponse }
+> {
+  if (request.method === "GET") {
+    const cartId = await getCartId(request);
+    const cart = SESSION_CART_STORAGE.get(cartId) ?? [];
+    return {
+      ok: true,
+      items: cart.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        isBook: item.isBook,
+      })),
+    };
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: "Invalid shipping quote payload" },
+        { status: 400 }
+      ),
+    };
+  }
+
+  const parsed = quoteRequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: "Invalid shipping quote items" },
+        { status: 400 }
+      ),
+    };
+  }
+
+  return { ok: true, items: parsed.data.items };
+}
+
+async function handleShippingQuote(request: NextRequest) {
+  try {
+    const requested = await readRequestedLines(request);
+    if (!requested.ok) return requested.response;
+
+    // Client lines are re-priced here. A size-truncated guest cookie must not
+    // turn a full basket into an empty quote.
+    const authoritative = await loadAuthoritativePhysicalLines(requested.items);
+    const physicalItems = authoritative.lines;
+    const products = authoritative.products;
     if (physicalItems.length === 0) {
       return NextResponse.json({
         isDigitalOnly: true,
@@ -31,23 +95,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const productIds = physicalItems.map(item => item.productId);
-    const products = await db.product.findMany({
-      where: { id: { in: productIds } },
-      select: {
-        id: true,
-        weight: true,
-        dimensions: true,
-        supplierId: true,
-        supplier: {
-          select: {
-            id: true,
-            name: true,
-            companyName: true,
-          },
-        },
-      },
-    });
     const productMap = new Map(products.map(product => [product.id, product]));
     const supplierCartRules = analyzeSupplierCartComposition(
       physicalItems,
@@ -73,7 +120,7 @@ export async function GET(request: NextRequest) {
           quantity: number;
           weightKg: number | null;
           dimensions: Record<string, unknown>;
-        } => item != null
+        } => item !== null
       );
 
     if (shippingItems.length === 0) {
@@ -170,4 +217,12 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+export function GET(request: NextRequest) {
+  return handleShippingQuote(request);
+}
+
+export function POST(request: NextRequest) {
+  return handleShippingQuote(request);
 }

@@ -23,6 +23,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { TECHTOTS_SOCIAL_LINKS } from "@/lib/config/social-links";
 import { useTranslation } from "@/lib/i18n";
 import { getRegionalStemLinks } from "@/lib/seo/regional-search";
 
@@ -71,6 +72,16 @@ export default function Footer({
   const getReturnPolicyText = () =>
     t("freeReturnsOver50", "14 calendar days for returns. Return shipping is paid by the customer.");
 
+  const socialIcons: Record<
+    (typeof TECHTOTS_SOCIAL_LINKS)[number]["name"],
+    LucideIcon
+  > = {
+    Facebook,
+    Instagram,
+    LinkedIn: Linkedin,
+    YouTube: Youtube,
+  };
+
   const socialLinks = [
     {
       name: "Website",
@@ -82,26 +93,11 @@ export default function Footer({
       href: `mailto:${resolvedEmail}`,
       icon: Mail,
     },
-    {
-      name: "Facebook",
-      href: "https://www.facebook.com/people/TechTots/61577557110903/",
-      icon: Facebook,
-    },
-    {
-      name: "Instagram",
-      href: "https://www.instagram.com/techtots_romania/",
-      icon: Instagram,
-    },
-    {
-      name: "LinkedIn",
-      href: "https://www.linkedin.com/in/techtots-romania-b28541388",
-      icon: Linkedin,
-    },
-    {
-      name: "YouTube",
-      href: "https://www.youtube.com/@TechTots_Romania",
-      icon: Youtube,
-    },
+    ...TECHTOTS_SOCIAL_LINKS.map(link => ({
+      name: link.name,
+      href: link.href,
+      icon: socialIcons[link.name],
+    })),
   ];
 
   const customerServiceLinks = [

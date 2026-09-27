@@ -27,7 +27,7 @@ describe("POST /api/checkout/order auth contract", () => {
     validateCsrfForRequest.mockResolvedValue({ valid: true });
   });
 
-  it("returns AUTH_REQUIRED when session is missing", async () => {
+  it("requires a guest email when the shopper is not signed in", async () => {
     auth.mockResolvedValue(null);
 
     const request = new NextRequest("http://localhost/api/checkout/order", {
@@ -57,7 +57,7 @@ describe("POST /api/checkout/order auth contract", () => {
     const response = await POST(request);
     const data = await response.json();
 
-    expect(response.status).toBe(401);
-    expect(data.error).toBe("AUTH_REQUIRED");
+    expect(response.status).toBe(400);
+    expect(data.error).toBe("GUEST_EMAIL_REQUIRED");
   });
 });

@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/features/cart";
 
 export default function NetopiaCallback() {
   const router = useRouter();
+  const { clearCart } = useCart();
   const [orderId, setOrderId] = useState<string | null>(null);
   const [status, setStatus] = useState<
     "loading" | "success" | "error" | "processing"
@@ -66,6 +69,7 @@ export default function NetopiaCallback() {
         if (result.status === "paid" || result.status === "refunded") {
           setStatus("success");
           setMessage("Plata a fost procesată cu succes!");
+          await clearCart();
 
           // Clear session storage
           sessionStorage.removeItem("netopia_order_id");
@@ -159,6 +163,7 @@ export default function NetopiaCallback() {
       if (result.status === "paid" || result.status === "refunded") {
         setStatus("success");
         setMessage("Plata a fost marcată ca plătită pentru testare locală.");
+        await clearCart();
         sessionStorage.removeItem("netopia_order_id");
         sessionStorage.removeItem("netopia_payment_method");
         sessionStorage.removeItem("pendingOrderId");
