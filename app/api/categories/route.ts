@@ -23,21 +23,31 @@ import { getPaginationParams } from "@/lib/utils/pagination";
 // Category mapping from production database slugs to standard STEM categories
 const categoryMapping = {
   // Science categories
+  science: "science",
   "science-kits": "science",
+  "science-experiments": "science",
   geology: "science",
 
   // Technology categories
+  technology: "technology",
   electronics: "technology",
   programming: "technology",
   robotics: "technology",
 
   // Engineering categories
+  engineering: "engineering",
   "construction-sets": "engineering",
+  "magnetic-building": "engineering",
 
   // Mathematics categories
+  mathematics: "mathematics",
+  math: "mathematics",
   matematic: "mathematics",
+  matematica: "mathematics",
+  "logic-games": "mathematics",
 
   // Educational content
+  "educational-books": "educational-books",
   "educaie-stem": "educational-books",
 };
 

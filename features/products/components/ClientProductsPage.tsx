@@ -19,6 +19,7 @@ import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
 import { giftOrder, visibleInBrowse } from "@/lib/products/merchandising";
+import { isListedInCategory } from "@/lib/products/stem-category";
 import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import type { Product } from "@/types/product";
 
@@ -272,15 +273,9 @@ function ClientProductsPageContent({
         options: categories.map(cat => ({
           id: normalizeCategory(cat!),
           label: cat!,
-          count: products.filter(p => {
-            // For STEM categories, prioritize stemDiscipline over category.name
-            const productCategory = p.stemDiscipline
-              ? p.stemDiscipline.toLowerCase()
-              : p.category?.name?.toLowerCase() || "";
-            return (
-              normalizeCategory(productCategory) === normalizeCategory(cat!)
-            );
-          }).length,
+          count: products.filter(product =>
+            isListedInCategory(product, normalizeCategory(cat!))
+          ).length,
         })),
       },
     ];
@@ -322,32 +317,20 @@ function ClientProductsPageContent({
 
   // Client-side filtering based on selected categories and other filters
   const filteredProducts = useMemo(() => {
-    let filtered = products
-      .filter(product => !/E tiintific|miE care|Ã|�/.test(product.name))
-      .filter(product =>
-        state.searchQuery ||
-        state.selectedCategories.some(c => /book|carti|cărți/i.test(c))
-          ? true
-          : visibleInBrowse(product)
-      );
+    let filtered = products.filter(
+      product => !/E tiintific|miE care|Ã|�/.test(product.name)
+    );
 
-    // Filter by selected categories
+    // Category pages and /products?category= share isListedInCategory,
+    // which also applies the browse visibility rules (hidden add-ons, stock).
     if (state.selectedCategories.length > 0) {
-      filtered = filtered.filter(product => {
-        // For STEM categories, prioritize stemDiscipline over category.name
-        // This ensures products with stemDiscipline values are properly categorized
-        const stemValue = product.stemDiscipline?.toLowerCase();
-        const productCategory =
-          stemValue && stemValue !== "general"
-            ? stemValue
-            : product.category?.name?.toLowerCase() || "";
-
-        return state.selectedCategories.some(selectedCategory => {
-          const normalizedSelected = normalizeCategory(selectedCategory);
-          const normalizedProduct = normalizeCategory(productCategory);
-          return normalizedProduct === normalizedSelected;
-        });
-      });
+      filtered = filtered.filter(product =>
+        state.selectedCategories.some(selectedCategory =>
+          isListedInCategory(product, selectedCategory)
+        )
+      );
+    } else if (!state.searchQuery) {
+      filtered = filtered.filter(product => visibleInBrowse(product));
     }
 
     // Filter by price range if price filter is enabled

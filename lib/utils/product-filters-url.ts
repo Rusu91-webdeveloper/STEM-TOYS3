@@ -1,3 +1,5 @@
+import { canonicalizeCategorySlug } from "@/lib/products/stem-category";
+
 // Centralized utilities for building /products URLs from filter selections
 
 export type AgeGroup =
@@ -28,68 +30,7 @@ export function normalizeCategory(name: string): string {
     return "";
   }
 
-  const lower = name.toLowerCase().trim();
-
-  // Handle educational books variations
-  if (
-    lower === "educational-books" ||
-    lower === "educational books" ||
-    lower === "books" ||
-    lower === "carti" ||
-    lower === "carti educationale" ||
-    lower.includes("book") ||
-    lower.includes("carte")
-  ) {
-    return "educational-books";
-  }
-
-  // Handle science variations
-  if (
-    lower === "science" ||
-    lower === "stiinta" ||
-    lower === "știință" ||
-    lower.includes("stiint") ||
-    lower.includes("știin")
-  ) {
-    return "science";
-  }
-
-  // Handle technology variations
-  if (
-    lower === "technology" ||
-    lower === "tehnologie" ||
-    lower.includes("tehnolog")
-  ) {
-    return "technology";
-  }
-
-  // Handle engineering variations
-  if (lower === "inginerie" || lower.includes("engineer")) {
-    return "engineering";
-  }
-
-  // Handle mathematics variations
-  if (
-    lower === "mathematics" ||
-    lower === "matematica" ||
-    lower === "matematică" ||
-    lower.includes("math") ||
-    lower.includes("mate")
-  ) {
-    return "mathematics";
-  }
-
-  // Handle engineering learning variations
-  if (
-    lower === "engineeringlearning" ||
-    lower === "engineering learning" ||
-    lower === "inginerie si invatare" ||
-    lower === "inginerie și învățare"
-  ) {
-    return "engineering";
-  }
-
-  return lower;
+  return canonicalizeCategorySlug(name) ?? name.toLowerCase().trim();
 }
 
 export function buildProductsUrl(input: BuildProductsUrlInput = {}): string {

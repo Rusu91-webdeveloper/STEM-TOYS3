@@ -48,10 +48,11 @@ import {
 import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Suspense } from "react";
 
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
+import { CategoryProductSection } from "@/features/categories/components/CategoryProductSection";
 import {
   glassCardClass,
   glassPanelClass,
@@ -62,25 +63,25 @@ import {
   homeOverlayTopClass,
 } from "@/features/home/components/homeTheme";
 import { getTranslation } from "@/lib/i18n/server";
+import { categoryLandingSlug } from "@/lib/products/stem-category";
 import { blogService } from "@/lib/services/blog-service";
 import { getCategoryName } from "@/lib/services/categories-service";
-import { isRemovedCategoryPageSlug } from "@/lib/utils/category-page-links";
+import { buildProductsUrl } from "@/lib/utils/product-filters-url";
 
 // Enable ISR with 10 minutes revalidation
 export const revalidate = 600;
 export const dynamicParams = false;
 
-const KNOWN_SLUGS = [
+const PAGE_SLUGS = [
   "science",
   "technology",
   "engineering",
-  "math",
+  "mathematics",
   "educational-books",
 ] as const;
-type KnownSlug = (typeof KNOWN_SLUGS)[number];
 
-function isKnownSlug(slug: string): slug is KnownSlug {
-  return KNOWN_SLUGS.includes(slug as KnownSlug);
+function contentSlug(slug: string): string {
+  return slug === "mathematics" ? "math" : slug;
 }
 
 function slugToStemCategory(
@@ -94,12 +95,13 @@ function slugToStemCategory(
     technology: "TECHNOLOGY",
     engineering: "ENGINEERING",
     math: "MATHEMATICS",
+    mathematics: "MATHEMATICS",
   };
   return map[slug];
 }
 
 export function generateStaticParams() {
-  return KNOWN_SLUGS.map(slug => ({ slug }));
+  return [...PAGE_SLUGS.map(slug => ({ slug })), { slug: "math" }];
 }
 
 export async function generateMetadata({
@@ -108,19 +110,19 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug: slugParam } = await params;
-  const slug = slugParam.toLowerCase();
-  if (isRemovedCategoryPageSlug(slug) || !isKnownSlug(slug)) {
+  const landing = categoryLandingSlug(slugParam);
+  if (!landing) {
     notFound();
   }
-  const cookieStore = await cookies();
-  const locale = cookieStore.get("locale")?.value ?? "ro";
-  const title = `${getCategoryName(slug, locale)} | STEM Categories`;
-  const description = `Explorați categoria ${getCategoryName(slug, locale)}: beneficii educaționale, recomandări și articole relevante despre jucării STEM.`;
+  const name = getCategoryName(landing, "ro");
+  const canonical = `https://www.techtots.ro/categories/${landing}`;
+  const title = `${name} | Jucării STEM | TechTots`;
+  const description = `Descoperă jucăriile STEM din categoria ${name}: produse active pentru joacă și învățare, cu livrare în România.`;
   return {
     title,
     description,
-    alternates: { canonical: `/categories/${slug}` },
-    openGraph: { title, description },
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical, locale: "ro_RO" },
   };
 }
 
@@ -284,7 +286,6 @@ async function RelatedBlogs({ slug }: { slug: string }) {
     </section>
   );
 }
-
 
 function Overview({ slug, locale }: { slug: string; locale: string }) {
   const _t = getTranslation(locale);
@@ -662,19 +663,34 @@ function CategoryEducationalBenefits({ slug }: { slug: string }) {
   );
 }
 
+function parseCategoryPage(value: string | string[] | undefined): number {
+  const raw = Array.isArray(value) ? value[0] : value;
+  const page = raw ? Number.parseInt(raw, 10) : 1;
+  return Number.isFinite(page) && page > 0 ? page : 1;
+}
+
 export default async function CategoryDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string | string[] }>;
 }) {
   const { slug: slugParam } = await params;
-  const cookieStore = await cookies();
-  const locale = cookieStore.get("locale")?.value ?? "ro";
-  const slug = slugParam.toLowerCase();
-  if (isRemovedCategoryPageSlug(slug) || !isKnownSlug(slug)) {
+  const query = await searchParams;
+  const requestedSlug = slugParam.toLowerCase();
+  if (requestedSlug === "math") {
+    permanentRedirect("/categories/mathematics");
+  }
+  const slug = categoryLandingSlug(requestedSlug);
+  if (!slug) {
     notFound();
   }
-  const _t = getTranslation(locale);
+  const cookieStore = await cookies();
+  const _locale = cookieStore.get("locale")?.value ?? "ro";
+  const _t = getTranslation(_locale);
+  const visualSlug = contentSlug(slug);
+  const page = parseCategoryPage(query.page);
 
   const headerImageBySlug: Record<string, string> = {
     science: "/Science.png",
@@ -684,9 +700,9 @@ export default async function CategoryDetailPage({
     "educational-books": "/images/category_banner_books_01.jpg",
   };
 
-  const heroTitle = getCategoryName(slug, locale);
-  const heroImg = headerImageBySlug[slug] ?? "/HeroImageTechTechtots.png";
-  const categoryIcons = getCategoryIcons(slug);
+  const heroTitle = getCategoryName(slug, "ro");
+  const heroImg = headerImageBySlug[visualSlug] ?? "/HeroImageTechTechtots.png";
+  const categoryIcons = getCategoryIcons(visualSlug);
 
   return (
     <div className={homeBackgroundClass}>
@@ -695,11 +711,11 @@ export default async function CategoryDetailPage({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: "/" },
+            { "@type": "ListItem", position: 1, name: "Acasă", item: "/" },
             {
               "@type": "ListItem",
               position: 2,
-              name: "Categories",
+              name: "Categorii",
               item: "/categories",
             },
             {
@@ -769,7 +785,7 @@ export default async function CategoryDetailPage({
 
           <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 md:bottom-6 md:right-6">
             <Link
-              href="/products"
+              href={buildProductsUrl({ category: slug })}
               className={`${gradientButtonClass} inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm md:px-5 md:py-2.5`}
               data-conversion="cta"
               data-conversion-type="click"
@@ -783,7 +799,9 @@ export default async function CategoryDetailPage({
           </div>
         </section>
 
-        <Overview slug={slug} locale={locale} />
+        <CategoryProductSection slug={slug} page={page} />
+
+        <Overview slug={visualSlug} locale="ro" />
 
         <section className="container mx-auto w-full px-4 sm:px-6 lg:px-10">
           <div
@@ -849,8 +867,7 @@ export default async function CategoryDetailPage({
           </div>
         </section>
 
-        <CategoryEducationalBenefits slug={slug} />
-
+        <CategoryEducationalBenefits slug={visualSlug} />
 
         <Suspense>
           <RelatedBlogs slug={slug} />

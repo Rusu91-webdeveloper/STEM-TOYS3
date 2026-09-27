@@ -79,6 +79,29 @@ describe("CategoriesGrid", () => {
     expect(ctaElements).toHaveLength(2);
   });
 
+  it("renders Matematică and links it to the mathematics landing page", () => {
+    const mathCategory: CategoryData = {
+      id: "mathematics",
+      name: "Matematică",
+      nameKey: "Math",
+      description: "mathCategoryDesc",
+      slug: "mathematics",
+      image: "/images/category_banner_math_01.png",
+      productCount: 16,
+      isActive: true,
+    };
+
+    render(<CategoriesGrid categories={[mathCategory]} />);
+
+    expect(screen.getByText("Matematică")).toBeInTheDocument();
+    expect(screen.getByText("16 produse")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Matematică/i })).toHaveAttribute(
+      "href",
+      "/categories/mathematics"
+    );
+    expect(screen.getByText("Matematică distractivă")).toBeInTheDocument();
+  });
+
   it("handles empty categories array", () => {
     const { container } = render(<CategoriesGrid categories={[]} />);
 

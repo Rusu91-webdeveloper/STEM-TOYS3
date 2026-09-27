@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 
 import { db } from "@/lib/db";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
+import { CANONICAL_CATEGORY_SLUGS } from "@/lib/products/stem-category";
 import { regionalStemCities } from "@/lib/seo/regional-search";
 
 export const dynamic = "force-dynamic";
@@ -120,15 +121,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const now = new Date();
 
-    // Categories that actually render (from app/categories/[slug]/page.tsx KNOWN_SLUGS)
-    const KNOWN_CATEGORY_SLUGS = [
-      "science",
-      "technology",
-      "engineering",
-      "math",
-      "educational-books",
-    ] as const;
-
     const [products, blogs] = await Promise.all([
       db.product.findMany({
         where: {
@@ -160,7 +152,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         city.slug === "bucuresti" || city.slug === "cluj-napoca" ? 0.84 : 0.78,
     }));
 
-    const categoryPages = KNOWN_CATEGORY_SLUGS.map(slug => ({
+    const categoryPages = CANONICAL_CATEGORY_SLUGS.map(slug => ({
       url: `${baseUrl}/categories/${slug}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
