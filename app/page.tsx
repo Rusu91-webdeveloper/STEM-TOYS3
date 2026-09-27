@@ -87,7 +87,7 @@ const getRecommendations = unstable_cache(
       );
     });
   },
-  ["homepage-recommendations-v6-browse"],
+  ["homepage-recommendations-v7-featured-order"],
   { revalidate: 300, tags: ["products"] }
 );
 

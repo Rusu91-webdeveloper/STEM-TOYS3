@@ -5,6 +5,11 @@ import { getCached } from "@/lib/cache";
 import { TIME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { withPerformanceMonitoring } from "@/lib/performance";
+import {
+  filterCatalogForCategory,
+  paginateItems,
+} from "@/lib/products/category-query";
+import { loadStorefrontCatalog } from "@/lib/products/category-listing";
 import { toShopperProduct } from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
 import {
@@ -265,6 +270,39 @@ async function fetchProductsFromDatabase(params: {
     productType,
     specialCategories,
   } = params;
+
+  // Category requests use the same visibility rules as the category pages.
+  if (category) {
+    const startTime = Date.now();
+    const catalog = await loadStorefrontCatalog();
+    const matched = filterCatalogForCategory(catalog, {
+      category,
+      minPrice,
+      maxPrice,
+      search,
+      featured,
+      ageGroup,
+      sort,
+    });
+    const paged = paginateItems(matched, page, limit);
+    return {
+      products: paged.items,
+      pagination: {
+        page: paged.page,
+        limit: paged.limit,
+        total: paged.total,
+        totalPages: paged.totalPages,
+        hasNext: paged.hasNext,
+        hasPrevious: paged.hasPrevious,
+      },
+      meta: {
+        executionTime: Date.now() - startTime,
+        itemsCount: paged.items.length,
+        queryOptimizations: true,
+        cached: false,
+      },
+    };
+  }
 
   // Check if educational-books category is requested
   const includeBooks = category

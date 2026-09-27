@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { fillTemplate } from "@/lib/format/template";
+import { formatStorefrontPrice } from "@/lib/format/storefront-price";
+import { useTranslation } from "@/lib/i18n";
 
 interface CouponInputProps {
   cartTotal: number;
@@ -34,6 +37,7 @@ export default function CouponInput({
   onCouponRemoved,
   disabled = false,
 }: CouponInputProps) {
+  const { t } = useTranslation();
   const [couponCode, setCouponCode] = useState("");
   const [isValidating, setIsValidating] = useState(false);
   const { toast } = useToast();
@@ -41,8 +45,8 @@ export default function CouponInput({
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter a coupon code",
+        title: t("couponErrorTitle", "Error"),
+        description: t("couponCodeRequired", "Please enter a coupon code"),
         variant: "destructive",
       });
       return;
@@ -50,8 +54,11 @@ export default function CouponInput({
 
     if (cartTotal <= 0) {
       toast({
-        title: "Error",
-        description: "Add items to your cart before applying a coupon",
+        title: t("couponErrorTitle", "Error"),
+        description: t(
+          "couponNeedsItems",
+          "Add items to your cart before applying a coupon"
+        ),
         variant: "destructive",
       });
       return;
@@ -82,19 +89,19 @@ export default function CouponInput({
         setCouponCode("");
 
         toast({
-          title: "Coupon Applied!",
-          description: `${data.coupon.name} - You saved ${data.discountAmount.toFixed(2)} LEI`,
+          title: t("couponApplied", "Coupon applied"),
+          description: `${data.coupon.name} - ${fillTemplate(t("youSaved", "You saved {amount}"), { amount: formatStorefrontPrice(data.discountAmount) })}`,
         });
       } else {
         throw new Error(data.error || "Invalid coupon code");
       }
     } catch (error) {
       toast({
-        title: "Invalid Coupon",
+        title: t("invalidCoupon", "Invalid coupon"),
         description:
           error instanceof Error
             ? error.message
-            : "This coupon code is not valid",
+            : t("couponInvalidDetail", "This coupon code is not valid"),
         variant: "destructive",
       });
     } finally {
@@ -105,16 +112,23 @@ export default function CouponInput({
   const handleRemoveCoupon = () => {
     onCouponRemoved();
     toast({
-      title: "Coupon Removed",
-      description: "The coupon has been removed from your order",
+      title: t("couponRemoved", "Coupon removed"),
+      description: t(
+        "couponRemovedDetail",
+        "The coupon has been removed from your order"
+      ),
     });
   };
 
   const getDiscountText = (coupon: NonNullable<typeof appliedCoupon>) => {
     if (coupon.type === "PERCENTAGE") {
-      return `${coupon.value}% OFF`;
+      return fillTemplate(t("percentOff", "{value}% off"), {
+        value: coupon.value,
+      });
     }
-    return `${coupon.value} LEI OFF`;
+    return fillTemplate(t("amountOff", "{amount} off"), {
+      amount: formatStorefrontPrice(coupon.value),
+    });
   };
 
   if (appliedCoupon) {
@@ -148,7 +162,9 @@ export default function CouponInput({
                     {appliedCoupon.code}
                   </p>
                   <p className="text-sm sm:text-base font-bold text-green-800">
-                    You saved {appliedCoupon.discountAmount.toFixed(2)} LEI
+                    {fillTemplate(t("youSaved", "You saved {amount}"), {
+                      amount: formatStorefrontPrice(appliedCoupon.discountAmount),
+                    })}
                   </p>
                 </div>
 
@@ -175,7 +191,7 @@ export default function CouponInput({
                          text-green-700 hover:text-red-600 hover:bg-red-50 
                          transition-all duration-200 active:scale-95
                          focus:ring-2 focus:ring-red-300 focus:outline-none"
-              aria-label="Remove coupon"
+              aria-label={t("removeCoupon", "Remove coupon")}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -202,14 +218,14 @@ export default function CouponInput({
 
             {/* Input: Flex-grow */}
             <Input
-              placeholder="Enter code"
+              placeholder={t("enterCouponCode", "Enter code")}
               value={couponCode}
               onChange={e => setCouponCode(e.target.value.toUpperCase())}
               onKeyPress={e => e.key === "Enter" && handleApplyCoupon()}
               disabled={disabled || isValidating}
               className="flex-1 h-10 sm:h-11 font-mono text-sm sm:text-base 
                          focus:ring-2 focus:ring-primary transition-all"
-              aria-label="Coupon code input"
+              aria-label={t("couponCodeInput", "Coupon code input")}
             />
 
             {/* Apply Button: Prominent, finger-friendly */}
@@ -224,10 +240,10 @@ export default function CouponInput({
               {isValidating ? (
                 <span className="flex items-center gap-1">
                   <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  <span className="hidden sm:inline">Checking</span>
+                  <span className="hidden sm:inline">{t("checking", "Checking")}</span>
                 </span>
               ) : (
-                "Apply"
+                t("apply", "Apply")
               )}
             </Button>
           </div>

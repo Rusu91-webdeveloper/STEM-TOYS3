@@ -29,7 +29,7 @@ export function visibleInBrowse(product: BrowseProduct): boolean {
   if (product.stockQuantity <= stockThreshold && editorial?.keepLowStock !== true)
     return false;
     
-  return !/air.toobz|aqua.*(?:reumplere|refill)|fridge.rover|E tiintific|miE care|Ã|�/i.test(
+  return !/air.toobz|aqua.*(?:reumplere|refill)|fridge.rover|spider|păianjen|paianjen|E tiintific|miE care|Ã|�/i.test(
     product.name
   );
 }
@@ -77,24 +77,62 @@ function hasDisplayImage(product: HomepageCandidate): boolean {
   );
 }
 
+export const HOMEPAGE_HERO_COUNT = 3;
+
+type FeaturedCandidate = HomepageCandidate & { featuredOrder?: number | null };
+
+/** Editorial rank. The water rocket lead is 1 even without a stored field. */
+export function readFeaturedOrder(product: FeaturedCandidate): number | null {
+  if (
+    typeof product.featuredOrder === "number" &&
+    Number.isFinite(product.featuredOrder) &&
+    product.featuredOrder > 0
+  ) {
+    return product.featuredOrder;
+  }
+  const merchandising = product.metadata?.merchandising;
+  const fromMeta = merchandising?.featuredOrder;
+  if (typeof fromMeta === "number" && Number.isFinite(fromMeta) && fromMeta > 0) {
+    return fromMeta;
+  }
+  const giftIndex = GIFT_SLUGS.indexOf(product.slug as (typeof GIFT_SLUGS)[number]);
+  if (giftIndex >= 0) return giftIndex + 1;
+  return null;
+}
+
+function inHomepagePool(product: HomepageCandidate): boolean {
+  return (
+    product.stockQuantity > 1 &&
+    visibleInBrowse(product) &&
+    !isCatalogAddOn(product) &&
+    hasDisplayImage(product)
+  );
+}
+
 /**
- * Homepage grid: featured products first, then other browseable products.
- * Order is slug-stable. It is not a sales ranking.
+ * Featured products ordered by featuredOrder, then in-stock visible
+ * non-add-on products with images, capped at 8. The hero uses the first 3.
  */
-export function selectHomepageProducts<T extends HomepageCandidate>(
+export function selectHomepageProducts<T extends FeaturedCandidate>(
   products: T[]
 ): T[] {
-  const eligible = products.filter(
-    product => visibleInBrowse(product) && !isCatalogAddOn(product)
-  );
-  return eligible
-    .slice()
+  const pool = products.filter(inHomepagePool);
+  const featured = pool
+    .filter(product => readFeaturedOrder(product) !== null)
     .sort((a, b) => {
-      const rank = (product: HomepageCandidate) =>
-        (product.featured ? 0 : 2) + (hasDisplayImage(product) ? 0 : 1);
-      const byRank = rank(a) - rank(b);
-      if (byRank !== 0) return byRank;
+      if (a.slug === ROCKET_SLUG) return -1;
+      if (b.slug === ROCKET_SLUG) return 1;
+      const order = (readFeaturedOrder(a) ?? 0) - (readFeaturedOrder(b) ?? 0);
+      if (order !== 0) return order;
       return a.slug.localeCompare(b.slug, "ro");
-    })
-    .slice(0, HOMEPAGE_PRODUCT_LIMIT);
+    });
+  const featuredSlugs = new Set(featured.map(product => product.slug));
+  const fill = pool
+    .filter(product => !featuredSlugs.has(product.slug))
+    .sort((a, b) => a.slug.localeCompare(b.slug, "ro"));
+  return [...featured, ...fill].slice(0, HOMEPAGE_PRODUCT_LIMIT);
+}
+
+export function selectHomepageHero<T>(products: T[]): T[] {
+  return products.slice(0, HOMEPAGE_HERO_COUNT);
 }

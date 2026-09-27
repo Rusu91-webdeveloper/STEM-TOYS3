@@ -4,8 +4,11 @@ import {
 } from "@/lib/products/catalog-content-overrides";
 import {
   GIFT_SLUGS,
+  HOMEPAGE_HERO_COUNT,
   HOMEPAGE_PRODUCT_LIMIT,
+  ROCKET_SLUG,
   selectHomepageGifts,
+  selectHomepageHero,
   selectHomepageProducts,
   visibleInBrowse,
 } from "@/lib/products/merchandising";
@@ -110,11 +113,85 @@ test("homepage prefers featured in-stock products, then fills deterministically"
   expect(selectHomepageProducts(products).map(product => product.slug)).toEqual([
     "a-featured",
     "b-plain",
-    "c-no-image",
   ]);
   expect(
     selectHomepageProducts([...products].reverse()).map(product => product.slug)
-  ).toEqual(["a-featured", "b-plain", "c-no-image"]);
+  ).toEqual(["a-featured", "b-plain"]);
+});
+
+test("homepage leads with featuredOrder and the water rocket is position 1", () => {
+  const products = [
+    {
+      slug: "zeta-filler",
+      name: "Zeta",
+      stockQuantity: 6,
+      images: ["z.jpg"],
+    },
+    {
+      slug: "later-feature",
+      name: "Later",
+      stockQuantity: 6,
+      images: ["l.jpg"],
+      metadata: { merchandising: { featuredOrder: 3 } },
+    },
+    {
+      slug: "alpha-filler",
+      name: "Alpha",
+      stockQuantity: 6,
+      images: ["a.jpg"],
+    },
+    {
+      slug: ROCKET_SLUG,
+      name: "Rachetă cu apă",
+      stockQuantity: 8,
+      images: ["rocket.jpg"],
+      metadata: { merchandising: { featuredOrder: 1 } },
+    },
+    {
+      slug: "second-feature",
+      name: "Second",
+      stockQuantity: 5,
+      images: ["s.jpg"],
+      featuredOrder: 2,
+    },
+    {
+      slug: "no-image-feature",
+      name: "Fără poză",
+      stockQuantity: 9,
+      images: [],
+      featuredOrder: 1,
+    },
+    {
+      slug: "addon",
+      name: "Accesoriu",
+      stockQuantity: 9,
+      images: ["add.jpg"],
+      tags: ["add-on"],
+      featuredOrder: 1,
+    },
+    {
+      slug: "low-stock",
+      name: "Stoc mic",
+      stockQuantity: 1,
+      images: ["low.jpg"],
+      featuredOrder: 1,
+    },
+  ];
+
+  const selected = selectHomepageProducts(products);
+  expect(selected.map(product => product.slug)).toEqual([
+    ROCKET_SLUG,
+    "second-feature",
+    "later-feature",
+    "alpha-filler",
+    "zeta-filler",
+  ]);
+  expect(selectHomepageHero(selected).map(product => product.slug)).toEqual([
+    ROCKET_SLUG,
+    "second-feature",
+    "later-feature",
+  ]);
+  expect(HOMEPAGE_HERO_COUNT).toBe(3);
 });
 
 test("homepage fill stops at eight and never invents products", () => {
@@ -123,12 +200,14 @@ test("homepage fill stops at eight and never invents products", () => {
     name: `Produs ${index}`,
     stockQuantity: 6,
     images: ["photo.jpg"],
-    featured: index < 2,
+    featuredOrder: index < 2 ? index + 1 : null,
   }));
 
   const selected = selectHomepageProducts(products);
   expect(selected).toHaveLength(HOMEPAGE_PRODUCT_LIMIT);
-  expect(selected.slice(0, 2).every(product => product.featured)).toBe(true);
+  expect(selected.slice(0, 2).map(product => product.featuredOrder)).toEqual([
+    1, 2,
+  ]);
   expect(selected.map(product => product.slug)).toEqual([
     "produs-00",
     "produs-01",

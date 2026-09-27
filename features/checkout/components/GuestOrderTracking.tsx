@@ -31,6 +31,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { fillTemplate } from "@/lib/format/template";
+import { formatStorefrontPrice } from "@/lib/format/storefront-price";
+import { useTranslation } from "@/lib/i18n";
 
 const guestOrderSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -68,6 +71,7 @@ interface OrderData {
 }
 
 export function GuestOrderTracking() {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -145,7 +149,7 @@ export function GuestOrderTracking() {
   };
 
   const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", {
+    new Date(dateString).toLocaleDateString("ro-RO", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -153,11 +157,7 @@ export function GuestOrderTracking() {
       minute: "2-digit",
     });
 
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("ro-RO", {
-      style: "currency",
-      currency: "RON",
-    }).format(price);
+  const formatPrice = formatStorefrontPrice;
 
   return (
     <div className="space-y-6">
@@ -166,17 +166,20 @@ export function GuestOrderTracking() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="w-5 h-5" />
-            Find Your Order
+            {t("findYourOrder", "Find your order")}
           </CardTitle>
           <CardDescription>
-            Enter your email address and order number to view your order details
+            {t(
+              "findYourOrderHelp",
+              "Enter your email address and order number to view your order details"
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(trackOrder)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email">{t("emailAddress", "Email address")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -190,7 +193,9 @@ export function GuestOrderTracking() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="orderNumber">Order Number</Label>
+                <Label htmlFor="orderNumber">
+                  {t("orderNumber", "Order number")}
+                </Label>
                 <Input
                   id="orderNumber"
                   placeholder="e.g., ORD-123456"
@@ -209,12 +214,12 @@ export function GuestOrderTracking() {
               {isLoading ? (
                 <>
                   <Search className="w-4 h-4 mr-2 animate-spin" />
-                  Searching...
+                  {t("searchingOrder", "Searching...")}
                 </>
               ) : (
                 <>
                   <Search className="w-4 h-4 mr-2" />
-                  Track Order
+                  {t("trackOrder", "Track order")}
                 </>
               )}
             </Button>
@@ -240,7 +245,9 @@ export function GuestOrderTracking() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Package className="w-5 h-5" />
-                    Order #{orderData.orderNumber}
+                    {fillTemplate(t("orderLabel", "Order #{number}"), {
+                      number: orderData.orderNumber,
+                    })}
                   </CardTitle>
                   <CardDescription className="flex items-center gap-4 mt-2">
                     <span className="flex items-center gap-1">
@@ -271,7 +278,9 @@ export function GuestOrderTracking() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h4 className="font-medium">Delivery Address</h4>
+                <h4 className="font-medium">
+                  {t("deliveryAddress", "Delivery address")}
+                </h4>
                 <div className="text-sm text-gray-600 mt-1">
                   <p>{orderData.shippingAddress.fullName}</p>
                   <p>{orderData.shippingAddress.addressLine1}</p>
@@ -286,7 +295,9 @@ export function GuestOrderTracking() {
 
               {orderData.shippingMethod && (
                 <div>
-                  <h4 className="font-medium">Shipping Method</h4>
+                  <h4 className="font-medium">
+                    {t("shippingMethod", "Shipping Method")}
+                  </h4>
                   <p className="text-sm text-gray-600">
                     {orderData.shippingMethod.name} -{" "}
                     {orderData.shippingMethod.description}
@@ -296,7 +307,9 @@ export function GuestOrderTracking() {
 
               {orderData.trackingNumber && (
                 <div>
-                  <h4 className="font-medium">Tracking Number</h4>
+                  <h4 className="font-medium">
+                    {t("trackingNumber", "Tracking number")}
+                  </h4>
                   <div className="flex items-center gap-2">
                     <code className="text-sm bg-gray-100 px-2 py-1 rounded">
                       {orderData.trackingNumber}
@@ -317,7 +330,9 @@ export function GuestOrderTracking() {
 
               {orderData.deliveredAt && (
                 <div>
-                  <h4 className="font-medium text-green-700">Delivered</h4>
+                  <h4 className="font-medium text-green-700">
+                    {t("delivered", "Delivered")}
+                  </h4>
                   <p className="text-sm text-green-600">
                     {formatDate(orderData.deliveredAt)}
                   </p>
@@ -339,10 +354,10 @@ export function GuestOrderTracking() {
                       <div className="flex-1">
                         <h4 className="font-medium">{item.name}</h4>
                         <p className="text-sm text-gray-600">
-                          Quantity: {item.quantity}
+                          {t("quantityLabel", "Quantity")}: {item.quantity}
                           {item.isBook && (
                             <Badge variant="outline" className="ml-2">
-                              Digital Book
+                              {t("digitalBook", "Digital book")}
                             </Badge>
                           )}
                         </p>
@@ -352,7 +367,9 @@ export function GuestOrderTracking() {
                           {formatPrice(item.price * item.quantity)}
                         </p>
                         <p className="text-sm text-gray-600">
-                          {formatPrice(item.price)} each
+                          {fillTemplate(t("eachPrice", "{price} each"), {
+                            price: formatPrice(item.price),
+                          })}
                         </p>
                       </div>
                     </div>

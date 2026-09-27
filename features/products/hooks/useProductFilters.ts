@@ -278,7 +278,7 @@ export function useProductFilters() {
   }, [searchParams]);
 
   // Update URL when filters change
-  const updateURL = useCallback(() => {
+  const updateURL = useCallback((options?: { page?: number }) => {
     const params = new URLSearchParams();
 
     if (state.selectedCategories.length > 0) {
@@ -338,6 +338,11 @@ export function useProductFilters() {
       (state.priceRangeFilter[0] > 0 || state.priceRangeFilter[1] < 1000)
     ) {
       params.set("noPriceFilter", "false");
+    }
+
+    const page = options?.page;
+    if (typeof page === "number" && Number.isFinite(page) && page > 1) {
+      params.set("page", String(Math.floor(page)));
     }
 
     const newURL = params.toString() ? `?${params.toString()}` : "";

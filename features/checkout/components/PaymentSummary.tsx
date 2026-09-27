@@ -4,6 +4,7 @@ import { Banknote, CreditCard, ShieldCheck } from "lucide-react";
 import React, { useMemo } from "react";
 
 import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
+import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { useTranslation } from "@/lib/i18n";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 
@@ -80,13 +81,13 @@ const PaymentSummaryComponent = ({
               </div>
             </div>
             <span className="text-sm font-bold text-emerald-700">
-              -{discountAmount.toFixed(2)} RON
+              -{formatStorefrontPrice(discountAmount)}
             </span>
           </div>
           <p className="mt-2 text-sm text-emerald-800">
             {t(
               "discountAppliedBody",
-              `Economisești ${discountAmount.toFixed(2)} RON la această comandă.`
+              `Economisești ${formatStorefrontPrice(discountAmount)} la această comandă.`
             )}
           </p>
         </div>
@@ -134,7 +135,7 @@ const PaymentSummaryComponent = ({
                   </p>
                   {!isCalculatingTotal && totalAmount > 0 && (
                     <span className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-800">
-                      {totalAmount.toFixed(2)} RON
+                      {formatStorefrontPrice(totalAmount)}
                     </span>
                   )}
                 </div>
@@ -199,7 +200,7 @@ const PaymentSummaryComponent = ({
                     : t("codFee", "Taxă ramburs")}
                 </p>
                 <p className="mt-1 text-lg font-semibold text-slate-900">
-                  +{codFeeResult.fee.toFixed(2)} RON
+                  +{formatStorefrontPrice(codFeeResult.fee)}
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 sm:py-3">
@@ -208,8 +209,8 @@ const PaymentSummaryComponent = ({
                 </p>
                 <p className="mt-1 text-sm text-slate-600">
                   {codPercentageLabel}% (
-                  {codFeeResult.breakdown.percentageFee.toFixed(2)} RON) +{" "}
-                  {codFeeResult.breakdown.fixedFee.toFixed(2)} RON{" "}
+                  {formatStorefrontPrice(codFeeResult.breakdown.percentageFee)}) +{" "}
+                  {formatStorefrontPrice(codFeeResult.breakdown.fixedFee)}{" "}
                   {t("fixed", "fix")}
                 </p>
               </div>
@@ -220,7 +221,7 @@ const PaymentSummaryComponent = ({
                     : t("totalWithCOD", "Total cu ramburs")}
                 </p>
                 <p className="mt-1 text-lg font-semibold text-slate-900">
-                  {codFeeResult.orderTotalWithFee.toFixed(2)} RON
+                  {formatStorefrontPrice(codFeeResult.orderTotalWithFee)}
                 </p>
               </div>
             </div>

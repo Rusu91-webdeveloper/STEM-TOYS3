@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
+import { formatStorefrontPrice } from "@/lib/format/storefront-price";
+
 // Define available currencies
 export const currencies = [
   { code: "RON", symbol: "lei", exchangeRate: 1 }, // RON as default
@@ -48,15 +50,10 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Format price according to the current currency
+  // Shopper-facing lei amount. JSON-LD, Stripe, and Netopia keep raw numbers.
   const formatPrice = (price: number): string => {
     const convertedPrice = price * currency.exchangeRate;
-
-    // Format based on currency
-    if (currency.code === "RON") {
-      return `${convertedPrice.toFixed(2)} ${currency.symbol}`;
-    }
-    return `${currency.symbol}${convertedPrice.toFixed(2)}`;
+    return formatStorefrontPrice(convertedPrice);
   };
 
   const value = {

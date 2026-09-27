@@ -4,7 +4,7 @@ import { Star } from "lucide-react";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { formatPrice } from "@/lib/email/base";
+import { formatStorefrontPrice as formatPrice } from "@/lib/format/storefront-price";
 
 import { ProductActionButtons } from "./ProductActionButtons";
 

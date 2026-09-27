@@ -4,6 +4,9 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { fillTemplate } from "@/lib/format/template";
+import { useTranslation } from "@/lib/i18n";
+import { buildProductsListingPath } from "@/lib/utils/products-listing-url";
 import { cn } from "@/lib/utils";
 import {
   productsGlassPanelClass,
@@ -25,16 +28,15 @@ export function ProductsPagination({
   searchParams = {},
   totalItems,
 }: ProductsPaginationProps) {
-  // Show pagination even for single page so the UI is visible (e.g. "Page 1 of 1 · 12 items")
+  const { t } = useTranslation();
+  // Show pagination even for single page so the UI is visible (e.g. "Pagina 1 din 1 · 12 produse")
   if (totalPages < 1) return null;
 
   const createPageUrl = (page: number) => {
-    const params = new URLSearchParams();
-    Object.entries(searchParams).forEach(([key, value]) => {
-      if (value) params.set(key, value);
-    });
-    params.set("page", page.toString());
-    return `${baseUrl}?${params.toString()}`;
+    const path = buildProductsListingPath(searchParams, page);
+    if (baseUrl === "/products") return path;
+    const query = path.includes("?") ? path.slice(path.indexOf("?")) : "";
+    return `${baseUrl}${query}`;
   };
 
   const renderPageNumbers = () => {
@@ -141,13 +143,20 @@ export function ProductsPagination({
         productsGlassPanelClass,
         "flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
       )}
-      aria-label="Pagination"
+      aria-label={t("paginationNav", "Pagination")}
     >
       <div className="flex items-center gap-3 text-sm text-slate-600">
-        <span className={productsAccentPillClass}>Pagini</span>
+        <span className={productsAccentPillClass}>{t("pagesLabel", "Pages")}</span>
         <span>
-          Page {currentPage} of {totalPages}
-          {typeof totalItems === "number" ? ` · ${totalItems} items` : ""}
+          {fillTemplate(t("paginationPage", "Page {page} of {total}"), {
+            page: currentPage,
+            total: totalPages,
+          })}
+          {typeof totalItems === "number"
+            ? ` · ${fillTemplate(t("paginationItems", "{count} items"), {
+                count: totalItems,
+              })}`
+            : ""}
         </span>
       </div>
 
@@ -162,12 +171,12 @@ export function ProductsPagination({
           {currentPage > 1 ? (
             <Link href={createPageUrl(currentPage - 1)}>
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              {t("paginationPrevious", "Previous")}
             </Link>
           ) : (
             <span className="flex items-center gap-2">
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              {t("paginationPrevious", "Previous")}
             </span>
           )}
         </Button>
@@ -183,12 +192,12 @@ export function ProductsPagination({
         >
           {currentPage < totalPages ? (
             <Link href={createPageUrl(currentPage + 1)}>
-              Next
+              {t("paginationNext", "Next")}
               <ChevronRight className="h-4 w-4" />
             </Link>
           ) : (
             <span className="flex items-center gap-2">
-              Next
+              {t("paginationNext", "Next")}
               <ChevronRight className="h-4 w-4" />
             </span>
           )}

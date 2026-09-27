@@ -34,6 +34,8 @@ interface ProductData extends Omit<Product, "category" | "stemDiscipline"> {
 export const dynamic = "force-dynamic";
 export const revalidate = 0; // No caching until cache issues are resolved
 
+export { generateProductsMetadata as generateMetadata } from "./listing-metadata";
+
 // Metadata is exported from a separate file
 export default async function ProductsPage({
   searchParams,

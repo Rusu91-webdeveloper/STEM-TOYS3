@@ -21,6 +21,7 @@ import {
   COD_CONSENT_TEXT,
   COD_CONSENT_VERSION,
 } from "@/lib/checkout/cod-consent";
+import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { useTranslation } from "@/lib/i18n";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 import {
@@ -829,7 +830,7 @@ export function PaymentForm({
       setPaymentError(
         t(
           "codLimitExceeded",
-          `Plata ramburs este disponibilă doar pentru comenzi de până la ${codThreshold.toFixed(2)} RON. Redu valoarea coșului sau alege altă metodă de plată.`
+          `Plata ramburs este disponibilă doar pentru comenzi de până la ${formatStorefrontPrice(codThreshold)}. Redu valoarea coșului sau alege altă metodă de plată.`
         )
       );
       return;
@@ -1078,7 +1079,7 @@ export function PaymentForm({
                 <p className="mt-1 text-sm leading-relaxed text-rose-800">
                   {t(
                     "codLimitExceededInline",
-                    `Plata ramburs este disponibilă doar pentru comenzi de până la ${codThreshold.toFixed(2)} RON. Alege altă metodă de plată sau ajustează coșul.`
+                    `Plata ramburs este disponibilă doar pentru comenzi de până la ${formatStorefrontPrice(codThreshold)}. Alege altă metodă de plată sau ajustează coșul.`
                   )}
                 </p>
               </div>

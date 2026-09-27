@@ -6,6 +6,7 @@ import React from "react";
 import ProductDetailServer from "@/features/products/components/ProductDetailServer";
 import { getCombinedProduct } from "@/lib/api/products";
 import { prisma } from "@/lib/prisma";
+import { resolvePdpVisibility } from "@/lib/products/catalog-access";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { generateProductMetadata } from "@/lib/utils/seo";
 
@@ -107,7 +108,14 @@ export async function generateMetadata({
     productNotFound();
   }
 
-  return generateProductMetadata(product);
+  const visibility = resolvePdpVisibility(product);
+  if (visibility === "not-found") {
+    productNotFound();
+  }
+
+  return generateProductMetadata(product, {
+    noindex: visibility === "noindex",
+  });
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
@@ -115,6 +123,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const product = await loadPublicProduct(rawSlug);
 
   if (!product) {
+    productNotFound();
+  }
+
+  const visibility = resolvePdpVisibility(product);
+  if (visibility === "not-found") {
     productNotFound();
   }
 

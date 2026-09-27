@@ -10,6 +10,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { formatStorefrontPrice } from "@/lib/format/storefront-price";
+import { fillTemplate } from "@/lib/format/template";
 import { cn } from "@/lib/utils";
 import { normalizeCategory } from "@/lib/utils/product-filters-url";
 
@@ -87,10 +89,13 @@ interface PricePreset {
 }
 
 function formatCompactPrice(value: number) {
-  return `${Math.round(value)} lei`;
+  return formatStorefrontPrice(value);
 }
 
-function buildPricePresets(priceRange: PriceRange): PricePreset[] {
+function buildPricePresets(
+  priceRange: PriceRange,
+  labels: { all: string; upTo: (price: string) => string }
+): PricePreset[] {
   const min = Math.max(0, Math.floor(priceRange.min));
   const max = Math.max(min + 1, Math.ceil(priceRange.max));
   const spread = max - min;
@@ -100,7 +105,7 @@ function buildPricePresets(priceRange: PriceRange): PricePreset[] {
     return [
       {
         id: "all",
-        label: "All prices",
+        label: labels.all,
       },
       {
         id: "range-1",
@@ -121,11 +126,11 @@ function buildPricePresets(priceRange: PriceRange): PricePreset[] {
   return [
     {
       id: "all",
-      label: "All prices",
+      label: labels.all,
     },
     {
       id: "budget",
-      label: `Up to ${formatCompactPrice(firstCut)}`,
+      label: labels.upTo(formatCompactPrice(firstCut)),
       range: [min, firstCut],
     },
     {
@@ -196,8 +201,12 @@ export function MobileFiltersModal({
   }, [categories.options, searchQuery]);
 
   const pricePresets = useMemo(
-    () => buildPricePresets(priceRange),
-    [priceRange]
+    () =>
+      buildPricePresets(priceRange, {
+        all: t("allPrices", "All prices"),
+        upTo: price => fillTemplate(t("priceUpTo", "Up to {price}"), { price }),
+      }),
+    [priceRange, t]
   );
 
   const modalTitle =

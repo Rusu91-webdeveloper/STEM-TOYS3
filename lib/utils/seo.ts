@@ -55,7 +55,10 @@ export function generateSlug(text: string): string {
  * @param product Product data
  * @returns Next.js metadata object
  */
-export function generateProductMetadata(product: any): Metadata {
+export function generateProductMetadata(
+  product: any,
+  options?: { noindex?: boolean }
+): Metadata {
   // Parse metadata from product or create default
   const seoData: SeoMetadata = product.metadata
     ? typeof product.metadata === "string"
@@ -149,6 +152,7 @@ export function generateProductMetadata(product: any): Metadata {
     ogImage: product.images?.[0] || "/opengraph-image.png",
     pathWithoutLocale: `/products/${toPublicProductSlug(product.slug)}`,
     translations,
+    noindex: options?.noindex === true,
   });
 }
 

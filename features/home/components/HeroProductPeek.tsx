@@ -17,8 +17,8 @@ export interface HeroPeekProduct {
 /** Real catalog products inside the hero so mobile's first screen is not only text. */
 export function HeroProductPeek({ products }: { products: HeroPeekProduct[] }) {
   const picks = products
-    .filter(product => Boolean(product.images?.[0]))
-    .slice(0, 3);
+    .slice(0, 3)
+    .filter(product => Boolean(product.images?.[0]));
   if (picks.length === 0) return null;
   return <HeroProductPeekList products={picks} />;
 }

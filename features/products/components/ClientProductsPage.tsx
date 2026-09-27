@@ -14,13 +14,18 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React, { useState, useEffect, useMemo, Suspense } from "react";
+import React, { useState, useEffect, useMemo, useRef, Suspense } from "react";
 
 import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
+import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { giftOrder, visibleInBrowse } from "@/lib/products/merchandising";
 import { isListedInCategory } from "@/lib/products/stem-category";
 import { normalizeCategory } from "@/lib/utils/product-filters-url";
+import {
+  parseProductsPage,
+  PRODUCTS_PAGE_SIZE,
+} from "@/lib/utils/products-listing-url";
 import type { Product } from "@/types/product";
 
 import { useProductFilters } from "../hooks/useProductFilters";
@@ -148,6 +153,14 @@ interface ClientProductsPageProps {
 
 type BundleViewMode = "all" | "bundles" | "products";
 
+function parseBundleView(
+  value: string | string[] | null | undefined
+): BundleViewMode {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (raw === "bundles" || raw === "products") return raw;
+  return "all";
+}
+
 // Helper function to get category translation
 const getCategoryTranslation = (
   categoryId: string,
@@ -172,7 +185,7 @@ const getCategoryTranslation = (
 
 function ClientProductsPageContent({
   initialProducts,
-  searchParams: _searchParams,
+  searchParams,
   allSidebarCategories = [],
 }: ClientProductsPageProps) {
   const { t } = useTranslation();
@@ -181,32 +194,33 @@ function ClientProductsPageContent({
   const [products] = useState<ProductData[]>(initialProducts);
   // const [isHydrated, setIsHydrated] = useState(true); // Start as hydrated to prevent CLS
   const urlSearchParams = useSearchParams();
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = PRODUCTS_PAGE_SIZE;
+  const initialPage = parseProductsPage(searchParams?.page);
+  const initialBundleView = parseBundleView(searchParams?.bundleView);
 
-  const parsedPage = useMemo(() => {
-    const value = urlSearchParams?.get("page");
-    const pageNumber = value ? Number.parseInt(value, 10) : 1;
-    return Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
-  }, [urlSearchParams]);
-  const parsedBundleViewMode = useMemo<BundleViewMode>(() => {
-    const value = urlSearchParams?.get("bundleView");
-    if (value === "bundles" || value === "products") return value;
-    return "all";
-  }, [urlSearchParams]);
-
-  const [page, setPage] = useState(parsedPage);
+  const [page, setPage] = useState(initialPage);
+  const pageRef = useRef(initialPage);
   const [bundleViewMode, setBundleViewMode] =
-    useState<BundleViewMode>(parsedBundleViewMode);
+    useState<BundleViewMode>(initialBundleView);
   const [mobileFilterPanel, setMobileFilterPanel] =
     useState<MobileFilterPanel>("category");
 
-  useEffect(() => {
-    setPage(parsedPage);
-  }, [parsedPage]);
+  const listingSearch = urlSearchParams?.toString() ?? "";
 
   useEffect(() => {
-    setBundleViewMode(parsedBundleViewMode);
-  }, [parsedBundleViewMode]);
+    // Ignore an empty client param snapshot so a server-rendered ?page=2
+    // is not snapped back to page 1 before hydration finishes.
+    if (!listingSearch && pageRef.current > 1) return;
+    const fromUrl = parseProductsPage(urlSearchParams?.get("page"));
+    if (fromUrl === pageRef.current) return;
+    pageRef.current = fromUrl;
+    setPage(fromUrl);
+  }, [listingSearch, urlSearchParams]);
+
+  useEffect(() => {
+    const fromUrl = parseBundleView(urlSearchParams?.get("bundleView"));
+    setBundleViewMode(current => (current === fromUrl ? current : fromUrl));
+  }, [urlSearchParams]);
 
   // Initialize from search params on mount
   useEffect(() => {
@@ -222,7 +236,7 @@ function ClientProductsPageContent({
   // Update URL when filters change (debounced)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      updateURL();
+      updateURL({ page: pageRef.current });
     }, 300);
 
     return () => {
@@ -544,14 +558,17 @@ function ClientProductsPageContent({
   }, [sortedProducts, page]);
 
   useEffect(() => {
-    if (totalPages > 0 && page > totalPages) {
-      setPage(1);
+    if (sortedProducts.length === 0) return;
+    if (page > totalPages) {
+      pageRef.current = totalPages;
+      setPage(totalPages);
     }
-  }, [page, totalPages]);
+  }, [page, totalPages, sortedProducts.length]);
 
-  useEffect(() => {
+  const resetPage = () => {
+    pageRef.current = 1;
     setPage(1);
-  }, [bundleViewMode]);
+  };
 
   const paginationSearchParams = useMemo(() => {
     const params: Record<string, string> = {};
@@ -675,37 +692,48 @@ function ClientProductsPageContent({
 
   // Event handlers
   const handleCategoryChange = (category: string) => {
+    resetPage();
     actions.toggleCategory(category);
   };
 
   const handleFilterChange = (filterId: string, optionId: string) => {
+    resetPage();
     actions.setFilter(filterId, optionId);
   };
 
   const handlePriceChange = (range: [number, number]) => {
+    resetPage();
     actions.setPriceRange(range);
   };
 
   const handleNoPriceFilterChange = (enabled: boolean) => {
+    resetPage();
     actions.setNoPriceFilter(enabled);
   };
 
   const handleSortChange = (value: string) => {
+    resetPage();
     actions.setSortBy(value === "featured" ? "relevance" : value);
   };
 
   const handleSearchQueryChange = (value: string) => {
-    setPage(1);
+    resetPage();
     actions.setSearchQuery(value);
   };
 
   const handleSearchClear = () => {
-    setPage(1);
+    resetPage();
     actions.setSearchQuery("");
   };
 
   const handleClearFilters = () => {
+    resetPage();
     actions.clearFilters();
+  };
+
+  const handleBundleViewModeChange = (mode: BundleViewMode) => {
+    resetPage();
+    setBundleViewMode(mode);
   };
 
   const handleOpenMobilePanel = (panel: MobileFilterPanel) => {
@@ -714,6 +742,7 @@ function ClientProductsPageContent({
   };
 
   const handleClearMobilePanel = (panel: MobileFilterPanel) => {
+    resetPage();
     if (panel === "category") {
       actions.setCategories([]);
       return;
@@ -801,9 +830,9 @@ function ClientProductsPageContent({
       return t("price", "Price");
     }
 
-    return `${Math.round(state.priceRangeFilter[0])}-${Math.round(
-      state.priceRangeFilter[1]
-    )} lei`;
+    return `${formatStorefrontPrice(
+      state.priceRangeFilter[0]
+    )} – ${formatStorefrontPrice(state.priceRangeFilter[1])}`;
   }, [
     actualPriceRange.max,
     actualPriceRange.min,
@@ -906,10 +935,22 @@ function ClientProductsPageContent({
                   handleFilterChange={handleFilterChange}
                   handlePriceChange={handlePriceChange}
                   handleNoPriceFilterChange={handleNoPriceFilterChange}
-                  setSelectedLearningOutcomes={actions.setLearningOutcomes}
-                  setSelectedProductType={actions.setProductType}
-                  setSelectedSpecialCategories={actions.setSpecialCategories}
-                  setSelectedAgeGroup={age => actions.setAgeGroup(age ?? "")}
+                  setSelectedLearningOutcomes={outcomes => {
+                    resetPage();
+                    actions.setLearningOutcomes(outcomes);
+                  }}
+                  setSelectedProductType={type => {
+                    resetPage();
+                    actions.setProductType(type);
+                  }}
+                  setSelectedSpecialCategories={categories => {
+                    resetPage();
+                    actions.setSpecialCategories(categories);
+                  }}
+                  setSelectedAgeGroup={age => {
+                    resetPage();
+                    actions.setAgeGroup(age ?? "");
+                  }}
                   handleClearFilters={handleClearFilters}
                   setMobileFiltersOpen={actions.setMobileFiltersOpen}
                   t={t}
@@ -936,7 +977,7 @@ function ClientProductsPageContent({
                     onSearchQueryChange={handleSearchQueryChange}
                     onClearSearch={handleSearchClear}
                     bundleViewMode={bundleViewMode}
-                    onBundleViewModeChange={setBundleViewMode}
+                    onBundleViewModeChange={handleBundleViewModeChange}
                     getLearningTitle={getLearningTitle}
                     getLearningDescription={getLearningDescription}
                     getProductCardContent={getProductCardContent}
