@@ -11,8 +11,12 @@ import React, {
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/features/cart";
-import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
+import {
+  displayedCodGuaranteeAmount,
+  shouldCreateCodGuaranteeIntent,
+} from "@/features/checkout/lib/cod-guarantee-intent-session";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import {
   COD_CONSENT_TEXT,
   COD_CONSENT_VERSION,
@@ -111,6 +115,8 @@ export function PaymentForm({
     !isCheckoutRestricted && process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
   const stripeAttemptIdRef = useRef<string | null>(null);
   const codGuaranteeAttemptIdRef = useRef<string | null>(null);
+  const codGuaranteeRequestedMinorRef = useRef<number | null>(null);
+  const recipientTypeRef = useRef<"B2B" | "B2C">("B2C");
 
   const [useSameAddress, setUseSameAddress] = useState(
     billingAddressSameAsShipping
@@ -187,8 +193,10 @@ export function PaymentForm({
       shippingMethodId: shippingMethod?.id,
       couponCode: appliedCoupon?.code || null,
       paymentMethod,
+      recipientType: recipientTypeRef.current,
+      phone: shippingAddress?.phone,
     }),
-    [appliedCoupon?.code, cartItems, shippingMethod?.id]
+    [appliedCoupon?.code, cartItems, shippingAddress?.phone, shippingMethod?.id]
   );
 
   const isNetopia = useMemo(
@@ -209,6 +217,7 @@ export function PaymentForm({
       billing as Record<string, unknown> | undefined,
     ]);
   }, [shippingAddress, currentBillingAddress, useSameAddress]);
+  recipientTypeRef.current = recipientType;
   const codThreshold = useMemo(
     () => getCodThreshold(recipientType),
     [recipientType]
@@ -284,6 +293,7 @@ export function PaymentForm({
           recipientType,
           shippingMethodId: shippingMethod?.id,
           guestEmail: guestCheckoutEmail,
+          phone: shippingAddress?.phone,
         });
 
         if (!isActive) return;
@@ -314,6 +324,7 @@ export function PaymentForm({
     recipientType,
     shippingMethod?.id,
     guestCheckoutEmail,
+    shippingAddress?.phone,
   ]);
 
   useEffect(() => {
@@ -553,6 +564,7 @@ export function PaymentForm({
       setCodGuaranteePaymentIntentId(undefined);
       setCodGuaranteeIntentAmount(null);
       setCodGuaranteeAuthorized(false);
+      codGuaranteeRequestedMinorRef.current = null;
     };
 
     if (!stripeEnabled) {
@@ -578,15 +590,19 @@ export function PaymentForm({
     if (
       codGuaranteeAuthorized &&
       codGuaranteePaymentIntentId &&
-      codGuaranteeIntentAmount === amountInMinorUnits
+      codGuaranteeIntentAmount !== null
     ) {
       return undefined;
     }
 
     if (
-      codGuaranteeClientSecret &&
-      codGuaranteeIntentAmount === amountInMinorUnits &&
-      codGuaranteePaymentIntentId
+      !shouldCreateCodGuaranteeIntent({
+        clientSecret: codGuaranteeClientSecret,
+        paymentIntentId: codGuaranteePaymentIntentId,
+        serverAmountMinor: codGuaranteeIntentAmount,
+        requestedAmountMinor: amountInMinorUnits,
+        sessionRequestedAmountMinor: codGuaranteeRequestedMinorRef.current,
+      })
     ) {
       return undefined;
     }
@@ -638,9 +654,12 @@ export function PaymentForm({
           return;
         }
 
+        codGuaranteeRequestedMinorRef.current = amountInMinorUnits;
         setCodGuaranteeClientSecret(data.clientSecret);
         setCodGuaranteePaymentIntentId(data.paymentIntentId);
-        setCodGuaranteeIntentAmount(data.amount ?? amountInMinorUnits);
+        setCodGuaranteeIntentAmount(
+          typeof data.amount === "number" ? data.amount : amountInMinorUnits
+        );
         setCodGuaranteeAuthorized(false);
         setCodGuaranteeIntentError(null);
       } catch (error) {
@@ -710,9 +729,12 @@ export function PaymentForm({
 
   const submitCODOrder = (guaranteePaymentIntentId?: string) => {
     const codConsentAcceptedAt = new Date().toISOString();
+    const serverGuaranteeAmount = displayedCodGuaranteeAmount(
+      codGuaranteeIntentAmount
+    );
     const resolvedCodGuaranteeAmount =
-      guaranteePaymentIntentId && codGuaranteeIntentAmount
-        ? codGuaranteeIntentAmount / 100
+      guaranteePaymentIntentId && serverGuaranteeAmount !== null
+        ? serverGuaranteeAmount
         : codGuaranteeAmount;
     onSubmit({
       paymentMethod: "cash_on_delivery",
@@ -766,7 +788,6 @@ export function PaymentForm({
 
     setCodGuaranteePaymentIntentId(guaranteeIntentId);
     setCodGuaranteeAuthorized(true);
-    setCodGuaranteeIntentAmount(Math.round(codGuaranteeAmount * 100));
     setCodGuaranteeIntentError(null);
     setPaymentError(null);
     submitCODOrder(guaranteeIntentId);

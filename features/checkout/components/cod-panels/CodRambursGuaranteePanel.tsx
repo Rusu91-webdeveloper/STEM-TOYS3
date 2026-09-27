@@ -5,6 +5,11 @@ import React from "react";
 
 import { StripePaymentForm } from "@/features/checkout/components/StripePaymentForm";
 import { StripeProvider } from "@/features/checkout/components/StripeProvider";
+import {
+  COD_GUARANTEE_STRIPE_COUNTRY,
+  COD_GUARANTEE_STRIPE_LOCALE,
+} from "@/features/checkout/lib/cod-guarantee-element";
+import { displayedCodGuaranteeAmount } from "@/features/checkout/lib/cod-guarantee-intent-session";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 
@@ -58,6 +63,10 @@ export function CodRambursGuaranteePanel({
 }: CodRambursGuaranteePanelProps) {
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
+  const authorizedAmount = displayedCodGuaranteeAmount(
+    codGuaranteeIntentAmount
+  );
+  const chargeAmount = authorizedAmount ?? codGuaranteeAmount;
 
   if (isResolvingCodGuaranteePolicy) {
     return (
@@ -174,7 +183,9 @@ export function CodRambursGuaranteePanel({
               {t("codGuaranteeAmountLabel", "Valoare autorizată")}
             </p>
             <p className="mt-1 text-2xl font-bold tracking-tight text-slate-950">
-              {formatPrice(codGuaranteeAmount)}
+              {authorizedAmount !== null
+                ? formatPrice(authorizedAmount)
+                : t("codGuaranteeAmountPending", "Se calculează...")}
             </p>
             <div className="mt-4 rounded-xl border border-white/80 bg-white/90 px-3 py-3 shadow-sm">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
@@ -217,6 +228,7 @@ export function CodRambursGuaranteePanel({
               options={{
                 clientSecret: codGuaranteeClientSecret,
                 appearance: { theme: "stripe" },
+                locale: COD_GUARANTEE_STRIPE_LOCALE,
               }}
             >
               <StripePaymentForm
@@ -225,18 +237,13 @@ export function CodRambursGuaranteePanel({
                 onSuccess={onCODGuaranteeSuccess}
                 onError={onCODGuaranteeError}
                 billingDetails={getBillingDetails()}
-                amount={
-                  codGuaranteeIntentAmount ??
-                  Math.round(codGuaranteeAmount * 100)
-                }
+                amount={Math.round(chargeAmount * 100)}
+                defaultBillingCountry={COD_GUARANTEE_STRIPE_COUNTRY}
                 isCalculatingTotal={isCalculatingTotal}
                 submitButtonClassName="cod-guarantee-submit-button"
                 submitLabel={t(
                   "authorizeCodGuarantee",
-                  `Autorizează ${formatPrice(
-                    (codGuaranteeIntentAmount ??
-                      Math.round(codGuaranteeAmount * 100)) / 100
-                  )}`
+                  `Autorizează ${formatPrice(chargeAmount)}`
                 )}
               />
             </StripeProvider>

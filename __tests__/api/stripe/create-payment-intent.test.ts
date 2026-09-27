@@ -25,6 +25,15 @@ jest.mock("@/lib/auth", () => ({
   }),
 }));
 
+jest.mock("@/lib/checkout/cod-guarantee-risk", () => ({
+  resolveCodGuaranteeCustomerStats: jest.fn(() =>
+    Promise.resolve({
+      priorOrderCount: 0,
+      priorCodRtoCount: 0,
+    })
+  ),
+}));
+
 jest.mock("@/lib/checkout/authoritative-pricing", () => ({
   CheckoutPricingError: class CheckoutPricingError extends Error {
     code: string;
@@ -69,6 +78,10 @@ describe("POST /api/stripe/create-payment-intent", () => {
       id: "pi_existing",
       currency: "ron",
       status: "requires_payment_method",
+      metadata: {
+        userId: "user_123",
+        userEmail: "user@example.com",
+      },
     });
     mockResolveCheckoutPricing.mockResolvedValue({
       orderTotal: 321.45,
@@ -82,6 +95,7 @@ describe("POST /api/stripe/create-payment-intent", () => {
     jest.clearAllMocks();
     delete process.env.STRIPE_SECRET_KEY;
     delete process.env.STRIPE_DEFAULT_CURRENCY;
+    delete process.env.COD_GUARANTEE_MODE;
   });
 
   it("creates a payment intent with automatic payment methods and RON currency", async () => {
@@ -284,7 +298,7 @@ describe("POST /api/stripe/create-payment-intent", () => {
     expect(payload.amount).toBe(1800);
   });
 
-  it("applies the guest order rate limit to COD guarantee intents", async () => {
+  it("applies a separate 20-per-10-min limit to guest guarantee intents", async () => {
     const { auth } = require("@/lib/auth");
     auth.mockResolvedValue(null);
 
@@ -293,7 +307,7 @@ describe("POST /api/stripe/create-payment-intent", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-forwarded-for": "203.0.113.12",
+          "x-forwarded-for": "203.0.113.40",
         },
         body: JSON.stringify({
           amount: 100,
@@ -307,13 +321,252 @@ describe("POST /api/stripe/create-payment-intent", () => {
       });
 
     const statuses = [];
-    for (let attempt = 0; attempt < 6; attempt += 1) {
+    for (let attempt = 0; attempt < 21; attempt += 1) {
       const response = await handler(makeRequest());
       statuses.push(response.status);
     }
 
-    expect(statuses.slice(0, 5)).toEqual([200, 200, 200, 200, 200]);
-    expect(statuses[5]).toBe(429);
+    expect(statuses.slice(0, 20).every(status => status === 200)).toBe(true);
+    expect(statuses[20]).toBe(429);
+    const blocked = await handler(makeRequest());
+    const payload = await blocked.json();
+    expect(payload.error).toBe("GUEST_GUARANTEE_INTENT_RATE_LIMIT");
+    expect(payload.message).not.toMatch(/comenzi fără cont/);
+  });
+
+  it("refuses a guest guarantee when policy does not require one", async () => {
+    const { auth } = require("@/lib/auth");
+    auth.mockResolvedValue(null);
+    process.env.COD_GUARANTEE_MODE = "risk_based";
+    mockResolveCheckoutPricing.mockResolvedValue({
+      orderTotal: 150,
+      codGuaranteeAmount: 18,
+    });
+
+    const request = new NextRequest(
+      "http://localhost/api/stripe/create-payment-intent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-forwarded-for": "203.0.113.41",
+        },
+        body: JSON.stringify({
+          amount: 1999,
+          guestEmail: "guest@example.com",
+          checkoutContext: {
+            items: [{ productId: "prod_1", quantity: 1 }],
+            shippingMethodId: "fancourier:standard",
+            paymentMethod: "cash_on_delivery",
+            recipientType: "B2C",
+          },
+          metadata: { paymentFlow: "cod_guarantee" },
+        }),
+      }
+    );
+
+    const response = await handler(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.error).toBe("COD_GUARANTEE_NOT_REQUIRED");
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it("refuses a guest guarantee for locker delivery even in always mode", async () => {
+    const { auth } = require("@/lib/auth");
+    auth.mockResolvedValue(null);
+    process.env.COD_GUARANTEE_MODE = "always";
+
+    const request = new NextRequest(
+      "http://localhost/api/stripe/create-payment-intent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-forwarded-for": "203.0.113.42",
+        },
+        body: JSON.stringify({
+          amount: 1999,
+          guestEmail: "guest@example.com",
+          checkoutContext: {
+            items: [{ productId: "prod_1", quantity: 1 }],
+            shippingMethodId: "fancourier:fanbox",
+            paymentMethod: "cash_on_delivery",
+          },
+          metadata: { paymentFlow: "cod_guarantee" },
+        }),
+      }
+    );
+
+    const response = await handler(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.error).toBe("COD_GUARANTEE_NOT_REQUIRED");
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it("does not apply the guest guarantee policy to a logged-in payment intent", async () => {
+    process.env.COD_GUARANTEE_MODE = "off";
+    const {
+      resolveCodGuaranteeCustomerStats,
+    } = require("@/lib/checkout/cod-guarantee-risk");
+
+    const request = new NextRequest(
+      "http://localhost/api/stripe/create-payment-intent",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: 2200 }),
+      }
+    );
+
+    const response = await handler(request);
+
+    expect(response.status).toBe(200);
+    expect(resolveCodGuaranteeCustomerStats).not.toHaveBeenCalled();
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not update a payment intent owned by another user", async () => {
+    mockRetrieve.mockResolvedValue({
+      id: "pi_existing",
+      currency: "ron",
+      status: "requires_payment_method",
+      metadata: { userId: "user_other" },
+    });
+
+    const request = new NextRequest(
+      "http://localhost/api/stripe/create-payment-intent",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: 5000,
+          paymentIntentId: "pi_existing",
+        }),
+      }
+    );
+
+    const response = await handler(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.error).toBe("PAYMENT_INTENT_OWNERSHIP");
+    expect(mockUpdate).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it("updates a guest guarantee intent only when the email matches", async () => {
+    const { auth } = require("@/lib/auth");
+    auth.mockResolvedValue(null);
+    mockRetrieve.mockResolvedValue({
+      id: "pi_guest",
+      currency: "ron",
+      status: "requires_payment_method",
+      metadata: {
+        guestEmail: "guest@example.com",
+        paymentFlow: "cod_guarantee",
+      },
+    });
+
+    const request = new NextRequest(
+      "http://localhost/api/stripe/create-payment-intent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-forwarded-for": "203.0.113.43",
+        },
+        body: JSON.stringify({
+          amount: 1999,
+          paymentIntentId: "pi_guest",
+          guestEmail: "Guest@Example.com",
+          checkoutContext: {
+            items: [{ productId: "prod_1", quantity: 1 }],
+            shippingMethodId: "fancourier:standard",
+            paymentMethod: "cash_on_delivery",
+          },
+          metadata: { paymentFlow: "cod_guarantee" },
+        }),
+      }
+    );
+
+    const response = await handler(request);
+
+    expect(response.status).toBe(200);
+    expect(mockUpdate).toHaveBeenCalledTimes(1);
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects reuse of a guest intent that belongs to another email", async () => {
+    const { auth } = require("@/lib/auth");
+    auth.mockResolvedValue(null);
+    mockRetrieve.mockResolvedValue({
+      id: "pi_guest",
+      currency: "ron",
+      status: "requires_payment_method",
+      metadata: { guestEmail: "other@example.com" },
+    });
+
+    const request = new NextRequest(
+      "http://localhost/api/stripe/create-payment-intent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-forwarded-for": "203.0.113.44",
+        },
+        body: JSON.stringify({
+          amount: 1999,
+          paymentIntentId: "pi_guest",
+          guestEmail: "guest@example.com",
+          checkoutContext: {
+            items: [{ productId: "prod_1", quantity: 1 }],
+            paymentMethod: "cash_on_delivery",
+          },
+          metadata: { paymentFlow: "cod_guarantee" },
+        }),
+      }
+    );
+
+    const response = await handler(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.error).toBe("PAYMENT_INTENT_OWNERSHIP");
+    expect(mockUpdate).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects reuse of an intent that already has an order id", async () => {
+    mockRetrieve.mockResolvedValue({
+      id: "pi_existing",
+      currency: "ron",
+      status: "requires_payment_method",
+      metadata: { userId: "user_123", orderId: "ord_existing" },
+    });
+
+    const request = new NextRequest(
+      "http://localhost/api/stripe/create-payment-intent",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: 5000,
+          paymentIntentId: "pi_existing",
+        }),
+      }
+    );
+
+    const response = await handler(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload.error).toBe("PAYMENT_INTENT_ALREADY_USED");
+    expect(mockUpdate).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   it("does not rate-limit a logged-in payment intent", async () => {

@@ -2,17 +2,22 @@ import { createHash } from "crypto";
 
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import {
   CheckoutPricingError,
   resolveCheckoutPricing,
 } from "@/lib/checkout/authoritative-pricing";
+import { createPaymentIntentRequestSchema } from "@/lib/checkout/create-payment-intent-request";
+import { guestGuaranteePolicyRejection } from "@/lib/checkout/guest-guarantee-policy-gate";
 import {
   isPaymentIntentActor,
   resolvePaymentIntentActor,
 } from "@/lib/checkout/payment-intent-access";
+import {
+  PaymentIntentAlreadyUsedError,
+  PaymentIntentOwnershipError,
+} from "@/lib/checkout/payment-intent-ownership";
 import {
   reuseOrCreatePaymentIntent,
   sanitizePaymentIntentMetadata,
@@ -28,30 +33,6 @@ import {
 // Avoid initializing Stripe and validating keys at module import time.
 // Doing so can break Next.js production builds because the build step imports route modules.
 // We initialize and validate within the request handler instead.
-
-const createRequestSchema = z.object({
-  amount: z.number().int().positive(),
-  paymentIntentId: z.string().optional(),
-  checkoutAttemptId: z.string().min(1).optional(),
-  currency: z.string().optional(),
-  guestEmail: z.string().optional(),
-  checkoutContext: z
-    .object({
-      items: z.array(
-        z.object({
-          productId: z.string(),
-          quantity: z.number().int().positive(),
-          isBook: z.boolean().optional(),
-          selectedLanguage: z.string().optional(),
-        })
-      ),
-      shippingMethodId: z.string().optional(),
-      couponCode: z.string().nullable().optional(),
-      paymentMethod: z.string().optional(),
-    })
-    .optional(),
-  metadata: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
-});
 
 export async function POST(request: NextRequest) {
   try {
@@ -91,7 +72,7 @@ export async function POST(request: NextRequest) {
       }
       throw error;
     }
-    const parsedBody = createRequestSchema.safeParse(rawBody);
+    const parsedBody = createPaymentIntentRequestSchema.safeParse(rawBody);
     const requestedFlow =
       rawBody &&
       typeof rawBody === "object" &&
@@ -143,6 +124,7 @@ export async function POST(request: NextRequest) {
           : null;
 
     let resolvedAmount = amount;
+    let pricedOrderTotal: number | null = null;
     if (checkoutContext) {
       try {
         const pricing = await resolveCheckoutPricing({
@@ -153,6 +135,7 @@ export async function POST(request: NextRequest) {
           paymentMethod: checkoutContext.paymentMethod,
         });
 
+        pricedOrderTotal = pricing.orderTotal;
         resolvedAmount = Math.round(
           (paymentFlow === "cod_guarantee"
             ? pricing.codGuaranteeAmount
@@ -172,6 +155,28 @@ export async function POST(request: NextRequest) {
         }
         throw error;
       }
+    }
+
+    if (actor.kind === "guest") {
+      if (!checkoutContext || pricedOrderTotal === null) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "CHECKOUT_CONTEXT_REQUIRED",
+            message:
+              "Checkout context is required to price a guest COD guarantee.",
+          },
+          { status: 400 }
+        );
+      }
+      const policyRejection = await guestGuaranteePolicyRejection({
+        guestEmail: actor.email,
+        orderTotal: pricedOrderTotal,
+        shippingMethodId: checkoutContext.shippingMethodId,
+        recipientType: checkoutContext.recipientType,
+        phone: checkoutContext.phone,
+      });
+      if (policyRejection) return policyRejection;
     }
 
     if (resolvedAmount <= 0) {
@@ -203,6 +208,10 @@ export async function POST(request: NextRequest) {
       ...(checkoutAttemptId ? { checkoutAttemptId } : {}),
     };
 
+    const actorRef =
+      actor.kind === "user"
+        ? { kind: "user" as const, userId: actor.userId }
+        : { kind: "guest" as const, email: actor.email };
     const actorKey =
       actor.kind === "user" ? actor.userId : `guest:${actor.email}`;
     const idempotencyKey = paymentIntentId
@@ -240,6 +249,7 @@ export async function POST(request: NextRequest) {
         baseMetadata,
         createParams,
         idempotencyKey,
+        actorRef,
         receiptEmail
       );
     } else {
@@ -255,6 +265,19 @@ export async function POST(request: NextRequest) {
       amount: resolvedAmount,
     });
   } catch (error) {
+    if (
+      error instanceof PaymentIntentOwnershipError ||
+      error instanceof PaymentIntentAlreadyUsedError
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.code,
+          message: error.message,
+        },
+        { status: error.status }
+      );
+    }
     console.error("Error creating payment intent:", error);
     return NextResponse.json(
       {

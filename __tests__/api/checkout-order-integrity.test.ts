@@ -130,6 +130,7 @@ jest.mock("@/lib/db", () => ({
     },
     order: {
       findUnique: jest.fn(),
+      findFirst: jest.fn().mockResolvedValue(null),
       update: jest.fn(),
     },
     user: {
@@ -177,6 +178,7 @@ describe("POST /api/checkout/order integrity", () => {
 
     db.address.findFirst.mockResolvedValue(null);
     db.address.create.mockResolvedValue({ id: "addr_1" });
+    db.order.findFirst.mockResolvedValue(null);
     db.order.findUnique.mockResolvedValue({
       id: "ord_1",
       paymentStatus: "PENDING",
@@ -452,7 +454,10 @@ describe("POST /api/checkout/order integrity", () => {
   });
 
   it("accepts a guest COD order and emails the guest address", async () => {
-    const { COD_CONSENT_TEXT, COD_CONSENT_VERSION } = require("@/lib/checkout/cod-consent");
+    const {
+      COD_CONSENT_TEXT,
+      COD_CONSENT_VERSION,
+    } = require("@/lib/checkout/cod-consent");
     const {
       DatabaseTemplateService,
     } = require("@/lib/email/database-template-service");
@@ -560,7 +565,9 @@ describe("POST /api/checkout/order integrity", () => {
         }),
       })
     );
-    expect(DatabaseTemplateService.sendOrderConfirmationEmail).toHaveBeenCalledWith(
+    expect(
+      DatabaseTemplateService.sendOrderConfirmationEmail
+    ).toHaveBeenCalledWith(
       "guest@example.com",
       expect.objectContaining({
         customerName: "Ana Pop",
@@ -572,8 +579,13 @@ describe("POST /api/checkout/order integrity", () => {
   });
 
   it("does not create a guest user when price or stock validation fails", async () => {
-    const { CheckoutPricingError } = require("@/lib/checkout/authoritative-pricing");
-    const { COD_CONSENT_TEXT, COD_CONSENT_VERSION } = require("@/lib/checkout/cod-consent");
+    const {
+      CheckoutPricingError,
+    } = require("@/lib/checkout/authoritative-pricing");
+    const {
+      COD_CONSENT_TEXT,
+      COD_CONSENT_VERSION,
+    } = require("@/lib/checkout/cod-consent");
 
     auth.mockResolvedValue(null);
     db.user.findUnique.mockResolvedValue(null);
@@ -623,7 +635,10 @@ describe("POST /api/checkout/order integrity", () => {
   });
 
   it("still places the guest order when the confirmation email throws", async () => {
-    const { COD_CONSENT_TEXT, COD_CONSENT_VERSION } = require("@/lib/checkout/cod-consent");
+    const {
+      COD_CONSENT_TEXT,
+      COD_CONSENT_VERSION,
+    } = require("@/lib/checkout/cod-consent");
     const {
       DatabaseTemplateService,
     } = require("@/lib/email/database-template-service");
@@ -789,7 +804,10 @@ describe("POST /api/checkout/order integrity", () => {
       extra: Record<string, unknown> = {}
     ) {
       guestRequestCount += 1;
-      const { COD_CONSENT_TEXT, COD_CONSENT_VERSION } = require("@/lib/checkout/cod-consent");
+      const {
+        COD_CONSENT_TEXT,
+        COD_CONSENT_VERSION,
+      } = require("@/lib/checkout/cod-consent");
       return new NextRequest("http://localhost/api/checkout/order", {
         method: "POST",
         headers: {
@@ -850,6 +868,41 @@ describe("POST /api/checkout/order integrity", () => {
       delete process.env.STRIPE_SECRET_KEY;
     });
 
+    it("does not require a guarantee for a new guest under 200 lei", async () => {
+      resolveCheckoutPricing.mockResolvedValue(price(199));
+
+      const response = await POST(guestCodRequest(199));
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.success).toBe(true);
+      expect(txOrderCreate).toHaveBeenCalled();
+    });
+
+    it("requires a guarantee for a new guest at 200 lei", async () => {
+      resolveCheckoutPricing.mockResolvedValue(price(200));
+
+      const response = await POST(guestCodRequest(200));
+      const payload = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(payload.error).toBe("COD_GUARANTEE_REQUIRED");
+      expect(txOrderCreate).not.toHaveBeenCalled();
+    });
+
+    it("passes the checkout phone into the same stats function for guests", async () => {
+      const stats = require("@/lib/checkout/cod-guarantee-risk");
+      resolveCheckoutPricing.mockResolvedValue(price(120));
+
+      await POST(guestCodRequest(120));
+
+      expect(stats.resolveCodGuaranteeCustomerStats).toHaveBeenCalledWith({
+        userId: undefined,
+        guestEmail: "Guest@Example.com",
+        phone: "0712345678",
+      });
+    });
+
     it("accepts a small new-customer home COD order without a guarantee", async () => {
       resolveCheckoutPricing.mockResolvedValue(price(120));
 
@@ -906,6 +959,12 @@ describe("POST /api/checkout/order integrity", () => {
         "pi_guest_guarantee"
       );
       expect(txOrderCreate).toHaveBeenCalled();
+      expect(Stripe.paymentIntents.update).toHaveBeenCalledWith(
+        "pi_guest_guarantee",
+        expect.objectContaining({
+          metadata: expect.objectContaining({ orderId: "ord_1" }),
+        })
+      );
     });
 
     it("rejects a guest guarantee issued for a different email", async () => {
@@ -936,6 +995,228 @@ describe("POST /api/checkout/order integrity", () => {
       expect(db.user.create).not.toHaveBeenCalled();
     });
 
+    it("does not cancel a guarantee intent owned by another guest", async () => {
+      const Stripe = require("stripe");
+      process.env.STRIPE_SECRET_KEY = "sk_test_guest_cod";
+      resolveCheckoutPricing.mockResolvedValue(price(120));
+      Stripe.paymentIntents.retrieve.mockResolvedValue({
+        id: "pi_other",
+        amount: 1999,
+        currency: "ron",
+        status: "requires_capture",
+        metadata: {
+          guestEmail: "other@example.com",
+          paymentFlow: "cod_guarantee",
+        },
+      });
+
+      const response = await POST(
+        guestCodRequest(120, {
+          codGuaranteePaymentIntentId: "pi_other",
+          codGuaranteeAmount: 19.99,
+        })
+      );
+
+      expect(response.status).toBe(200);
+      expect(Stripe.paymentIntents.cancel).not.toHaveBeenCalled();
+    });
+
+    it("releases the guest's own unused guarantee when none is required", async () => {
+      const Stripe = require("stripe");
+      process.env.STRIPE_SECRET_KEY = "sk_test_guest_cod";
+      resolveCheckoutPricing.mockResolvedValue(price(120));
+      Stripe.paymentIntents.retrieve.mockResolvedValue({
+        id: "pi_own",
+        amount: 1999,
+        currency: "ron",
+        status: "requires_capture",
+        metadata: {
+          guestEmail: "guest@example.com",
+          paymentFlow: "cod_guarantee",
+        },
+      });
+
+      const response = await POST(
+        guestCodRequest(120, {
+          codGuaranteePaymentIntentId: "pi_own",
+          codGuaranteeAmount: 19.99,
+        })
+      );
+
+      expect(response.status).toBe(200);
+      expect(Stripe.paymentIntents.cancel).toHaveBeenCalledWith(
+        "pi_own",
+        expect.objectContaining({ cancellation_reason: "abandoned" })
+      );
+    });
+
+    it("does not cancel a guarantee intent that already has an order id", async () => {
+      const Stripe = require("stripe");
+      process.env.STRIPE_SECRET_KEY = "sk_test_guest_cod";
+      resolveCheckoutPricing.mockResolvedValue(price(120));
+      Stripe.paymentIntents.retrieve.mockResolvedValue({
+        id: "pi_used",
+        amount: 1999,
+        currency: "ron",
+        status: "requires_capture",
+        metadata: {
+          guestEmail: "guest@example.com",
+          paymentFlow: "cod_guarantee",
+          orderId: "ord_previous",
+        },
+      });
+
+      const response = await POST(
+        guestCodRequest(120, {
+          codGuaranteePaymentIntentId: "pi_used",
+          codGuaranteeAmount: 19.99,
+        })
+      );
+
+      expect(response.status).toBe(200);
+      expect(Stripe.paymentIntents.cancel).not.toHaveBeenCalled();
+    });
+
+    it("rejects a guarantee intent whose metadata already has an order id", async () => {
+      const Stripe = require("stripe");
+      process.env.STRIPE_SECRET_KEY = "sk_test_guest_cod";
+      resolveCheckoutPricing.mockResolvedValue(price(420));
+      Stripe.paymentIntents.retrieve.mockResolvedValue({
+        id: "pi_used",
+        amount: 1999,
+        currency: "ron",
+        status: "requires_capture",
+        metadata: {
+          guestEmail: "guest@example.com",
+          paymentFlow: "cod_guarantee",
+          orderId: "ord_previous",
+        },
+      });
+
+      const response = await POST(
+        guestCodRequest(420, {
+          codGuaranteePaymentIntentId: "pi_used",
+          codGuaranteeAmount: 19.99,
+        })
+      );
+      const payload = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(payload.error).toBe("COD_GUARANTEE_INTENT_REUSED");
+      expect(txOrderCreate).not.toHaveBeenCalled();
+    });
+
+    it("rejects a guarantee intent already attached to an order", async () => {
+      const Stripe = require("stripe");
+      process.env.STRIPE_SECRET_KEY = "sk_test_guest_cod";
+      resolveCheckoutPricing.mockResolvedValue(price(420));
+      db.order.findFirst.mockResolvedValue({ id: "ord_existing" });
+      Stripe.paymentIntents.retrieve.mockResolvedValue({
+        id: "pi_attached",
+        amount: 1999,
+        currency: "ron",
+        status: "requires_capture",
+        metadata: {
+          guestEmail: "guest@example.com",
+          paymentFlow: "cod_guarantee",
+        },
+      });
+
+      const response = await POST(
+        guestCodRequest(420, {
+          codGuaranteePaymentIntentId: "pi_attached",
+          codGuaranteeAmount: 19.99,
+        })
+      );
+      const payload = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(payload.error).toBe("COD_GUARANTEE_INTENT_REUSED");
+      expect(txOrderCreate).not.toHaveBeenCalled();
+      expect(db.order.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: expect.arrayContaining([
+              { stripePaymentIntentId: "pi_attached" },
+              { notes: { contains: "pi_attached" } },
+            ]),
+          }),
+        })
+      );
+    });
+
+    it("rejects a logged-in guarantee intent owned by another user", async () => {
+      const Stripe = require("stripe");
+      process.env.STRIPE_SECRET_KEY = "sk_test_guest_cod";
+      auth.mockResolvedValue({
+        user: {
+          id: "user_1",
+          email: "buyer@example.com",
+          role: "USER",
+          name: "Buyer",
+        },
+      });
+      resolveCheckoutPricing.mockResolvedValue(price(420));
+      Stripe.paymentIntents.retrieve.mockResolvedValue({
+        id: "pi_other_user",
+        amount: 1999,
+        currency: "ron",
+        status: "requires_capture",
+        metadata: { userId: "user_other", paymentFlow: "cod_guarantee" },
+      });
+
+      const response = await POST(
+        guestCodRequest(420, {
+          codGuaranteePaymentIntentId: "pi_other_user",
+          codGuaranteeAmount: 19.99,
+        })
+      );
+      const payload = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(payload.error).toBe("PAYMENT_INTENT_USER_MISMATCH");
+      expect(txOrderCreate).not.toHaveBeenCalled();
+      expect(Stripe.paymentIntents.cancel).not.toHaveBeenCalled();
+    });
+
+    it("accepts a logged-in guarantee intent owned by the session user", async () => {
+      const Stripe = require("stripe");
+      process.env.STRIPE_SECRET_KEY = "sk_test_guest_cod";
+      auth.mockResolvedValue({
+        user: {
+          id: "user_1",
+          email: "buyer@example.com",
+          role: "USER",
+          name: "Buyer",
+        },
+      });
+      resolveCheckoutPricing.mockResolvedValue(price(420));
+      Stripe.paymentIntents.retrieve.mockResolvedValue({
+        id: "pi_user_guarantee",
+        amount: 1999,
+        currency: "ron",
+        status: "requires_capture",
+        metadata: { userId: "user_1", paymentFlow: "cod_guarantee" },
+      });
+
+      const response = await POST(
+        guestCodRequest(420, {
+          codGuaranteePaymentIntentId: "pi_user_guarantee",
+          codGuaranteeAmount: 19.99,
+        })
+      );
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.success).toBe(true);
+      expect(Stripe.paymentIntents.update).toHaveBeenCalledWith(
+        "pi_user_guarantee",
+        expect.objectContaining({
+          metadata: expect.objectContaining({ orderId: "ord_1" }),
+        })
+      );
+    });
+
     it("keeps logged-in COD scoring on the session user", async () => {
       const stats = require("@/lib/checkout/cod-guarantee-risk");
       auth.mockResolvedValue({
@@ -953,6 +1234,8 @@ describe("POST /api/checkout/order integrity", () => {
       expect(response.status).toBe(200);
       expect(stats.resolveCodGuaranteeCustomerStats).toHaveBeenCalledWith({
         userId: "user_1",
+        guestEmail: null,
+        phone: "0712345678",
       });
     });
   });

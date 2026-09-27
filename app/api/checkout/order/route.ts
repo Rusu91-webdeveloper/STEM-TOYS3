@@ -1,4 +1,7 @@
-import { CURATED_MAX_AGE_MS, isCuratedSupplier } from "@/lib/suppliers/curated-stock";
+import {
+  CURATED_MAX_AGE_MS,
+  isCuratedSupplier,
+} from "@/lib/suppliers/curated-stock";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -26,6 +29,12 @@ import {
 } from "@/lib/checkout/guest-customer";
 import { enforceGuestOrderRateLimit } from "@/lib/checkout/guest-order-rate-limit";
 import { compensateFailedOrder } from "@/lib/checkout/payment-failure-compensation";
+import {
+  checkoutPaymentIntentActor,
+  findOrderUsingPaymentIntent,
+  paymentIntentMetadataMatchesActor,
+  paymentIntentMetadataOrderId,
+} from "@/lib/checkout/payment-intent-ownership";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
 import { AdminNotificationService } from "@/lib/email/admin-notification-service";
@@ -453,11 +462,11 @@ export async function POST(request: Request) {
           ? "stripe"
           : null;
     const codGuaranteeUserStats = isCODPayment
-      ? await resolveCodGuaranteeCustomerStats(
-          sessionUser?.id
-            ? { userId: user?.id || sessionUser.id }
-            : { userId: user?.id, guestEmail }
-        )
+      ? await resolveCodGuaranteeCustomerStats({
+          userId: sessionUser?.id ? user?.id || sessionUser.id : user?.id,
+          guestEmail: sessionUser?.id ? null : guestEmail,
+          phone: shippingAddressData.phone,
+        })
       : { priorOrderCount: 0, priorCodRtoCount: 0 };
 
     if (lockerRequired && isCODPayment) {
@@ -781,8 +790,7 @@ export async function POST(request: Request) {
     }
 
     const expectedCodGuaranteeAmount = isCODPayment
-      ? Math.round(Math.max(finalShippingCost, shippingBasePrice) * 100) /
-        100
+      ? Math.round(Math.max(finalShippingCost, shippingBasePrice) * 100) / 100
       : 0;
     const expectedCodGuaranteeMinor = Math.round(
       expectedCodGuaranteeAmount * 100
@@ -882,7 +890,28 @@ export async function POST(request: Request) {
           );
         }
 
-        if (!sessionUser?.id) {
+        const guaranteeActor = checkoutPaymentIntentActor({
+          sessionUserId: sessionUser?.id,
+          guestEmail,
+        });
+        if (guaranteeActor.kind === "user") {
+          if (
+            !paymentIntentMetadataMatchesActor(
+              codGuaranteeIntent.metadata,
+              guaranteeActor
+            )
+          ) {
+            return NextResponse.json(
+              {
+                success: false,
+                message:
+                  "This payment authorization does not belong to the current user.",
+                error: "PAYMENT_INTENT_USER_MISMATCH",
+              },
+              { status: 403 }
+            );
+          }
+        } else {
           const guestIntentError = guestCodGuaranteeIntentError({
             guestEmail,
             checkoutUserId: user?.id ?? null,
@@ -898,6 +927,33 @@ export async function POST(request: Request) {
               { status: guestIntentError.status }
             );
           }
+        }
+
+        if (paymentIntentMetadataOrderId(codGuaranteeIntent.metadata)) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "This COD guarantee authorization was already used for an order.",
+              error: "COD_GUARANTEE_INTENT_REUSED",
+            },
+            { status: 400 }
+          );
+        }
+
+        const attachedGuaranteeOrder = await findOrderUsingPaymentIntent(
+          effectiveCodGuaranteePaymentIntentId
+        );
+        if (attachedGuaranteeOrder) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "This COD guarantee authorization is already attached to an order.",
+              error: "COD_GUARANTEE_INTENT_REUSED",
+            },
+            { status: 400 }
+          );
         }
       } catch (err) {
         console.error(
@@ -923,7 +979,28 @@ export async function POST(request: Request) {
             await stripeClient.paymentIntents.retrieve(
               effectiveCodGuaranteePaymentIntentId
             );
-          if (staleGuaranteeIntent.status === "requires_capture") {
+          const releaseActor = checkoutPaymentIntentActor({
+            sessionUserId: sessionUser?.id,
+            guestEmail,
+          });
+          const releaseOwned = paymentIntentMetadataMatchesActor(
+            staleGuaranteeIntent.metadata,
+            releaseActor
+          );
+          const releaseAlreadyUsed = Boolean(
+            paymentIntentMetadataOrderId(staleGuaranteeIntent.metadata)
+          );
+          const releaseAttachedOrder = releaseOwned
+            ? await findOrderUsingPaymentIntent(
+                effectiveCodGuaranteePaymentIntentId
+              )
+            : null;
+          if (
+            releaseOwned &&
+            !releaseAlreadyUsed &&
+            !releaseAttachedOrder &&
+            staleGuaranteeIntent.status === "requires_capture"
+          ) {
             await stripeClient.paymentIntents.cancel(
               effectiveCodGuaranteePaymentIntentId,
               {
@@ -1524,9 +1601,20 @@ export async function POST(request: Request) {
               where: {
                 id: productId,
                 isActive: true,
-                ...(isCuratedSupplier(product.supplierId, product.metadata) ? {
-                  supplierProducts: { some: { supplierId: product.supplierId!, status: "MAPPED" as const, lastSyncAt: { gt: new Date(Date.now() - CURATED_MAX_AGE_MS), lte: new Date() } } },
-                } : {}),
+                ...(isCuratedSupplier(product.supplierId, product.metadata)
+                  ? {
+                      supplierProducts: {
+                        some: {
+                          supplierId: product.supplierId!,
+                          status: "MAPPED" as const,
+                          lastSyncAt: {
+                            gt: new Date(Date.now() - CURATED_MAX_AGE_MS),
+                            lte: new Date(),
+                          },
+                        },
+                      },
+                    }
+                  : {}),
                 stockQuantity: {
                   gte: item.quantity,
                 },

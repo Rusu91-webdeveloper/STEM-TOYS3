@@ -29,7 +29,7 @@ export interface CodGuaranteePolicyResult {
 }
 
 const DEFAULT_HIGH_ORDER_VALUE_THRESHOLD = 500;
-const DEFAULT_NEW_CUSTOMER_MIN_TOTAL = 350;
+const DEFAULT_NEW_CUSTOMER_MIN_TOTAL = 200;
 const DEFAULT_B2B_MIN_TOTAL = 700;
 const DEFAULT_COD_RTO_COUNT_THRESHOLD = 1;
 
@@ -44,7 +44,7 @@ const normalizeMode = (value: string | undefined): CodGuaranteeMode => {
   if (normalized === "off") return "off";
   if (normalized === "always") return "always";
   if (normalized === "risk_based") return "risk_based";
-  return "always";
+  return "risk_based";
 };
 
 const getMode = (): CodGuaranteeMode =>
