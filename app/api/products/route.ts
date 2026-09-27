@@ -5,6 +5,7 @@ import { getCached } from "@/lib/cache";
 import { TIME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { withPerformanceMonitoring } from "@/lib/performance";
+import { toShopperProduct } from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { getCacheKey } from "@/lib/utils/cache-key";
 import { getFilterParams } from "@/lib/utils/filtering";
@@ -672,7 +673,7 @@ async function fetchProductsFromDatabase(params: {
         }
       }
 
-      return productData;
+      return toShopperProduct(productData);
     });
 
     const executionTime = Date.now() - startTime;

@@ -41,8 +41,7 @@ export async function sendNewsletterWelcomeEmail({
     createButton,
     createFeatureGrid,
     createCTASection,
-    createTestimonial,
-  } = await import("./components");
+    } = await import("./components");
 
   // Fetch the latest 2 published blog posts
   const latestBlogs = await prisma.blog.findMany({
@@ -174,14 +173,7 @@ export async function sendNewsletterWelcomeEmail({
       </div>
     </div>
 
-    ${createTestimonial(
-      "Newsletter-ul de la " +
-        storeSettings.storeName +
-        " este minunat! Primești informații valoroase despre educația STEM și oferte exclusive.",
-      "Maria Ionescu",
-      "Mamă de 2 copii",
-      5
-    )}
+
 
     ${createAlert(
       `<strong>🎉 Așteptăm cu nerăbdare să împărtășim conținut valoros cu tine!</strong><br>
@@ -246,17 +238,15 @@ export async function sendNewsletterResubscribeEmail({
     "./base"
   );
 
-  const { colors, gradients, typography, spacing, borderRadius } = await import(
+  const { colors, gradients, typography, spacing } = await import(
     "./design-system"
   );
 
   const {
     createHeroSection,
     createAlert,
-    createButton,
     createFeatureGrid,
     createCTASection,
-    createTestimonial,
   } = await import("./components");
 
   // Professional newsletter resubscribe content
@@ -328,14 +318,7 @@ export async function sendNewsletterResubscribeEmail({
       },
     ])}
 
-    ${createTestimonial(
-      "M-am abonat din nou la newsletter-ul " +
-        storeSettings.storeName +
-        " și sunt încântată de conținutul valoros pe care îl primesc!",
-      "Ana Popescu",
-      "Educatoare",
-      5
-    )}
+
 
     ${createAlert(
       `<strong>🎉 Suntem încântați să te avem înapoi!</strong><br>
@@ -419,8 +402,7 @@ export async function sendNewsletterNotificationEmail({
     createButton,
     createFeatureGrid,
     createCTASection,
-    createTestimonial,
-  } = await import("./components");
+    } = await import("./components");
 
   // Professional newsletter notification content
   const content = `
@@ -515,14 +497,7 @@ export async function sendNewsletterNotificationEmail({
       },
     ])}
 
-    ${createTestimonial(
-      "Articolele de pe blogul " +
-        storeSettings.storeName +
-        " sunt minunate! Îmi oferă sfaturi practice pentru educația STEM a copiilor mei.",
-      "Cristina Dumitrescu",
-      "Mamă de 3 copii",
-      5
-    )}
+
 
     ${createAlert(
       `<strong>💡 Sfat:</strong> Salvează acest email pentru a citi articolul mai târziu, sau împărtășește-l cu alți părinți care ar putea fi interesați!`,

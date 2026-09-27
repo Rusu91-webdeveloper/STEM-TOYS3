@@ -478,7 +478,7 @@ Creează conținut de produs care:
    - Deschide cu problemă dureroasă: "Copilul tău evită matematica ca pe foc?"
    - Statistică șocantă: "85% din copiii români se tem de STEM"
    - Soluție transformativă: "[Produs] schimbă totul în 14 zile"
-   - Social proof: "Folosit de 10,000+ familii românești"
+   - Social proof: do not invent customer counts, ratings, or testimonials
    - Expand cu 2-3 exemple concrete de probleme pe care părinții le întâmpină
 
    Paragraf 2 - BENEFICII DETALIATE (180-220 cuvinte):

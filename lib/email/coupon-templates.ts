@@ -44,8 +44,7 @@ export async function sendCouponEmail({
     createFeatureGrid,
     createCTASection,
     createProductCard,
-    createTestimonial,
-  } = await import("./components");
+    } = await import("./components");
 
   // Create email content
   const discountText =
@@ -221,12 +220,7 @@ export async function sendCouponEmail({
       },
     ])}
 
-    ${createTestimonial(
-      "Produsele STEM de la ${storeName} au transformat complet modul în care copilul meu învață. Reducerile sunt minunate!",
-      "Elena Popescu",
-      "Mamă de 2 copii",
-      5
-    )}
+
 
     <div style="text-align: center; margin: ${spacing["2xl"]} 0;">
       <p style="font-size: ${typography.fontSize.lg}; color: ${colors.neutral[700]}; margin-bottom: ${spacing.md};">

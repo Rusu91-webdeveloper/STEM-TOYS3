@@ -22,7 +22,7 @@ export const GET = withAuth(async (request: NextRequest, session) => {
         gdprCompliant: true,
         exportFormat: "JSON",
         dataController: "TechTots SRL",
-        dataControllerContact: "privacy@techtots.com",
+        dataControllerContact: "info@techtots.ro",
         retentionPolicy: "7 years from last activity",
       },
     };

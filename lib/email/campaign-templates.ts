@@ -75,8 +75,7 @@ export async function sendSeasonalCampaignEmail({
     createFeatureGrid,
     createCTASection,
     createProductCard,
-    createTestimonial,
-  } = await import("./components");
+    } = await import("./components");
 
   // Get campaign theme colors and styling
   const getCampaignTheme = (theme: string) => {
@@ -335,12 +334,7 @@ export async function sendSeasonalCampaignEmail({
           )
     }
 
-    ${createTestimonial(
-      `Campaniile de la ${storeSettings.storeName} sunt minunate! Produsele sunt de calitate și ofertele sunt foarte bune.`,
-      "Elena Popescu",
-      "Mamă de 2 copii",
-      5
-    )}
+
 
     <div style="text-align: center; margin: ${spacing["2xl"]} 0;">
       <p style="font-size: ${typography.fontSize.lg}; color: ${colors.neutral[700]}; margin-bottom: ${spacing.md};">
@@ -414,8 +408,7 @@ export async function sendProductLaunchEmail({
     createButton,
     createFeatureGrid,
     createCTASection,
-    createTestimonial,
-  } = await import("./components");
+    } = await import("./components");
 
   // Professional product launch content
   const content = `
@@ -541,12 +534,7 @@ export async function sendProductLaunchEmail({
       "📅"
     )}
 
-    ${createTestimonial(
-      "Produsele noi de la ${storeSettings.storeName} sunt întotdeauna de calitate superioară. Sunt încântată să încerc noul produs!",
-      "Maria Ionescu",
-      "Mamă de 2 copii",
-      5
-    )}
+
 
     <div style="text-align: center; margin: ${spacing["2xl"]} 0;">
       <p style="font-size: ${typography.fontSize.lg}; color: ${colors.neutral[700]}; margin-bottom: ${spacing.md};">

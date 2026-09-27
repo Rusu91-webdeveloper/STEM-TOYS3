@@ -1,18 +1,14 @@
 import { Metadata } from "next";
 
-import { SupplierBenefits } from "@/features/supplier/components/SupplierBenefits";
+import { SupplierLanding } from "@/features/supplier/components/SupplierLanding";
 
 export const metadata: Metadata = {
-  title: "Supplier Benefits & Opportunities | TechTots STEM Toys",
-  description: "Discover the benefits of becoming a TechTots supplier. Access our growing customer base, professional platform, and comprehensive support system.",
-  keywords: "supplier benefits, partnership opportunities, STEM toys marketplace, supplier advantages",
-  openGraph: {
-    title: "Supplier Benefits & Opportunities | TechTots STEM Toys",
-    description: "Benefits and opportunities for TechTots suppliers",
-    type: "website",
-  },
+  title: "Devino furnizor TechTots",
+  description:
+    "TechTots lucrează cu furnizori din România de jucării educaționale și STEM.",
+  alternates: { canonical: "https://www.techtots.ro/supplier" },
 };
 
 export default function SupplierBenefitsPage() {
-  return <SupplierBenefits />;
+  return <SupplierLanding />;
 }

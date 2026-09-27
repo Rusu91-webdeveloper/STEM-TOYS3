@@ -110,7 +110,7 @@ export default function StandardEmailFooter({
  *
  *   <!-- Contact Information -->
  *   <p>
- *     Email: contact@techtots.ro<br>
+ *     Email: info@techtots.ro<br>
  *     Telefon: +40 712 345 678<br>
  *     Adresă: Strada Exemplu 123, Sector 1, București, România
  *   </p>

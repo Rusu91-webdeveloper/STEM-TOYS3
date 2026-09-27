@@ -112,13 +112,6 @@ export default function AdminLoginPage() {
             </button>
           </div>
 
-          <div className="text-sm text-gray-600">
-            <p className="font-medium">Available Admin Accounts:</p>
-            <ul className="mt-2 space-y-1">
-              <li>• rusu.emanuel.webdeveloper@gmail.com / admin123</li>
-              <li>• rusu.jobs@gmail.com / admin123</li>
-            </ul>
-          </div>
         </form>
       </div>
     </div>

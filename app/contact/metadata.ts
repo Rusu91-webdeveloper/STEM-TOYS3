@@ -25,16 +25,12 @@ const contactStructuredData = {
       {
         "@type": "ContactPoint",
         contactType: "technical support",
-        email: "suport@techtots.ro",
+        email: appConfig.contactEmail,
         areaServed: "RO",
         availableLanguage: ["Romanian"],
       },
     ],
-    sameAs: [
-      "https://www.facebook.com/techtotsromania",
-      "https://www.instagram.com/techtots_romania/",
-      "https://linkedin.com/company/techtots-romania",
-    ],
+    sameAs: ["https://www.instagram.com/techtots_romania/"],
   },
 };
 

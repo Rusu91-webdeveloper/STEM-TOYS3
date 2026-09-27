@@ -450,8 +450,8 @@ function transformProduct(product: any): RecommendationProduct {
     price: product.price,
     images: Array.isArray(product.images) ? product.images : [],
     category: product.category,
-    rating: generateMockRating(), // In real app, this would come from reviews
-    reviewCount: generateMockReviewCount(),
+    rating: undefined,
+    reviewCount: 0,
     isNew: isProductNew(product.createdAt),
   };
 }
@@ -540,12 +540,4 @@ function calculateEducationalScore(product: any): number {
 function isProductNew(createdAt: Date): boolean {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   return new Date(createdAt) > thirtyDaysAgo;
-}
-
-function generateMockRating(): number {
-  return Math.round((Math.random() * 1.5 + 3.5) * 10) / 10; // 3.5 to 5.0
-}
-
-function generateMockReviewCount(): number {
-  return Math.floor(Math.random() * 200) + 10; // 10 to 210
 }

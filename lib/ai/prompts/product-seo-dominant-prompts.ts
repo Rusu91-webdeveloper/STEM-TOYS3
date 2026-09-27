@@ -211,7 +211,7 @@ Prima secțiune (100-150 cuvinte) - HOOK PUTERNIC:
 - Deschide cu o problemă dureroasă: "Copilul tău evită matematica? Nu este singur..."
 - Include statistică șocantă: "85% din copiii români se tem de STEM"
 - Prezintă soluția transformativă: "[Produs] schimbă totul în 2 săptămâni"
-- Adaugă dovadă socială: "10,000+ familii românești au văzut rezultate"
+- Nu inventa număr de clienți, note sau testimoniale
 
 Secțiunea principală (150-250 cuvinte) - BENEFICII CONCRETE:
 - Explică EXACT ce învață copilul (nu vag!)

@@ -655,7 +655,6 @@ export async function sendOrderCompletedEmail({
     createAlert,
     createProductCard,
     createFeatureGrid,
-    createTestimonial,
     createCTASection,
     createButton,
   } = await import("./components");
@@ -741,13 +740,6 @@ export async function sendOrderCompletedEmail({
       color: colors.warning[600],
     },
   ])}
-
-    ${createTestimonial(
-    "Produsele STEM de la ${storeSettings.storeName} au transformat complet modul în care copilul meu învață. Recomand cu încredere!",
-    "Maria Popescu",
-    "Mamă de 2 copii",
-    5
-  )}
 
     ${createCTASection(
     "Descoperă Mai Multe Produse",
@@ -862,7 +854,6 @@ export async function sendOrderDeliveredEmail({
     createOrderSummary,
     createAlert,
     createFeatureGrid,
-    createTestimonial,
     createCTASection,
     createButton,
   } = await import("./components");
@@ -931,7 +922,7 @@ export async function sendOrderDeliveredEmail({
       icon: "🚚",
       title: "Livrare Rapidă",
       description:
-        "Livrăm în toată România cu curieri de încredere și tracking în timp real.",
+        "Livrăm în toată România cu curieri de încredere.",
       color: colors.primary[600],
     },
     {
@@ -949,13 +940,6 @@ export async function sendOrderDeliveredEmail({
       color: colors.accent.purple,
     },
   ])}
-
-    ${createTestimonial(
-    "Livrarea a fost perfectă și copilul meu este încântat de jucăriile STEM! Recomand cu încredere ${storeSettings.storeName}.",
-    "Alexandru Ionescu",
-    "Tată de 2 copii",
-    5
-  )}
 
     ${createCTASection(
     "Descoperă Mai Multe Produse",

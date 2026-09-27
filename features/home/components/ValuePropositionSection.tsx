@@ -273,22 +273,6 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="border-t border-slate-200/80 px-4 py-3 sm:px-6 sm:py-4 flex-shrink-0">
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-800 shadow-[0_12px_25px_-22px_rgba(15,23,42,0.18)] sm:gap-3 sm:px-4 sm:py-2 sm:text-sm">
-              <div className="flex -space-x-1.5">
-                <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white bg-emerald-400"></div>
-                <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white bg-sky-400"></div>
-                <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white bg-indigo-400"></div>
-              </div>
-              <span>
-                <span className="font-semibold text-slate-900">
-                  {t("socialProofNumber")}
-                </span>{" "}
-                <span className="text-slate-600">{t("socialProofText")}</span>
-              </span>
-            </div>
-          </div>
         </div>
       </div>
     </section>

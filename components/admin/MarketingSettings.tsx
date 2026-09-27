@@ -366,7 +366,7 @@ export default function MarketingSettings({
                   updateField("emailMarketing.replyToEmail", e.target.value)
                 }
                 type="email"
-                placeholder="support@techtots.com"
+                placeholder="info@techtots.ro"
               />
             </div>
           </div>

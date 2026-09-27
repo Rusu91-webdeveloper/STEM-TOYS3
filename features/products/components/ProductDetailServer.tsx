@@ -4,6 +4,7 @@ import React from "react";
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { getCombinedProduct } from "@/lib/api/products";
 import { db } from "@/lib/db";
+import { toShopperProduct } from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
 import { buildDefaultProductFaq } from "@/lib/seo/product-faq";
@@ -109,10 +110,10 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
     notFound();
   }
 
-  const product: Product = {
+  const product: Product = toShopperProduct({
     ...loadedProduct,
     slug: toPublicProductSlug(loadedProduct.slug),
-  };
+  });
 
   const isBook = product.isBook === true;
 

@@ -43,7 +43,7 @@ const mockBlogPosts: BlogPost[] = [
     stemCategory: "SCIENCE",
     publishedAt: "2024-01-15T10:00:00Z",
     author: {
-      name: "Dr. Sarah Johnson",
+      name: "Echipa TechTots",
       avatarUrl: "/images/author-1.jpg",
     },
     category: {
@@ -91,7 +91,7 @@ describe("BlogGrid", () => {
       screen.getByText("The Future of STEM Education")
     ).toBeInTheDocument();
     expect(screen.getByText("Building Robots with Kids")).toBeInTheDocument();
-    expect(screen.getByText("Dr. Sarah Johnson")).toBeInTheDocument();
+    expect(screen.getByText("Echipa TechTots")).toBeInTheDocument();
     expect(screen.getByText("TechTots Team")).toBeInTheDocument();
   });
 

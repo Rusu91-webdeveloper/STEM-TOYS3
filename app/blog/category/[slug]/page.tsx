@@ -20,7 +20,7 @@ const blogPostsByCategory = {
       date: "June 10, 2023",
       category: "Science",
       image: "/images/category_banner_science_01.png",
-      author: "Dr. Amelia Parker",
+      author: "Echipa TechTots",
       content: `
         <p>The scientific method—observe, question, hypothesize, experiment, analyze, conclude—forms the foundation of scientific inquiry. But how do we introduce these concepts to young minds in an engaging way?</p>
         
@@ -74,7 +74,7 @@ const blogPostsByCategory = {
       date: "May 22, 2023",
       category: "Technology",
       image: "/images/category_banner_technology_01.png",
-      author: "Marcus Rivera",
+      author: "Echipa TechTots",
       content: `
         <p>In our increasingly digital world, coding literacy is becoming as fundamental as reading and writing. Technology toys offer an engaging way to introduce children to computational thinking concepts through play.</p>
         
@@ -137,7 +137,7 @@ const blogPostsByCategory = {
       date: "April 15, 2023",
       category: "Engineering",
       image: "/images/category_banner_engineering_01.png",
-      author: "Jennifer Kim",
+      author: "Echipa TechTots",
       content: `
         <p>Engineering isn't just a profession—it's a way of thinking about problems and solutions. Construction toys provide children with hands-on experiences that develop the foundational skills of engineering thinking.</p>
         
@@ -208,7 +208,7 @@ const blogPostsByCategory = {
       date: "March 8, 2023",
       category: "Math",
       image: "/images/category_banner_math_01.png",
-      author: "Dr. Robert Chen",
+      author: "Echipa TechTots",
       content: `
         <p>Mathematics anxiety is all too common, often stemming from early negative experiences with numbers and calculations. Math toys offer an alternative approach—one that builds mathematical thinking through joyful exploration and discovery.</p>
         

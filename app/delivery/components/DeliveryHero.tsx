@@ -33,10 +33,6 @@ export function DeliveryHero({ updatedAt }: { updatedAt: string }) {
             </Link>
           </div>
           <div className="mt-8 inline-flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-blue-100 backdrop-blur">
-            <span className="inline-flex items-center gap-1 font-semibold text-white">
-              🛰️ Tracking în timp real
-            </span>
-            <span className="h-1 w-1 rounded-full bg-white/40" />
             <span>Actualizări trimise la fiecare etapă confirmată</span>
             <span className="h-1 w-1 rounded-full bg-white/40" />
             <span>Ultima actualizare: {updatedAt}</span>

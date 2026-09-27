@@ -3,9 +3,8 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 
-import { publicConfig } from "@/lib/config/app-config";
-
 import { Button } from "@/components/ui/button";
+import { publicConfig } from "@/lib/config/app-config";
 import { useTranslation } from "@/lib/i18n";
 
 export default function ContactPage() {
@@ -130,23 +129,15 @@ export default function ContactPage() {
             </div>
             <div className="relative flex flex-col justify-center gap-4 px-6 py-8 text-white">
               <span className="inline-flex w-fit items-center rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-sky-200">
-                TechTots Support
+                Suport TechTots
               </span>
               <h1 className="text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-4xl">
                 {t("contactH1")}
               </h1>
               <p className="text-sm text-slate-200 sm:text-base">
-                Suntem alături de tine pentru întrebări, recomandări personalizate sau suport rapid
+                Suntem alături de tine pentru întrebări, recomandări personalizate sau suport
                 legat de comenzi și învățare STEM.
               </p>
-              <div className="flex flex-wrap items-center gap-3 text-xs text-sky-200">
-                <span className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5">
-                  🛰️ Tracking în timp real
-                </span>
-                <span className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5">
-                  ⚡ Răspuns în &lt; 12 ore
-                </span>
-              </div>
             </div>
           </div>
         </div>
@@ -155,11 +146,11 @@ export default function ContactPage() {
           <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 text-slate-900 shadow-lg shadow-slate-900/10 backdrop-blur-md sm:p-8">
             <div className="flex flex-col gap-2">
               <h2 className="text-xl font-semibold sm:text-2xl">
-                {t("getInTouch" as any, "Get in Touch")}
+                {t("getInTouch" as any, "Scrie-ne")}
               </h2>
               <p className="text-sm text-slate-600 sm:text-base">
-                Completează formularul și echipa noastră răspunde rapid cu soluții adaptate nevoilor
-                tale.
+                Completează formularul și îți răspundem cât mai repede, de obicei în aceeași zi
+                lucrătoare.
               </p>
             </div>
 
@@ -169,13 +160,13 @@ export default function ContactPage() {
                     <div className="flex items-center gap-3">
                       <div className="text-2xl">✅</div>
                       <h3 className="text-lg font-semibold text-emerald-800">
-                        {t("messageSent" as any, "Message Sent!")}
+                        {t("messageSent" as any, "Mesaj trimis")}
                       </h3>
                     </div>
                     <p className="mt-3 text-sm text-emerald-900/80">
                     {t(
                       "thankYouMessage" as any,
-                      "Thank you for contacting us. We'll get back to you as soon as possible."
+                      "Mulțumim că ne-ai scris. Îți răspundem cât mai repede."
                     )}
                   </p>
                   <div className="mt-4 rounded-2xl border border-emerald-300/40 bg-emerald-500/10 p-4 text-xs text-emerald-900/90">
@@ -190,7 +181,7 @@ export default function ContactPage() {
                     className="mt-4 bg-emerald-500 text-white hover:bg-emerald-400"
                     onClick={() => setSubmitted(false)}
                   >
-                    {t("sendAnotherMessage" as any, "Send Another Message")}
+                    {t("sendAnotherMessage" as any, "Trimite un alt mesaj")}
                   </Button>
                 </div>
               ) : (
@@ -211,7 +202,7 @@ export default function ContactPage() {
                           htmlFor="name"
                           className="text-xs font-semibold uppercase tracking-wide text-slate-600"
                         >
-                          {t("name" as any, "Name")}*
+                          {t("name" as any, "Nume")}*
                         </label>
                         <input
                           type="text"
@@ -251,7 +242,7 @@ export default function ContactPage() {
                         htmlFor="subject"
                         className="text-xs font-semibold uppercase tracking-wide text-slate-600"
                       >
-                        {t("subject" as any, "Subject")}*
+                          {t("subject" as any, "Subiect")}*
                       </label>
                       <select
                         id="subject"
@@ -263,19 +254,19 @@ export default function ContactPage() {
                         className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <option value="" className="bg-white text-slate-900">
-                          {t("selectSubject" as any, "Select a subject")}
+                          {t("selectSubject" as any, "Alege un subiect")}
                         </option>
                         <option value="general" className="bg-white text-slate-900">
-                          {t("generalInquiry" as any, "General Inquiry")}
+                          {t("generalInquiry" as any, "Întrebare generală")}
                         </option>
                         <option value="order" className="bg-white text-slate-900">
-                          {t("orderQuestion" as any, "Order Question")}
+                          {t("orderQuestion" as any, "Întrebare despre comandă")}
                         </option>
                         <option value="return" className="bg-white text-slate-900">
-                          {t("returnQuestion" as any, "Return or Refund")}
+                          {t("returnQuestion" as any, "Retur sau rambursare")}
                         </option>
                         <option value="product" className="bg-white text-slate-900">
-                          {t("productInfo" as any, "Product Information")}
+                          {t("productInfo" as any, "Informații despre produs")}
                         </option>
                       </select>
                     </div>
@@ -285,7 +276,7 @@ export default function ContactPage() {
                         htmlFor="message"
                         className="text-xs font-semibold uppercase tracking-wide text-slate-600"
                       >
-                        {t("message" as any, "Message")}*
+                        {t("message" as any, "Mesaj")}*
                       </label>
                       <textarea
                         id="message"
@@ -316,10 +307,10 @@ export default function ContactPage() {
                       {isSubmitting ? (
                         <div className="flex items-center justify-center gap-2">
                           <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></div>
-                          {t("sending" as any, "Sending...")}
+                          {t("sending" as any, "Se trimite...")}
                         </div>
                       ) : (
-                        t("sendMessage" as any, "Send Message")
+                        t("sendMessage" as any, "Trimite mesajul")
                       )}
                     </Button>
                   </form>
@@ -331,15 +322,15 @@ export default function ContactPage() {
           <div className="flex flex-col gap-6">
             <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 text-slate-900 shadow-lg shadow-slate-900/10 backdrop-blur-md sm:p-7">
               <h2 className="text-lg font-semibold sm:text-xl">
-                {t("contactInfo" as any, "Contact Information")}
+                {t("contactInfo" as any, "Date de contact")}
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                Răspundem rapid prin toate canalele — alege ce funcționează cel mai bine pentru tine.
+                Ne poți scrie sau suna folosind datele de mai jos.
               </p>
               <div className="mt-4 space-y-4 text-sm text-slate-700">
                 <div className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4">
                   <h3 className="text-sm font-semibold text-slate-900">
-                    {t("address" as any, "Address")}
+                    {t("address" as any, "Adresă")}
                   </h3>
                   <p className="mt-2 text-xs text-slate-600 sm:text-sm">
                     TechTots Educational Solutions
@@ -354,7 +345,7 @@ export default function ContactPage() {
 
                 <div className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4">
                   <h3 className="text-sm font-semibold text-slate-900">
-                    {t("customerSupport" as any, "Customer Support")}
+                    {t("customerSupport" as any, "Asistență clienți")}
                   </h3>
                   <p className="mt-2 text-xs text-slate-600 sm:text-sm leading-relaxed">
                     Email:{" "}
@@ -365,7 +356,7 @@ export default function ContactPage() {
                       {contactEmail}
                     </a>
                     <br />
-                    Phone:{" "}
+                    Telefon:{" "}
                     <a
                       href={`tel:${contactPhone.replace(/[^\d+]/g, "")}`}
                       className="text-sky-700 underline decoration-sky-500/30 underline-offset-4 transition hover:text-sky-600"
@@ -374,39 +365,23 @@ export default function ContactPage() {
                     </a>
                     <br />
                     <span className="text-xs text-slate-500">
-                      Hours: Monday-Friday, 9:00 AM - 6:00 PM CET
+                      Program: luni–vineri, 9:00–18:00
                     </span>
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4">
                   <h3 className="text-sm font-semibold text-slate-900">
-                    {t("followUs" as any, "Follow Us")}
+                    {t("followUs" as any, "Instagram")}
                   </h3>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600 sm:text-sm">
                     <a
-                      href="#"
+                      href="https://www.instagram.com/techtots_romania/"
                       className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 transition hover:border-sky-300 hover:text-sky-700"
-                    >
-                      Facebook
-                    </a>
-                    <a
-                      href="#"
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 transition hover:border-sky-300 hover:text-sky-700"
-                    >
-                      Twitter
-                    </a>
-                    <a
-                      href="#"
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 transition hover:border-sky-300 hover:text-sky-700"
+                      rel="noopener noreferrer"
+                      target="_blank"
                     >
                       Instagram
-                    </a>
-                    <a
-                      href="#"
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 transition hover:border-sky-300 hover:text-sky-700"
-                    >
-                      LinkedIn
                     </a>
                   </div>
                 </div>
@@ -418,21 +393,14 @@ export default function ContactPage() {
                 Preferi discuțiile rapide?
               </h3>
               <p className="mt-2 text-sm text-slate-600">
-                Contactează-ne pe WhatsApp sau rezervă o sesiune video de 15 minute pentru recomandări
-                personalizate de produse STEM.
+                Ne poți scrie și pe WhatsApp, la același număr de telefon.
               </p>
               <div className="mt-4 flex flex-wrap gap-3 text-sm">
                 <a
                   href={`https://wa.me/${contactPhone.replace(/[^\d]/g, "")}`}
                   className="inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2 text-sky-700 transition hover:border-sky-300 hover:bg-sky-100"
                 >
-                  💬 WhatsApp Direct
-                </a>
-                <a
-                  href="/contact"
-                  className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-100"
-                >
-                  🎥 Book video call
+                  💬 WhatsApp
                 </a>
               </div>
             </div>

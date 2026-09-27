@@ -324,7 +324,7 @@ export class RomanianUrgencyScarcityOptimizer {
       psychology.conversionHook,
       `Nu ratați șansa să oferiți copiilor voștri ${topic} de calitate!`,
       `Investiția în viitorul copilului dumneavoastră începe acum!`,
-      `Alăturați-vă miilor de părinți români care au ales ${topic}!`,
+      `Vezi selecția pentru ${topic}.`,
       `Transformați educația acasă cu ${topic} profesional!`,
     ];
 

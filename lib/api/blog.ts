@@ -5,6 +5,7 @@
 
 import { StemCategory } from "@prisma/client";
 
+import { toPublicBlogPost } from "@/lib/blog/public-author";
 import { db } from "@/lib/db";
 
 /**
@@ -33,9 +34,8 @@ export interface BlogPost {
   competitorRank: number | null;
   romanianMarketFit: number | null;
   author: {
-    id: string;
+    id?: string;
     name: string | null;
-    email: string;
   };
   category: {
     id: string;
@@ -64,14 +64,13 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
         select: {
           id: true,
           name: true,
-          email: true,
         },
       },
       category: true,
     },
   });
 
-  return blog as BlogPost | null;
+  return blog ? (toPublicBlogPost(blog) as BlogPost) : null;
 }
 
 /**
@@ -118,7 +117,6 @@ export async function getRelatedPosts(
         select: {
           id: true,
           name: true,
-          email: true,
         },
       },
       category: true,
@@ -141,7 +139,6 @@ export async function getRelatedPosts(
           select: {
             id: true,
             name: true,
-            email: true,
           },
         },
         category: true,
@@ -151,7 +148,9 @@ export async function getRelatedPosts(
     relatedPosts.push(...additionalPosts);
   }
 
-  return relatedPosts.slice(0, limit) as BlogPost[];
+  return relatedPosts
+    .slice(0, limit)
+    .map(post => toPublicBlogPost(post) as BlogPost);
 }
 
 /**
@@ -201,7 +200,6 @@ export async function getBlogPosts({
           select: {
             id: true,
             name: true,
-            email: true,
           },
         },
         category: true,
@@ -213,7 +211,10 @@ export async function getBlogPosts({
     db.blog.count({ where }),
   ]);
 
-  return { blogs: blogs as BlogPost[], count };
+  return {
+    blogs: blogs.map(post => toPublicBlogPost(post) as BlogPost),
+    count,
+  };
 }
 
 /**
