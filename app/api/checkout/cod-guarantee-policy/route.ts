@@ -6,7 +6,7 @@ import {
   evaluateCodGuaranteePolicy,
   isLockerShippingMethodId,
 } from "@/lib/checkout/cod-guarantee-policy";
-import { getCodGuaranteeUserStats } from "@/lib/checkout/cod-guarantee-risk";
+import { resolveCodGuaranteeCustomerStats } from "@/lib/checkout/cod-guarantee-risk";
 
 const querySchema = z.object({
   orderTotal: z
@@ -17,24 +17,19 @@ const querySchema = z.object({
     }),
   recipientType: z.enum(["B2B", "B2C"]).default("B2C"),
   shippingMethodId: z.string().optional(),
+  guestEmail: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
     const parsedQuery = querySchema.safeParse({
       orderTotal: request.nextUrl.searchParams.get("orderTotal") ?? "0",
       recipientType:
         request.nextUrl.searchParams.get("recipientType") ?? undefined,
       shippingMethodId:
         request.nextUrl.searchParams.get("shippingMethodId") ?? undefined,
+      guestEmail: request.nextUrl.searchParams.get("guestEmail") ?? undefined,
     });
 
     if (!parsedQuery.success) {
@@ -47,8 +42,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { orderTotal, recipientType, shippingMethodId } = parsedQuery.data;
-    const userStats = await getCodGuaranteeUserStats(session.user.id);
+    const { orderTotal, recipientType, shippingMethodId, guestEmail } =
+      parsedQuery.data;
+    const userStats = await resolveCodGuaranteeCustomerStats(
+      session?.user?.id
+        ? { userId: session.user.id }
+        : { guestEmail }
+    );
 
     const policy = evaluateCodGuaranteePolicy({
       orderTotal,
@@ -57,6 +57,17 @@ export async function GET(request: NextRequest) {
       priorOrderCount: userStats.priorOrderCount,
       priorCodRtoCount: userStats.priorCodRtoCount,
     });
+
+    if (!session?.user?.id) {
+      // Guests only learn whether a guarantee is required and the amount that
+      // was evaluated. Account history, ids, and reason codes stay off the body.
+      return NextResponse.json({
+        required: policy.required,
+        amount: Math.round(orderTotal * 100) / 100,
+        mode: policy.mode,
+        thresholds: policy.thresholds,
+      });
+    }
 
     return NextResponse.json({
       required: policy.required,

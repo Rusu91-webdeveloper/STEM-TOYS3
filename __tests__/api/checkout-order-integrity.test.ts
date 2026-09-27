@@ -55,6 +55,10 @@ jest.mock("@/lib/checkout/cod-guarantee-risk", () => ({
     priorOrderCount: 0,
     priorCodRtoCount: 0,
   })),
+  resolveCodGuaranteeCustomerStats: jest.fn(async () => ({
+    priorOrderCount: 0,
+    priorCodRtoCount: 0,
+  })),
 }));
 
 jest.mock("@/lib/email/admin-notification-service", () => ({
@@ -88,6 +92,17 @@ jest.mock("@/lib/stripe-config", () => ({
   getStripeApiVersion: jest.fn(() => "2025-06-30.basil"),
   getStripeCurrency: jest.fn(() => "ron"),
 }));
+
+jest.mock("stripe", () => {
+  const paymentIntents = {
+    retrieve: jest.fn(),
+    update: jest.fn().mockResolvedValue({}),
+    cancel: jest.fn(),
+    capture: jest.fn(),
+  };
+  const StripeMock = jest.fn().mockImplementation(() => ({ paymentIntents }));
+  return Object.assign(StripeMock, { paymentIntents });
+});
 
 jest.mock("@/lib/utils/order-processing", () => ({
   shouldAutoFulfillOrder: jest.fn(() => false),
@@ -703,5 +718,242 @@ describe("POST /api/checkout/order integrity", () => {
         }),
       })
     );
+  });
+
+  describe("guest home COD guarantee policy", () => {
+    const previousMode = process.env.COD_GUARANTEE_MODE;
+
+    function useRealRiskPolicy() {
+      const policy = require("@/lib/checkout/cod-guarantee-policy");
+      const actual = jest.requireActual("@/lib/checkout/cod-guarantee-policy");
+      process.env.COD_GUARANTEE_MODE = "risk_based";
+      policy.evaluateCodGuaranteePolicy.mockImplementation(
+        actual.evaluateCodGuaranteePolicy
+      );
+    }
+
+    function restorePolicyMock() {
+      const policy = require("@/lib/checkout/cod-guarantee-policy");
+      policy.evaluateCodGuaranteePolicy.mockImplementation(() => ({
+        required: false,
+        reasons: [],
+      }));
+      if (previousMode === undefined) {
+        delete process.env.COD_GUARANTEE_MODE;
+      } else {
+        process.env.COD_GUARANTEE_MODE = previousMode;
+      }
+    }
+
+    function price(orderTotal: number) {
+      return {
+        items: [
+          {
+            productId: "book_1",
+            name: "Server Book",
+            price: orderTotal,
+            quantity: 1,
+            isBook: true,
+          },
+        ],
+        subtotal: orderTotal,
+        tax: 0,
+        taxRatePercentage: "0",
+        includeInPrice: true,
+        finalShippingCost: 19.99,
+        shippingBasePrice: 19.99,
+        shippingTotalEstimate: 19.99,
+        pricingVersion: null,
+        discountAmount: 0,
+        appliedCoupon: null,
+        codFee: 0,
+        orderTotal,
+        codGuaranteeAmount: 19.99,
+        isDigitalOnlyOrder: true,
+        supplierCartAnalysis: {
+          isMixedSupplierCart: false,
+          supplierCount: 0,
+          supplierNames: [],
+          fulfillmentSourceIds: [],
+          requiresPrepaid: false,
+          mixedSupplierExtraShipments: 0,
+        },
+        products: [],
+      };
+    }
+
+    let guestRequestCount = 0;
+
+    function guestCodRequest(
+      orderTotal: number,
+      extra: Record<string, unknown> = {}
+    ) {
+      guestRequestCount += 1;
+      const { COD_CONSENT_TEXT, COD_CONSENT_VERSION } = require("@/lib/checkout/cod-consent");
+      return new NextRequest("http://localhost/api/checkout/order", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-forwarded-for": `203.0.113.${guestRequestCount}`,
+        },
+        body: JSON.stringify({
+          guestEmail: "Guest@Example.com",
+          shippingAddress: {
+            fullName: "Ana Pop",
+            addressLine1: "Strada Florilor 12",
+            city: "Cluj-Napoca",
+            state: "CJ",
+            postalCode: "400001",
+            country: "RO",
+            phone: "0712345678",
+            email: "Guest@Example.com",
+          },
+          shippingMethod: {
+            id: "fancourier:standard",
+            name: "FanCourier Standard",
+            price: 19.99,
+          },
+          items: [
+            {
+              productId: "book_1",
+              name: "Server Book",
+              price: orderTotal,
+              quantity: 1,
+              isBook: true,
+            },
+          ],
+          paymentMethod: "cash_on_delivery",
+          paymentProvider: "cod",
+          codConsentAccepted: true,
+          codConsentAcceptedAt: "2026-09-27T10:00:00.000Z",
+          codConsentVersion: COD_CONSENT_VERSION,
+          codConsentText: COD_CONSENT_TEXT,
+          ...extra,
+        }),
+      });
+    }
+
+    beforeEach(() => {
+      useRealRiskPolicy();
+      auth.mockResolvedValue(null);
+      db.user.findUnique.mockResolvedValue(null);
+      db.user.create.mockResolvedValue({
+        id: "guest_1",
+        email: "guest@example.com",
+        name: "Ana Pop",
+        role: "CUSTOMER",
+      });
+    });
+
+    afterEach(() => {
+      restorePolicyMock();
+      delete process.env.STRIPE_SECRET_KEY;
+    });
+
+    it("accepts a small new-customer home COD order without a guarantee", async () => {
+      resolveCheckoutPricing.mockResolvedValue(price(120));
+
+      const response = await POST(guestCodRequest(120));
+      const payload = await response.json();
+      const policy = require("@/lib/checkout/cod-guarantee-policy");
+
+      expect(response.status).toBe(200);
+      expect(payload.success).toBe(true);
+      expect(policy.evaluateCodGuaranteePolicy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderTotal: 120,
+          isLockerDelivery: false,
+          priorOrderCount: 0,
+          priorCodRtoCount: 0,
+        })
+      );
+      expect(txOrderCreate).toHaveBeenCalled();
+    });
+
+    it("requires a guarantee above the new-customer threshold and accepts a matching guest intent", async () => {
+      const Stripe = require("stripe");
+      process.env.STRIPE_SECRET_KEY = "sk_test_guest_cod";
+      resolveCheckoutPricing.mockResolvedValue(price(420));
+      Stripe.paymentIntents.retrieve.mockResolvedValue({
+        id: "pi_guest_guarantee",
+        amount: 1999,
+        currency: "ron",
+        status: "requires_capture",
+        metadata: {
+          guestEmail: "guest@example.com",
+          paymentFlow: "cod_guarantee",
+        },
+      });
+
+      const rejected = await POST(guestCodRequest(420));
+      const rejectedPayload = await rejected.json();
+      expect(rejected.status).toBe(400);
+      expect(rejectedPayload.error).toBe("COD_GUARANTEE_REQUIRED");
+      expect(db.user.create).not.toHaveBeenCalled();
+
+      db.user.create.mockClear();
+      const accepted = await POST(
+        guestCodRequest(420, {
+          codGuaranteePaymentIntentId: "pi_guest_guarantee",
+          codGuaranteeAmount: 19.99,
+        })
+      );
+      const acceptedPayload = await accepted.json();
+
+      expect(accepted.status).toBe(200);
+      expect(acceptedPayload.success).toBe(true);
+      expect(Stripe.paymentIntents.retrieve).toHaveBeenCalledWith(
+        "pi_guest_guarantee"
+      );
+      expect(txOrderCreate).toHaveBeenCalled();
+    });
+
+    it("rejects a guest guarantee issued for a different email", async () => {
+      const Stripe = require("stripe");
+      process.env.STRIPE_SECRET_KEY = "sk_test_guest_cod";
+      resolveCheckoutPricing.mockResolvedValue(price(420));
+      Stripe.paymentIntents.retrieve.mockResolvedValue({
+        id: "pi_other",
+        amount: 1999,
+        currency: "ron",
+        status: "requires_capture",
+        metadata: {
+          guestEmail: "other@example.com",
+          paymentFlow: "cod_guarantee",
+        },
+      });
+
+      const response = await POST(
+        guestCodRequest(420, {
+          codGuaranteePaymentIntentId: "pi_other",
+          codGuaranteeAmount: 19.99,
+        })
+      );
+      const payload = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(payload.error).toBe("COD_GUARANTEE_EMAIL_MISMATCH");
+      expect(db.user.create).not.toHaveBeenCalled();
+    });
+
+    it("keeps logged-in COD scoring on the session user", async () => {
+      const stats = require("@/lib/checkout/cod-guarantee-risk");
+      auth.mockResolvedValue({
+        user: {
+          id: "user_1",
+          email: "buyer@example.com",
+          role: "USER",
+          name: "Buyer",
+        },
+      });
+      resolveCheckoutPricing.mockResolvedValue(price(120));
+
+      const response = await POST(guestCodRequest(120));
+
+      expect(response.status).toBe(200);
+      expect(stats.resolveCodGuaranteeCustomerStats).toHaveBeenCalledWith({
+        userId: "user_1",
+      });
+    });
   });
 });

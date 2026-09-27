@@ -26,6 +26,12 @@ export function isClaimableGuestCheckoutUser(user: ClaimableUser): boolean {
   return (user.tags ?? []).includes(GUEST_CHECKOUT_TAG);
 }
 
+export function withoutGuestCheckoutTag(
+  tags: string[] | null | undefined
+): string[] {
+  return (tags ?? []).filter(tag => tag !== GUEST_CHECKOUT_TAG);
+}
+
 /**
  * Google sign-in for a guest checkout user. Activates the same row so the
  * provider account links to the orders already stored on that user id.
@@ -39,7 +45,7 @@ export async function activateGuestCheckoutForProviderSignIn(
   if (!isClaimableGuestCheckoutUser(user)) return false;
 
   const password = await hash(randomBytes(32).toString("hex"), 12);
-  const tags = (user.tags ?? []).filter(tag => tag !== GUEST_CHECKOUT_TAG);
+  const tags = withoutGuestCheckoutTag(user.tags);
 
   await db.user.update({
     where: { id: user.id },

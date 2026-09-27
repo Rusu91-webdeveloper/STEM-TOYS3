@@ -2,6 +2,10 @@ import { hash } from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  GUEST_CHECKOUT_TAG,
+  withoutGuestCheckoutTag,
+} from "@/lib/checkout/guest-account-claim";
 import { db } from "@/lib/db";
 import { withRateLimit } from "@/lib/rate-limit";
 import { triggerPasswordChangeEmail } from "@/lib/email/email-triggers";
@@ -77,14 +81,20 @@ async function handleResetPassword(request: NextRequest) {
     try {
       // Hash the new password
       const hashedPassword = await hash(password, 12);
+      const previousTags = resetToken.user?.tags ?? [];
+      const hadGuestCheckoutTag = previousTags.includes(GUEST_CHECKOUT_TAG);
 
-      // Update the user's password in the database
+      // Update the user's password in the database.
+      // Completing reset claims a guest-checkout row, so the tag comes off.
       const updatedUser = await db.user.update({
         where: { email: userEmail },
         data: {
           password: hashedPassword,
           // Optionally set isActive to true if it wasn't already
           isActive: true,
+          ...(hadGuestCheckoutTag
+            ? { tags: withoutGuestCheckoutTag(previousTags) }
+            : {}),
         },
       });
 

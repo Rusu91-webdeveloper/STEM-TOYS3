@@ -172,6 +172,8 @@ export const ro = {
   editShippingMethod: "Editează metoda de livrare",
   editPayment: "Editează metoda de plată",
   paymentMethod: "Metodă de plată",
+  paymentOptionsTitle: "Opțiuni de plată",
+  paymentOptionsSubtitle: "Selectează metoda de plată preferată.",
   cashOnDelivery: "Ramburs la livrare",
   deliveryOnlyRomania: "Livrarea este disponibilă doar în România",
   preparingCheckout: "Se pregătește finalizarea comenzii...",

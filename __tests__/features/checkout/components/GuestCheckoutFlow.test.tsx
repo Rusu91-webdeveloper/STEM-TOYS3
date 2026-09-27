@@ -185,6 +185,17 @@ describe("guest checkout", () => {
     await user.click(fanCourier);
     await user.click(screen.getByRole("button", { name: /continuă la plată/i }));
 
+    expect(screen.getAllByText("Opțiuni de plată").length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText("Selectează metoda de plată preferată.").length
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText("Payment options")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Please select a payment method.")
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("1.5%")).not.toBeInTheDocument();
+    expect(screen.getByText("Card bancar")).toBeInTheDocument();
+
     const cod = await screen.findByRole("radio", { name: /ramburs/i });
     expect(cod).toBeEnabled();
     await user.click(cod);
@@ -209,5 +220,12 @@ describe("guest checkout", () => {
 
     expect(document.body.textContent).toContain("49.99");
     expect(document.body.textContent).toContain("19.99");
+
+    const requestedUrls = (global.fetch as jest.Mock).mock.calls.map(call =>
+      String(call[0])
+    );
+    expect(requestedUrls.some(url => url.includes("/api/account/"))).toBe(
+      false
+    );
   });
 });

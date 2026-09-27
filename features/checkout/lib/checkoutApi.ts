@@ -367,15 +367,16 @@ export async function fetchCODSettings() {
 
 export interface CodGuaranteePolicyResponse {
   required: boolean;
+  amount?: number;
   mode: "off" | "always" | "risk_based";
-  reasons: string[];
+  reasons?: string[];
   thresholds: {
     highOrderValue: number;
     newCustomerMinTotal: number;
     b2bMinTotal: number;
     codRtoCount: number;
   };
-  userStats: {
+  userStats?: {
     priorOrderCount: number;
     priorCodRtoCount: number;
   };
@@ -385,6 +386,7 @@ export async function fetchCodGuaranteePolicy(input: {
   orderTotal: number;
   recipientType: "B2B" | "B2C";
   shippingMethodId?: string;
+  guestEmail?: string;
 }): Promise<CodGuaranteePolicyResponse | null> {
   try {
     const params = new URLSearchParams({
@@ -393,6 +395,9 @@ export async function fetchCodGuaranteePolicy(input: {
     });
     if (input.shippingMethodId) {
       params.set("shippingMethodId", input.shippingMethodId);
+    }
+    if (input.guestEmail) {
+      params.set("guestEmail", input.guestEmail);
     }
 
     const response = await fetch(

@@ -146,10 +146,11 @@ const PaymentMethodSelectorComponent = ({
       methods.push({
         id: "netopia_card",
         type: "netopia_card",
+        // Checkout charges the order total for card payments. There is no
+        // customer-facing card surcharge to display.
         name: isRomanianUser ? "Card bancar" : "Credit/Debit Card",
         icon: null,
         provider: "netopia",
-        fee: "1.5%",
         description: isRomanianUser
           ? "Plată securizată cu card Visa sau Mastercard"
           : "Secure payment with Visa or Mastercard",
@@ -476,10 +477,13 @@ const PaymentMethodSelectorComponent = ({
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-3 py-3 sm:px-5 sm:py-3.5">
           <Label className="block text-base font-semibold text-slate-900 sm:text-[17px]">
-            {t("paymentOptionsTitle", "Payment options")}
+            {t("paymentOptionsTitle", "Opțiuni de plată")}
           </Label>
           <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
-            {t("paymentOptionsSubtitle", "Please select a payment method.")}
+            {t(
+              "paymentOptionsSubtitle",
+              "Selectează metoda de plată preferată."
+            )}
           </p>
         </div>
 
