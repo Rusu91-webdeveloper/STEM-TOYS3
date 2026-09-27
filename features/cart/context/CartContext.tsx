@@ -5,7 +5,6 @@ import React, {
   useContext,
   useState,
   useEffect,
-  useLayoutEffect,
   useRef,
   type ReactNode,
 } from "react";
@@ -280,8 +279,10 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   }, [cartItems]);
 
-  // Paint the stored cart before the server round-trip so a reload is not empty.
-  useLayoutEffect(() => {
+  // Load the stored cart after mount so the first client render matches SSR.
+  // Reading localStorage in useLayoutEffect updated the header badge during
+  // hydration and threw React error #418 whenever the cart was non-empty.
+  useEffect(() => {
     const stored = readCartStorage();
     if (stored.items.length > 0) {
       cartItemsRef.current = stored.items;

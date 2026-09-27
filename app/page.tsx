@@ -1,10 +1,9 @@
 import { unstable_cache } from "next/cache";
-import { Suspense } from "react";
 
 import { FeaturedProductsGrid } from "@/features/home/components/FeaturedProductsGrid";
 import { PRODUCT_AGE_LABELS } from "@/features/home/merchandising";
 import { applyProductContentOverride } from "@/lib/products/catalog-content-overrides";
-import { GIFT_SLUGS, selectHomepageGifts } from "@/lib/products/merchandising";
+import { selectHomepageProducts } from "@/lib/products/merchandising";
 import { toShopperProduct } from "@/lib/products/public-shopper";
 import type { Product } from "@/types/product";
 
@@ -12,57 +11,90 @@ import HomePageClient from "./HomePageClient";
 
 export const revalidate = 1800;
 
-// Select from current inventory. Never infer popularity from product order.
+// Same browse pool as /products: active, approved or pending, then visibleInBrowse.
+// Featured flags come first. The rest is a stable fill, not a sales ranking.
 const getRecommendations = unstable_cache(
   async (): Promise<Product[]> => {
     const { db } = await import("@/lib/db");
-    const available = {
-      isActive: true,
-      status: "APPROVED" as const,
-      stockQuantity: { gt: 0 },
-    };
-    const selection = await db.product.findMany({
+    const rows = await db.product.findMany({
       where: {
-        ...available,
-        stockQuantity: { gt: 1 },
-        slug: { in: [...GIFT_SLUGS] },
+        isActive: true,
+        OR: [{ status: "APPROVED" }, { status: "IN_PENDING" }],
+        stockQuantity: { gt: 0 },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        price: true,
+        images: true,
+        stockQuantity: true,
+        ageGroup: true,
+        tags: true,
+        attributes: true,
+        metadata: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        reservedQuantity: true,
+        featured: true,
       },
     });
-    const products = selectHomepageGifts(selection);
-    return products.map(product =>
-      toShopperProduct(applyProductContentOverride({
-        id: product.id,
-        name: product.name,
+    const products = selectHomepageProducts(
+      rows.map(product => ({
         slug: product.slug,
-        description: product.description ?? "",
-        price: product.price,
-        images: product.images,
+        name: product.name,
         stockQuantity: product.stockQuantity,
-        ageGroup:
-          product.ageGroup && product.ageGroup in PRODUCT_AGE_LABELS
-            ? (product.ageGroup as Product["ageGroup"])
-            : undefined,
-        tags: product.tags,
-        attributes: product.attributes as Product["attributes"],
-        ageRange:
-          (product.attributes as any)?.manufacturerRecommendedAge ||
-          (product.attributes as any)?.originalAgeText,
-        isActive: product.isActive,
-        createdAt: product.createdAt,
-        updatedAt: product.updatedAt,
-        reservedQuantity: product.reservedQuantity,
+        isBook: false,
+        metadata: product.metadata,
+        attributes: product.attributes,
         featured: product.featured,
+        images: product.images,
+        tags: product.tags,
+        source: product,
       }))
     );
+    return products.map(product => {
+      const row = product.source;
+      return toShopperProduct(
+        applyProductContentOverride({
+          id: row.id,
+          name: row.name,
+          slug: row.slug,
+          description: row.description ?? "",
+          price: row.price,
+          images: row.images,
+          stockQuantity: row.stockQuantity,
+          ageGroup:
+            row.ageGroup && row.ageGroup in PRODUCT_AGE_LABELS
+              ? (row.ageGroup as Product["ageGroup"])
+              : undefined,
+          tags: row.tags,
+          attributes: row.attributes as Product["attributes"],
+          metadata: row.metadata as Product["metadata"],
+          ageRange:
+            (row.attributes as { manufacturerRecommendedAge?: string } | null)
+              ?.manufacturerRecommendedAge ??
+            (row.attributes as { originalAgeText?: string } | null)
+              ?.originalAgeText,
+          isActive: row.isActive,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          reservedQuantity: row.reservedQuantity,
+          featured: row.featured,
+        })
+      );
+    });
   },
-  ["homepage-recommendations-v5-curated"],
+  ["homepage-recommendations-v6-browse"],
   { revalidate: 300, tags: ["products"] }
 );
 
-async function Recommendations() {
+async function loadHomepageProducts(): Promise<Product[]> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const products = await Promise.race([
+    return await Promise.race([
       getRecommendations(),
       new Promise<never>((_, reject) => {
         timer = setTimeout(
@@ -71,46 +103,19 @@ async function Recommendations() {
         );
       }),
     ]);
-    return <FeaturedProductsGrid products={products} />;
   } catch (error) {
     console.error("Homepage recommendations unavailable", error);
-    return <FeaturedProductsGrid products={[]} />;
+    return [];
   } finally {
     clearTimeout(timer);
   }
 }
 
-function RecommendationsLoading() {
+export default async function Home() {
+  const products = await loadHomepageProducts();
   return (
-    <section
-      aria-label="Se încarcă produsele recomandate"
-      aria-busy="true"
-      className="border-y border-slate-200 bg-white py-7 sm:py-9"
-    >
-      <div className="mx-auto max-w-7xl px-5 sm:px-8">
-        <h2 className="mb-5 text-2xl font-bold">Produse recomandate</h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-5">
-          {[0, 1, 2, 3].map(key => (
-            <div
-              key={key}
-              className="overflow-hidden rounded-2xl border border-slate-200"
-            >
-              <div className="aspect-square bg-slate-50" />
-              <div className="h-[240px] bg-white" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export default function Home() {
-  return (
-    <HomePageClient>
-      <Suspense fallback={<RecommendationsLoading />}>
-        <Recommendations />
-      </Suspense>
+    <HomePageClient featuredProducts={products}>
+      <FeaturedProductsGrid products={products} />
     </HomePageClient>
   );
 }

@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 /** Editorial illustration of hands-on STEM play, not a specific product offer. */
-export function BrandScene() {
+export function BrandScene({ priority = false }: { priority?: boolean }) {
   return (
     <figure className="relative m-0 overflow-hidden rounded-[1.75rem] bg-[#e7e4dc]">
       <div className="relative aspect-[3/2] lg:aspect-[6/5]">
@@ -9,7 +9,7 @@ export function BrandScene() {
           src="/images/home/stem-play-hero.webp"
           alt="Doi copii construiesc împreună un castel din piese geometrice colorate"
           fill
-          priority
+          priority={priority}
           sizes="(max-width: 1023px) 100vw, 720px"
           className="object-cover object-center"
         />

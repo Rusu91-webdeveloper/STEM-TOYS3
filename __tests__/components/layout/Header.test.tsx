@@ -62,14 +62,14 @@ describe("Header Component - Mobile Menu", () => {
   it("renders mobile menu button", () => {
     render(<Header />);
 
-    const menuButton = screen.getByRole("button", { name: /open main menu/i });
+    const menuButton = screen.getByRole("button", { name: /deschide meniul principal/i });
     expect(menuButton).toBeInTheDocument();
   });
 
   it("opens mobile menu when burger button is clicked", async () => {
     render(<Header />);
 
-    const menuButton = screen.getByRole("button", { name: /open main menu/i });
+    const menuButton = screen.getByRole("button", { name: /deschide meniul principal/i });
     fireEvent.click(menuButton);
 
     await waitFor(() => {
@@ -81,7 +81,7 @@ describe("Header Component - Mobile Menu", () => {
     render(<Header />);
 
     // Open menu
-    const menuButton = screen.getByRole("button", { name: /open main menu/i });
+    const menuButton = screen.getByRole("button", { name: /deschide meniul principal/i });
     fireEvent.click(menuButton);
 
     await waitFor(() => {
@@ -90,7 +90,7 @@ describe("Header Component - Mobile Menu", () => {
 
     // Close menu
     const closeButton = screen.getByRole("button", {
-      name: /close navigation menu/i,
+      name: /închide meniul/i,
     });
     fireEvent.click(closeButton);
 
@@ -103,7 +103,7 @@ describe("Header Component - Mobile Menu", () => {
     render(<Header />);
 
     // Open menu
-    const menuButton = screen.getByRole("button", { name: /open main menu/i });
+    const menuButton = screen.getByRole("button", { name: /deschide meniul principal/i });
     fireEvent.click(menuButton);
 
     await waitFor(() => {
@@ -127,7 +127,7 @@ describe("Header Component - Mobile Menu", () => {
     render(<Header />);
 
     // Open menu
-    const menuButton = screen.getByRole("button", { name: /open main menu/i });
+    const menuButton = screen.getByRole("button", { name: /deschide meniul principal/i });
     fireEvent.click(menuButton);
 
     await waitFor(() => {
@@ -145,7 +145,7 @@ describe("Header Component - Mobile Menu", () => {
 
     render(<Header />);
 
-    const menuButton = screen.getByRole("button", { name: /open main menu/i });
+    const menuButton = screen.getByRole("button", { name: /deschide meniul principal/i });
     fireEvent.click(menuButton);
 
     // open Products
@@ -170,7 +170,7 @@ describe("Header Component - Mobile Menu", () => {
     render(<Header />);
 
     // Open menu
-    const menuButton = screen.getByRole("button", { name: /open main menu/i });
+    const menuButton = screen.getByRole("button", { name: /deschide meniul principal/i });
     fireEvent.click(menuButton);
 
     await waitFor(() => {
@@ -183,7 +183,7 @@ describe("Header Component - Mobile Menu", () => {
     render(<Header />);
 
     // Open menu
-    const menuButton = screen.getByRole("button", { name: /open main menu/i });
+    const menuButton = screen.getByRole("button", { name: /deschide meniul principal/i });
     fireEvent.click(menuButton);
 
     await waitFor(() => {
@@ -201,7 +201,7 @@ describe("Header Component - Mobile Menu", () => {
   it("keeps account actions in a dedicated mobile footer", async () => {
     render(<Header />);
 
-    const menuButton = screen.getByRole("button", { name: /open main menu/i });
+    const menuButton = screen.getByRole("button", { name: /deschide meniul principal/i });
     fireEvent.click(menuButton);
 
     await waitFor(() => {

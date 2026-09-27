@@ -16,9 +16,16 @@ import {
 } from "@/lib/analytics/homepage-conversion-events";
 
 import { BrandScene } from "./BrandScene";
+import { HeroProductPeek, type HeroPeekProduct } from "./HeroProductPeek";
 
 export const HeroSection = React.memo(
-  ({ t }: { t: (key: string, fallback?: string) => string }) => {
+  ({
+    t,
+    products = [],
+  }: {
+    t: (key: string, fallback?: string) => string;
+    products?: HeroPeekProduct[];
+  }) => {
     useEffect(() => {
       trackHomepageConversionEvent(HOMEPAGE_CONVERSION_EVENTS.HERO_IMPRESSION, {
         section: "hero",
@@ -34,7 +41,7 @@ export const HeroSection = React.memo(
     ];
     return (
       <section aria-labelledby="home-title" className="bg-[#f7f6f2] text-[#152d26]">
-        <div className="mx-auto grid max-w-[1440px] items-center gap-8 px-5 py-8 sm:px-8 lg:grid-cols-[0.9fr_1.2fr] lg:gap-14 lg:py-14">
+        <div className="mx-auto grid max-w-[1440px] items-center gap-8 px-5 py-5 sm:px-8 sm:py-8 lg:grid-cols-[0.9fr_1.2fr] lg:gap-14 lg:py-14">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#487561]">
               JUCĂRII STEM · ÎNVĂȚARE PRIN JOACĂ
@@ -80,6 +87,7 @@ export const HeroSection = React.memo(
                 Cadouri 6–8 ani <ArrowRight size={18} />
               </Link>
             </div>
+            <HeroProductPeek products={products} />
             <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-[#173e31]/15 pt-5 text-xs text-[#53635c]">
               {trust.map(({ icon: Icon, label }) => (
                 <li key={label} className="flex items-center gap-2">
@@ -96,7 +104,7 @@ export const HeroSection = React.memo(
               Detalii despre livrare și condițiile plății ramburs
             </Link>
           </div>
-          <BrandScene />
+          <BrandScene priority={products.length === 0} />
         </div>
       </section>
     );

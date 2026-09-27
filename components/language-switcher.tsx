@@ -61,6 +61,8 @@ export function LanguageSwitcher() {
         <Button
           variant="ghost"
           size="sm"
+          aria-label="Schimbă limba"
+          title="Schimbă limba"
           className="flex items-center gap-1 h-8 px-2 touch-target"
         >
           <Globe className="h-4 w-4" />

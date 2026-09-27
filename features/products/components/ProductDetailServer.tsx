@@ -6,10 +6,9 @@ import { getCombinedProduct } from "@/lib/api/products";
 import { db } from "@/lib/db";
 import { toShopperProduct } from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
-import { categoryStorefrontLabel } from "@/lib/products/romanian-catalog";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
 import { buildDefaultProductFaq } from "@/lib/seo/product-faq";
-import { getCategoryPageHref } from "@/lib/utils/category-page-links";
+import { resolveStorefrontCategoryLink } from "@/lib/utils/category-page-links";
 import { getShippingSettings } from "@/lib/utils/store-settings";
 import type { Product } from "@/types/product";
 
@@ -161,10 +160,13 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
       ? (product as any).metadata.seo.faq
       : fallbackFaq;
 
-  const breadcrumbCategoryHref = getCategoryPageHref(product.category?.slug);
-  const breadcrumbCategory = breadcrumbCategoryHref
-    ? categoryStorefrontLabel(product.category?.slug, product.category?.name)
-    : null;
+  const breadcrumbCategoryLink = resolveStorefrontCategoryLink({
+    stemDiscipline: product.stemDiscipline,
+    categorySlug: product.category?.slug,
+    categoryName: product.category?.name,
+  });
+  const breadcrumbCategory = breadcrumbCategoryLink?.label ?? null;
+  const breadcrumbCategoryHref = breadcrumbCategoryLink?.href ?? null;
   const breadcrumbItems: Array<{
     "@type": "ListItem";
     position: number;

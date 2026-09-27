@@ -273,7 +273,7 @@ export default function Header() {
           {/* Desktop Navigation */}
           <nav
             className="hidden items-center gap-1 rounded-full border border-slate-200/80 bg-slate-50/80 p-1 lg:flex"
-            aria-label="Main navigation"
+            aria-label="Navigare principală"
           >
             {navigation.map(item => {
               const isActive =
@@ -355,11 +355,11 @@ export default function Header() {
               onClick={toggleMobileLanguage}
               aria-label={
                 language === "ro"
-                  ? "Switch language to English"
+                  ? "Comută limba în engleză"
                   : "Comută limba în română"
               }
               title={
-                language === "ro" ? "Switch to English" : "Comută în română"
+                language === "ro" ? "Comută în engleză" : "Comută în română"
               }
               className="group relative inline-flex h-9 min-w-[44px] items-center justify-center overflow-hidden rounded-full border border-slate-200/90 bg-white px-1.5 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-[0_14px_30px_-18px_rgba(14,165,233,0.45)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
             >
@@ -377,7 +377,7 @@ export default function Header() {
               type="button"
               className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors duration-200 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
               onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open main menu"
+              aria-label="Deschide meniul principal"
             >
               <Menu className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -442,7 +442,7 @@ export default function Header() {
                   type="button"
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
                   onClick={() => setMobileMenuOpen(false)}
-                  aria-label="Close navigation menu"
+                  aria-label="Închide meniul"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>

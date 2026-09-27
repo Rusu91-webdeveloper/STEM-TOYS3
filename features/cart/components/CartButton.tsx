@@ -18,7 +18,12 @@ export function CartButton({
 }: CartButtonProps) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const { isLoading, items } = useShoppingCart();
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Show loading state immediately but with a subtle animation
   useEffect(() => {
@@ -35,7 +40,16 @@ export function CartButton({
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
 
-  const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
+  const storedCount = items.reduce((acc, item) => acc + item.quantity, 0);
+  // SSR and the first client render both omit the badge. The count appears
+  // only after mount, when localStorage and the server cart have been read.
+  const itemCount = hasMounted ? storedCount : 0;
+  const cartLabel =
+    itemCount === 1
+      ? "Deschide coșul, 1 produs"
+      : itemCount > 1
+        ? `Deschide coșul, ${itemCount} produse`
+        : "Deschide coșul";
 
   // Default styling based on variant
   const defaultClassName =
@@ -60,7 +74,7 @@ export function CartButton({
       <button
         onClick={openCart}
         className={`${defaultClassName} ${className}`}
-        aria-label="Open cart"
+        aria-label={cartLabel}
       >
         {showLoading ? (
           <div className="relative">

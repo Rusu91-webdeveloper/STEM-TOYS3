@@ -5,11 +5,8 @@
 
 import { appConfig } from "@/lib/config/app-config";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
-import {
-  categoryStorefrontLabel,
-  disciplineBadgeLabel,
-} from "@/lib/products/romanian-catalog";
-import { getCategoryPageHref } from "@/lib/utils/category-page-links";
+import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
+import { resolveStorefrontCategoryLink } from "@/lib/utils/category-page-links";
 import type { Product } from "@/types/product";
 
 import {
@@ -396,13 +393,14 @@ export function generateReviewSchema(product: Product, reviews: any[]) {
 }
 
 export function generateEducationalBreadcrumbSchema(product: Product) {
-  const categoryHref = getCategoryPageHref(product.category?.slug);
-  const categoryName = categoryHref
-    ? categoryStorefrontLabel(product.category?.slug, product.category?.name) ||
-      "Produse"
-    : "Produse";
-  const categoryUrl = categoryHref
-    ? `https://www.techtots.ro${categoryHref}`
+  const categoryLink = resolveStorefrontCategoryLink({
+    stemDiscipline: product.stemDiscipline,
+    categorySlug: product.category?.slug,
+    categoryName: product.category?.name,
+  });
+  const categoryName = categoryLink?.label || "Produse";
+  const categoryUrl = categoryLink
+    ? `https://www.techtots.ro${categoryLink.href}`
     : "https://www.techtots.ro/products";
 
   return {
