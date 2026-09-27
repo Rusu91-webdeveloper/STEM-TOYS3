@@ -1,3 +1,4 @@
+import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
 import type { Product } from "@/types/product";
 
 type ProductFaqItem = {
@@ -53,7 +54,12 @@ export function buildDefaultProductFaq(product: Product): ProductFaqItem[] {
     ? product.learningOutcomes[0]
     : undefined;
   const outcomeLabel = getOutcomeLabel(primaryOutcome);
-  const categoryName = product.category?.name || "categoria STEM";
+  const categoryName =
+    disciplineBadgeLabel(
+      product.stemDiscipline,
+      product.category?.name,
+      product.category?.slug
+    ) || "STEM";
 
   return [
     {

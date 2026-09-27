@@ -1,6 +1,7 @@
-import React from "react";
-import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import React from "react";
+
 import { ProductCard } from "@/features/products/components/ProductCard";
 
 const mockHandleFavorite = jest.fn();
@@ -83,5 +84,25 @@ describe("ProductCard", () => {
     expect(
       screen.getByRole("button", { name: /stoc epuizat/i })
     ).toBeDisabled();
+  });
+
+  it("shows a Romanian STEM badge and omits GENERAL", () => {
+    const { rerender } = render(
+      <ProductCard
+        product={{ ...product, stemDiscipline: "SCIENCE" } as any}
+        layout="grid"
+      />
+    );
+    expect(screen.getByText("Știință")).toBeInTheDocument();
+    expect(screen.queryByText("SCIENCE")).not.toBeInTheDocument();
+
+    rerender(
+      <ProductCard
+        product={{ ...product, stemDiscipline: "GENERAL" } as any}
+        layout="grid"
+      />
+    );
+    expect(screen.queryByText("GENERAL")).not.toBeInTheDocument();
+    expect(screen.queryByText("Știință")).not.toBeInTheDocument();
   });
 });

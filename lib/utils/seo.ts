@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 
 import { toPublicProductSlug } from "@/lib/products/public-slug";
+import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
 import { SITE_URL } from "@/lib/site";
 
 import { createMetadata } from "../metadata";
@@ -62,14 +63,22 @@ export function generateProductMetadata(product: any): Metadata {
       : product.metadata
     : {};
 
-  // Get category name safely
-  const categoryName =
-    product.stemDiscipline ||
-    (typeof product.category === "object" && product.category
-      ? product.category.name || "STEM Toy"
+  const rawCategoryName =
+    typeof product.category === "object" && product.category
+      ? product.category.name
       : typeof product.category === "string"
         ? product.category
-        : "STEM Toy");
+        : "";
+  const rawCategorySlug =
+    typeof product.category === "object" && product.category
+      ? product.category.slug
+      : undefined;
+  const categoryName =
+    disciplineBadgeLabel(
+      product.stemDiscipline,
+      rawCategoryName,
+      rawCategorySlug
+    ) || "STEM";
 
   // Define age range for better SEO targeting
   const ageRange =
@@ -79,8 +88,7 @@ export function generateProductMetadata(product: any): Metadata {
     product.attributes?.age ||
     "";
 
-  const categoryLabel =
-    typeof categoryName === "string" ? categoryName.toLowerCase() : "stem";
+  const categoryLabel = categoryName;
   const shortDescription =
     typeof product.description === "string"
       ? product.description.replace(/\s+/g, " ").trim()

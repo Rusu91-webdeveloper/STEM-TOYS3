@@ -400,24 +400,27 @@ export function useProductActions(
         slug: product.slug,
       };
 
+      // Same cart write as before: addItem posts the cart array and keeps the
+      // guest cart cookie. The short delay lets the loading label paint.
       addItem(item, 1);
 
-      // Show success state
-      setJustAddedToCart(true);
-      toast({
-        title: t("addedToCart", "Adăugat în coș"),
-        description: t(
-          "productAddedToCart",
-          "Produsul a fost adăugat în coșul tău."
-        ),
-      });
-
-      // Reset success state after 2 seconds
-      setTimeout(() => {
-        setJustAddedToCart(false);
-      }, 2000);
+      window.setTimeout(() => {
+        setIsAddingToCart(false);
+        setJustAddedToCart(true);
+        toast({
+          title: t("addedToCart", "Adăugat în coș"),
+          description: t(
+            "productAddedToCart",
+            "Produsul a fost adăugat în coșul tău."
+          ),
+        });
+        window.setTimeout(() => {
+          setJustAddedToCart(false);
+        }, 2000);
+      }, 350);
     } catch (error) {
       console.error("Error adding to cart:", error);
+      setIsAddingToCart(false);
       toast({
         title: "Eroare",
         description: t(
@@ -426,8 +429,6 @@ export function useProductActions(
         ),
         variant: "destructive",
       });
-    } finally {
-      setIsAddingToCart(false);
     }
   };
 

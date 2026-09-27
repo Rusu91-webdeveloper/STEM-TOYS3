@@ -1,7 +1,3 @@
-import {
-  merchantOfferPolicies,
-  type MerchantShippingSettings,
-} from "./merchant-policy";
 /**
  * Structured data helpers for STEM-focused ecommerce pages.
  * Keep claims factual and tied to visible page content.
@@ -9,8 +5,17 @@ import {
 
 import { appConfig } from "@/lib/config/app-config";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
+import {
+  categoryStorefrontLabel,
+  disciplineBadgeLabel,
+} from "@/lib/products/romanian-catalog";
 import { getCategoryPageHref } from "@/lib/utils/category-page-links";
 import type { Product } from "@/types/product";
+
+import {
+  merchantOfferPolicies,
+  type MerchantShippingSettings,
+} from "./merchant-policy";
 
 function getProductBrand(product: Product): string | undefined {
   const attributeBrand = product.attributes?.brand;
@@ -121,11 +126,12 @@ function buildAdditionalProperty(product: Product) {
     });
   }
 
-  if (product.stemDiscipline) {
+  const disciplineLabel = disciplineBadgeLabel(product.stemDiscipline);
+  if (disciplineLabel) {
     properties.push({
       "@type": "PropertyValue",
       name: "Disciplina STEM",
-      value: product.stemDiscipline,
+      value: disciplineLabel,
     });
   }
 
@@ -181,7 +187,11 @@ export function generateEducationalProductSchema(
     image: product.images || [],
     sku: product.sku || product.id,
     category:
-      product.category?.name || product.stemDiscipline || "Jucarii STEM",
+      disciplineBadgeLabel(
+        product.stemDiscipline,
+        product.category?.name,
+        product.category?.slug
+      ) || "Jucării STEM",
     ...(brand
       ? {
           brand: {
@@ -386,8 +396,11 @@ export function generateReviewSchema(product: Product, reviews: any[]) {
 }
 
 export function generateEducationalBreadcrumbSchema(product: Product) {
-  const categoryName = product.category?.name || "Produse";
   const categoryHref = getCategoryPageHref(product.category?.slug);
+  const categoryName = categoryHref
+    ? categoryStorefrontLabel(product.category?.slug, product.category?.name) ||
+      "Produse"
+    : "Produse";
   const categoryUrl = categoryHref
     ? `https://www.techtots.ro${categoryHref}`
     : "https://www.techtots.ro/products";

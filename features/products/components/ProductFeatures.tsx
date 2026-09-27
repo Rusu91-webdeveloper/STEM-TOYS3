@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
 import { ShoppingCart, Truck, RotateCcw } from "lucide-react";
+import React from "react";
+
 import { formatPrice } from "@/lib/email/base";
 
 import {
@@ -121,11 +122,12 @@ export function ProductFeatures({
             <li className="flex items-start gap-3">
               <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-orange-400" />
               <span className={productBodyTextClass}>
-                {t(
-                  "teachesFundamentalConcepts",
-                  "Predă concepte fundamentale de"
-                )}{" "}
-                {categoryName} {t("inEngagingWay", "într-un mod captivant")}
+                {categoryName.trim()
+                  ? `${t(
+                      "teachesFundamentalConcepts",
+                      "Predă concepte fundamentale în"
+                    )} ${categoryName.trim()} ${t("inEngagingWay", "într-un mod captivant")}`
+                  : "Predă concepte fundamentale într-un mod captivant"}
               </span>
             </li>
             <li className="flex items-start gap-3">

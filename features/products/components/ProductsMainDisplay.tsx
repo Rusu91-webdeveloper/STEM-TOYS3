@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import { ProductGrid } from "@/features/products";
 import { productPublicPath } from "@/lib/products/public-slug";
+import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
 import type { Product } from "@/types/product";
 
 import { OptimizedProductImage } from "./OptimizedProductImage";
@@ -308,6 +309,11 @@ export function ProductsMainDisplay({
 
               const cartState = cartStates[product.id] ?? "idle";
               const isOutOfStock = (product.stockQuantity ?? 1) <= 0;
+              const disciplineLabel = disciplineBadgeLabel(
+                product.stemDiscipline,
+                product.category?.name,
+                product.category?.slug
+              );
 
               return (
                 <div
@@ -345,11 +351,11 @@ export function ProductsMainDisplay({
 
                   <div className="flex flex-1 flex-col justify-between p-3 sm:p-4 min-w-0">
                     <div className="min-w-0">
-                      {product.category?.name && (
+                      {disciplineLabel ? (
                         <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-0.5 block">
-                          {product.category.name}
+                          {disciplineLabel}
                         </span>
-                      )}
+                      ) : null}
                       <Link
                         href={productPublicPath(product.slug)}
                         className="font-semibold text-sm sm:text-base text-slate-900 leading-snug line-clamp-2 mb-1 hover:text-slate-700 transition-colors block"

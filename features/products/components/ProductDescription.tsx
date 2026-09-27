@@ -52,7 +52,7 @@ export function ProductDescription({
   useEffect(() => {
     const el = descRef.current;
     if (!el) {
-      return;
+      return undefined;
     }
     const ro = new ResizeObserver(() => measureOverflow());
     ro.observe(el);
@@ -98,8 +98,8 @@ export function ProductDescription({
             aria-controls="product-detail-description"
           >
             {expanded
-              ? t("showLess", "Show less")
-              : t("readMore", "Read more")}
+              ? t("showLess", "Arată mai puțin")
+              : t("readMore", "Citește mai mult")}
             <ChevronDown
               className={cn(
                 "size-4 shrink-0 transition-transform duration-200",
@@ -111,7 +111,12 @@ export function ProductDescription({
         )}
       </div>
       <p className={`${productBodyTextClass} pt-1`}>
-        {t("stemToyDesigned", "Jucărie STEM concepută pentru")} {categoryName}.{" "}
+        {categoryName.trim() ? (
+          <>
+            {t("stemToyDesigned", "Jucărie STEM concepută pentru")}{" "}
+            {categoryName.trim()}.{" "}
+          </>
+        ) : null}
         {t("providesHandsOn", "Oferă experiențe practice de învățare.")}
       </p>
     </div>
