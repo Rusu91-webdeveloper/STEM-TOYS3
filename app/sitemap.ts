@@ -126,7 +126,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       db.product.findMany({
         where: {
           isActive: true,
-          status: "APPROVED",
+          OR: [{ status: "APPROVED" }, { status: "IN_PENDING" }],
         },
         select: {
           slug: true,

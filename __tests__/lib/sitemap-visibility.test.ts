@@ -1,5 +1,6 @@
 import {
   includeInProductSitemap,
+  isVisibleOnProductsListing,
   resolvePdpVisibility,
 } from "@/lib/products/catalog-access";
 
@@ -18,7 +19,80 @@ describe("sitemap and PDP visibility", () => {
     expect(resolvePdpVisibility(visible)).toBe("public");
   });
 
-  it("drops hidden, add-on, and inactive products from the sitemap", () => {
+  it("keeps a standalone product that is also linked as an add-on", () => {
+    const standaloneAddOn = {
+      ...visible,
+      slug: "plus-plus",
+      name: "Plus-Plus",
+      tags: ["upsell", "add-on"],
+      metadata: { upsellFor: "parent-kit" },
+    };
+
+    expect(includeInProductSitemap(standaloneAddOn)).toBe(true);
+    expect(isVisibleOnProductsListing(standaloneAddOn)).toBe(true);
+  });
+
+  it("sitemap product set equals the /products visible set", () => {
+    const catalog = [
+      visible,
+      {
+        ...visible,
+        slug: "logiblocs",
+        name: "Logiblocs",
+        tags: ["add-on"],
+        metadata: { upsellFor: ["base-a", "base-b"] },
+      },
+      {
+        ...visible,
+        slug: "pending-kit",
+        status: "IN_PENDING",
+      },
+      {
+        ...visible,
+        slug: "hidden-addon",
+        name: "Extensie ascunsă",
+        tags: ["add-on"],
+        metadata: {
+          merchandising: { browseHidden: true },
+          upsellFor: "parent",
+        },
+      },
+      {
+        ...visible,
+        slug: "fridge",
+        name: "Fridge Rover",
+      },
+      {
+        ...visible,
+        slug: "inactive",
+        isActive: false,
+      },
+      {
+        ...visible,
+        slug: "draft",
+        status: "DRAFT",
+      },
+      {
+        ...visible,
+        slug: "low-stock",
+        stockQuantity: 1,
+      },
+    ];
+
+    const listingSlugs = catalog
+      .filter(isVisibleOnProductsListing)
+      .map(product => product.slug)
+      .sort();
+    const sitemapSlugs = catalog
+      .filter(includeInProductSitemap)
+      .map(product => product.slug)
+      .sort();
+
+    expect(sitemapSlugs).toEqual(listingSlugs);
+    expect(sitemapSlugs).toEqual(["kit-vizibil", "logiblocs", "pending-kit"]);
+  });
+
+  it("drops hidden, quality-hidden, and inactive products from the sitemap", () => {
     expect(
       includeInProductSitemap({
         ...visible,

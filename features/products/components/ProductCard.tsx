@@ -190,6 +190,11 @@ export function ProductCard({
                 -{discountPercentage}%
               </span>
             )}
+            {!isOnSale && !isBundle && product.featured && (
+              <span className="max-w-full truncate rounded-full bg-[#0b1220] px-2 py-0.5 text-[9px] font-bold text-white">
+                {recommendedLabel}
+              </span>
+            )}
             {isOutOfStock && (
               <span className="bg-slate-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                 {t("outOfStock", "Out of Stock")}
@@ -234,11 +239,6 @@ export function ProductCard({
               {ageChip && (
                 <span className="max-w-full truncate rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
                   {ageChip.label}
-                </span>
-              )}
-              {product.featured && (
-                <span className="max-w-full truncate rounded-full bg-slate-900 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                  {recommendedLabel}
                 </span>
               )}
             </div>
@@ -467,11 +467,6 @@ export function ProductCard({
           {ageChip && (
             <span className="max-w-full truncate rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-semibold text-slate-600 sm:text-[10px]">
               {ageChip.label}
-            </span>
-          )}
-          {product.featured && (
-            <span className="max-w-full truncate rounded-full bg-slate-900 px-1.5 py-0.5 text-[9px] font-semibold text-white sm:text-[10px]">
-              {recommendedLabel}
             </span>
           )}
         </div>

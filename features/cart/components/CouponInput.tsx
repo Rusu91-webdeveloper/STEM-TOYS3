@@ -251,9 +251,14 @@ export default function CouponInput({
           {/* Helper text: Shorter on mobile */}
           <p className="text-xs text-gray-500 px-1">
             <span className="hidden sm:inline">
-              Have a discount code? Enter it above to save on your order.
+              {t(
+                "discountCodeHelper",
+                "Have a discount code? Enter it above to save on your order."
+              )}
             </span>
-            <span className="sm:hidden">Enter discount code to save</span>
+            <span className="sm:hidden">
+              {t("enterDiscountCodeToSave", "Enter discount code to save")}
+            </span>
           </p>
         </div>
       </CardContent>

@@ -2137,6 +2137,32 @@ export const ro = {
   mixedSupplierPrepaidOnly:
     "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul.",
 
+  productsSearchPlaceholder: "Caută jucării după nume...",
+  clearSearch: "Șterge căutarea",
+  companyNameOptional: "Denumire firmă (opțional)",
+  cuiOptional: "CUI (opțional)",
+  enterDiscountCodeToSave: "Introdu codul de reducere",
+  discountCodeHelper:
+    "Ai un cod de reducere? Introdu-l mai sus ca să economisești.",
+  addressFullNameRequired: "Numele complet este obligatoriu",
+  addressStreetRequired: "Strada este obligatorie",
+  addressStreetNumberRequired: "Numărul străzii este obligatoriu",
+  addressCityRequired: "Orașul este obligatoriu",
+  addressStateRequired: "Județul este obligatoriu",
+  addressCountryRequired: "Țara este obligatorie",
+  addressPostalCodeRequired: "Codul poștal este obligatoriu",
+  addressPhoneRequired: "Numărul de telefon este obligatoriu",
+  addressRomanianPostalCode:
+    "Introduceți un cod poștal românesc valid (6 cifre)",
+  addressRomanianPhone: "Introduceți un număr de telefon românesc valid",
+  selectSavedAddress: "Selectează o adresă salvată",
+  defaultAddressBadge: "Implicită",
+  useNewAddress: "Folosește o adresă nouă",
+  selectCounty: "Selectează un județ",
+  selectCountry: "Selectează o țară",
+  guestEmailInvalid:
+    "Introduceți o adresă de email validă pentru confirmarea comenzii.",
+
   "error.title.MIXED_SUPPLIER_PREPAID_REQUIRED": "Ramburs indisponibil",
   "error.message.MIXED_SUPPLIER_PREPAID_REQUIRED":
     "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul.",

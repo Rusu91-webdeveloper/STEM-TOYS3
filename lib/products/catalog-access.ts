@@ -1,5 +1,4 @@
 import {
-  isCatalogAddOn,
   visibleInBrowse,
   type HomepageCandidate,
 } from "@/lib/products/merchandising";
@@ -68,12 +67,32 @@ export function resolvePdpVisibility(
   return "public";
 }
 
-/** Same browse rules as /products, plus inactive and add-on exclusion. */
-export function includeInProductSitemap(
+/**
+ * Shopper-visible catalog on /products with no extra filters.
+ * A product referenced as someone else's add-on stays included when it is
+ * itself visible. Hidden add-ons (browseHidden), quality-hidden names,
+ * inactive rows, and statuses outside the storefront gate drop out.
+ * Missing status matches the public listing payload, which omits it after
+ * the API has already applied the same gate.
+ */
+export function isVisibleOnProductsListing(
   product: CatalogAccessProduct
 ): boolean {
   if (product.isActive === false) return false;
-  if (product.status !== "APPROVED") return false;
-  if (isCatalogAddOn(product) || isUpsellAttachment(product)) return false;
+  if (
+    typeof product.status === "string" &&
+    product.status.length > 0 &&
+    product.status !== "APPROVED" &&
+    product.status !== "IN_PENDING"
+  ) {
+    return false;
+  }
   return visibleInBrowse(product);
+}
+
+/** Sitemap product URLs are exactly the /products visible set. */
+export function includeInProductSitemap(
+  product: CatalogAccessProduct
+): boolean {
+  return isVisibleOnProductsListing(product);
 }
