@@ -6,6 +6,12 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { formatPrice } from "@/lib/email/base";
 import { cn } from "@/lib/utils";
 
+import {
+  collectStickyEndNodes,
+  endRegionHidesSticky,
+  shouldShowStickyPurchaseBar,
+} from "../lib/sticky-purchase-bar";
+
 interface ProductPurchaseActionsProps {
   productName: string;
   price: number;
@@ -113,10 +119,18 @@ export function ProductPurchaseActions({
 
     const mobileQuery = window.matchMedia("(max-width: 767px)");
     let buttonVisible = true;
-    let footerVisible = false;
+    let endRegionActive = false;
+    const endState = new Map<Element, boolean>();
 
     const syncSticky = () => {
-      setShowSticky(mobileQuery.matches && !buttonVisible && !footerVisible);
+      setShowSticky(
+        shouldShowStickyPurchaseBar({
+          isMobile: mobileQuery.matches,
+          isOutOfStock: false,
+          buyButtonVisible: buttonVisible,
+          endRegionActive,
+        })
+      );
     };
 
     const buttonObserver = new IntersectionObserver(
@@ -128,17 +142,41 @@ export function ProductPurchaseActions({
     );
     buttonObserver.observe(button);
 
-    const footer = document.querySelector("footer");
-    const footerObserver = footer
-      ? new IntersectionObserver(
-          ([entry]) => {
-            footerVisible = entry.isIntersecting;
-            syncSticky();
-          },
-          { threshold: 0.08 }
-        )
-      : null;
-    if (footer && footerObserver) footerObserver.observe(footer);
+    const endObserver = new IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          endState.set(entry.target, endRegionHidesSticky(entry));
+        }
+        endRegionActive = Array.from(endState.values()).some(Boolean);
+        syncSticky();
+      },
+      { threshold: [0, 0.08] }
+    );
+
+    // The layout footer is mounted later with ssr:false. Re-attach when it appears,
+    // and also watch the PDP sentinel that is in the document from the first paint.
+    const attachEndRegions = () => {
+      let changed = false;
+      for (const node of collectStickyEndNodes(document)) {
+        if (endState.has(node)) continue;
+        const rect = node.getBoundingClientRect();
+        const inView =
+          rect.height > 0 && rect.top < window.innerHeight && rect.bottom > 0;
+        endState.set(
+          node,
+          endRegionHidesSticky({
+            isIntersecting: inView,
+            boundingClientRect: rect,
+          })
+        );
+        endObserver.observe(node);
+        changed = true;
+      }
+      if (!changed) return;
+      endRegionActive = Array.from(endState.values()).some(Boolean);
+      syncSticky();
+    };
+    attachEndRegions();
 
     const refreshObstructions = () => {
       const next = measureBottomObstructions();
@@ -150,8 +188,14 @@ export function ProductPurchaseActions({
     const mutationObserver =
       typeof MutationObserver === "undefined"
         ? null
-        : new MutationObserver(() => refreshObstructions());
-    mutationObserver?.observe(document.body, { childList: true });
+        : new MutationObserver(() => {
+            refreshObstructions();
+            attachEndRegions();
+          });
+    mutationObserver?.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
 
     let frame = 0;
     const refreshOnScroll = () => {
@@ -168,7 +212,7 @@ export function ProductPurchaseActions({
 
     return () => {
       buttonObserver.disconnect();
-      footerObserver?.disconnect();
+      endObserver.disconnect();
       mutationObserver?.disconnect();
       if (frame) window.cancelAnimationFrame(frame);
       mobileQuery.removeEventListener("change", syncSticky);

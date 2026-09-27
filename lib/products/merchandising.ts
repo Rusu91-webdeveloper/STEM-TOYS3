@@ -43,3 +43,58 @@ export function selectHomepageGifts<T extends BrowseProduct>(
     .sort((a, b) => giftOrder(a) - giftOrder(b))
     .slice(0, 4);
 }
+
+export const HOMEPAGE_PRODUCT_LIMIT = 8;
+
+export interface HomepageCandidate extends BrowseProduct {
+  featured?: boolean;
+  images?: string[] | null;
+  tags?: string[] | null;
+}
+
+/** Hidden add-ons and upsell attachments are not homepage products. */
+export function isCatalogAddOn(product: HomepageCandidate): boolean {
+  const tags = product.tags ?? [];
+  if (tags.some(tag => /upsell|add-?on|addon/i.test(tag))) return true;
+  const metadata = product.metadata;
+  if (!metadata || typeof metadata !== "object") return false;
+  const record = metadata as Record<string, unknown>;
+  if (record.upsellFor) return true;
+  const merchandising = record.merchandising;
+  if (
+    merchandising &&
+    typeof merchandising === "object" &&
+    (merchandising as { browseHidden?: boolean }).browseHidden === true
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function hasDisplayImage(product: HomepageCandidate): boolean {
+  return (product.images ?? []).some(
+    src => typeof src === "string" && src.trim().length > 0
+  );
+}
+
+/**
+ * Homepage grid: featured products first, then other browseable products.
+ * Order is slug-stable. It is not a sales ranking.
+ */
+export function selectHomepageProducts<T extends HomepageCandidate>(
+  products: T[]
+): T[] {
+  const eligible = products.filter(
+    product => visibleInBrowse(product) && !isCatalogAddOn(product)
+  );
+  return eligible
+    .slice()
+    .sort((a, b) => {
+      const rank = (product: HomepageCandidate) =>
+        (product.featured ? 0 : 2) + (hasDisplayImage(product) ? 0 : 1);
+      const byRank = rank(a) - rank(b);
+      if (byRank !== 0) return byRank;
+      return a.slug.localeCompare(b.slug, "ro");
+    })
+    .slice(0, HOMEPAGE_PRODUCT_LIMIT);
+}

@@ -5,6 +5,7 @@ import React from "react";
 
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { AgeCategoriesSection } from "@/features/home/components/AgeCategoriesSection";
+import type { HeroPeekProduct } from "@/features/home/components/HeroProductPeek";
 import { HeroSection } from "@/features/home/components/HeroSection";
 import { PillarSection } from "@/features/home/components/PillarSection";
 import { publicConfig } from "@/lib/config/app-config";
@@ -24,8 +25,10 @@ const homePageContentWrapperClass = "relative z-10 flex flex-col";
 
 export default function HomePageClient({
   children,
+  featuredProducts = [],
 }: {
   children: React.ReactNode;
+  featuredProducts?: HeroPeekProduct[];
 }) {
   const { t } = useTranslation();
 
@@ -125,7 +128,7 @@ export default function HomePageClient({
       <div className={homePageOverlayBottomClass} aria-hidden />
       <div className={homePageContentWrapperClass}>
         {/* **PERFORMANCE**: Hero Section - Critical for FCP */}
-        <HeroSection t={t} />
+        <HeroSection t={t} products={featuredProducts} />
 
         <AgeCategoriesSection t={t} />
 

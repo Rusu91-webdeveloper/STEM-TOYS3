@@ -1,4 +1,9 @@
-import { canonicalizeCategorySlug } from "@/lib/products/stem-category";
+import { mapStemToken } from "@/lib/products/romanian-catalog";
+import {
+  CATEGORY_LABELS_RO,
+  canonicalizeCategorySlug,
+  categoryLandingSlug,
+} from "@/lib/products/stem-category";
 
 // Product-category typos that must not become their own landing URLs.
 // Recognized aliases still resolve to a canonical /categories/* page.
@@ -28,4 +33,47 @@ export function getCategoryPageHref(slug?: string | null): string | null {
   const canonical = canonicalizeCategorySlug(slug);
   if (!canonical) return null;
   return `/categories/${canonical}`;
+}
+
+export interface StorefrontCategoryLink {
+  label: string;
+  href: string;
+}
+
+/**
+ * Breadcrumb label and href must name the same page.
+ * A shop slug with its own /categories landing keeps that page.
+ * Otherwise the STEM discipline page is used, with its Romanian STEM label.
+ */
+export function resolveStorefrontCategoryLink(input: {
+  stemDiscipline?: string | null;
+  categorySlug?: string | null;
+  categoryName?: string | null;
+}): StorefrontCategoryLink | null {
+  const slug = input.categorySlug?.trim() ?? "";
+  const ownPage = categoryLandingSlug(slug);
+  if (ownPage) {
+    return {
+      href: `/categories/${ownPage}`,
+      label: CATEGORY_LABELS_RO[ownPage],
+    };
+  }
+
+  const stem = mapStemToken(input.stemDiscipline);
+  const stemPage = canonicalizeCategorySlug(input.stemDiscipline);
+  if (stem.recognized && stem.label && stemPage) {
+    return {
+      href: `/categories/${stemPage}`,
+      label: stem.label,
+    };
+  }
+
+  const fromCategory =
+    canonicalizeCategorySlug(slug) ??
+    canonicalizeCategorySlug(input.categoryName);
+  if (!fromCategory) return null;
+  return {
+    href: `/categories/${fromCategory}`,
+    label: CATEGORY_LABELS_RO[fromCategory],
+  };
 }

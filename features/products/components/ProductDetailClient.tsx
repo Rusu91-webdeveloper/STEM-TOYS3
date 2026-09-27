@@ -9,11 +9,10 @@ import { LazyProductReviews } from "@/components/lazy/client";
 import { useTranslation } from "@/lib/i18n";
 import { productPublicPath } from "@/lib/products/public-slug";
 import {
-  categoryStorefrontLabel,
   disciplineBadgeLabel,
   resolveProductAgeChip,
 } from "@/lib/products/romanian-catalog";
-import { getCategoryPageHref } from "@/lib/utils/category-page-links";
+import { resolveStorefrontCategoryLink } from "@/lib/utils/category-page-links";
 
 import { useProductActions } from "../hooks/useProductActions";
 
@@ -106,10 +105,13 @@ export default function ProductDetailClient({
     product.category?.name,
     product.category?.slug
   );
-  const categoryHref = getCategoryPageHref(product.category?.slug);
-  const categoryLabel = categoryHref
-    ? categoryStorefrontLabel(product.category?.slug, product.category?.name)
-    : null;
+  const categoryLink = resolveStorefrontCategoryLink({
+    stemDiscipline: product.stemDiscipline,
+    categorySlug: product.category?.slug,
+    categoryName: product.category?.name,
+  });
+  const categoryHref = categoryLink?.href ?? null;
+  const categoryLabel = categoryLink?.label ?? null;
   const ageChip = resolveProductAgeChip({
     ageGroup: product.ageGroup,
     ageRange: product.ageRange,
@@ -283,6 +285,7 @@ export default function ProductDetailClient({
             className="space-y-6"
           />
         </div>
+        <div data-pdp-end="" className="h-px w-full" aria-hidden="true" />
       </div>
     </div>
   );

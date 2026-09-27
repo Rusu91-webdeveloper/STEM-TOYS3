@@ -6,7 +6,7 @@ import {
   resolveProductAgeChip,
 } from "@/lib/products/romanian-catalog";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
-import { getCategoryPageHref } from "@/lib/utils/category-page-links";
+import { resolveStorefrontCategoryLink } from "@/lib/utils/category-page-links";
 import type { Product } from "@/types/product";
 
 describe("disciplineBadgeLabel", () => {
@@ -55,13 +55,30 @@ describe("disciplineBadgeLabel", () => {
     );
   });
 
-  it("uses the same category for the breadcrumb label and its link", () => {
-    const slug = "construction-sets";
-    const label = categoryStorefrontLabel(slug, "Construction Sets");
-    const href = getCategoryPageHref(slug);
+  it("uses the STEM page and its Romanian label when the shop slug has no category page", () => {
+    expect(
+      resolveStorefrontCategoryLink({
+        stemDiscipline: "ENGINEERING",
+        categorySlug: "construction-sets",
+        categoryName: "Construction Sets",
+      })
+    ).toEqual({
+      label: "Inginerie",
+      href: "/categories/engineering",
+    });
+  });
 
-    expect(label).toBe("Seturi de construcție");
-    expect(href).toBe("/categories/construction-sets");
+  it("keeps the label and href on the same page when the slug is a real landing", () => {
+    expect(
+      resolveStorefrontCategoryLink({
+        stemDiscipline: "ENGINEERING",
+        categorySlug: "science",
+        categoryName: "Science",
+      })
+    ).toEqual({
+      label: "Știință",
+      href: "/categories/science",
+    });
   });
 });
 

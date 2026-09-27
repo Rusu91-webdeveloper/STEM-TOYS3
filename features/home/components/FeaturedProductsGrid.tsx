@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useCurrency } from "@/lib/currency";
-import { ROCKET_SLUG, selectHomepageGifts } from "@/lib/products/merchandising";
+import { HOMEPAGE_PRODUCT_LIMIT } from "@/lib/products/merchandising";
 import { productPublicPath } from "@/lib/products/public-slug";
 import type { Product } from "@/types/product";
 
@@ -16,10 +16,9 @@ export function FeaturedProductsGrid({
   isLoading?: boolean;
 }) {
   const { formatPrice } = useCurrency();
-  const unique = Array.from(
+  const showcase = Array.from(
     new Map(products.map(product => [product.id, product])).values()
-  );
-  const showcase = selectHomepageGifts(unique);
+  ).slice(0, HOMEPAGE_PRODUCT_LIMIT);
   return (
     <section
       aria-labelledby="home-products"
@@ -46,15 +45,13 @@ export function FeaturedProductsGrid({
           </Link>
         </div>
         {showcase.length ? (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-5">
+          <div className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 sm:gap-5">
             {showcase.map(product => {
-              const weekly = product.slug === ROCKET_SLUG;
-              // A catalog filter bucket is not a manufacturer age recommendation.
               const age = product.ageRange;
               return (
                 <article
                   key={product.id}
-                  className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                  className="flex h-full w-[46vw] max-w-[220px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white sm:w-auto sm:max-w-none"
                 >
                   <Link
                     href={productPublicPath(product.slug)}
@@ -71,9 +68,7 @@ export function FeaturedProductsGrid({
                   </Link>
                   <div className="flex flex-1 flex-col p-3 sm:p-4">
                     <p className="mb-2 min-h-8 text-[10px] font-semibold leading-4 text-emerald-800">
-                      {weekly
-                        ? "Recomandarea săptămânii"
-                        : "Selectat de TechTots"}
+                      {product.featured ? "Recomandat" : "\u00a0"}
                     </p>
                     <h3 className="mb-2 line-clamp-3 min-h-[3.75rem] text-sm font-bold leading-5 text-slate-950">
                       <Link href={productPublicPath(product.slug)}>
