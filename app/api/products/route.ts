@@ -7,6 +7,11 @@ import { db } from "@/lib/db";
 import { withPerformanceMonitoring } from "@/lib/performance";
 import { toShopperProduct } from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
+import {
+  canonicalizeCategorySlug,
+  categorySlugsForCategory,
+  disciplineValuesForCategory,
+} from "@/lib/products/stem-category";
 import { getCacheKey } from "@/lib/utils/cache-key";
 import { getFilterParams } from "@/lib/utils/filtering";
 import { getPaginationParams } from "@/lib/utils/pagination";
@@ -279,40 +284,46 @@ async function fetchProductsFromDatabase(params: {
   // NOTE: We DON'T add this condition here because it causes Prisma errors with null categoryId
   // Instead, educational-books is filtered out in the category filtering logic below (returns null)
 
-  // **PERFORMANCE**: Optimized category filtering with better query patterns
+  // Match stemDiscipline (including MATH) and known category slugs.
+  // GENERAL / unset discipline falls back to the category slug, same as the listing.
   if (category) {
     const categories = category.split(",").map(cat => cat.trim().toLowerCase());
-    const validStemDisciplines = [
-      "science",
-      "technology",
-      "engineering",
-      "mathematics",
-    ];
 
-    // Build category conditions with optimized patterns
     const categoryConditions = categories
-      .map(normalizedCategory => {
-        const isValidStemDiscipline =
-          validStemDisciplines.includes(normalizedCategory);
-
-        if (isValidStemDiscipline) {
-          // **PERFORMANCE**: Use single field check first for better index utilization
-          return {
-            stemDiscipline: normalizedCategory.toUpperCase() as any,
-          };
-        } else if (normalizedCategory === "educational-books") {
-          // Skip educational-books category in products query
-          // Books are handled separately via the /api/books endpoint or included via includeBooks logic
-          return null; // This will be filtered out
-        } else {
-          // For other categories, check category slug
-          return {
-            category: {
-              slug: normalizedCategory,
-              isActive: true,
-            },
-          };
+      .map(rawCategory => {
+        const canonical = canonicalizeCategorySlug(rawCategory);
+        if (!canonical || canonical === "educational-books") {
+          return null;
         }
+
+        const stems = disciplineValuesForCategory(canonical);
+        const slugs = categorySlugsForCategory(canonical);
+
+        return {
+          OR: [
+            { stemDiscipline: { in: stems } },
+            {
+              AND: [
+                {
+                  OR: [
+                    { stemDiscipline: null },
+                    {
+                      stemDiscipline: {
+                        in: ["GENERAL", "general", "General", ""],
+                      },
+                    },
+                  ],
+                },
+                {
+                  category: {
+                    slug: { in: slugs },
+                    isActive: true,
+                  },
+                },
+              ],
+            },
+          ],
+        };
       })
       .filter(
         (condition): condition is NonNullable<typeof condition> =>

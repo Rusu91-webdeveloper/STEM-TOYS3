@@ -1,7 +1,11 @@
 import { getCached } from "@/lib/cache";
 import { db } from "@/lib/db";
+import { getVisibleCategoryCounts } from "@/lib/products/category-listing";
+import {
+  canonicalizeCategorySlug,
+  type CanonicalCategorySlug,
+} from "@/lib/products/stem-category";
 import { getCacheKey } from "@/lib/utils/cache-key";
-import { normalizeCategory } from "@/lib/utils/product-filters-url";
 
 interface ServerCategoryData {
   id: string;
@@ -69,7 +73,8 @@ export function getCategoryName(slug: string, language: string = "en"): string {
     "educational-books": { en: "Educational Books", ro: "Cărți Educaționale" },
   };
 
-  return translations[slug]?.[language] || slug;
+  const key = canonicalizeCategorySlug(slug) ?? slug;
+  return translations[key]?.[language] || translations[key]?.ro || slug;
 }
 
 /**
@@ -79,15 +84,14 @@ export function getCategoryName(slug: string, language: string = "en"): string {
 export async function getCategories(
   language = "en"
 ): Promise<ServerCategoryData[]> {
-  const cacheKey = getCacheKey("categories-server", { language });
+  const cacheKey = getCacheKey("categories-server-v2", { language });
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes server-side cache
 
   const categoriesWithCounts = await getCached(
     cacheKey,
     async () => {
       try {
-        // Use Promise.all to fetch categories and book count concurrently
-        const [dbCategories, bookCount] = await Promise.all([
+        const [dbCategories, counts] = await Promise.all([
           db.category.findMany({
             where: {
               isActive: true,
@@ -95,24 +99,8 @@ export async function getCategories(
             orderBy: {
               name: "asc",
             },
-            include: {
-              _count: {
-                select: {
-                  products: {
-                    where: {
-                      isActive: true,
-                    },
-                  },
-                },
-              },
-            },
           }),
-          // Also get the count of all active books
-          db.book.count({
-            where: {
-              isActive: true,
-            },
-          }),
+          getVisibleCategoryCounts(),
         ]);
 
         // Map database categories to our display categories with correct images and descriptions
@@ -120,11 +108,8 @@ export async function getCategories(
           const dbCategory = dbCategories.find(
             dbCat => dbCat.slug.toLowerCase() === displayCat.slug.toLowerCase()
           );
-
-          let productCount = dbCategory?._count.products ?? 0;
-          if (displayCat.slug === "educational-books") {
-            productCount = bookCount;
-          }
+          const productCount =
+            counts[displayCat.slug as CanonicalCategorySlug] ?? 0;
 
           return {
             id: dbCategory?.id ?? displayCat.slug,
@@ -166,119 +151,28 @@ export async function getAllCategoriesForSidebar(
   language = "en"
 ): Promise<Array<{ id: string; label: string; count: number }>> {
   try {
-    const cacheKey = getCacheKey("sidebar-categories-v2", { language }); // v2 to force cache miss
-    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
+    const cacheKey = getCacheKey("sidebar-categories-v3", { language });
+    const CACHE_TTL = 5 * 60 * 1000;
 
     return await getCached(
       cacheKey,
       async () => {
-        // Get all categories from database with product counts AND actual products for accurate counting
-        const [dbCategories, bookCount, allProducts] = await Promise.all([
-          db.category.findMany({
-            where: {
-              isActive: true,
-            },
-            include: {
-              _count: {
-                select: {
-                  products: {
-                    where: {
-                      isActive: true,
-                    },
-                  },
-                },
-              },
-            },
-          }),
-          db.book.count({
-            where: {
-              isActive: true,
-            },
-          }),
-          // Get all products to count them the same way the frontend filters them
-          db.product.findMany({
-            where: {
-              isActive: true,
-            },
-            select: {
-              id: true,
-              stemDiscipline: true,
-              category: {
-                select: {
-                  name: true,
-                  slug: true,
-                },
-              },
-            },
-          }),
-        ]);
+        const counts = await getVisibleCategoryCounts();
 
-        // Create a comprehensive list including all static categories
-        const allCategories = staticCategoryData.map(staticCat => {
-          const dbCategory = dbCategories.find(
-            dbCat => dbCat.slug.toLowerCase() === staticCat.slug.toLowerCase()
-          );
-
-          let productCount = 0;
-
-          if (staticCat.slug === "educational-books") {
-            productCount = bookCount;
-          } else {
-            // Count products the same way the frontend filters them
-            // This matches the logic in ClientProductsPage.tsx lines 330-338
-            const matchingProducts = allProducts.filter(product => {
-            // For STEM categories, prioritize stemDiscipline over category.name,
-            // but treat GENERAL as a fallback to category name.
-            const stemValue = product.stemDiscipline?.toLowerCase();
-            const productCategory =
-              stemValue && stemValue !== "general"
-                ? stemValue
-                : (product.category?.name ?? "").toLowerCase();
-
-              const normalizedProductCategory =
-                normalizeCategory(productCategory);
-              const normalizedStaticCategory = normalizeCategory(
-                staticCat.slug
-              );
-
-              return normalizedProductCategory === normalizedStaticCategory;
-            });
-            productCount = matchingProducts.length;
-          }
-
-          // Optional debug logging for development
-          if (
-            process.env.NODE_ENV === "development" &&
-            process.env.DEBUG_CATEGORIES
-          ) {
-            console.log(`[SIDEBAR CATEGORIES] ${staticCat.slug}:`, {
-              dbCategoryFound: !!dbCategory,
-              dbCategorySlug: dbCategory?.slug,
-              productCount,
-              bookCount:
-                staticCat.slug === "educational-books" ? bookCount : "N/A",
-            });
-          }
-
-          return {
-            id: staticCat.slug, // Use original slug for consistency
-            label: getCategoryName(staticCat.slug, language),
-            count: productCount,
-          };
-        });
-
-        // Show all categories regardless of count - let users see all available options
-        return allCategories;
+        return staticCategoryData.map(staticCat => ({
+          id: staticCat.slug,
+          label: getCategoryName(staticCat.slug, language),
+          count: counts[staticCat.slug as CanonicalCategorySlug] ?? 0,
+        }));
       },
       CACHE_TTL
     );
   } catch (error) {
     console.error("Error fetching sidebar categories:", error);
-    // Return fallback categories - always show all 5 categories even if DB fails
     return staticCategoryData.map(cat => ({
-      id: cat.slug, // Use original slug for consistency
+      id: cat.slug,
       label: getCategoryName(cat.slug, language),
-      count: 0, // Show 0 count but still display the category
+      count: 0,
     }));
   }
 }

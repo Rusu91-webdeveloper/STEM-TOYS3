@@ -8,6 +8,7 @@ import {
   gradientButtonClass,
 } from "@/features/home/components/homeTheme";
 import { useTranslation, TranslationKey } from "@/lib/i18n";
+import { formatProductCountRo } from "@/lib/products/stem-category";
 import { getCategoryPageHref } from "@/lib/utils/category-page-links";
 
 export interface CategoryData {
@@ -51,7 +52,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
               <div className="relative w-full h-48 sm:h-56 md:h-64">
                 <Image
                   src={getCategoryCardImage(category.slug, category.image)}
-                  alt={`${category.name} category of STEM toys`}
+                  alt={`Categoria ${category.name} de jucării STEM`}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   style={{ objectFit: "cover" }}
@@ -65,7 +66,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
                 <div className="absolute top-4 left-4">
                   <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-100 backdrop-blur-sm">
                     <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(16,185,129,0.25)]" />
-                    {category.productCount} produse
+                    {formatProductCountRo(category.productCount)}
                   </span>
                 </div>
               </div>
@@ -140,6 +141,11 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
 }
 
 // Helper function to get category benefits
+function benefitKey(slug: string): string {
+  if (slug === "mathematics") return "math";
+  return slug;
+}
+
 function getCategoryBenefits(slug: string): string[] {
   const benefits: Record<string, string[]> = {
     science: [
@@ -169,7 +175,7 @@ function getCategoryBenefits(slug: string): string[] {
     ],
   };
 
-  return benefits[slug] || [];
+  return benefits[benefitKey(slug)] || [];
 }
 
 function getCategoryCardImage(slug: string, apiImage?: string): string {
@@ -183,5 +189,5 @@ function getCategoryCardImage(slug: string, apiImage?: string): string {
     mathematics: "/Mathematic.png",
   };
 
-  return imageMap[slug] || apiImage || "/HeroImageTechTechtots.png";
+  return imageMap[slug] ?? apiImage ?? "/HeroImageTechTechtots.png";
 }

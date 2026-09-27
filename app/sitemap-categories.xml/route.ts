@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma";
-import { REMOVED_CATEGORY_PAGE_SLUGS } from "@/lib/utils/category-page-links";
+import { CANONICAL_CATEGORY_SLUGS } from "@/lib/products/stem-category";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
+function siteBaseUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_BASE_URL?.trim();
+  if (configured) return configured.replace(/\/$/, "");
+  return "https://www.techtots.ro";
+}
+
+const baseUrl = siteBaseUrl();
 
 function escapeXml(value: string): string {
   return value
@@ -14,70 +19,33 @@ function escapeXml(value: string): string {
     .replace(/'/g, "&apos;");
 }
 
-export async function GET() {
-  try {
-    const now = new Date().toISOString();
-    const categories = await prisma.category.findMany({
-      where: {
-        isActive: true,
-        slug: {
-          notIn: [...REMOVED_CATEGORY_PAGE_SLUGS],
-        },
-      },
-      select: {
-        slug: true,
-      },
-      orderBy: {
-        slug: "asc",
-      },
-    });
+export function GET() {
+  const now = new Date().toISOString();
+  const paths = [
+    "/categories",
+    ...CANONICAL_CATEGORY_SLUGS.map(slug => `/categories/${slug}`),
+  ];
 
-    let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
-
-    if (!categories || categories.length === 0) {
-      sitemap += `
-  <url>
-    <loc>${escapeXml(`${baseUrl}/categories`)}</loc>
+  const body = paths
+    .map(
+      path => `  <url>
+    <loc>${escapeXml(`${baseUrl}${path}`)}</loc>
     <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>`;
-    }
+    <priority>${path === "/categories" ? "0.7" : "0.8"}</priority>
+  </url>`
+    )
+    .join("\n");
 
-    categories.forEach(category => {
-      const url = `${baseUrl}/categories/${category.slug}`;
-
-      sitemap += `
-  <url>
-    <loc>${escapeXml(url)}</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-    });
-
-    sitemap += `
-</urlset>`;
-
-    return new NextResponse(sitemap, {
-      headers: {
-        "Content-Type": "application/xml",
-        "Cache-Control": "public, max-age=3600, s-maxage=3600",
-      },
-    });
-  } catch (error) {
-    console.error("Error generating categories sitemap:", error);
-
-    const emptySitemap = `<?xml version="1.0" encoding="UTF-8"?>
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${body}
 </urlset>`;
 
-    return new NextResponse(emptySitemap, {
-      headers: {
-        "Content-Type": "application/xml",
-        "Cache-Control": "public, max-age=300, s-maxage=300",
-      },
-    });
-  }
+  return new NextResponse(sitemap, {
+    headers: {
+      "Content-Type": "application/xml",
+      "Cache-Control": "public, max-age=3600, s-maxage=3600",
+    },
+  });
 }
