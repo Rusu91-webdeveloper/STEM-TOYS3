@@ -98,4 +98,23 @@ describe("PaymentMethodSelector (COD visibility)", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Doar card online")).toBeInTheDocument();
   });
+
+  it("shows Romanian payment copy and no card surcharge label", () => {
+    process.env.NEXT_PUBLIC_NETOPIA_ENABLED = "true";
+    process.env.NEXT_PUBLIC_STRIPE_ENABLED = "true";
+
+    renderPaymentMethodSelector({
+      userLocale: "ro-RO",
+      shippingCountry: "RO",
+      billingCountry: "RO",
+    });
+
+    expect(screen.getByText("Opțiuni de plată")).toBeInTheDocument();
+    expect(
+      screen.getByText("Selectează metoda de plată preferată.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Card bancar")).toBeInTheDocument();
+    expect(screen.queryByText("1.5%")).not.toBeInTheDocument();
+    expect(screen.queryByText("Payment options")).not.toBeInTheDocument();
+  });
 });

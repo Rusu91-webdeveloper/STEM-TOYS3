@@ -13,11 +13,12 @@ import {
 } from "@/lib/checkout/authoritative-pricing";
 import { COD_CONSENT_VERSION } from "@/lib/checkout/cod-consent";
 import { formatCodGuaranteeAuthorizationNote } from "@/lib/checkout/cod-guarantee";
+import { guestCodGuaranteeIntentError } from "@/lib/checkout/cod-guarantee-intent";
 import {
   evaluateCodGuaranteePolicy,
   isLockerShippingMethodId,
 } from "@/lib/checkout/cod-guarantee-policy";
-import { getCodGuaranteeUserStats } from "@/lib/checkout/cod-guarantee-risk";
+import { resolveCodGuaranteeCustomerStats } from "@/lib/checkout/cod-guarantee-risk";
 import {
   createGuestCheckoutCustomer,
   GuestCheckoutError,
@@ -47,10 +48,17 @@ import {
   getNotificationSettings,
 } from "@/lib/utils/order-processing";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-const stripeClient = stripeSecretKey
-  ? new Stripe(stripeSecretKey, { apiVersion: getStripeApiVersion() })
-  : null;
+let cachedOrderStripe: Stripe | null = null;
+
+function getOrderStripeClient(): Stripe | null {
+  if (cachedOrderStripe) return cachedOrderStripe;
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecretKey) return null;
+  cachedOrderStripe = new Stripe(stripeSecretKey, {
+    apiVersion: getStripeApiVersion(),
+  });
+  return cachedOrderStripe;
+}
 
 // Order validation schema - more lenient version
 const shippingAddressSchema = z
@@ -287,6 +295,7 @@ class OrderPlacementError extends Error {
 // POST /api/checkout/order - Create a new order
 export async function POST(request: Request) {
   try {
+    const stripeClient = getOrderStripeClient();
     // Parse the request body first
     let body;
     try {
@@ -443,10 +452,13 @@ export async function POST(request: Request) {
         : isStripePayment
           ? "stripe"
           : null;
-    const codGuaranteeUserStats =
-      isCODPayment && user
-        ? await getCodGuaranteeUserStats(user.id)
-        : { priorOrderCount: 0, priorCodRtoCount: 0 };
+    const codGuaranteeUserStats = isCODPayment
+      ? await resolveCodGuaranteeCustomerStats(
+          sessionUser?.id
+            ? { userId: user?.id || sessionUser.id }
+            : { userId: user?.id, guestEmail }
+        )
+      : { priorOrderCount: 0, priorCodRtoCount: 0 };
 
     if (lockerRequired && isCODPayment) {
       return NextResponse.json(
@@ -868,6 +880,24 @@ export async function POST(request: Request) {
             },
             { status: 400 }
           );
+        }
+
+        if (!sessionUser?.id) {
+          const guestIntentError = guestCodGuaranteeIntentError({
+            guestEmail,
+            checkoutUserId: user?.id ?? null,
+            metadata: codGuaranteeIntent.metadata,
+          });
+          if (guestIntentError) {
+            return NextResponse.json(
+              {
+                success: false,
+                message: guestIntentError.message,
+                error: guestIntentError.error,
+              },
+              { status: guestIntentError.status }
+            );
+          }
         }
       } catch (err) {
         console.error(

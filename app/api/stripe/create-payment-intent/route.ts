@@ -5,6 +5,18 @@ import Stripe from "stripe";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
+import {
+  CheckoutPricingError,
+  resolveCheckoutPricing,
+} from "@/lib/checkout/authoritative-pricing";
+import {
+  isPaymentIntentActor,
+  resolvePaymentIntentActor,
+} from "@/lib/checkout/payment-intent-access";
+import {
+  reuseOrCreatePaymentIntent,
+  sanitizePaymentIntentMetadata,
+} from "@/lib/checkout/stripe-payment-intent";
 import { getRequiredEnvVar } from "@/lib/env";
 import {
   getStripeApiVersion,
@@ -22,6 +34,7 @@ const createRequestSchema = z.object({
   paymentIntentId: z.string().optional(),
   checkoutAttemptId: z.string().min(1).optional(),
   currency: z.string().optional(),
+  guestEmail: z.string().optional(),
   checkoutContext: z
     .object({
       items: z.array(
@@ -39,19 +52,6 @@ const createRequestSchema = z.object({
     .optional(),
   metadata: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
 });
-
-const REUSABLE_STATUSES: Stripe.PaymentIntent.Status[] = [
-  "requires_payment_method",
-  "requires_confirmation",
-  "requires_action",
-  "processing",
-];
-
-// Terminal states that cannot be reused or confirmed
-const TERMINAL_STATUSES: Stripe.PaymentIntent.Status[] = [
-  "succeeded",
-  "canceled",
-];
 
 export async function POST(request: NextRequest) {
   try {
@@ -79,24 +79,53 @@ export async function POST(request: NextRequest) {
     const normalizedCurrency = getStripeCurrency();
 
     const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: "Authentication required" },
-        { status: 401 }
-      );
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch (error) {
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { success: false, error: "Authentication required" },
+          { status: 401 }
+        );
+      }
+      throw error;
     }
+    const parsedBody = createRequestSchema.safeParse(rawBody);
+    const requestedFlow =
+      rawBody &&
+      typeof rawBody === "object" &&
+      "metadata" in rawBody &&
+      rawBody.metadata &&
+      typeof rawBody.metadata === "object" &&
+      "paymentFlow" in rawBody.metadata
+        ? String(rawBody.metadata.paymentFlow)
+        : null;
 
-    const parsedBody = createRequestSchema.safeParse(await request.json());
-    if (!parsedBody.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid payload",
-          details: parsedBody.error.flatten(),
-        },
-        { status: 400 }
-      );
-    }
+    const invalidPayloadResponse = NextResponse.json(
+      {
+        success: false,
+        error: "Invalid payload",
+        details: parsedBody.success ? undefined : parsedBody.error.flatten(),
+      },
+      { status: 400 }
+    );
+    const actorResult = await resolvePaymentIntentActor({
+      request,
+      hasSessionUser: Boolean(session?.user?.id),
+      sessionUserId: session?.user?.id,
+      sessionEmail: session?.user?.email,
+      requestedFlow,
+      payloadValid: parsedBody.success,
+      guestEmail: parsedBody.success ? parsedBody.data.guestEmail : null,
+      hasCheckoutContext: parsedBody.success
+        ? Boolean(parsedBody.data.checkoutContext)
+        : false,
+      invalidPayloadResponse,
+    });
+    if (!isPaymentIntentActor(actorResult)) return actorResult;
+    if (!parsedBody.success) return invalidPayloadResponse;
+    const actor = actorResult;
 
     const {
       amount,
@@ -106,25 +135,24 @@ export async function POST(request: NextRequest) {
       checkoutContext,
     } = parsedBody.data;
 
+    const paymentFlow =
+      actor.kind === "guest"
+        ? "cod_guarantee"
+        : typeof metadata?.paymentFlow === "string"
+          ? metadata.paymentFlow
+          : null;
+
     let resolvedAmount = amount;
     if (checkoutContext) {
-      const { CheckoutPricingError, resolveCheckoutPricing } = await import(
-        "@/lib/checkout/authoritative-pricing"
-      );
-
       try {
         const pricing = await resolveCheckoutPricing({
-          userId: session.user.id,
+          userId: actor.kind === "user" ? actor.userId : "",
           items: checkoutContext.items,
           shippingMethodId: checkoutContext.shippingMethodId,
           couponCode: checkoutContext.couponCode || undefined,
           paymentMethod: checkoutContext.paymentMethod,
         });
 
-        const paymentFlow =
-          typeof metadata?.paymentFlow === "string"
-            ? metadata.paymentFlow
-            : null;
         resolvedAmount = Math.round(
           (paymentFlow === "cod_guarantee"
             ? pricing.codGuaranteeAmount
@@ -158,21 +186,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const sanitizedMetadata = sanitizePaymentIntentMetadata(metadata);
+    if (actor.kind === "guest") {
+      delete sanitizedMetadata.userId;
+    }
+
     const baseMetadata = {
-      ...sanitizeMetadata(metadata),
-      userId: session.user.id,
-      userEmail: session.user.email || "",
+      ...sanitizedMetadata,
+      ...(actor.kind === "user"
+        ? { userId: actor.userId, userEmail: actor.email }
+        : {
+            guestEmail: actor.email,
+            userEmail: actor.email,
+            paymentFlow: "cod_guarantee",
+          }),
       ...(checkoutAttemptId ? { checkoutAttemptId } : {}),
     };
 
+    const actorKey =
+      actor.kind === "user" ? actor.userId : `guest:${actor.email}`;
     const idempotencyKey = paymentIntentId
       ? `pi:${paymentIntentId}`
       : checkoutAttemptId
         ? `checkout:${checkoutAttemptId}`
         : createHash("sha256")
-            .update(`${session.user.id}:${Date.now()}:${Math.random()}`)
+            .update(`${actorKey}:${Date.now()}:${Math.random()}`)
             .digest("hex");
 
+    const receiptEmail = actor.email || undefined;
     const createParams: Stripe.PaymentIntentCreateParams = {
       amount: resolvedAmount,
       currency: normalizedCurrency,
@@ -182,7 +223,7 @@ export async function POST(request: NextRequest) {
       },
       metadata: baseMetadata,
       // Automatically send Stripe receipt to customer's email when payment succeeds
-      receipt_email: session.user.email || undefined,
+      receipt_email: receiptEmail,
       // Use manual capture - funds are authorized (held) but not captured until order is created
       // This prevents charging customers who cancel before completing the order
       capture_method: "manual",
@@ -199,7 +240,7 @@ export async function POST(request: NextRequest) {
         baseMetadata,
         createParams,
         idempotencyKey,
-        session.user.email || undefined
+        receiptEmail
       );
     } else {
       paymentIntent = await stripe.paymentIntents.create(createParams, {
@@ -226,68 +267,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-async function reuseOrCreatePaymentIntent(
-  stripe: Stripe,
-  normalizedCurrency: string,
-  paymentIntentId: string,
-  amount: number,
-  metadata: Record<string, string>,
-  createParams: Stripe.PaymentIntentCreateParams,
-  idempotencyKey: string,
-  receiptEmail?: string
-): Promise<Stripe.PaymentIntent> {
-  try {
-    const existing = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-    // Explicitly reject PaymentIntents in terminal states
-    if (TERMINAL_STATUSES.includes(existing.status)) {
-      console.log(
-        `PaymentIntent ${paymentIntentId} is in terminal state (${existing.status}). Creating new PaymentIntent.`
-      );
-      return stripe.paymentIntents.create(createParams, { idempotencyKey });
-    }
-
-    // Only reuse PaymentIntents in reusable states
-    if (
-      existing.currency === normalizedCurrency &&
-      REUSABLE_STATUSES.includes(existing.status)
-    ) {
-      return stripe.paymentIntents.update(paymentIntentId, {
-        amount,
-        metadata,
-        // Update receipt email in case user changed
-        receipt_email: receiptEmail,
-      });
-    }
-
-    // If status is not reusable and not terminal, create a new one
-    console.log(
-      `PaymentIntent ${paymentIntentId} has status ${existing.status} which is not reusable. Creating new PaymentIntent.`
-    );
-  } catch (intentError) {
-    console.warn(
-      `Unable to reuse payment intent ${paymentIntentId}:`,
-      intentError
-    );
-  }
-
-  return stripe.paymentIntents.create(createParams, { idempotencyKey });
-}
-
-function sanitizeMetadata(
-  metadata?: Record<string, string | number | boolean>
-) {
-  if (!metadata) {
-    return {};
-  }
-
-  return Object.entries(metadata).reduce<Record<string, string>>(
-    (acc, [key, value]) => {
-      acc[key] = String(value);
-      return acc;
-    },
-    {}
-  );
 }

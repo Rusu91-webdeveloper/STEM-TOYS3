@@ -21,6 +21,7 @@ import {
   checkoutFieldLabelClass,
   checkoutInfoBannerClass,
 } from "@/features/checkout/lib/checkoutTheme";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { createFormValidator } from "@/lib/formValidation";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -274,6 +275,9 @@ export function ShippingAddressForm({
   collectGuestEmail = false,
 }: ShippingAddressFormProps) {
   const { t, locale } = useTranslation();
+  const { data: session, status: sessionStatus } = useOptimizedSession();
+  const canLoadSavedAddresses =
+    sessionStatus === "authenticated" && Boolean(session?.user?.id);
   const defaultCountry = allowInternational ? "" : "RO";
   const addressValidator = allowInternational
     ? internationalAddressValidator
@@ -325,16 +329,25 @@ export function ShippingAddressForm({
   >({});
 
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
-  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState<string>("new");
 
-  // Fetch user's saved addresses
+  // Saved addresses exist only for a signed-in shopper.
   useEffect(() => {
+    if (!canLoadSavedAddresses) {
+      setSavedAddresses([]);
+      setIsLoadingAddresses(false);
+      return;
+    }
+
+    let cancelled = false;
     const fetchAddresses = async () => {
+      setIsLoadingAddresses(true);
       try {
         const response = await fetch("/api/account/addresses");
         if (response.ok) {
           const addresses = await response.json();
+          if (cancelled) return;
           setSavedAddresses(addresses);
 
           // If there's a default address and no initialData, preselect it
@@ -349,12 +362,15 @@ export function ShippingAddressForm({
       } catch (error) {
         console.error("Error fetching addresses:", error);
       } finally {
-        setIsLoadingAddresses(false);
+        if (!cancelled) setIsLoadingAddresses(false);
       }
     };
 
     fetchAddresses();
-  }, [defaultCountry, initialData]);
+    return () => {
+      cancelled = true;
+    };
+  }, [canLoadSavedAddresses, defaultCountry, initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

@@ -11,6 +11,7 @@ import React, {
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/features/cart";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import {
   COD_CONSENT_TEXT,
@@ -99,7 +100,11 @@ export function PaymentForm({
   onBack,
 }: PaymentFormProps) {
   const { getCartTotal, items: cartItems } = useCart();
+  const { data: session } = useOptimizedSession();
   const { t } = useTranslation();
+  const guestCheckoutEmail = session?.user?.id
+    ? undefined
+    : shippingAddress?.email?.trim() || undefined;
   const { settings } = useCheckoutSettings();
   const isCheckoutRestricted = settings?.checkoutAdminOnly === true && !isAdmin;
   const stripeEnabled =
@@ -278,6 +283,7 @@ export function PaymentForm({
           orderTotal: codOrderTotalForPolicy,
           recipientType,
           shippingMethodId: shippingMethod?.id,
+          guestEmail: guestCheckoutEmail,
         });
 
         if (!isActive) return;
@@ -307,6 +313,7 @@ export function PaymentForm({
     codOrderTotalForPolicy,
     recipientType,
     shippingMethod?.id,
+    guestCheckoutEmail,
   ]);
 
   useEffect(() => {
@@ -601,6 +608,7 @@ export function PaymentForm({
           amount: amountInMinorUnits,
           checkoutAttemptId,
           checkoutContext: buildCheckoutIntentContext("cash_on_delivery"),
+          ...(guestCheckoutEmail ? { guestEmail: guestCheckoutEmail } : {}),
           metadata: {
             checkoutStep: "payment",
             paymentFlow: "cod_guarantee",
@@ -672,6 +680,7 @@ export function PaymentForm({
     codGuaranteeIntentAmount,
     codGuaranteePaymentIntentId,
     buildCheckoutIntentContext,
+    guestCheckoutEmail,
   ]);
 
   const showBillingForm = !useSameAddress;

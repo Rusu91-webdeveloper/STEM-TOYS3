@@ -160,8 +160,14 @@ function findCustomerByEmail(email: string) {
   });
 }
 
-function normalizeEmail(value: string | null | undefined): string | null {
+export function normalizeCheckoutEmail(
+  value: string | null | undefined
+): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim().toLowerCase();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeEmail(value: string | null | undefined): string | null {
+  return normalizeCheckoutEmail(value);
 }

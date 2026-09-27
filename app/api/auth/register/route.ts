@@ -64,9 +64,8 @@ async function handleRegistration(req: Request) {
           message:
             "Registration successful. Please check your email to verify your account.",
           user: {
-            id: existingUser.id,
-            name: existingUser.name,
-            email: existingUser.email,
+            name,
+            email: normalizedEmail,
           },
         },
         { status: 201 }

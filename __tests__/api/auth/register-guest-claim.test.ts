@@ -58,12 +58,16 @@ const guest = {
   verificationToken: null as string | null,
 };
 
-function registerRequest(email = "Guest@Example.com", password = "secret123") {
+function registerRequest(
+  email = "Guest@Example.com",
+  password = "secret123",
+  name = "Ion Ionescu"
+) {
   return new NextRequest("http://localhost/api/auth/register", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      name: "Ana Pop",
+      name,
       email,
       password,
     }),
@@ -114,6 +118,13 @@ describe("POST /api/auth/register guest claim", () => {
 
     expect(response.status).toBe(201);
     expect(payload.message).toMatch(/check your email/i);
+    expect(payload.user).toEqual({
+      name: "Ion Ionescu",
+      email: "guest@example.com",
+    });
+    expect(payload.user.id).toBeUndefined();
+    expect(JSON.stringify(payload)).not.toContain(guest.id);
+    expect(JSON.stringify(payload)).not.toContain(guest.name);
     expect(JSON.stringify(payload).toLowerCase()).not.toMatch(/order|comand/);
     expect(guest.password).toBe(passwordBefore);
     expect(db.user.update).not.toHaveBeenCalled();
