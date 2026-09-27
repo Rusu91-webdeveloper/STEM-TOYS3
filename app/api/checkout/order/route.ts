@@ -19,9 +19,11 @@ import {
 } from "@/lib/checkout/cod-guarantee-policy";
 import { getCodGuaranteeUserStats } from "@/lib/checkout/cod-guarantee-risk";
 import {
+  createGuestCheckoutCustomer,
   GuestCheckoutError,
-  resolveCheckoutCustomer,
+  lookupCheckoutCustomer,
 } from "@/lib/checkout/guest-customer";
+import { enforceGuestOrderRateLimit } from "@/lib/checkout/guest-order-rate-limit";
 import { compensateFailedOrder } from "@/lib/checkout/payment-failure-compensation";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
@@ -389,10 +391,16 @@ export async function POST(request: Request) {
         (orderData.shippingAddress as { email?: string }).email
       );
 
+    const sessionUser = session?.user ?? null;
+    if (!sessionUser?.id) {
+      const rateLimited = await enforceGuestOrderRateLimit(request);
+      if (rateLimited) return rateLimited;
+    }
+
     let user;
     try {
-      user = await resolveCheckoutCustomer({
-        sessionUser: session?.user ?? null,
+      user = await lookupCheckoutCustomer({
+        sessionUser,
         guestEmail,
         guestName: shippingAddressData.fullName,
       });
@@ -435,9 +443,10 @@ export async function POST(request: Request) {
         : isStripePayment
           ? "stripe"
           : null;
-    const codGuaranteeUserStats = isCODPayment
-      ? await getCodGuaranteeUserStats(user.id)
-      : { priorOrderCount: 0, priorCodRtoCount: 0 };
+    const codGuaranteeUserStats =
+      isCODPayment && user
+        ? await getCodGuaranteeUserStats(user.id)
+        : { priorOrderCount: 0, priorCodRtoCount: 0 };
 
     if (lockerRequired && isCODPayment) {
       return NextResponse.json(
@@ -569,7 +578,7 @@ export async function POST(request: Request) {
     let pricing;
     try {
       pricing = await resolveCheckoutPricing({
-        userId: user.id,
+        userId: user?.id ?? "",
         items: orderData.items,
         shippingMethodId: orderData.shippingMethod?.id,
         couponCode: orderData.couponCode,
@@ -960,7 +969,7 @@ export async function POST(request: Request) {
 
         if (
           stripePaymentIntent.metadata.userId &&
-          stripePaymentIntent.metadata.userId !== user.id
+          (!user || stripePaymentIntent.metadata.userId !== user.id)
         ) {
           return NextResponse.json(
             {
@@ -1041,6 +1050,28 @@ export async function POST(request: Request) {
             { status: 400 }
           );
         }
+      }
+    }
+
+    // Create the guest user only after price and stock checks succeed.
+    if (!user) {
+      try {
+        user = await createGuestCheckoutCustomer({
+          guestEmail: guestEmail ?? "",
+          guestName: shippingAddressData.fullName,
+        });
+      } catch (error) {
+        if (error instanceof GuestCheckoutError) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: error.message,
+              error: error.code,
+            },
+            { status: error.status }
+          );
+        }
+        throw error;
       }
     }
 

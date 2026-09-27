@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 
 import { hash } from "bcryptjs";
 
+import { GUEST_CHECKOUT_TAG } from "@/lib/checkout/guest-account-claim";
 import { db } from "@/lib/db";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,15 +35,15 @@ interface SessionCheckoutUser {
 }
 
 /**
- * Logged-in shoppers keep their account. Guests need an email because Order
- * and Address still require a user id. A new inactive customer is created
- * only when that email is not already registered.
+ * Logged-in shoppers keep their account. A matching guest email is reused.
+ * Returns null when the email is valid and no user exists yet, so the order
+ * route can create that user only after price and stock checks pass.
  */
-export async function resolveCheckoutCustomer(input: {
+export async function lookupCheckoutCustomer(input: {
   sessionUser?: SessionCheckoutUser | null;
   guestEmail?: string | null;
   guestName?: string | null;
-}): Promise<CheckoutCustomer> {
+}): Promise<CheckoutCustomer | null> {
   const sessionUser = input.sessionUser;
   const sessionEmail = normalizeEmail(sessionUser?.email);
   if (sessionUser?.id && sessionEmail) {
@@ -63,27 +64,23 @@ export async function resolveCheckoutCustomer(input: {
     );
   }
 
-  const existing = await db.user.findUnique({
-    where: { email: guestEmail },
-    select: { id: true, email: true, name: true, role: true },
-  });
+  const existing = await findCustomerByEmail(guestEmail);
+  if (!existing) return null;
 
-  if (existing) {
-    if (existing.role === "ADMIN" || existing.role === "SUPPLIER") {
-      throw new GuestCheckoutError(
-        "GUEST_EMAIL_REQUIRES_LOGIN",
-        "This email belongs to a staff account. Sign in to place the order.",
-        409
-      );
-    }
+  assertCustomerMayCheckout(existing);
+  return toGuestCustomer(existing);
+}
 
-    return {
-      id: existing.id,
-      email: existing.email,
-      name: existing.name,
-      role: existing.role,
-      isGuest: true,
-    };
+export async function createGuestCheckoutCustomer(input: {
+  guestEmail: string;
+  guestName?: string | null;
+}): Promise<CheckoutCustomer> {
+  const guestEmail = normalizeEmail(input.guestEmail);
+  if (!guestEmail || !EMAIL_PATTERN.test(guestEmail)) {
+    throw new GuestCheckoutError(
+      "GUEST_EMAIL_REQUIRED",
+      "A valid email is required to place an order without an account."
+    );
   }
 
   const password = await hash(randomBytes(32).toString("hex"), 12);
@@ -98,35 +95,69 @@ export async function resolveCheckoutCustomer(input: {
         password,
         role: "CUSTOMER",
         isActive: false,
-        tags: ["guest-checkout"],
+        tags: [GUEST_CHECKOUT_TAG],
       },
       select: { id: true, email: true, name: true, role: true },
     });
 
-    return {
-      id: created.id,
-      email: created.email,
-      name: created.name,
-      role: created.role,
-      isGuest: true,
-    };
+    return toGuestCustomer(created);
   } catch (error) {
-    const raced = await db.user.findUnique({
-      where: { email: guestEmail },
-      select: { id: true, email: true, name: true, role: true },
-    });
-    if (!raced || raced.role === "ADMIN" || raced.role === "SUPPLIER") {
-      throw error;
-    }
-
-    return {
-      id: raced.id,
-      email: raced.email,
-      name: raced.name,
-      role: raced.role,
-      isGuest: true,
-    };
+    const raced = await findCustomerByEmail(guestEmail);
+    if (!raced) throw error;
+    assertCustomerMayCheckout(raced);
+    return toGuestCustomer(raced);
   }
+}
+
+/**
+ * Logged-in shoppers keep their account. Guests need an email because Order
+ * and Address still require a user id. A new inactive customer is created
+ * only when that email is not already registered.
+ */
+export async function resolveCheckoutCustomer(input: {
+  sessionUser?: SessionCheckoutUser | null;
+  guestEmail?: string | null;
+  guestName?: string | null;
+}): Promise<CheckoutCustomer> {
+  const existing = await lookupCheckoutCustomer(input);
+  if (existing) return existing;
+
+  return createGuestCheckoutCustomer({
+    guestEmail: input.guestEmail ?? "",
+    guestName: input.guestName,
+  });
+}
+
+function toGuestCustomer(user: {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+}): CheckoutCustomer {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    isGuest: true,
+  };
+}
+
+function assertCustomerMayCheckout(user: { role: string }) {
+  if (user.role === "ADMIN" || user.role === "SUPPLIER") {
+    throw new GuestCheckoutError(
+      "GUEST_EMAIL_REQUIRES_LOGIN",
+      "This email belongs to a staff account. Sign in to place the order.",
+      409
+    );
+  }
+}
+
+function findCustomerByEmail(email: string) {
+  return db.user.findUnique({
+    where: { email },
+    select: { id: true, email: true, name: true, role: true },
+  });
 }
 
 function normalizeEmail(value: string | null | undefined): string | null {

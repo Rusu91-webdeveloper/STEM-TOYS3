@@ -551,6 +551,60 @@ describe("POST /api/checkout/order integrity", () => {
         customerName: "Ana Pop",
       })
     );
+    const createOrder = db.user.create.mock.invocationCallOrder[0];
+    const priceOrder = resolveCheckoutPricing.mock.invocationCallOrder[0];
+    expect(priceOrder).toBeLessThan(createOrder);
+  });
+
+  it("does not create a guest user when price or stock validation fails", async () => {
+    const { CheckoutPricingError } = require("@/lib/checkout/authoritative-pricing");
+    const { COD_CONSENT_TEXT, COD_CONSENT_VERSION } = require("@/lib/checkout/cod-consent");
+
+    auth.mockResolvedValue(null);
+    db.user.findUnique.mockResolvedValue(null);
+    resolveCheckoutPricing.mockRejectedValue(
+      new CheckoutPricingError("PRODUCT_NOT_FOUND", "Missing product", 400)
+    );
+
+    const request = new NextRequest("http://localhost/api/checkout/order", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": "203.0.113.77",
+      },
+      body: JSON.stringify({
+        guestEmail: "guest@example.com",
+        shippingAddress: {
+          fullName: "Ana Pop",
+          addressLine1: "Strada Florilor 12",
+          city: "Cluj-Napoca",
+          state: "CJ",
+          postalCode: "400001",
+          country: "RO",
+          phone: "0712345678",
+        },
+        items: [
+          {
+            productId: "missing",
+            name: "Missing",
+            price: 10,
+            quantity: 1,
+          },
+        ],
+        paymentMethod: "cash_on_delivery",
+        paymentProvider: "cod",
+        codConsentAccepted: true,
+        codConsentAcceptedAt: "2026-09-27T10:00:00.000Z",
+        codConsentVersion: COD_CONSENT_VERSION,
+        codConsentText: COD_CONSENT_TEXT,
+      }),
+    });
+
+    const response = await POST(request);
+    const payload = await response.json();
+    expect(response.status).toBe(400);
+    expect(payload.error).toBe("PRODUCT_NOT_FOUND");
+    expect(db.user.create).not.toHaveBeenCalled();
   });
 
   it("still places the guest order when the confirmation email throws", async () => {

@@ -4,6 +4,7 @@ import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { isClaimableGuestCheckoutUser } from "@/lib/checkout/guest-account-claim";
 import { db } from "@/lib/db";
 import {
   sendUserVerificationEmails,
@@ -35,13 +36,39 @@ async function handleRegistration(req: Request) {
     }
 
     const { name, email, password } = result.data;
+    const normalizedEmail = email.trim().toLowerCase();
 
-    // Check if user already exists
-    const existingUser = await db.user.findUnique({
-      where: { email },
-    });
+    // Check if user already exists. Guest checkout stores a lowercased email.
+    const existingUser =
+      (await db.user.findUnique({
+        where: { email },
+      })) ??
+      (normalizedEmail === email
+        ? null
+        : await db.user.findUnique({
+            where: { email: normalizedEmail },
+          }));
 
-    if (existingUser) {
+    // Hash password
+    const hashedPassword = await hash(password, 12);
+
+    // Generate verification token
+    const verificationToken = randomBytes(32).toString("hex");
+
+    let newUser;
+    if (existingUser && isClaimableGuestCheckoutUser(existingUser)) {
+      // Same response as a new registration. Do not mention an existing order.
+      newUser = await db.user.update({
+        where: { id: existingUser.id },
+        data: {
+          name,
+          password: hashedPassword,
+          verificationToken,
+          isActive: false,
+          emailVerified: null,
+        },
+      });
+    } else if (existingUser) {
       // Check if this is a Google-authenticated user (empty password)
       const isGoogleUser = existingUser.password === "";
 
@@ -53,46 +80,46 @@ async function handleRegistration(req: Request) {
         },
         { status: 409 }
       );
+    } else {
+      // Create user with verification token using transaction
+      // Set segment to NEW and emailVerified to null to trigger email automation
+      newUser = await db.$transaction(async tx =>
+        tx.user.create({
+          data: {
+            name,
+            email,
+            password: hashedPassword,
+            verificationToken,
+            isActive: false,
+            segment: "NEW", // Set segment for email triggers
+            emailVerified: null, // Required for verification trigger conditions
+          },
+        })
+      );
     }
 
-    // Hash password
-    const hashedPassword = await hash(password, 12);
-
-    // Generate verification token
-    const verificationToken = randomBytes(32).toString("hex");
-
-    // Create user with verification token using transaction
-    // Set segment to NEW and emailVerified to null to trigger email automation
-    const newUser = await db.$transaction(async tx =>
-      tx.user.create({
-        data: {
-          name,
-          email,
-          password: hashedPassword,
-          verificationToken,
-          isActive: false,
-          segment: "NEW", // Set segment for email triggers
-          emailVerified: null, // Required for verification trigger conditions
-        },
-      })
+    const claimedGuestAccount = Boolean(
+      existingUser && isClaimableGuestCheckoutUser(existingUser)
     );
 
     console.log(`✅ User created: ${newUser.id} (${email})`);
 
-    // Trigger email automation via EmailTriggerService
-    // This will process all active triggers for NEW segment users
-    try {
-      const emailTriggerService = new EmailTriggerService(db);
-      await emailTriggerService.processSegmentTriggers(
-        newUser.id,
-        "NEW",
-        undefined
-      );
-      console.log(`🎯 Email triggers processed for segment: NEW`);
-    } catch (triggerError) {
-      console.error("⚠️ Failed to process email triggers:", triggerError);
-      // We don't fail the registration if trigger processing fails
-      // The fallback direct calls below will still work
+    // Trigger email automation via EmailTriggerService for brand-new accounts.
+    // Claiming a guest checkout row must not announce that an order already exists.
+    if (!claimedGuestAccount) {
+      try {
+        const emailTriggerService = new EmailTriggerService(db);
+        await emailTriggerService.processSegmentTriggers(
+          newUser.id,
+          "NEW",
+          undefined
+        );
+        console.log(`🎯 Email triggers processed for segment: NEW`);
+      } catch (triggerError) {
+        console.error("⚠️ Failed to process email triggers:", triggerError);
+        // We don't fail the registration if trigger processing fails
+        // The fallback direct calls below will still work
+      }
     }
 
     // Fallback: Direct welcome email call (in case triggers fail)
@@ -159,8 +186,12 @@ async function handleRegistration(req: Request) {
 
     console.log(`\n✨ Registration completed for ${email}`);
     console.log(`   - User ID: ${newUser.id}`);
-    console.log(`   - Segment: NEW`);
-    console.log(`   - Email triggers: Processed`);
+    console.log(
+      `   - Segment: ${claimedGuestAccount ? "existing customer" : "NEW"}`
+    );
+    console.log(
+      `   - Email triggers: ${claimedGuestAccount ? "Skipped" : "Processed"}`
+    );
     console.log(`   - Direct emails: Sent as fallback\n`);
 
     return NextResponse.json(
