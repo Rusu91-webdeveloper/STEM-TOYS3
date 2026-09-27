@@ -16,6 +16,9 @@ const product = {
   attributes: {
     brand: "Djeco",
     supplierUrl: "https://www.kidstory.ro/produs/kit-stem",
+    supplierSource: "Boribon",
+    supplierCategory: "Jocuri STEM",
+    sourceCategory: "Boribon / Educativ",
     age: "6+",
   },
   isActive: true,
@@ -49,8 +52,30 @@ describe("toShopperProduct", () => {
 
     expect(publicProduct.supplier).toBeUndefined();
     expect(publicProduct.attributes).not.toHaveProperty("supplierUrl");
+    expect(publicProduct.attributes).not.toHaveProperty("supplierSource");
+    expect(publicProduct.attributes).not.toHaveProperty("supplierCategory");
+    expect(publicProduct.attributes).not.toHaveProperty("sourceCategory");
+    expect(publicProduct.attributes?.brand).toBe("Djeco");
     expect(serialized).toContain("boribon.ro/image/cache/kit.jpg");
     expect(serialized).not.toMatch(/cumpara|kidstory|companyName|Boribon/);
+  });
+
+  it("does not mutate the catalog object checkout and sync still read", () => {
+    const source = {
+      attributes: {
+        brand: "Djeco",
+        supplierSource: "Boribon",
+        supplierCategory: "Jocuri STEM",
+        sourceCategory: "feed-row",
+      },
+    };
+
+    const publicProduct = toShopperProduct(source);
+
+    expect(source.attributes.supplierSource).toBe("Boribon");
+    expect(source.attributes.supplierCategory).toBe("Jocuri STEM");
+    expect(source.attributes.sourceCategory).toBe("feed-row");
+    expect(publicProduct.attributes).toEqual({ brand: "Djeco" });
   });
 
   it("does not treat supplier image URLs as buy links", () => {

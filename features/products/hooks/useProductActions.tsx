@@ -7,6 +7,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
 import type { AddToCartItemInput } from "@/features/cart/context/CartContext";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { productPublicPath } from "@/lib/products/public-slug";
 
 interface Product {
@@ -32,6 +33,7 @@ export function useProductActions(
   const { toast } = useToast();
   const router = useRouter();
   const { addItem } = useShoppingCart();
+  const { status: sessionStatus } = useOptimizedSession();
 
   const [isFavorited, setIsFavorited] = useState(false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
@@ -39,8 +41,14 @@ export function useProductActions(
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [justAddedToCart, setJustAddedToCart] = useState(false);
 
-  // Check wishlist status on mount
+  // Check wishlist status on mount. Guests have no session, so skip the request.
   useEffect(() => {
+    if (sessionStatus !== "authenticated") {
+      setIsFavorited(false);
+      setWishlistItemId(null);
+      return () => undefined;
+    }
+
     let cancelled = false;
     async function checkWishlist() {
       try {
@@ -61,7 +69,7 @@ export function useProductActions(
     return () => {
       cancelled = true;
     };
-  }, [product.id]);
+  }, [product.id, sessionStatus]);
 
   const handleShare = async () => {
     try {
@@ -355,7 +363,7 @@ export function useProductActions(
     }
   };
 
-  const handleQuickAddToCart = async () => {
+  const handleQuickAddToCart = () => {
     if (isAddingToCart || justAddedToCart) return;
 
     // Check if product is out of stock (books are always available)

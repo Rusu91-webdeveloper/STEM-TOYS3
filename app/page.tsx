@@ -1,10 +1,11 @@
-import { GIFT_SLUGS, selectHomepageGifts } from "@/lib/products/merchandising";
 import { unstable_cache } from "next/cache";
 import { Suspense } from "react";
 
 import { FeaturedProductsGrid } from "@/features/home/components/FeaturedProductsGrid";
 import { PRODUCT_AGE_LABELS } from "@/features/home/merchandising";
 import { applyProductContentOverride } from "@/lib/products/catalog-content-overrides";
+import { GIFT_SLUGS, selectHomepageGifts } from "@/lib/products/merchandising";
+import { toShopperProduct } from "@/lib/products/public-shopper";
 import type { Product } from "@/types/product";
 
 import HomePageClient from "./HomePageClient";
@@ -29,7 +30,7 @@ const getRecommendations = unstable_cache(
     });
     const products = selectHomepageGifts(selection);
     return products.map(product =>
-      applyProductContentOverride({
+      toShopperProduct(applyProductContentOverride({
         id: product.id,
         name: product.name,
         slug: product.slug,
@@ -51,7 +52,7 @@ const getRecommendations = unstable_cache(
         updatedAt: product.updatedAt,
         reservedQuantity: product.reservedQuantity,
         featured: product.featured,
-      })
+      }))
     );
   },
   ["homepage-recommendations-v5-curated"],

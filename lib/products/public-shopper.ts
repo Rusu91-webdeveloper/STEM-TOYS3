@@ -8,6 +8,9 @@ const SUPPLIER_LINK_KEYS = new Set([
   "sourceUrl",
   "boribon",
   "kidstory",
+  "supplierSource",
+  "supplierCategory",
+  "sourceCategory",
 ]);
 
 function isSupplierHost(hostname: string): boolean {

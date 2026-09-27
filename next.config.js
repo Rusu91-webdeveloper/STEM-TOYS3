@@ -232,7 +232,7 @@ const nextConfig = {
     ];
   },
   // Fix module resolution and OpenTelemetry warnings
-  webpack: (config, { isServer, dev }) => {
+  webpack: (config, { isServer }) => {
     // Improve module resolution
     config.resolve.extensions = [".tsx", ".ts", ".jsx", ".js", ".json"];
 
@@ -242,41 +242,10 @@ const nextConfig = {
       "@": require("path").resolve(__dirname),
     };
 
-    // **PERFORMANCE**: Optimize chunk splitting for better caching and loading
-    if (!dev && !isServer) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          ...config.optimization.splitChunks,
-          chunks: "all",
-          cacheGroups: {
-            ...config.optimization.splitChunks?.cacheGroups,
-            // Separate large vendor libraries
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: "vendors",
-              chunks: "all",
-              priority: 10,
-            },
-            // Separate React and Next.js runtime
-            framework: {
-              chunks: "all",
-              name: "framework",
-              test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
-              priority: 20,
-              enforce: true,
-            },
-            // Separate UI library components
-            ui: {
-              test: /[\\/]node_modules[\\/](@radix-ui|@headlessui|framer-motion|lucide-react)[\\/]/,
-              name: "ui-components",
-              chunks: "all",
-              priority: 15,
-            },
-          },
-        },
-      };
-    }
+    // Do not replace Next's splitChunks. A custom cache group with
+    // `chunks: "all"` and a fixed `name` pulls CSS into the JS chunk graph.
+    // The webpack runtime then injects `/_next/static/css/<hash>.css` with a
+    // <script> tag, and the browser refuses it because the MIME type is text/css.
 
     // Vercel-compatible server configuration
     if (isServer) {

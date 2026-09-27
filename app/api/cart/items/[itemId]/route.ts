@@ -2,7 +2,12 @@ import type { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { SESSION_CART_STORAGE, getCartId } from "@/lib/cart-storage";
+import {
+  attachGuestCartCookie,
+  getCartId,
+  readCartItems,
+  writeCartItems,
+} from "@/lib/cart-storage";
 
 // Schema for validating quantity updates
 const updateSchema = z.object({
@@ -25,7 +30,7 @@ export async function PATCH(
 
     // Get the cart ID and cart
     const cartId = await getCartId(request);
-    const cart = SESSION_CART_STORAGE.get(cartId) || [];
+    const cart = readCartItems(cartId);
 
     console.log(
       `📦 [ITEMS PATCH] Current cart for ${cartId}:`,
@@ -102,8 +107,7 @@ export async function PATCH(
       quantity,
     };
 
-    // Save the updated cart
-    SESSION_CART_STORAGE.set(cartId, cart);
+    writeCartItems(cartId, cart);
     console.log(
       `✅ [ITEMS PATCH] Cart updated for ${cartId}:`,
       cart.map(item => ({
@@ -113,12 +117,13 @@ export async function PATCH(
       }))
     );
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: "Item quantity updated successfully",
       data: { itemId, quantity },
-      ephemeral: true,
+      ephemeral: false,
     });
+    return attachGuestCartCookie(response, request, cart);
   } catch (error) {
     const awaitedParams = await params;
     console.error(
@@ -163,7 +168,7 @@ export async function DELETE(
 
     // Get the cart ID and cart
     const cartId = await getCartId(request);
-    const cart = SESSION_CART_STORAGE.get(cartId) || [];
+    const cart = readCartItems(cartId);
 
     console.log(`📦 [ITEMS DELETE] Current cart for ${cartId}:`, cart);
 
@@ -210,15 +215,16 @@ export async function DELETE(
     const updatedCart = cart.filter(item => item.id !== itemToRemove.id);
 
     // Save the updated cart
-    SESSION_CART_STORAGE.set(cartId, updatedCart);
+    writeCartItems(cartId, updatedCart);
     console.log(`📦 [ITEMS DELETE] Updated cart after removal:`, updatedCart);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: "Item removed from cart successfully",
       data: { itemId },
-      ephemeral: true,
+      ephemeral: false,
     });
+    return attachGuestCartCookie(response, request, updatedCart);
   } catch (error) {
     const awaitedParams = await params;
     console.error(

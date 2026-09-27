@@ -32,6 +32,35 @@ const commonHeaders = {
   "sec-fetch-site": "same-origin",
 };
 
+function cookieHeaderFrom(response: Response, existing?: string): string {
+  const jar = new Map<string, string>();
+  if (existing) {
+    for (const part of existing.split(";")) {
+      const separator = part.indexOf("=");
+      if (separator === -1) continue;
+      jar.set(part.slice(0, separator).trim(), part.slice(separator + 1).trim());
+    }
+  }
+
+  const setCookies =
+    typeof response.headers.getSetCookie === "function"
+      ? response.headers.getSetCookie()
+      : [];
+  const fallback = response.headers.get("set-cookie");
+  const lines = setCookies.length > 0 ? setCookies : fallback ? [fallback] : [];
+
+  for (const line of lines) {
+    const pair = line.split(";")[0] ?? "";
+    const separator = pair.indexOf("=");
+    if (separator === -1) continue;
+    jar.set(pair.slice(0, separator).trim(), pair.slice(separator + 1).trim());
+  }
+
+  return Array.from(jar.entries())
+    .map(([key, value]) => `${key}=${value}`)
+    .join("; ");
+}
+
 describe("/api/cart (session cart)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -47,17 +76,20 @@ describe("/api/cart (session cart)", () => {
     }
   });
 
-  it("returns empty ephemeral cart for a new session", async () => {
+  it("returns an empty guest cart and sets a 30-day guest cookie", async () => {
     const request = new NextRequest("http://localhost:3000/api/cart", {
       headers: commonHeaders,
     });
     const response = await GET(request);
     const data = await response.json();
+    const setCookie = response.headers.get("set-cookie") ?? "";
 
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(data.ephemeral).toBe(true);
+    expect(data.ephemeral).toBe(false);
     expect(data.data).toEqual([]);
+    expect(setCookie).toContain("tt_guest_cart=");
+    expect(setCookie).toContain("Max-Age=2592000");
   });
 
   it("stores and returns validated cart items in session storage", async () => {
@@ -85,6 +117,7 @@ describe("/api/cart (session cart)", () => {
     });
     const postRes = await POST(postReq);
     const postData = await postRes.json();
+    const cookie = cookieHeaderFrom(postRes);
 
     expect(postRes.status).toBe(200);
     expect(postData.success).toBe(true);
@@ -96,7 +129,7 @@ describe("/api/cart (session cart)", () => {
     });
 
     const getReq = new NextRequest("http://localhost:3000/api/cart", {
-      headers: commonHeaders,
+      headers: { ...commonHeaders, cookie },
     });
     const getRes = await GET(getReq);
     const getData = await getRes.json();
@@ -186,11 +219,12 @@ describe("/api/cart (session cart)", () => {
         },
       ]),
     });
-    await POST(seedReq);
+    const seedRes = await POST(seedReq);
+    const cookie = cookieHeaderFrom(seedRes);
 
     const clearReq = new NextRequest("http://localhost:3000/api/cart", {
       method: "POST",
-      headers: commonHeaders,
+      headers: { ...commonHeaders, cookie },
       body: "",
     });
     const clearRes = await POST(clearReq);

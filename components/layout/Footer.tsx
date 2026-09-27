@@ -84,7 +84,7 @@ export default function Footer({
     },
     {
       name: "Facebook",
-      href: "https://www.facebook.com/share/1CBSNUzMGA/?mibextid=wwXIfr",
+      href: "https://www.facebook.com/people/TechTots/61577557110903/",
       icon: Facebook,
     },
     {
