@@ -80,8 +80,8 @@ export function ProductCard({
 
   const categoryName = disciplineBadgeLabel(
     product.stemDiscipline,
-    (product.category as { name?: string } | undefined)?.name ||
-      (product.category as { slug?: string } | undefined)?.slug
+    (product.category as { name?: string } | undefined)?.name,
+    (product.category as { slug?: string } | undefined)?.slug
   );
 
   useEffect(() => {

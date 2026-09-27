@@ -311,7 +311,8 @@ export function ProductsMainDisplay({
               const isOutOfStock = (product.stockQuantity ?? 1) <= 0;
               const disciplineLabel = disciplineBadgeLabel(
                 product.stemDiscipline,
-                product.category?.name
+                product.category?.name,
+                product.category?.slug
               );
 
               return (

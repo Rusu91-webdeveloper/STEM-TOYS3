@@ -5,7 +5,10 @@
 
 import { appConfig } from "@/lib/config/app-config";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
-import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
+import {
+  categoryStorefrontLabel,
+  disciplineBadgeLabel,
+} from "@/lib/products/romanian-catalog";
 import { getCategoryPageHref } from "@/lib/utils/category-page-links";
 import type { Product } from "@/types/product";
 
@@ -184,8 +187,11 @@ export function generateEducationalProductSchema(
     image: product.images || [],
     sku: product.sku || product.id,
     category:
-      disciplineBadgeLabel(product.stemDiscipline, product.category?.name) ||
-      "Jucării STEM",
+      disciplineBadgeLabel(
+        product.stemDiscipline,
+        product.category?.name,
+        product.category?.slug
+      ) || "Jucării STEM",
     ...(brand
       ? {
           brand: {
@@ -390,10 +396,11 @@ export function generateReviewSchema(product: Product, reviews: any[]) {
 }
 
 export function generateEducationalBreadcrumbSchema(product: Product) {
-  const categoryName =
-    disciplineBadgeLabel(product.stemDiscipline, product.category?.name) ||
-    "Produse";
   const categoryHref = getCategoryPageHref(product.category?.slug);
+  const categoryName = categoryHref
+    ? categoryStorefrontLabel(product.category?.slug, product.category?.name) ||
+      "Produse"
+    : "Produse";
   const categoryUrl = categoryHref
     ? `https://www.techtots.ro${categoryHref}`
     : "https://www.techtots.ro/products";

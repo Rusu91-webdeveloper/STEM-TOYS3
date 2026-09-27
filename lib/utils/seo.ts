@@ -69,8 +69,16 @@ export function generateProductMetadata(product: any): Metadata {
       : typeof product.category === "string"
         ? product.category
         : "";
+  const rawCategorySlug =
+    typeof product.category === "object" && product.category
+      ? product.category.slug
+      : undefined;
   const categoryName =
-    disciplineBadgeLabel(product.stemDiscipline, rawCategoryName) || "STEM";
+    disciplineBadgeLabel(
+      product.stemDiscipline,
+      rawCategoryName,
+      rawCategorySlug
+    ) || "STEM";
 
   // Define age range for better SEO targeting
   const ageRange =

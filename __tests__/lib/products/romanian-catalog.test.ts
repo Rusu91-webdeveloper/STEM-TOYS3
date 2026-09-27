@@ -1,8 +1,12 @@
+import ageChipProducts from "@/__tests__/lib/products/fixtures/age-chip-products.json";
 import {
+  categoryStorefrontLabel,
   disciplineBadgeLabel,
+  lowestExplicitAge,
   resolveProductAgeChip,
 } from "@/lib/products/romanian-catalog";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
+import { getCategoryPageHref } from "@/lib/utils/category-page-links";
 import type { Product } from "@/types/product";
 
 describe("disciplineBadgeLabel", () => {
@@ -24,7 +28,40 @@ describe("disciplineBadgeLabel", () => {
 
   it("keeps a specific discipline over a generic category name", () => {
     expect(disciplineBadgeLabel("SCIENCE", "GENERAL")).toBe("Știință");
-    expect(disciplineBadgeLabel(null, "Robotics")).toBe("Robotics");
+    expect(
+      disciplineBadgeLabel(null, "Robotics", "robotics")
+    ).toBe("Robotică");
+  });
+
+  it("maps English category names and slugs when there is no STEM discipline", () => {
+    expect(
+      disciplineBadgeLabel(null, "Construction Sets", "construction-sets")
+    ).toBe("Seturi de construcție");
+    expect(disciplineBadgeLabel(null, "Magnetic Building")).toBe(
+      "Construcții magnetice"
+    );
+    expect(categoryStorefrontLabel("electronics", "Electronics")).toBe(
+      "Electronică"
+    );
+    expect(categoryStorefrontLabel("science-experiments")).toBe(
+      "Experimente științifice"
+    );
+    expect(categoryStorefrontLabel("logic-games")).toBe("Jocuri de logică");
+    expect(categoryStorefrontLabel("educational-books")).toBe(
+      "Cărți educaționale"
+    );
+    expect(disciplineBadgeLabel("ENGINEERING", "Construction Sets")).toBe(
+      "Inginerie"
+    );
+  });
+
+  it("uses the same category for the breadcrumb label and its link", () => {
+    const slug = "construction-sets";
+    const label = categoryStorefrontLabel(slug, "Construction Sets");
+    const href = getCategoryPageHref(slug);
+
+    expect(label).toBe("Seturi de construcție");
+    expect(href).toBe("/categories/construction-sets");
   });
 });
 
@@ -37,7 +74,7 @@ describe("resolveProductAgeChip", () => {
     });
 
     expect(chip).toMatchObject({
-      label: "8+",
+      label: "8+ ani",
       source: "explicit",
       contradictsCoarseGroup: true,
     });
@@ -49,7 +86,7 @@ describe("resolveProductAgeChip", () => {
       attributes: { manufacturerRecommendedAge: "8+" },
     });
 
-    expect(chip?.label).toBe("8+");
+    expect(chip?.label).toBe("8+ ani");
     expect(chip?.contradictsCoarseGroup).toBe(true);
   });
 
@@ -60,7 +97,7 @@ describe("resolveProductAgeChip", () => {
     });
 
     expect(chip).toMatchObject({
-      label: "6+",
+      label: "6+ ani",
       source: "explicit",
       contradictsCoarseGroup: false,
     });
@@ -79,6 +116,71 @@ describe("resolveProductAgeChip", () => {
   it("omits the chip when the product has no age data", () => {
     expect(resolveProductAgeChip({})).toBeNull();
   });
+
+  it("does not treat a comma-separated bracket list as an explicit age", () => {
+    const chip = resolveProductAgeChip({
+      ageGroup: "PRESCHOOL_3_5",
+      ageRange: "5-7 ani, 7-10 ani",
+      description: "Varsta 8+.",
+      attributes: { age: "5-7 ani, 7-10 ani" },
+    });
+
+    expect(chip?.label).toBe("8+ ani");
+  });
+
+  it("never shows a minimum younger than the manufacturer field", () => {
+    const chip = resolveProductAgeChip({
+      ageGroup: "ELEMENTARY_6_8",
+      attributes: {
+        manufacturerRecommendedAge: "10+",
+        originalAgeText: "9+",
+      },
+      description: "Vârsta recomandată: +8 ani. Conține 139 piese.",
+    });
+
+    expect(chip?.label).toBe("10+ ani");
+  });
+
+  it("raises the chip when the description minimum is higher", () => {
+    const chip = resolveProductAgeChip({
+      attributes: { manufacturerRecommendedAge: "8+" },
+      description: "Vârsta recomandată: +12 ani.",
+    });
+
+    expect(chip?.label).toBe("12+ ani");
+  });
+
+  it.each([
+    ["proiector-holograma-kidzlabs-4m-03394", "8+ ani"],
+    ["mega-brat-hidraulic-kidzlabs-4m-03427", "8+ ani"],
+    [
+      "set-educativ-stem-aqua-dragons-habitat-vulcan-cu-lava-acvariu-cu-led-si-aqua-dragons-rosii-ad6102",
+      "6+ ani",
+    ],
+    ["kit-constructie-robot---t-rex-kidz-robotix-4m-03460", "8+ ani"],
+    ["kit-stem-manusa-robotica-genius-toy-g_7080", "8+ ani"],
+    ["mini-experiment-sparge-o-geoda-cristal-4m-03925", "3+ ani"],
+    ["terariu-cristale-cu-dinozauri-4m-experiment-stem-4m-03926", "10+ ani"],
+    ["zig-go-bila-cea-mai-mare-traseu-reactie-in-lant-dj05641", "7+ ani"],
+  ] as const)(
+    "matches the live description minimum for %s",
+    (slug, expected) => {
+      const product = ageChipProducts.find(item => item.slug === slug);
+      expect(product).toBeDefined();
+      const chip = resolveProductAgeChip({
+        ageGroup: product?.ageGroup,
+        ageRange: product?.ageRange,
+        description: product?.description,
+        attributes: product?.attributes,
+      });
+      const descriptionMin = lowestExplicitAge(product?.description ?? "");
+
+      expect(chip?.label).toBe(expected);
+      const chipMin = Number(chip?.label.match(/(\d{1,2})/)?.[1]);
+      expect(descriptionMin).not.toBeNull();
+      expect(chipMin).toBeGreaterThanOrEqual(descriptionMin ?? 0);
+    }
+  );
 });
 
 describe("product JSON-LD without reviews", () => {

@@ -6,7 +6,7 @@ import { getCombinedProduct } from "@/lib/api/products";
 import { db } from "@/lib/db";
 import { toShopperProduct } from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
-import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
+import { categoryStorefrontLabel } from "@/lib/products/romanian-catalog";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
 import { buildDefaultProductFaq } from "@/lib/seo/product-faq";
 import { getCategoryPageHref } from "@/lib/utils/category-page-links";
@@ -161,11 +161,10 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
       ? (product as any).metadata.seo.faq
       : fallbackFaq;
 
-  const breadcrumbCategory = disciplineBadgeLabel(
-    product.stemDiscipline,
-    product.category?.name
-  );
   const breadcrumbCategoryHref = getCategoryPageHref(product.category?.slug);
+  const breadcrumbCategory = breadcrumbCategoryHref
+    ? categoryStorefrontLabel(product.category?.slug, product.category?.name)
+    : null;
   const breadcrumbItems: Array<{
     "@type": "ListItem";
     position: number;

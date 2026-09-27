@@ -9,6 +9,7 @@ import { LazyProductReviews } from "@/components/lazy/client";
 import { useTranslation } from "@/lib/i18n";
 import { productPublicPath } from "@/lib/products/public-slug";
 import {
+  categoryStorefrontLabel,
   disciplineBadgeLabel,
   resolveProductAgeChip,
 } from "@/lib/products/romanian-catalog";
@@ -100,11 +101,15 @@ export default function ProductDetailClient({
     fetchFreeShippingSettings();
   }, []);
 
-  const categoryLabel = disciplineBadgeLabel(
+  const disciplineLabel = disciplineBadgeLabel(
     product.stemDiscipline,
-    product.category?.name
+    product.category?.name,
+    product.category?.slug
   );
   const categoryHref = getCategoryPageHref(product.category?.slug);
+  const categoryLabel = categoryHref
+    ? categoryStorefrontLabel(product.category?.slug, product.category?.name)
+    : null;
   const ageChip = resolveProductAgeChip({
     ageGroup: product.ageGroup,
     ageRange: product.ageRange,
@@ -237,7 +242,7 @@ export default function ProductDetailClient({
 
                 <ProductDescription
                   description={product.description}
-                  categoryName={categoryLabel ?? ""}
+                  categoryName={disciplineLabel ?? ""}
                   t={t}
                 />
 
@@ -260,7 +265,7 @@ export default function ProductDetailClient({
               <ProductFeatures
                 isFreeShippingActive={isFreeShippingActive}
                 freeShippingThreshold={freeShippingThreshold}
-                categoryName={categoryLabel ?? ""}
+                categoryName={disciplineLabel ?? ""}
                 productSlug={product.slug}
                 t={t}
               />

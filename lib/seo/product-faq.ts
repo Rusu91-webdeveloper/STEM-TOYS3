@@ -55,8 +55,11 @@ export function buildDefaultProductFaq(product: Product): ProductFaqItem[] {
     : undefined;
   const outcomeLabel = getOutcomeLabel(primaryOutcome);
   const categoryName =
-    disciplineBadgeLabel(product.stemDiscipline, product.category?.name) ||
-    "STEM";
+    disciplineBadgeLabel(
+      product.stemDiscipline,
+      product.category?.name,
+      product.category?.slug
+    ) || "STEM";
 
   return [
     {
