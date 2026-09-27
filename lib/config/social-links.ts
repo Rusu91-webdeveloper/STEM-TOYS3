@@ -1,6 +1,6 @@
 /**
- * Public social profiles shown in the site footer.
- * Email templates must use this list so they never point at unverified accounts.
+ * Verified TechTots profiles from the site footer.
+ * Email templates must render this whole list. Do not drop a network.
  */
 export interface TechtotsSocialLink {
   name: "Facebook" | "Instagram" | "LinkedIn" | "YouTube";
