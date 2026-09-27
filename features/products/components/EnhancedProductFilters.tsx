@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { useCurrency } from "@/lib/currency";
+import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { cn } from "@/lib/utils";
 import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import {
@@ -182,8 +182,7 @@ export function EnhancedProductFilters({
     }
   };
 
-  // Get the currency formatter
-  const { formatPrice } = useCurrency();
+  const formatPrice = formatStorefrontPrice;
 
   const filterContent = (
     <div
@@ -201,7 +200,8 @@ export function EnhancedProductFilters({
               isInsideModal && "text-xs"
             )}
           >
-            Active Filters: {activeFilterCount}
+            {t ? t("activeFilters", "Active Filters") : "Active Filters"}:{" "}
+            {activeFilterCount}
           </h3>
           <Button
             variant="ghost"
@@ -212,7 +212,7 @@ export function EnhancedProductFilters({
               isInsideModal && "h-5 sm:h-6 text-xs"
             )}
           >
-            Clear All
+            {t ? t("clearAll", "Clear All") : "Clear All"}
           </Button>
         </div>
       )}
@@ -589,7 +589,7 @@ export function EnhancedProductFilters({
             isInsideModal && "text-xs"
           )}
         >
-          Price Range
+          {t ? t("priceRange", "Price Range") : "Price Range"}
         </h3>
 
           {/* Price filter toggle checkbox */}
@@ -610,7 +610,9 @@ export function EnhancedProductFilters({
                 isInsideModal && "text-xs"
               )}
             >
-              Enable price filter
+              {t
+                ? t("Enable price filter", "Enable price filter")
+                : "Enable price filter"}
             </Label>
           </div>
 
@@ -951,7 +953,7 @@ export function EnhancedProductFilters({
               <div className="w-full max-w-2xl bg-white rounded-t-2xl shadow-lg pt-6 pb-24 px-3 sm:px-6 lg:px-8 max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
                   <h2 className="text-base sm:text-lg font-semibold">
-                    Filters
+                    {t ? t("filters", "Filters") : "Filters"}
                   </h2>
                   <Button
                     variant="ghost"
@@ -980,7 +982,7 @@ export function EnhancedProductFilters({
                     }}
                     aria-label="Cancel filters"
                   >
-                    Cancel
+                    {t ? t("cancel", "Cancel") : "Cancel"}
                   </Button>
                   <Button
                     className="flex-1 text-base h-12"
@@ -989,7 +991,7 @@ export function EnhancedProductFilters({
                     }}
                     aria-label="Apply filters"
                   >
-                    Apply Filters
+                    {t ? t("applyFilters", "Apply Filters") : "Apply Filters"}
                   </Button>
                 </div>
               </div>
@@ -1007,7 +1009,7 @@ export function EnhancedProductFilters({
                 aria-label="Open filters"
               >
                 <SlidersHorizontal className="h-4 w-4 sm:h-5 sm:w-5" />
-                Filters
+                {t ? t("filters", "Filters") : "Filters"}
                 {activeFilterCount > 0 && (
                   <Badge
                     variant="secondary"
@@ -1026,7 +1028,7 @@ export function EnhancedProductFilters({
                   className="text-base sm:text-lg h-12 sm:h-14 py-0"
                   aria-label="Clear all filters"
                 >
-                  Clear All
+                  {t ? t("clearAll", "Clear All") : "Clear All"}
                 </Button>
               )}
             </div>

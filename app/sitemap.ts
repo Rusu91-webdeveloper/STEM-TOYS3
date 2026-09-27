@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 
 import { db } from "@/lib/db";
+import { includeInProductSitemap } from "@/lib/products/catalog-access";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { CANONICAL_CATEGORY_SLUGS } from "@/lib/products/stem-category";
 import { regionalStemCities } from "@/lib/seo/regional-search";
@@ -126,11 +127,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         where: {
           isActive: true,
           status: "APPROVED",
-          stockQuantity: { gt: 0 },
         },
         select: {
           slug: true,
+          name: true,
           updatedAt: true,
+          isActive: true,
+          status: true,
+          stockQuantity: true,
+          tags: true,
+          metadata: true,
+          attributes: true,
         },
       }),
       db.blog.findMany({
@@ -159,7 +166,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.62,
     }));
 
-    const productPages = products.map(product => ({
+    const productPages = products.filter(includeInProductSitemap).map(product => ({
       url: `${baseUrl}/products/${toPublicProductSlug(product.slug)}`,
       lastModified: product.updatedAt,
       changeFrequency: "weekly" as const,

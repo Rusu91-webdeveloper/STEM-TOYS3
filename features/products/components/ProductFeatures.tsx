@@ -3,7 +3,7 @@
 import { ShoppingCart, Truck, RotateCcw } from "lucide-react";
 import React from "react";
 
-import { formatPrice } from "@/lib/email/base";
+import { formatStorefrontPrice as formatPrice } from "@/lib/format/storefront-price";
 
 import {
   productBodyTextClass,

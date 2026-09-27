@@ -4,6 +4,7 @@ import { Package, ArrowRight, CircleCheck, CircleAlert } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
+import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import {
   productPublicPath,
   toPublicProductSlug,
@@ -33,12 +34,7 @@ interface BundleContentsProps {
   t: (key: string, fallback?: string) => string;
 }
 
-const formatPrice = (price: number) =>
-  new Intl.NumberFormat("ro-RO", {
-    style: "currency",
-    currency: "RON",
-    maximumFractionDigits: 2,
-  }).format(price);
+const formatPrice = formatStorefrontPrice;
 
 export function BundleContents({ items, bundleSlug, t }: BundleContentsProps) {
   if (items.length === 0) return null;

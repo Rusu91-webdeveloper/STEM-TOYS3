@@ -5,6 +5,7 @@ import React, { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/lib/currency";
+import { formatDeliveryWindow } from "@/lib/format/delivery-window";
 import { useTranslation } from "@/lib/i18n";
 
 import { CheckoutData, CheckoutStep } from "../types";
@@ -38,7 +39,7 @@ export function OrderReview({
   discountAmount = 0,
 }: OrderReviewProps) {
   const { formatPrice } = useCurrency();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const isLockerShippingForOrder = useMemo(() => {
     const shippingMethod = checkoutData.shippingMethod;
     const methodId = (shippingMethod?.id || "").toLowerCase();
@@ -191,8 +192,11 @@ export function OrderReview({
                 {checkoutData.shippingMethod.description}
               </p>
               <p className="break-words">
-                Estimated delivery:{" "}
-                {checkoutData.shippingMethod.estimatedDelivery}
+                {t("estimatedDelivery", "Estimated delivery")}:{" "}
+                {formatDeliveryWindow(
+                  checkoutData.shippingMethod.estimatedDelivery,
+                  language === "en" ? "en" : "ro"
+                )}
               </p>
               {checkoutData.lockerAddressSnapshot && (
                 <p className="break-words text-sky-700">

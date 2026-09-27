@@ -10,7 +10,10 @@ import { useProductActions } from "@/features/products/hooks/useProductActions";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { productPublicPath } from "@/lib/products/public-slug";
-import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
+import {
+  disciplineBadgeLabel,
+  resolveProductAgeChip,
+} from "@/lib/products/romanian-catalog";
 import { cn } from "@/lib/utils";
 import { Product } from "@/types/product";
 
@@ -83,6 +86,8 @@ export function ProductCard({
     (product.category as { name?: string } | undefined)?.name,
     (product.category as { slug?: string } | undefined)?.slug
   );
+  const ageChip = resolveProductAgeChip(product);
+  const recommendedLabel = t("recommendedBadge", "Recomandat");
 
   useEffect(() => {
     setActiveImageIndex(0);
@@ -220,11 +225,23 @@ export function ProductCard({
 
         <div className="flex flex-col flex-1 p-4 sm:p-5 justify-between">
           <div className="space-y-2">
-            {categoryName && (
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                {categoryName}
-              </span>
-            )}
+            <div className="flex max-w-full flex-wrap items-center gap-1">
+              {categoryName && (
+                <span className="max-w-full truncate rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+                  {categoryName}
+                </span>
+              )}
+              {ageChip && (
+                <span className="max-w-full truncate rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+                  {ageChip.label}
+                </span>
+              )}
+              {product.featured && (
+                <span className="max-w-full truncate rounded-full bg-slate-900 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                  {recommendedLabel}
+                </span>
+              )}
+            </div>
             <Link
               href={productHref}
               className="block hover:text-slate-700 transition-colors"
@@ -323,21 +340,21 @@ export function ProductCard({
         </Link>
 
         {/* Badge overlays — top left */}
-        <div className="absolute left-2.5 top-2.5 z-20 flex flex-col gap-1.5">
+        <div className="absolute left-2 top-2 z-20 flex max-w-[calc(100%-2.75rem)] flex-wrap gap-1">
           {isBundle && (
-            <span className="inline-flex items-center gap-1 bg-cyan-50 border border-cyan-200 text-cyan-800 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-md">
-              <Package className="h-2.5 w-2.5" />
-              Bundle
+            <span className="inline-flex max-w-full items-center gap-1 truncate rounded-md border border-cyan-200 bg-cyan-50 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-800">
+              <Package className="h-2.5 w-2.5 shrink-0" />
+              <span className="truncate">{t("bundleBadge", "Pachet")}</span>
             </span>
           )}
           {isOnSale && (
-            <span className="bg-rose-500 text-white text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md">
-              SALE -{discountPercentage}%
+            <span className="max-w-full truncate rounded-md bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+              {t("saleBadge", "REDUCERE")} -{discountPercentage}%
             </span>
           )}
           {!isOnSale && !isBundle && product.featured && (
-            <span className="rounded-full bg-[#0b1220] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-white">
-              Selectat de TechTots
+            <span className="max-w-full truncate rounded-full bg-[#0b1220] px-2 py-0.5 text-[9px] font-bold text-white">
+              {recommendedLabel}
             </span>
           )}
           {isLowStock && !isOutOfStock && (
@@ -440,12 +457,24 @@ export function ProductCard({
       </div>
 
       {/* Product info */}
-      <div className="flex flex-1 flex-col gap-1.5 p-3 sm:p-4">
-        {categoryName && (
-          <span className="text-[9px] font-bold uppercase tracking-[0.16em] text-blue-600 sm:text-[10px]">
-            {categoryName}
-          </span>
-        )}
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-3 sm:p-4">
+        <div className="flex max-w-full flex-wrap items-center gap-1">
+          {categoryName && (
+            <span className="max-w-full truncate rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-semibold text-blue-700 sm:text-[10px]">
+              {categoryName}
+            </span>
+          )}
+          {ageChip && (
+            <span className="max-w-full truncate rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-semibold text-slate-600 sm:text-[10px]">
+              {ageChip.label}
+            </span>
+          )}
+          {product.featured && (
+            <span className="max-w-full truncate rounded-full bg-slate-900 px-1.5 py-0.5 text-[9px] font-semibold text-white sm:text-[10px]">
+              {recommendedLabel}
+            </span>
+          )}
+        </div>
         {/* Rating */}
         {product.averageRating ? (
           <div className="flex items-center gap-1 mt-0.5">{renderRating()}</div>

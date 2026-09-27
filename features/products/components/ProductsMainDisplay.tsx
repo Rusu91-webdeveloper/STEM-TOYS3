@@ -14,6 +14,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import { ProductGrid } from "@/features/products";
+import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { productPublicPath } from "@/lib/products/public-slug";
 import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
 import type { Product } from "@/types/product";
@@ -161,7 +162,7 @@ export function ProductsMainDisplay({
         <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1">
           <button
             type="button"
-            aria-label="Grid view"
+            aria-label={t("gridView", "Grid view")}
             onClick={() => {
               /* view change handled by parent via ProductGrid */
             }}
@@ -175,7 +176,7 @@ export function ProductsMainDisplay({
           </button>
           <button
             type="button"
-            aria-label="List view"
+            aria-label={t("listView", "List view")}
             className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
               viewMode === "list"
                 ? "bg-slate-900 text-white"
@@ -371,13 +372,13 @@ export function ProductsMainDisplay({
                       <div className="flex items-baseline gap-1.5">
                         <span className="text-base sm:text-lg font-bold text-[#2563EB]">
                           {product.price
-                            ? `${product.price} RON`
+                            ? formatStorefrontPrice(Number(product.price))
                             : t("freeDownload", "Gratuit")}
                         </span>
                         {product.compareAtPrice &&
                           product.compareAtPrice > product.price && (
                             <span className="text-xs text-slate-400 line-through">
-                              {product.compareAtPrice} RON
+                              {formatStorefrontPrice(Number(product.compareAtPrice))}
                             </span>
                           )}
                       </div>

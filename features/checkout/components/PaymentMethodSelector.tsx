@@ -7,6 +7,7 @@ import React, { useEffect, useMemo } from "react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/features/cart";
+import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -166,7 +167,7 @@ const PaymentMethodSelectorComponent = ({
       : codBlockedByLimit
         ? t(
             "codUnavailableThreshold",
-            `Plata ramburs este disponibilă doar pentru comenzi de până la ${codThreshold.toFixed(0)} RON. Pentru această comandă trebuie să alegi plata online cu cardul.`
+            `Plata ramburs este disponibilă doar pentru comenzi de până la ${formatStorefrontPrice(codThreshold)}. Pentru această comandă trebuie să alegi plata online cu cardul.`
           )
         : !stripeEnabled
           ? t(
@@ -187,7 +188,7 @@ const PaymentMethodSelectorComponent = ({
         name: t("cashOnDelivery", "Ramburs"),
         icon: <Banknote className="h-6 w-6" />,
         provider: "cod",
-        fee: "1% + 5 RON",
+        fee: "1% + 5,00 lei",
         description: t(
           "codHomeMethodDescription",
           "Plătești la primirea coletului. Vezi condițiile înainte de finalizare."
@@ -406,7 +407,7 @@ const PaymentMethodSelectorComponent = ({
               <p className="mt-1 text-sm leading-relaxed text-rose-800">
                 {t(
                   "codThresholdBannerBody",
-                  `Comenzile peste ${codThreshold.toFixed(0)} RON se finalizează doar cu plată online. Totalul curent este ${orderTotal.toFixed(2)} RON.`
+                  `Comenzile peste ${formatStorefrontPrice(codThreshold)} se finalizează doar cu plată online. Totalul curent este ${formatStorefrontPrice(orderTotal)}.`
                 )}
               </p>
             </div>

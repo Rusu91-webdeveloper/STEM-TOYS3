@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/features/cart";
 import { useCurrency } from "@/lib/currency";
+import { formatDeliveryWindow } from "@/lib/format/delivery-window";
 import { useTranslation } from "@/lib/i18n";
 import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { cn } from "@/lib/utils";
@@ -71,7 +72,7 @@ export function ShippingMethodSelector({
     null
   );
   const { formatPrice } = useCurrency();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { items: cartItems, getCartTotal } = useCart();
 
   const isDigitalOnlyCart =
@@ -538,7 +539,10 @@ export function ShippingMethodSelector({
                     </p>
                     <p className="text-sm text-slate-600">
                       {t("estimatedDelivery", "Estimated delivery")}:{" "}
-                      {method.estimatedDelivery}
+                      {formatDeliveryWindow(
+                        method.estimatedDelivery,
+                        language === "en" ? "en" : "ro"
+                      )}
                     </p>
                     {method.isMixedSupplierCart &&
                       (method.mixedSupplierSurcharge || 0) > 0 && (
