@@ -8,6 +8,11 @@ import React, { useState, useEffect } from "react";
 import { LazyProductReviews } from "@/components/lazy/client";
 import { useTranslation } from "@/lib/i18n";
 import { productPublicPath } from "@/lib/products/public-slug";
+import {
+  disciplineBadgeLabel,
+  resolveProductAgeChip,
+} from "@/lib/products/romanian-catalog";
+import { getCategoryPageHref } from "@/lib/utils/category-page-links";
 
 import { useProductActions } from "../hooks/useProductActions";
 
@@ -19,9 +24,9 @@ import ProductFAQ from "./ProductFAQ";
 import { ProductFeatures } from "./ProductFeatures";
 import { ProductHeader } from "./ProductHeader";
 import { ProductImageGallery } from "./ProductImageGallery";
+import { ProductPurchaseActions } from "./ProductPurchaseActions";
 import type { Review } from "./ProductReviews";
 import ProductSpecs from "./ProductSpecs";
-import ProductUpsellPicker, { type ProductUpsell } from "./ProductUpsellPicker";
 import {
   productBackgroundClass,
   productContentWrapperClass,
@@ -32,6 +37,7 @@ import {
   productSecondaryPanelClass,
   productSubSectionCardClass,
 } from "./productTheme";
+import ProductUpsellPicker, { type ProductUpsell } from "./ProductUpsellPicker";
 
 interface ProductDetailClientProps {
   product: any;
@@ -94,8 +100,17 @@ export default function ProductDetailClient({
     fetchFreeShippingSettings();
   }, []);
 
-  const getCategoryName = () =>
-    product.category?.name?.trim() || t("allProducts", "All products");
+  const categoryLabel = disciplineBadgeLabel(
+    product.stemDiscipline,
+    product.category?.name
+  );
+  const categoryHref = getCategoryPageHref(product.category?.slug);
+  const ageChip = resolveProductAgeChip({
+    ageGroup: product.ageGroup,
+    ageRange: product.ageRange,
+    description: product.description,
+    attributes: product.attributes,
+  });
 
   const derivedIsBook = Boolean(
     isBook ??
@@ -130,7 +145,12 @@ export default function ProductDetailClient({
       <div className={productContentWrapperClass}>
         <div className={productPrimaryPanelClass}>
           {/* Breadcrumb */}
-          <ProductBreadcrumb productName={product.name} t={t} />
+          <ProductBreadcrumb
+            productName={product.name}
+            categoryLabel={categoryLabel}
+            categoryHref={categoryHref}
+            t={t}
+          />
           {showBackToBundle && (
             <div className="mt-3">
               <Link
@@ -138,7 +158,7 @@ export default function ProductDetailClient({
                 className="inline-flex items-center gap-2 rounded-md border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold text-cyan-800 transition hover:border-cyan-300 hover:bg-cyan-100"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
-                {t("backToBundle", "Back to bundle")}
+                {t("backToBundle", "Înapoi la pachet")}
               </Link>
             </div>
           )}
@@ -162,14 +182,14 @@ export default function ProductDetailClient({
               {/* Product Info */}
               <div className="flex flex-col gap-4">
                 <div className={`${productSubSectionCardClass} space-y-4`}>
-                  {(product.ageRange ||
-                    product.attributes?.manufacturerRecommendedAge) && (
-                    <p className="w-fit rounded-full bg-sky-50 px-3 py-1 text-sm font-semibold text-sky-900">
-                      Vârsta recomandată:{" "}
-                      {product.ageRange ||
-                        product.attributes?.manufacturerRecommendedAge}
+                  {ageChip ? (
+                    <p
+                      data-testid="pdp-age-chip"
+                      className="w-fit rounded-full bg-sky-50 px-3 py-1 text-sm font-semibold text-sky-900"
+                    >
+                      Vârsta recomandată: {ageChip.label}
                     </p>
-                  )}
+                  ) : null}
                   <ProductHeader
                     name={product.name}
                     price={product.price}
@@ -184,10 +204,19 @@ export default function ProductDetailClient({
                     justAddedToCart={justAddedToCart}
                     onFavoriteClick={handleFavorite}
                     onShareClick={handleShare}
-                    onQuickAddToCart={handleQuickAddToCart}
                     isBook={derivedIsBook}
                     t={t}
                     size="md"
+                  />
+                  <ProductPurchaseActions
+                    productName={product.name}
+                    price={product.price}
+                    isOutOfStock={
+                      !derivedIsBook && (product.stockQuantity || 0) <= 0
+                    }
+                    isAdding={isAddingToCart}
+                    justAdded={justAddedToCart}
+                    onAdd={handleQuickAddToCart}
                   />
                   <p className="text-sm text-slate-600">
                     Plată cu cardul sau ramburs · Livrare 1–4 zile lucrătoare
@@ -208,7 +237,7 @@ export default function ProductDetailClient({
 
                 <ProductDescription
                   description={product.description}
-                  categoryName={getCategoryName()}
+                  categoryName={categoryLabel ?? ""}
                   t={t}
                 />
 
@@ -231,7 +260,7 @@ export default function ProductDetailClient({
               <ProductFeatures
                 isFreeShippingActive={isFreeShippingActive}
                 freeShippingThreshold={freeShippingThreshold}
-                categoryName={getCategoryName()}
+                categoryName={categoryLabel ?? ""}
                 productSlug={product.slug}
                 t={t}
               />

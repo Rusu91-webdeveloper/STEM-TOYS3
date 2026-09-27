@@ -64,13 +64,7 @@ export function ProductHeader({
       {/* Title and Action Buttons */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1 min-w-0">
-          <h1
-            className={
-              size === "sm"
-                ? "text-2xl font-bold leading-tight tracking-[-0.035em] text-slate-950 sm:text-3xl"
-                : "text-3xl font-bold leading-[1.05] tracking-[-0.045em] text-slate-950 xl:text-5xl"
-            }
-          >
+          <h1 className="text-xl font-bold leading-snug tracking-[-0.03em] text-slate-950 sm:text-2xl lg:text-3xl">
             {name}
           </h1>
         </div>
@@ -106,8 +100,8 @@ export function ProductHeader({
           <span
             className={
               size === "sm"
-                ? "text-3xl font-bold tracking-[-0.035em] text-slate-950 sm:text-4xl"
-                : "text-4xl font-bold tracking-[-0.045em] text-slate-950 xl:text-5xl"
+                ? "text-2xl font-bold tracking-[-0.03em] text-slate-950 sm:text-3xl"
+                : "text-2xl font-bold tracking-[-0.03em] text-slate-950 sm:text-3xl lg:text-4xl"
             }
           >
             {formatPrice(price)}

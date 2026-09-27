@@ -1,6 +1,6 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import React from "react";
 
 import { ProductDescription } from "@/features/products/components/ProductDescription";
 
@@ -36,7 +36,7 @@ describe("ProductDescription", () => {
       <ProductDescription description="Short" categoryName="Cat" t={t} />
     );
     expect(
-      screen.queryByRole("button", { name: /read more/i })
+      screen.queryByRole("button", { name: /citește mai mult/i })
     ).not.toBeInTheDocument();
   });
 
@@ -53,11 +53,11 @@ describe("ProductDescription", () => {
       />
     );
 
-    const expand = await screen.findByRole("button", { name: /read more/i });
+    const expand = await screen.findByRole("button", { name: /citește mai mult/i });
     expect(expand).toHaveAttribute("aria-expanded", "false");
     await user.click(expand);
 
-    const collapse = screen.getByRole("button", { name: /show less/i });
+    const collapse = screen.getByRole("button", { name: /arată mai puțin/i });
     expect(collapse).toHaveAttribute("aria-expanded", "true");
   });
 });

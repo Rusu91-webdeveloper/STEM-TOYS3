@@ -5,11 +5,11 @@ import React, { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import { gradientButtonClass } from "@/features/home/components/homeTheme";
+import { cn } from "@/lib/utils";
+
+import { ProductReviewForm } from "./ProductReviewForm";
 import {
   productAccentPillClass,
   productBodyTextClass,
@@ -89,7 +89,7 @@ export function ProductReviews({
 
     const newReview = {
       productId,
-      userName: "Current User", // This would come from auth state in a real app
+      userName: "Client", // This would come from auth state in a real app
       rating,
       title: reviewTitle,
       content: reviewContent,
@@ -106,10 +106,15 @@ export function ProductReviews({
 
   // Render stars for rating display
   const renderStars = (rating: number, interactive = false) => (
-    <div className="flex">
+    <div className="flex" role={interactive ? "group" : undefined} aria-label={interactive ? "Notă" : undefined}>
       {[1, 2, 3, 4, 5].map(star => (
         <StarIcon
           key={star}
+          aria-hidden={interactive ? undefined : true}
+          aria-label={
+            interactive ? (star === 1 ? "1 stea" : `${star} stele`) : undefined
+          }
+          role={interactive ? "button" : undefined}
           className={cn(
             "h-5 w-5 drop-shadow-sm transition-colors",
             interactive && "cursor-pointer",
@@ -134,13 +139,15 @@ export function ProductReviews({
       )}
     >
       <header className="space-y-2">
-        <span className={productAccentPillClass}>Customer Voices</span>
+        <span className={productAccentPillClass}>Recenzii</span>
         <h2 className={`${productTitleClass} text-lg sm:text-xl md:text-2xl`}>
-          {reviews.length > 0 ? "Customer Reviews" : "Share Your Experience"}
+          Recenzii clienți
         </h2>
-        <p className={`${productMutedTextClass} text-xs sm:text-sm`}>
-          Real feedback from parents building future-ready STEM skills in Romania.
-        </p>
+        {reviews.length > 0 ? (
+          <p className={`${productMutedTextClass} text-xs sm:text-sm`}>
+            Păreri lăsate de clienți pentru acest produs.
+          </p>
+        ) : null}
       </header>
       <div className={`${productDividerClass} border-slate-200`} aria-hidden />
 
@@ -152,15 +159,16 @@ export function ProductReviews({
             </span>
             <div className="mt-2">{renderStars(averageRating)}</div>
             <div className={`${productMutedTextClass} mt-2 text-xs sm:text-sm`}>
-              Based on {reviews.length}{" "}
-              {reviews.length === 1 ? "review" : "reviews"}
+              {reviews.length === 1
+                ? "Pe baza unei recenzii"
+                : `Pe baza a ${reviews.length} recenzii`}
             </div>
           </div>
           <div className="flex flex-col justify-center gap-3">
             {ratingDistribution.map(({ stars, count, percentage }) => (
               <div key={stars} className="flex items-center gap-3">
                 <div className={`${productBodyTextClass} w-16 text-xs sm:text-sm`}>
-                  {stars} {stars === 1 ? "star" : "stars"}
+                  {stars === 1 ? "1 stea" : `${stars} stele`}
                 </div>
                 <div className="relative h-2 flex-1 overflow-hidden rounded-full border border-slate-200 bg-slate-200">
                   <div
@@ -176,10 +184,12 @@ export function ProductReviews({
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center">
+        <div
+          data-testid="reviews-empty"
+          className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center"
+        >
           <p className={`${productBodyTextClass} text-sm`}>
-            No reviews yet. Be the first to review this STEM experience and help
-            other families choose with confidence.
+            Încă nu există recenzii
           </p>
         </div>
       )}
@@ -193,100 +203,28 @@ export function ProductReviews({
             "w-full justify-center rounded-2xl px-5 py-2 text-sm font-semibold shadow-lg shadow-emerald-500/30 transition hover:shadow-emerald-400/20 disabled:from-slate-700 disabled:via-slate-800 disabled:to-slate-900 disabled:text-slate-200 disabled:opacity-60"
           )}
         >
-          Write a Review
+          Scrie o recenzie
         </Button>
       )}
 
       {!userLoggedIn && (
         <p className={`${productMutedTextClass} text-xs sm:text-sm`}>
-          You need to be logged in to share your experience.
+          Trebuie să fii autentificat ca să lași o recenzie.
         </p>
       )}
 
       {showReviewForm && userLoggedIn && (
-        <form
+        <ProductReviewForm
+          rating={rating}
+          reviewTitle={reviewTitle}
+          reviewContent={reviewContent}
+          submitting={submitting}
+          onRatingStars={renderStars(rating, true)}
+          onTitleChange={setReviewTitle}
+          onContentChange={setReviewContent}
           onSubmit={handleSubmitReview}
-          className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6"
-        >
-          <h3 className={`${productTitleClass} text-base sm:text-lg`}>
-            Write Your Review
-          </h3>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="rating"
-              className={`${productMutedTextClass} text-xs uppercase tracking-[0.35em]`}
-            >
-              Rating
-            </Label>
-            <div className="flex items-center gap-3">
-              {renderStars(rating, true)}
-              {rating > 0 && (
-                <span className={`${productMutedTextClass} text-xs`}>
-                  ({rating} {rating === 1 ? "star" : "stars"})
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="title"
-              className={`${productMutedTextClass} text-xs uppercase tracking-[0.35em]`}
-            >
-              Review Title
-            </Label>
-            <input
-              id="title"
-              type="text"
-              value={reviewTitle}
-              onChange={e => setReviewTitle(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-              placeholder="Summarize your experience"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="content"
-              className={`${productMutedTextClass} text-xs uppercase tracking-[0.35em]`}
-            >
-              Review
-            </Label>
-            <Textarea
-              id="content"
-              value={reviewContent}
-              onChange={e => setReviewContent(e.target.value)}
-              placeholder="Share your experience with this product"
-              rows={4}
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-              required
-            />
-          </div>
-
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Button
-              type="submit"
-              disabled={!rating || submitting}
-              className={cn(
-                gradientButtonClass,
-                "rounded-2xl px-5 py-2 text-sm font-semibold shadow-lg shadow-emerald-500/30 transition hover:shadow-emerald-400/20 disabled:from-slate-700 disabled:via-slate-800 disabled:to-slate-900 disabled:text-slate-200 disabled:opacity-70"
-              )}
-            >
-              {submitting ? "Submitting..." : "Submit Review"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={resetForm}
-              disabled={submitting}
-              className="rounded-2xl border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
+          onCancel={resetForm}
+        />
       )}
 
       <div className="space-y-5 pt-4">
@@ -313,14 +251,14 @@ export function ProductReviews({
                       {renderStars(review.rating)}
                       {review.verified && (
                         <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-emerald-700">
-                          Verified Purchase
+                          Achiziție verificată
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
                 <div className={`${productMutedTextClass} text-xs sm:text-sm`}>
-                  {new Date(review.date).toLocaleDateString()}
+                  {new Date(review.date).toLocaleDateString("ro-RO")}
                 </div>
               </div>
               <div className="space-y-1">

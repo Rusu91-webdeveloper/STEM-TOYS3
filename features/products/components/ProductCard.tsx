@@ -10,6 +10,7 @@ import { useProductActions } from "@/features/products/hooks/useProductActions";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { productPublicPath } from "@/lib/products/public-slug";
+import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
 import { cn } from "@/lib/utils";
 import { Product } from "@/types/product";
 
@@ -77,9 +78,11 @@ export function ProductCard({
       (product.category as any)?.name === "Educational Books"
   );
 
-  const categoryName = product.stemDiscipline
-    ? product.stemDiscipline
-    : (product.category as any)?.name || (product.category as any)?.slug;
+  const categoryName = disciplineBadgeLabel(
+    product.stemDiscipline,
+    (product.category as { name?: string } | undefined)?.name ||
+      (product.category as { slug?: string } | undefined)?.slug
+  );
 
   useEffect(() => {
     setActiveImageIndex(0);

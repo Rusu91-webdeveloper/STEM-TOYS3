@@ -6,8 +6,10 @@ import { getCombinedProduct } from "@/lib/api/products";
 import { db } from "@/lib/db";
 import { toShopperProduct } from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
+import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
 import { buildDefaultProductFaq } from "@/lib/seo/product-faq";
+import { getCategoryPageHref } from "@/lib/utils/category-page-links";
 import { getShippingSettings } from "@/lib/utils/store-settings";
 import type { Product } from "@/types/product";
 
@@ -159,29 +161,51 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
       ? (product as any).metadata.seo.faq
       : fallbackFaq;
 
+  const breadcrumbCategory = disciplineBadgeLabel(
+    product.stemDiscipline,
+    product.category?.name
+  );
+  const breadcrumbCategoryHref = getCategoryPageHref(product.category?.slug);
+  const breadcrumbItems: Array<{
+    "@type": "ListItem";
+    position: number;
+    name: string;
+    item: string;
+  }> = [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Acasă",
+      item: "https://www.techtots.ro/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Produse",
+      item: "https://www.techtots.ro/products",
+    },
+  ];
+  if (breadcrumbCategory) {
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      position: breadcrumbItems.length + 1,
+      name: breadcrumbCategory,
+      item: breadcrumbCategoryHref
+        ? `https://www.techtots.ro${breadcrumbCategoryHref}`
+        : "https://www.techtots.ro/products",
+    });
+  }
+  breadcrumbItems.push({
+    "@type": "ListItem",
+    position: breadcrumbItems.length + 1,
+    name: product.name,
+    item: `https://www.techtots.ro/products/${product.slug}`,
+  });
+
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: "https://www.techtots.ro/",
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Products",
-        item: "https://www.techtots.ro/products",
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: product.name,
-        item: `https://www.techtots.ro/products/${product.slug}`,
-      },
-    ],
+    itemListElement: breadcrumbItems,
   };
 
   const faqSchema = {

@@ -96,7 +96,7 @@ export function ProductImageGallery({
     return (
       <div className={cn("relative aspect-square w-full bg-muted", className)}>
         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-          No image available
+          Imagine indisponibilă
         </div>
       </div>
     );
@@ -105,19 +105,19 @@ export function ProductImageGallery({
   const getAlt = (index: number) => {
     const metaAlt = visibleImages[index]?.meta?.alt;
     if (metaAlt && metaAlt.trim().length > 0) return metaAlt;
-    return `${alt} - Image ${index + 1}`;
+    return `${alt} - Imaginea ${index + 1}`;
   };
 
   return (
     <div className={cn("space-y-3 sm:space-y-4", className)}>
-      <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/10 bg-slate-950/40">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-white/10 bg-slate-950/40 sm:aspect-square">
         <button
           type="button"
           onClick={openFullscreen}
           className="absolute inset-0 z-10 cursor-zoom-in"
-          aria-label="Open image in full screen"
+          aria-label="Deschide imaginea pe tot ecranul"
         >
-          <span className="sr-only">Open image in full screen</span>
+          <span className="sr-only">Deschide imaginea pe tot ecranul</span>
         </button>
         <Image
           src={visibleImages[currentImageIndex]?.image || "/placeholder-product.png"}
@@ -143,7 +143,7 @@ export function ProductImageGallery({
                 event.stopPropagation();
                 handlePrevImage();
               }}
-              aria-label="Previous image"
+              aria-label="Imaginea anterioară"
             >
               <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
@@ -155,7 +155,7 @@ export function ProductImageGallery({
                 event.stopPropagation();
                 handleNextImage();
               }}
-              aria-label="Next image"
+              aria-label="Imaginea următoare"
             >
               <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
@@ -172,7 +172,7 @@ export function ProductImageGallery({
           }}
           className="absolute bottom-1 left-1 z-20 h-7 rounded-full border border-white/15 bg-slate-950/70 px-2.5 text-[10px] font-semibold text-slate-100 backdrop-blur hover:bg-slate-900/80 sm:hidden"
         >
-          View full
+          Mărește
         </Button>
 
         {visibleImages.length > 1 && (
@@ -213,7 +213,7 @@ export function ProductImageGallery({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Product image full screen viewer"
+          aria-label="Vizualizare imagine pe tot ecranul"
           className="fixed inset-0 z-[90] bg-black/95"
           onClick={closeFullscreen}
         >
@@ -223,7 +223,7 @@ export function ProductImageGallery({
               event.stopPropagation();
               closeFullscreen();
             }}
-            aria-label="Close full screen image viewer"
+            aria-label="Închide vizualizarea pe tot ecranul"
             className="absolute right-3 top-3 z-[100] flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur border border-white/30 hover:bg-white/30 transition-colors sm:right-5 sm:top-5 sm:h-12 sm:w-12"
           >
             <X className="h-6 w-6" />
@@ -240,7 +240,7 @@ export function ProductImageGallery({
                 size="icon"
                 className="absolute left-0 top-1/2 z-20 h-10 w-10 -translate-y-1/2 rounded-full border border-white/25 bg-black/60 text-white hover:bg-black/80 sm:left-2"
                 onClick={handlePrevImage}
-                aria-label="Previous image"
+                aria-label="Imaginea anterioară"
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
@@ -270,7 +270,7 @@ export function ProductImageGallery({
                 size="icon"
                 className="absolute right-0 top-1/2 z-20 h-10 w-10 -translate-y-1/2 rounded-full border border-white/25 bg-black/60 text-white hover:bg-black/80 sm:right-2"
                 onClick={handleNextImage}
-                aria-label="Next image"
+                aria-label="Imaginea următoare"
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -293,7 +293,7 @@ export function ProductImageGallery({
               className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 shadow-xl hover:bg-slate-100 transition-colors active:scale-95"
             >
               <X className="h-4 w-4" />
-              Close
+              Închide
             </button>
           </div>
         </div>

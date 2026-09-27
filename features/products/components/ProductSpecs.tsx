@@ -5,6 +5,10 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n";
+import {
+  disciplineBadgeLabel,
+  resolveProductAgeChip,
+} from "@/lib/products/romanian-catalog";
 
 import {
   productBodyTextClass,
@@ -29,20 +33,7 @@ function humanizeAgeGroup(
 }
 
 function humanizeStemDiscipline(value?: string): string | undefined {
-  switch (value) {
-    case "SCIENCE":
-      return "Science";
-    case "TECHNOLOGY":
-      return "Technology";
-    case "ENGINEERING":
-      return "Engineering";
-    case "MATHEMATICS":
-      return "Mathematics";
-    case "GENERAL":
-      return "General";
-    default:
-      return undefined;
-  }
+  return disciplineBadgeLabel(value) ?? undefined;
 }
 
 function humanizeProductType(
@@ -77,15 +68,26 @@ function humanizeSpecialCategory(
 
 export default function ProductSpecs({ product }: ProductSpecsProps) {
   const { t } = useTranslation();
+  const ageChip = resolveProductAgeChip({
+    ageGroup: product.ageGroup,
+    ageRange: product.ageRange,
+    description: product.description,
+    attributes: product.attributes,
+  });
   const manufacturerAge =
-    product.ageRange ||
-    product.attributes?.manufacturerRecommendedAge ||
-    product.attributes?.originalAgeText;
+    ageChip?.source === "explicit"
+      ? ageChip.label
+      : product.ageRange ||
+        product.attributes?.manufacturerRecommendedAge ||
+        product.attributes?.originalAgeText;
   const entries: Array<{ label: string; value?: React.ReactNode }> = [
-    // Removed SKU/GTIN/Dimensions/Weight from UI as requested
+    // Removed SKU/GTIN/Dimensions/Weight from UI as requested.
+    // Hide the coarse gift-guide bucket when it contradicts an explicit age.
     {
       label: manufacturerAge ? "Încadrare ghid cadouri" : t("ageGroup"),
-      value: humanizeAgeGroup(t as any, product.ageGroup),
+      value: ageChip?.contradictsCoarseGroup
+        ? undefined
+        : humanizeAgeGroup(t as any, product.ageGroup),
     },
     {
       label: "Vârsta recomandată de producător",
@@ -112,7 +114,7 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
         : undefined,
     },
     {
-      label: "STEM Discipline",
+      label: "Disciplină STEM",
       value: humanizeStemDiscipline(product.stemDiscipline),
     },
   ];
