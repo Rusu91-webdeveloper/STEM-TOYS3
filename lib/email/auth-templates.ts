@@ -33,9 +33,7 @@ export async function sendWelcomeEmail({
     createHeroSection,
     createButton,
     createFeatureGrid,
-    createSocialProof,
     createCTASection,
-    createTestimonial,
   } = await import("./components");
 
   const { generateProfessionalEmail, generatePreviewText } = await import(
@@ -93,36 +91,6 @@ export async function sendWelcomeEmail({
         color: colors.accent.purple,
       },
     ])}
-
-    ${createSocialProof([
-      {
-        number: "10,000+",
-        label: "Familii Mulțumite",
-        icon: "👨‍👩‍👧‍👦",
-      },
-      {
-        number: "500+",
-        label: "Produse STEM",
-        icon: "🧩",
-      },
-      {
-        number: "4.9/5",
-        label: "Rating Clienți",
-        icon: "⭐",
-      },
-      {
-        number: "24/7",
-        label: "Suport Client",
-        icon: "💬",
-      },
-    ])}
-
-    ${createTestimonial(
-      "Produsele de la TechTots au transformat complet modul în care copilul meu vede știința. Acum este pasionat de experimente și își dorește să devină cercetător!",
-      "Maria Popescu",
-      "Mama unui copil de 8 ani",
-      5
-    )}
 
     ${createCTASection(
       "Începe Aventura STEM Astăzi!",

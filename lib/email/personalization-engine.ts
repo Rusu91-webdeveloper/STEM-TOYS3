@@ -653,23 +653,9 @@ export class PersonalizationEngine {
 
   private personalizeTestimonials(
     content: string,
-    userProfile: UserProfile
+    _userProfile: UserProfile
   ): string {
-    // Select testimonial based on user segments
-    let testimonial = "";
-
-    if (userProfile.segments.includes("robotics-enthusiast")) {
-      testimonial =
-        "Produsele de robotică sunt minunate! Copilul meu învață în fiecare zi.";
-    } else if (userProfile.segments.includes("science-lover")) {
-      testimonial =
-        "Experimentele de chimie sunt atât de educaționale și distractive!";
-    } else {
-      testimonial =
-        "Produsele STEM de la TechTots sunt de calitate superioară!";
-    }
-
-    return content.replace(/\{personalizedTestimonial\}/g, testimonial);
+    return content.replace(/\{personalizedTestimonial\}/g, "");
   }
 
   private personalizeUrgency(

@@ -47,7 +47,7 @@ export default function GDPRPage() {
             <p>
               Pentru orice solicitare privind datele personale, ne puteți contacta la
               adresa de email{" "}
-              <a href="mailto:privacy@techtots.com">privacy@techtots.com</a> sau prin
+              <a href="mailto:info@techtots.ro">info@techtots.ro</a> sau prin
               formularul de <Link href="/contact">contact</Link>.
             </p>
           </section>
@@ -57,7 +57,7 @@ export default function GDPRPage() {
             <p>
               Pentru întrebări legate de protecția datelor, contactați responsabilul
               nostru la{" "}
-              <a href="mailto:privacy@techtots.com">privacy@techtots.com</a>.
+              <a href="mailto:info@techtots.ro">info@techtots.ro</a>.
             </p>
           </section>
           <Separator className="my-6 border-white/10" />
@@ -120,8 +120,7 @@ export default function GDPRPage() {
                 Aveți nevoie de ajutor sau clarificări suplimentare?
               </h3>
               <p className="mt-2 text-xs text-slate-200 sm:text-sm">
-                Echipa noastră gestionează solicitările privind datele personale în
-                termen de 72 de ore.
+                Echipa noastră gestionează solicitările privind datele personale.
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -138,8 +137,8 @@ export default function GDPRPage() {
                 size="lg"
                 className="rounded-2xl border border-white/40 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
               >
-                <Link href="mailto:privacy@techtots.com">
-                  privacy@techtots.com
+                <Link href="mailto:info@techtots.ro">
+                  info@techtots.ro
                 </Link>
               </Button>
             </div>
@@ -164,14 +163,14 @@ export default function GDPRPage() {
             <p className="mt-2">
               Email:{" "}
               <a
-                href="mailto:privacy@techtots.com"
+                href="mailto:info@techtots.ro"
                 className="text-sky-200 underline underline-offset-4 hover:text-white"
               >
-                privacy@techtots.com
+                info@techtots.ro
               </a>
             </p>
             <p className="mt-2">
-              Program: Luni - Vineri, 09:00 - 18:00 | Timp mediu de răspuns: 48h
+              Program: luni–vineri, 09:00–18:00
             </p>
           </div>
         </div>

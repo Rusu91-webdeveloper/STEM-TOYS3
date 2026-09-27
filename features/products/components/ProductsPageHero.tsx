@@ -3,8 +3,7 @@
 import Link from "next/link";
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Star, Shield, Users, Clock, ArrowRight } from "lucide-react";
+import { Star, Shield, Clock, ArrowRight } from "lucide-react";
 import { useABTest, useConversionTracking } from "@/hooks/useABTest";
 import { trackEvent as gaTrackEvent } from "@/lib/analytics/ga4";
 
@@ -76,17 +75,6 @@ export function ProductsPageHero({ t }: ProductsPageHeroProps) {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Social Proof Badge */}
-          <div className="mb-6 animate-fade-in">
-            <Badge
-              variant="secondary"
-              className="px-4 py-2 text-sm bg-green-100 text-green-800 border-green-200"
-            >
-              <Users className="w-4 h-4 mr-2" />
-              Familii din Toată Lumea
-            </Badge>
-          </div>
-
           {/* Main Headline - A/B Tested */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gray-900 leading-tight">
             {getHeadline()}
@@ -166,59 +154,6 @@ export function ProductsPageHero({ t }: ProductsPageHeroProps) {
             </Button>
           </div>
 
-          {/* Results Proof Section */}
-          <div className="bg-white/60 backdrop-blur rounded-2xl p-6 sm:p-8 shadow-lg border border-white/20">
-            <h3 className="text-xl sm:text-2xl font-bold mb-6 text-gray-900">
-              {t("transformationResults", "Rezultate de Transformare:")}
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-3xl sm:text-4xl font-bold text-green-600 mb-2">
-                  87%
-                </div>
-                <div className="text-sm text-gray-600">
-                  {t("mathScoreImprovement", "Îmbunătățire Scoruri Matematică")}
-                </div>
-              </div>
-
-              <div className="text-center">
-                <div className="text-3xl sm:text-4xl font-bold text-blue-600 mb-2">
-                  92%
-                </div>
-                <div className="text-sm text-gray-600">
-                  {t("engagementIncrease", "Creșterea Angajamentului")}
-                </div>
-              </div>
-
-              <div className="text-center">
-                <div className="text-3xl sm:text-4xl font-bold text-purple-600 mb-2">
-                  10k+
-                </div>
-                <div className="text-sm text-gray-600">
-                  {t("happyFamilies", "Familii Fericite")}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Urgency Element */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-600 mb-2">
-              ⚡ {t("limitedSpots", "Locuri limitate")}{" "}
-              {t(
-                "consultationThisMonth",
-                "pentru consultare gratuită luna aceasta"
-              )}
-            </p>
-            <div className="flex items-center justify-center gap-2 text-green-700">
-              <Shield className="w-4 h-4" />
-              <span className="text-sm font-medium">
-                {t("qualityGuaranteed", "Calitate Garantată")} -{" "}
-                {t("trustedByThousands", "Încredere de Mii de Părinți")}
-              </span>
-            </div>
-          </div>
         </div>
       </div>
     </section>

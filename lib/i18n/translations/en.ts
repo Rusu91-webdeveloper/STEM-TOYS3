@@ -497,7 +497,7 @@ export const en = {
     "Discover exactly which STEM toys will transform your child from 'I don't understand math' to 'Mom, I want to do more experiments!'",
   featuredProducts: "Toys That Actually Work",
   featuredProductsDesc:
-    "Proven toys that have already transformed thousands of kids from 'I don't want to learn' to 'when can I do the next experiment?'",
+    "STEM toys chosen for hands-on play: science, technology, engineering, and math.",
   viewAllProducts: "View All Toys",
   whyChooseTechTots: "Why STEM Education Matters Today",
 
@@ -516,11 +516,9 @@ export const en = {
 
   // Social Proof Elements
   // socialProofNumber: "10,000+", // REMOVED - fake claim
-  socialProofText: "happy parents discovering STEM education",
-  successStory1:
-    "My son went from 'I hate math' to 'when are we doing the next experiment?' in just 2 weeks!",
-  successStory2:
-    "My daughter now explains to me how robots work! STEM toys changed everything.",
+  socialProofText: "STEM toys for hands-on play",
+  successStory1: "",
+  successStory2: "",
 
   // Risk Reversal Elements
   // guarantee: "30-Day STEM Success Guarantee", // Removed - risky advertisement
@@ -1511,13 +1509,13 @@ export const en = {
   // Hormozi Checkout Trust & Social Proof
   checkoutPageH1: "Complete Your Child's Transformation",
   checkoutPageSubtitle:
-    "Join thousands of parents who've already transformed their kids' learning. Your child will thank you.",
+    "Check the order details and choose a delivery method.",
   secureCheckout: "Secure Checkout",
   freeReturns: "Free Returns",
   moneyBackPromise: "Money-Back Promise",
-  tenThousandParentsTrust: "Trusted by Families Worldwide",
-  fourNineStars: "4.9/5 Stars",
-  ninetyNinePercentSuccess: "99% Success Rate",
+  tenThousandParentsTrust: "Online shop in Romania",
+  fourNineStars: "Real reviews, when they exist",
+  ninetyNinePercentSuccess: "Support from Romania",
 
   // Supplier Requirements Page Translations
   supplierRequirements: "Supplier Requirements",

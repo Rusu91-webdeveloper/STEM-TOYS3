@@ -18,8 +18,8 @@ export default function TestAdminPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "rusu.jobs@gmail.com",
-          password: "admin123",
+          email: "",
+          password: "",
         }),
       });
 
@@ -129,15 +129,6 @@ export default function TestAdminPage() {
         </div>
       )}
 
-      <div className="mt-6">
-        <h3 className="font-bold mb-2">Available Admin Accounts:</h3>
-        <ul className="list-disc list-inside">
-          <li>rusu.jobs@gmail.com / admin123 ✅ (Working)</li>
-          <li>
-            rusu.emanuel.webdeveloper@gmail.com / admin123 ❌ (Not working)
-          </li>
-        </ul>
-      </div>
     </div>
   );
 }

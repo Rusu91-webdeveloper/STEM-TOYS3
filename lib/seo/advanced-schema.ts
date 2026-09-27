@@ -201,21 +201,6 @@ export function generateEducationalProductSchema(
     };
   }
 
-  if (
-    typeof product.averageRating === "number" &&
-    product.averageRating > 0 &&
-    typeof product.reviewCount === "number" &&
-    product.reviewCount > 0
-  ) {
-    schema.aggregateRating = {
-      "@type": "AggregateRating",
-      ratingValue: product.averageRating,
-      reviewCount: product.reviewCount,
-      bestRating: 5,
-      worstRating: 1,
-    };
-  }
-
   return schema;
 }
 
@@ -504,19 +489,60 @@ export function generateAgeGroupSchema(ageGroup: string, products: Product[]) {
   };
 }
 
+type SchemaReview = {
+  authorName?: string;
+  rating?: number;
+  comment?: string;
+  createdAt?: string;
+};
+
+function realReviews(reviews?: SchemaReview[]): SchemaReview[] {
+  return (reviews ?? []).filter(
+    review =>
+      typeof review.rating === "number" &&
+      review.rating > 0 &&
+      typeof review.authorName === "string" &&
+      review.authorName.trim().length > 0 &&
+      typeof review.comment === "string" &&
+      review.comment.trim().length > 0
+  );
+}
+
 export function generateCompleteProductSchema(
   product: Product,
-  reviews?: any[],
+  reviews?: SchemaReview[],
   videoUrl?: string,
   shipping?: MerchantShippingSettings
 ) {
+  const productSchema = generateEducationalProductSchema(product, shipping);
+  const publishedReviews = realReviews(reviews);
+
+  if (publishedReviews.length > 0) {
+    const ratingValue =
+      Math.round(
+        (publishedReviews.reduce(
+          (sum, review) => sum + (review.rating ?? 0),
+          0
+        ) /
+          publishedReviews.length) *
+          10
+      ) / 10;
+    productSchema.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue,
+      reviewCount: publishedReviews.length,
+      bestRating: 5,
+      worstRating: 1,
+    };
+  }
+
   const schemas = [
-    generateEducationalProductSchema(product, shipping),
+    productSchema,
     generateEducationalBreadcrumbSchema(product),
   ];
 
-  if (reviews && reviews.length > 0) {
-    schemas.push(...generateReviewSchema(product, reviews));
+  if (publishedReviews.length > 0) {
+    schemas.push(...generateReviewSchema(product, publishedReviews));
   }
 
   if (videoUrl) {

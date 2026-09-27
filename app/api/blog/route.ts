@@ -2,6 +2,7 @@ import DOMPurify from "isomorphic-dompurify";
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import { toPublicBlogPost } from "@/lib/blog/public-author";
 import { db } from "@/lib/db";
 import { blogService } from "@/lib/services/blog-service";
 
@@ -52,7 +53,6 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            email: true,
           },
         },
         category: {
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({
-      blogs: localizedBlogs,
+      blogs: localizedBlogs.map(blog => toPublicBlogPost(blog)),
       pagination: {
         page,
         limit,

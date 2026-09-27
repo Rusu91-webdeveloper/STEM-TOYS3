@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   CheckCircle,
   Clock,
@@ -10,6 +9,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,6 @@ const nextSteps = [
     title: "Application Review",
     description:
       "Our team validates company credentials, certifications, and catalogue readiness.",
-    duration: "2-3 business days",
     icon: FileText,
   },
   {
@@ -35,7 +34,6 @@ const nextSteps = [
     title: "Quality Assessment",
     description:
       "We audit product quality, educational positioning, and brand assets to ensure STEM alignment.",
-    duration: "3-5 business days",
     icon: Users,
   },
   {
@@ -43,7 +41,6 @@ const nextSteps = [
     title: "Final Decision",
     description:
       "Receive your approval outcome alongside clear feedback and next-step instructions.",
-    duration: "1-2 business days",
     icon: CheckCircle,
   },
   {
@@ -51,7 +48,6 @@ const nextSteps = [
     title: "Onboarding",
     description:
       "If approved, we schedule a concierge kickoff covering account setup, merchandising, and launch planning.",
-    duration: "1-2 weeks",
     icon: TrendingUp,
   },
 ] as const;
@@ -60,13 +56,13 @@ const contacts = [
   {
     icon: Mail,
     title: "Email Support",
-    description: "supplier@techtots.ro",
+    description: "info@techtots.ro",
     action: "Send us an email",
   },
   {
     icon: Phone,
     title: "Phone Support",
-    description: "+40 XXX XXX XXX",
+    description: "+40771248029",
     action: "Call us directly",
   },
 ] as const;
@@ -85,10 +81,6 @@ export function SupplierRegistrationSuccess() {
           <p className="mt-4 text-sm text-slate-200 sm:text-base">
             Thank you for your interest in becoming a TechTots supplier. Our partnership team will review your application shortly.
           </p>
-          <Badge className="mt-5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200 sm:text-sm">
-            <Clock className="mr-2 h-4 w-4" />
-            Review window: 5-7 business days
-          </Badge>
         </div>
 
         <Card className="mt-10 rounded-3xl border border-white/10 bg-white/5 shadow-lg shadow-black/25">
@@ -114,9 +106,6 @@ export function SupplierRegistrationSuccess() {
                   <div>
                     <Badge className="rounded-full border border-white/20 bg-white/10 text-xs text-slate-200">
                       Step {step.step}
-                    </Badge>
-                    <Badge className="ml-2 rounded-full border border-white/20 bg-white/10 text-xs text-slate-200">
-                      {step.duration}
                     </Badge>
                   </div>
                 </div>
@@ -200,8 +189,12 @@ export function SupplierRegistrationSuccess() {
               <p className="mt-1 text-xs text-slate-200">Reference ID</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
-              <p className="text-2xl font-semibold text-sky-200">48h SLA</p>
-              <p className="mt-1 text-xs text-slate-200">Initial response window</p>
+              <p className="text-sm font-semibold text-sky-200">
+                Răspuns cât mai repede
+              </p>
+              <p className="mt-1 text-xs text-slate-200">
+                De obicei în aceeași zi lucrătoare
+              </p>
             </div>
           </CardContent>
         </Card>

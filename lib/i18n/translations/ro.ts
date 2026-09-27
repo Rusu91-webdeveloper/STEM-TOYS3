@@ -24,7 +24,7 @@ export const ro = {
   // Category-Specific Transformation Headlines
   scienceCategoryH1: "Transformă Copilul Într-un Viitor Om de Știință",
   scienceCategorySubtitle:
-    "De la 'Știința e plictisitoare' la 'Vreau să fiu astronaut!' în doar 30 de zile cu jucăriile noastre științifice.",
+    "Experimente și observații pentru copiii curioși de știință.",
   technologyCategoryH1: "Transformă Copilul Într-un Geniu Tehnologic",
   technologyCategorySubtitle:
     "Oprește dependența de ecran, începe să construiești viitorul cu jucăriile noastre tehnologice.",
@@ -33,19 +33,19 @@ export const ro = {
     "De la 'Nu pot face matematica' la 'Am construit acest robot!' cu jucăriile noastre de inginerie.",
   mathCategoryH1: "Fă Matematica Subiectul Preferat al Copilului",
   mathCategorySubtitle:
-    "De la lacrimi la triumf în 30 de zile cu jucăriile noastre matematice.",
+    "Jocuri și activități care fac matematica mai ușor de exersat.",
 
   // Checkout Flow Hormozi Transformation
   checkoutPageH1: "Completează Transformarea Copilului Tău",
   checkoutPageSubtitle:
-    "Ești la 30 de secunde distanță să-ți schimbi copilul pentru totdeauna. Alătură-te miilor de părinți care au văzut deja transformarea.",
+    "Verifică datele comenzii și alege metoda de livrare.",
   secureCheckout: "Finalizare Sigură",
   transformationGuarantee: "Garanție de Transformare",
   freeReturns: "Returnări Gratuite",
   moneyBackPromise: "Promisiunea Banilor Înapoi",
-  tenThousandParentsTrust: "Încredere de Familii din Întreaga Lume",
-  fourNineStars: "4.9/5 Stele",
-  ninetyNinePercentSuccess: "99% Rata de Succes",
+  tenThousandParentsTrust: "Magazin online din România",
+  fourNineStars: "Recenzii reale, când există",
+  ninetyNinePercentSuccess: "Suport din România",
 
   // Social Proof & Urgency Elements
   limitedSpots: "Locuri limitate",
@@ -586,7 +586,7 @@ export const ro = {
     "Descoperă exact care jucării STEM vor transforma copilul tău din 'nu înțeleg matematica' în 'mama, vreau să fac mai multe experimente!'",
   featuredProducts: "Jucării Care Funcționează",
   featuredProductsDesc:
-    "Jucării dovedite care au transformat deja mii de copii din 'nu vreau să învăț' în 'când pot să fac următorul experiment?'",
+    "Jucării STEM alese pentru joacă practică: știință, tehnologie, inginerie și matematică.",
   viewAllProducts: "Vezi Toate Jucăriile",
   whyChooseTechTots: "De Ce Educația STEM Este Esențială Astăzi",
 
@@ -605,11 +605,9 @@ export const ro = {
 
   // Social Proof Elements
   // socialProofNumber: "10,000+", // REMOVED - fake claim
-  socialProofText: "părinți fericiți care descoperă educația STEM",
-  successStory1:
-    "Fiul meu a trecut de la 'urăsc matematica' la 'când facem următorul experiment?' în doar 2 săptămâni!",
-  successStory2:
-    "Fiica mea acum îmi explică cum funcționează roboții! Jucăriile STEM au schimbat totul.",
+  socialProofText: "Jucării STEM pentru joacă practică",
+  successStory1: "",
+  successStory2: "",
 
   // Risk Reversal Elements
   // guarantee: "Garanția STEM de 30 Zile", // Removed - risky advertisement
@@ -634,7 +632,7 @@ export const ro = {
   // Hormozi Category Headlines
   scienceCategoryH1: "Transformă Copilul Într-un Viitor Om de Știință",
   scienceCategorySubtitle:
-    "De la 'Știința e plictisitoare' la 'Vreau să fiu astronaut!' în doar 30 de zile cu jucăriile noastre științifice.",
+    "Experimente și observații pentru copiii curioși de știință.",
   technologyCategoryH1: "Transformă Copilul Într-un Geniu Tehnologic",
   technologyCategorySubtitle:
     "Oprește dependența de ecran, începe să construiești viitorul cu jucăriile noastre tehnologice.",
@@ -643,7 +641,7 @@ export const ro = {
     "De la 'Nu pot face matematica' la 'Am construit acest robot!' cu jucăriile noastre de inginerie.",
   mathCategoryH1: "Fă Matematica Subiectul Preferat al Copilului",
   mathCategorySubtitle:
-    "De la lacrimi la triumf în 30 de zile cu jucăriile noastre matematice.",
+    "Jocuri și activități care fac matematica mai ușor de exersat.",
   scienceCategoryDesc:
     "Descoperă minunile lumii naturale prin experimente practice și explorare captivantă! Jucăriile noastre științifice introduc copiii în lumea fascinantă a fizicii, chimiei, biologiei și astronomiei. Aceste instrumente educaționale promovează curiozitatea naturală, abilitățile de observare și o înțelegere profundă a legilor științei. Prin experimente interactive, copiii învață să formuleze ipoteze, să facă predicții și să înțeleagă cauza și efectul. Perfecte pentru dezvoltarea gândirii critice și a spiritului de cercetare!",
   technologyCategoryDesc:

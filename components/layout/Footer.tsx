@@ -66,7 +66,7 @@ export default function Footer({
   const storeName = storeSettings?.storeName ?? "TechTots";
   const storeDescription =
     storeSettings?.storeDescription ?? t("companyDescription");
-  const resolvedEmail = storeSettings?.contactEmail ?? "support@techtots.ro";
+  const resolvedEmail = storeSettings?.contactEmail ?? "info@techtots.ro";
 
   const getReturnPolicyText = () =>
     t("freeReturnsOver50", "14 calendar days for returns. Return shipping is paid by the customer.");

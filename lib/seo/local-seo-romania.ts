@@ -185,11 +185,7 @@ export function generateLocalBusinessSchema(city: RomanianCity) {
       "Online Banking"
     ],
     openingHours: "Mo-Su 00:00-23:59",
-    sameAs: [
-      "https://www.facebook.com/TechTotsRomania",
-      "https://www.instagram.com/techtots_romania/",
-      "https://www.linkedin.com/company/techtots-romania"
-    ],
+    sameAs: ["https://www.instagram.com/techtots_romania/"],
   };
 }
 

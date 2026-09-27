@@ -104,10 +104,7 @@ export default function ProductDetailClient({
         product.tags?.includes("book"))
   );
 
-  const resolvedReviewCount =
-    initialReviews.length > 0
-      ? initialReviews.length
-      : product.reviewCount || 0;
+  const resolvedReviewCount = initialReviews.length;
 
   const resolvedAverageRating =
     initialReviews.length > 0
@@ -115,7 +112,7 @@ export default function ProductDetailClient({
           (total, review) => total + (Number(review.rating) || 0),
           0
         ) / initialReviews.length
-      : product.averageRating || 0;
+      : 0;
 
   const rawFromBundleSlug = searchParams.get("fromBundle");
   const fromBundleSlug =

@@ -1,5 +1,6 @@
 import { StemCategory } from "@prisma/client";
 
+import { toPublicBlogPost } from "@/lib/blog/public-author";
 import { db } from "@/lib/db";
 import { sendNewsletterNotificationEmail } from "@/lib/email/newsletter-templates";
 
@@ -236,19 +237,20 @@ export const blogService = {
    * Get a blog post by slug
    */
   async getBlogBySlug(slug: string) {
-    return db.blog.findUnique({
+    const blog = await db.blog.findUnique({
       where: { slug },
       include: {
         author: {
           select: {
             id: true,
             name: true,
-            email: true,
           },
         },
         category: true,
       },
     });
+
+    return blog ? toPublicBlogPost(blog) : null;
   },
 
   /**
@@ -295,7 +297,6 @@ export const blogService = {
             select: {
               id: true,
               name: true,
-              email: true,
             },
           },
           category: true,
@@ -307,7 +308,10 @@ export const blogService = {
       db.blog.count({ where }),
     ]);
 
-    return { blogs, count };
+    return {
+      blogs: blogs.map(blog => toPublicBlogPost(blog)),
+      count,
+    };
   },
 
   /**

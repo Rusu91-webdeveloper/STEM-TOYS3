@@ -17,7 +17,6 @@ import {
   createAlert,
   createFeatureGrid,
   createCTASection,
-  createTestimonial,
 } from "./components";
 import { colors, gradients, typography, spacing } from "./design-system";
 import { emailPerformanceEngine } from "./performance-engine";
@@ -714,12 +713,7 @@ export class EmailService {
             gradients.promotional
           )}
 
-          ${createTestimonial(
-            "Produsele STEM de la TechTots au transformat complet modul în care copilul meu învață. Recomand cu încredere!",
-            "Maria Ionescu",
-            "Mamă de 2 copii",
-            5
-          )}
+
 
           ${createCTASection(
             "Revino la TechTots",

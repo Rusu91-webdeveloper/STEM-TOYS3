@@ -17,10 +17,7 @@ import {
   Microchip as _Microchip,
   Gamepad2 as _Gamepad2,
   BookOpen,
-  Star,
   Clock,
-  User,
-  Quote,
   ArrowRight,
   Play,
   Target,
@@ -30,11 +27,9 @@ import {
   CheckCircle,
   ArrowUpRight,
   Users,
-  Award,
   BookMarked,
   Eye,
   Heart,
-  MessageCircle,
   Calendar,
   MapPin as _MapPin,
   Building2,
@@ -290,292 +285,6 @@ async function RelatedBlogs({ slug }: { slug: string }) {
   );
 }
 
-function Testimonials({ slug }: { slug: KnownSlug | string }) {
-  const testimonialsBySlug: Record<
-    string,
-    Array<{
-      quote: string;
-      author: string;
-      role: string;
-      language?: string;
-      rating?: number;
-    }>
-  > = {
-    science: [
-      {
-        quote:
-          "Experimentele de știință i-au trezit curiozitatea și dorința de a înțelege lumea. Copilul meu își petrece ore întregi explorând concepte noi.",
-        author: "Irina M.",
-        role: "Părinte",
-        language: "ro",
-        rating: 5,
-      },
-      {
-        quote:
-          "Seturile de laborator sunt excelente pentru lecțiile noastre interactive. Elevii sunt mult mai implicați când pot experimenta practic.",
-        author: "Prof. Andrei V.",
-        role: "Profesor de științe",
-        language: "ro",
-        rating: 5,
-      },
-      {
-        quote:
-          "My daughter's science kit has sparked her interest in chemistry and physics. She now asks questions about how everything works!",
-        author: "Sarah Johnson",
-        role: "Parent",
-        language: "en",
-        rating: 5,
-      },
-      {
-        quote:
-          "The microscope set has been incredible for our homeschool curriculum. Kids learn so much more when they can see things up close.",
-        author: "Michael Chen",
-        role: "Homeschool Parent",
-        language: "en",
-        rating: 5,
-      },
-      {
-        quote:
-          "As a science teacher, I've seen how hands-on experiments transform abstract concepts into tangible learning experiences.",
-        author: "Dr. Emily Rodriguez",
-        role: "Science Educator",
-        language: "en",
-        rating: 5,
-      },
-    ],
-    technology: [
-      {
-        quote:
-          "Jucăriile de robotică au transformat joaca în programare creativă. Copilul meu învață logică fără să realizeze că studiază.",
-        author: "Dana T.",
-        role: "Mamă",
-        language: "ro",
-        rating: 5,
-      },
-      {
-        quote:
-          "Lego cu programare este perfect pentru clubul nostru de tech. Elevii sunt entuziaști să vină la activități.",
-        author: "Mihai C.",
-        role: "Coordonator club",
-        language: "ro",
-        rating: 5,
-      },
-      {
-        quote:
-          "Coding robots have made programming accessible and fun. My son learned basic algorithms through play!",
-        author: "Jennifer Park",
-        role: "Tech Parent",
-        language: "en",
-        rating: 5,
-      },
-      {
-        quote:
-          "The programmable toys have been fantastic for our after-school STEM program. Kids are excited to learn coding concepts.",
-        author: "David Thompson",
-        role: "STEM Coordinator",
-        language: "en",
-        rating: 5,
-      },
-      {
-        quote:
-          "As an IT professional, I'm amazed at how quickly kids grasp programming concepts when presented through interactive toys.",
-        author: "Lisa Wang",
-        role: "Software Engineer & Parent",
-        language: "en",
-        rating: 5,
-      },
-    ],
-    engineering: [
-      {
-        quote:
-          "Construcțiile dezvoltă perseverența și gândirea inginerească. Copilul meu nu renunță până nu rezolvă problema.",
-        author: "Ruxandra P.",
-        role: "Părinte",
-        language: "ro",
-        rating: 5,
-      },
-      {
-        quote:
-          "Structurile modulare sunt fantastice pentru proiecte practice. Elevii învață despre stabilitate și echilibru.",
-        author: "Alex D.",
-        role: "Educator STEM",
-        language: "ro",
-        rating: 5,
-      },
-      {
-        quote:
-          "Building sets have taught my daughter patience and problem-solving. She's learned that failure is part of the design process.",
-        author: "Robert Martinez",
-        role: "Parent",
-        language: "en",
-        rating: 5,
-      },
-      {
-        quote:
-          "The engineering kits in our classroom have improved students' spatial reasoning and critical thinking skills significantly.",
-        author: "Amanda Foster",
-        role: "Elementary Teacher",
-        language: "en",
-        rating: 5,
-      },
-      {
-        quote:
-          "As a civil engineer, I love seeing kids understand basic engineering principles through hands-on construction.",
-        author: "James Wilson",
-        role: "Civil Engineer & Parent",
-        language: "en",
-        rating: 5,
-      },
-    ],
-    math: [
-      {
-        quote:
-          "Puzzle-urile matematice au făcut logica distractivă. Copilul meu își petrece timpul liber rezolvând probleme.",
-        author: "Oana S.",
-        role: "Părinte",
-        language: "ro",
-        rating: 5,
-      },
-      {
-        quote:
-          "Jocurile de strategie întăresc gândirea critică. Elevii învață să planifice și să anticipeze consecințele.",
-        author: "Ilie N.",
-        role: "Profesor de matematică",
-        language: "ro",
-        rating: 5,
-      },
-      {
-        quote:
-          "Math games have completely changed my son's attitude toward numbers. He now sees math as a fun challenge!",
-        author: "Maria Garcia",
-        role: "Parent",
-        language: "en",
-        rating: 5,
-      },
-      {
-        quote:
-          "The mathematical puzzles in our curriculum have improved students' problem-solving abilities and confidence.",
-        author: "Dr. Kevin O'Brien",
-        role: "Math Teacher",
-        language: "en",
-        rating: 5,
-      },
-      {
-        quote:
-          "As a mathematician, I appreciate how these toys make abstract concepts concrete and engaging for young learners.",
-        author: "Prof. Rachel Green",
-        role: "Mathematics Professor",
-        language: "en",
-        rating: 5,
-      },
-    ],
-    "educational-books": [
-      {
-        quote:
-          "Cărțile au devenit punctul de pornire pentru discuții fascinante. Familia noastră își petrece seara citind împreună.",
-        author: "Simona R.",
-        role: "Părinte",
-        language: "ro",
-        rating: 5,
-      },
-      {
-        quote:
-          "Resurse grozave pentru activități integrate în clasă. Elevii sunt captivați de poveștile cu teme științifice.",
-        author: "Elena B.",
-        role: "Învățătoare",
-        language: "ro",
-        rating: 5,
-      },
-      {
-        quote:
-          "STEM books have become our bedtime favorites. My kids ask questions about science and technology every night.",
-        author: "Thomas Anderson",
-        role: "Parent",
-        language: "en",
-        rating: 5,
-      },
-      {
-        quote:
-          "The educational books in our library have increased students' reading comprehension and scientific literacy.",
-        author: "Patricia Lewis",
-        role: "Librarian",
-        language: "en",
-        rating: 5,
-      },
-      {
-        quote:
-          "As an author of children's science books, I see how stories can make complex concepts accessible and memorable.",
-        author: "Dr. Susan Mitchell",
-        role: "Children's Science Author",
-        language: "en",
-        rating: 5,
-      },
-    ],
-  };
-
-  const items = testimonialsBySlug[slug] ?? testimonialsBySlug["science"];
-  // const categoryIcons = getCategoryIcons(slug);
-  const testimonialIcons = [User, Quote, Star, Award, Heart, MessageCircle];
-
-  return (
-    <section className="container mx-auto w-full px-4 pt-8 sm:px-6 sm:pt-12 lg:px-10 lg:pt-14">
-      <div
-        className={`${glassPanelClass} rounded-3xl border-slate-200/70 bg-white/85 px-5 py-6 shadow-xl shadow-slate-900/10 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
-      >
-        <div className="mb-6 flex items-center gap-2 sm:gap-3 md:mb-8">
-          <Quote className="h-5 w-5 text-sky-300 sm:h-6 sm:w-6" />
-          <h3 className="text-lg font-bold text-slate-900 sm:text-2xl md:text-3xl">
-            Ce spun părinții și educatorii
-          </h3>
-        </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 md:gap-6">
-          {items.map((t, idx) => {
-            const IconComponent =
-              testimonialIcons[idx % testimonialIcons.length];
-            return (
-              <blockquote
-                key={idx}
-                className={`${glassCardClass} relative rounded-2xl border-slate-200/70 bg-white/95 p-4 text-left transition-all duration-300 hover:border-slate-300/80 hover:shadow-lg sm:p-5 md:p-6`}
-              >
-                <div className="absolute right-3 top-3 opacity-20 transition-opacity group-hover:opacity-40">
-                  <IconComponent className="h-6 w-6 text-sky-300 sm:h-7 sm:w-7 md:h-8 md:w-8" />
-                </div>
-                <div className="mb-2 flex items-center gap-1 sm:mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 ${
-                        i < (t.rating ?? 5)
-                          ? "text-amber-300 fill-amber-300"
-                          : "text-slate-600"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <p className="mb-3 text-xs italic leading-relaxed text-slate-700 sm:text-sm md:mb-4">
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-700 sm:h-11 sm:w-11 md:h-12 md:w-12">
-                    <User className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
-                  </div>
-                  <div className="text-xs text-slate-600 sm:text-sm">
-                    <div className="font-semibold text-slate-900">
-                      {t.author}
-                    </div>
-                    <div className="text-[10px] uppercase tracking-wide text-indigo-600/80 sm:text-xs">
-                      {t.role}
-                    </div>
-                  </div>
-                </div>
-              </blockquote>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 function Overview({ slug, locale }: { slug: string; locale: string }) {
   const _t = getTranslation(locale);
@@ -594,112 +303,93 @@ function Overview({ slug, locale }: { slug: string; locale: string }) {
 
   const benefitsBySlug: Record<
     string,
-    Array<{ text: string; icon: LucideIcon; progress: number }>
+    Array<{ text: string; icon: LucideIcon }>
   > = {
     science: [
       {
         text: "Dezvoltă curiozitatea și spiritul de cercetare",
         icon: Beaker,
-        progress: 95,
       },
       {
         text: "Învață principiile științei prin experimente practice",
         icon: Atom,
-        progress: 90,
       },
       {
         text: "Stimulează gândirea critică și analitică",
         icon: Brain,
-        progress: 85,
       },
       {
         text: "Introduce concepte de fizică, chimie și biologie",
         icon: Microscope,
-        progress: 88,
       },
     ],
     technology: [
       {
         text: "Dezvoltă gândirea computațională și algoritmică",
         icon: Cpu,
-        progress: 95,
       },
-      { text: "Introduce programarea și robotică", icon: Code, progress: 92 },
+      { text: "Introduce programarea și robotică", icon: Code },
       {
         text: "Pregătește pentru carierele viitorului",
         icon: Rocket,
-        progress: 88,
       },
       {
         text: "Învață despre inteligența artificială și inovație",
         icon: Brain,
-        progress: 90,
       },
     ],
     engineering: [
       {
         text: "Învață principiile mecanicii și structurilor",
         icon: Building2,
-        progress: 92,
       },
       {
         text: "Dezvoltă abilități de rezolvare a problemelor",
         icon: Target,
-        progress: 88,
       },
       {
         text: "Stimulează creativitatea inginerească",
         icon: Sparkles,
-        progress: 85,
       },
       {
         text: "Învață procesul de proiectare și testare",
         icon: CheckCircle,
-        progress: 90,
       },
     ],
     math: [
       {
         text: "Face matematica distractivă și accesibilă",
         icon: Calculator,
-        progress: 90,
       },
       {
         text: "Dezvoltă gândirea logică și raționamentul",
         icon: Brain,
-        progress: 88,
       },
       {
         text: "Învață concepte matematice prin joc",
         icon: Puzzle,
-        progress: 85,
       },
       {
         text: "Construiește încrederea în rezolvarea problemelor",
         icon: Target,
-        progress: 92,
       },
     ],
     "educational-books": [
       {
         text: "Inspiră dragostea pentru învățare",
         icon: BookOpen,
-        progress: 95,
       },
       {
         text: "Dezvoltă vocabularul și abilitățile de citire",
         icon: GraduationCap,
-        progress: 90,
       },
       {
         text: "Introduce concepte STEM prin povești",
         icon: Users,
-        progress: 88,
       },
       {
         text: "Stimulează imaginația și creativitatea",
         icon: Sparkles,
-        progress: 85,
       },
     ],
   };
@@ -767,15 +457,6 @@ function Overview({ slug, locale }: { slug: string; locale: string }) {
                       <p className="text-xs leading-relaxed text-slate-700 sm:text-sm">
                         {benefit.text}
                       </p>
-                      <div className="mt-3 h-1.5 w-full rounded-full bg-slate-200/80 sm:h-2">
-                        <div
-                          className="h-1.5 rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-indigo-400 transition-all duration-1000 ease-out sm:h-2"
-                          style={{ width: `${benefit.progress}%` }}
-                        />
-                      </div>
-                      <div className="mt-1 text-[10px] font-medium uppercase tracking-wide text-indigo-600/80 sm:text-xs">
-                        {benefit.progress}% eficiență
-                      </div>
                     </div>
                   </div>
                 );
@@ -1170,7 +851,6 @@ export default async function CategoryDetailPage({
 
         <CategoryEducationalBenefits slug={slug} />
 
-        <Testimonials slug={slug} />
 
         <Suspense>
           <RelatedBlogs slug={slug} />

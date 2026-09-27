@@ -5,6 +5,7 @@ import {
   resolveActiveBookId,
   resolveProductId,
 } from "@/lib/products/public-catalog";
+import { toShopperProduct } from "@/lib/products/public-shopper";
 import {
   resolveProductPageDecision,
   toPublicProductSlug,
@@ -102,8 +103,8 @@ export async function GET(
         isBook: false,
         weight: dbProduct.weight ?? undefined,
         dimensions,
-        averageRating: dbProduct.averageRating ?? undefined,
-        reviewCount: dbProduct.reviewCount ?? undefined,
+        averageRating: undefined,
+        reviewCount: 0,
         totalSold: dbProduct.totalSold ?? undefined,
         supplier: dbProduct.supplier
           ? {
@@ -138,7 +139,7 @@ export async function GET(
           (dbProduct.romanianTeacherResources as any) || undefined,
       };
 
-      return NextResponse.json(transformed, {
+      return NextResponse.json(toShopperProduct(transformed), {
         headers: {
           // 🚀 PERFORMANCE: Add caching headers
           "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",

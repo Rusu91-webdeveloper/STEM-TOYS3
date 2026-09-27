@@ -66,37 +66,6 @@ export const GET = async (request: NextRequest) => {
       },
     });
 
-    // Get supplier testimonials (mock data for now)
-    const testimonials = [
-      {
-        id: "1",
-        companyName: "TechToys Romania",
-        contactPerson: "Maria Popescu",
-        testimonial:
-          "TechTots has helped us reach customers across Romania and expand our STEM toy business significantly.",
-        rating: 5,
-        productsCount: 45,
-      },
-      {
-        id: "2",
-        companyName: "EduPlay Solutions",
-        contactPerson: "Alexandru Ionescu",
-        testimonial:
-          "The supplier portal is intuitive and the support team is always helpful. Our sales have increased by 200%.",
-        rating: 5,
-        productsCount: 32,
-      },
-      {
-        id: "3",
-        companyName: "ScienceKit Pro",
-        contactPerson: "Elena Dumitrescu",
-        testimonial:
-          "Being a TechTots supplier has opened up new markets for us. The platform is professional and reliable.",
-        rating: 5,
-        productsCount: 28,
-      },
-    ];
-
     // Get benefits data
     const benefits = [
       {
@@ -129,7 +98,7 @@ export const GET = async (request: NextRequest) => {
         description:
           "Dedicated support team to help you succeed and grow your business with us.",
         icon: "headphones",
-        stats: "24/7 support",
+        stats: "Suport pe email",
       },
     ];
 
@@ -173,7 +142,7 @@ export const GET = async (request: NextRequest) => {
         totalRevenue: totalRevenue._sum.supplierRevenue || 0,
       },
       featuredSuppliers,
-      testimonials,
+      testimonials: [],
       benefits,
       registrationSteps,
       commissionRate: 15, // Default commission rate

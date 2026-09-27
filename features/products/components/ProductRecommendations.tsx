@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -161,78 +161,8 @@ export function ProductRecommendations({
     maxRecommendations,
   ]);
 
-  // Mock data generator for demonstration
-  const generateMockRecommendations = useMemo(() => {
-    const mockProducts = [
-      {
-        id: "1",
-        name: "Advanced Robotics Kit Pro",
-        slug: "advanced-robotics-kit-pro",
-        description: "Build and program advanced robots",
-        price: 149.99,
-        images: ["/images/robot-kit.jpg"],
-        category: { id: "1", name: "Technology", slug: "technology" },
-        rating: 4.8,
-        reviewCount: 156,
-        score: 0.95,
-        reason: "Similar to your recently viewed products",
-        isTrending: true,
-      } as RecommendationProduct,
-      {
-        id: "2",
-        name: "Chemistry Lab Starter Set",
-        slug: "chemistry-lab-starter-set",
-        price: 89.99,
-        images: ["/images/chemistry-set.jpg"],
-        category: { id: "2", name: "Science", slug: "science" },
-        rating: 4.6,
-        reviewCount: 89,
-        score: 0.87,
-        reason: "Popular with customers who bought similar items",
-        isNew: true,
-      },
-      {
-        id: "3",
-        name: "Engineering Design Challenge",
-        slug: "engineering-design-challenge",
-        price: 79.99,
-        images: ["/images/engineering-kit.jpg"],
-        category: { id: "3", name: "Engineering", slug: "engineering" },
-        rating: 4.7,
-        reviewCount: 123,
-        score: 0.82,
-        reason: "Matches your learning preferences",
-      },
-      {
-        id: "4",
-        name: "Mathematical Puzzle Collection",
-        slug: "mathematical-puzzle-collection",
-        price: 39.99,
-        images: ["/images/math-puzzles.jpg"],
-        category: { id: "4", name: "Mathematics", slug: "mathematics" },
-        rating: 4.5,
-        reviewCount: 67,
-        score: 0.78,
-        reason: "Great for developing problem-solving skills",
-      },
-    ];
+  const currentRecommendations = recommendations;
 
-    return {
-      personalized: mockProducts.slice(0, 4),
-      similar: mockProducts.slice(1, 5),
-      trending: mockProducts.filter(
-        (p: any) => p.isTrending || (p.rating && p.rating > 4.7)
-      ),
-      collaborative: mockProducts.slice(2, 6),
-      smart: mockProducts.filter((p: any) => p.score && p.score > 0.8),
-    } as Record<string, RecommendationProduct[]>;
-  }, []);
-
-  // Use mock data if no real recommendations loaded
-  const currentRecommendations =
-    Object.keys(recommendations).length > 0
-      ? recommendations
-      : generateMockRecommendations;
 
   const handleAddToWishlist = async (productId: string) => {
     try {

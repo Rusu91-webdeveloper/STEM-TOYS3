@@ -282,7 +282,7 @@ export function DatabaseShowcaseClient({
           learn more about how this platform can power your next venture.
         </p>
         <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-          Get in Touch
+          Scrie-ne
         </Button>
       </div>
     </div>

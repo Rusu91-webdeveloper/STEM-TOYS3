@@ -2,6 +2,7 @@ import DOMPurify from "isomorphic-dompurify";
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import { toPublicBlogPost } from "@/lib/blog/public-author";
 import { db } from "@/lib/db";
 import { blogService } from "@/lib/services/blog-service";
 
@@ -31,7 +32,6 @@ export async function GET(
             select: {
               id: true,
               name: true,
-              email: true,
             },
           },
           category: {
@@ -56,7 +56,6 @@ export async function GET(
             select: {
               id: true,
               name: true,
-              email: true,
             },
           },
           category: {
@@ -78,7 +77,6 @@ export async function GET(
               select: {
                 id: true,
                 name: true,
-                email: true,
               },
             },
             category: {
@@ -112,7 +110,7 @@ export async function GET(
       }
     }
 
-    return NextResponse.json(blog);
+    return NextResponse.json(toPublicBlogPost(blog));
   } catch (error) {
     console.error(`Error fetching blog post with slug ${slug}:`, error);
     return NextResponse.json(

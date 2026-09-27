@@ -71,7 +71,7 @@ export const ROMANIAN_PARENT_PSYCHOLOGY_TRIGGERS: BuyerPsychologyTrigger[] = [
     objectionHandler:
       "Când toți părinții din cartier vorbesc despre STEM, nu puteți rămâne în urmă cu educația tradițională.",
     conversionCTA:
-      "Alăturați-vă miilor de părinți români care au transformat educația copiilor lor!",
+      "Jucării STEM alese pentru joacă practică.",
     effectiveness: "high",
   },
   {

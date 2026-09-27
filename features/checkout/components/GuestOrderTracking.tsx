@@ -378,10 +378,10 @@ export function GuestOrderTracking() {
                 If you have any questions about your order, please contact our
                 support team at{" "}
                 <a
-                  href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@techtots.ro"}`}
+                  href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@techtots.ro"}`}
                   className="underline hover:no-underline"
                 >
-                  {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@techtots.ro"}
+                  {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@techtots.ro"}
                 </a>{" "}
                 or call us at{" "}
                 <a

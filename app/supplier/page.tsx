@@ -1,14 +1,16 @@
 import { Metadata } from "next";
 
 import { SupplierLanding } from "@/features/supplier/components/SupplierLanding";
+import { appConfig } from "@/lib/config/app-config";
 
 export const metadata: Metadata = {
-  title: "Become a Supplier | TechTots STEM Toys",
-  description: "Join TechTots as a supplier and reach thousands of families looking for quality STEM toys. Start your partnership today.",
-  keywords: "supplier, partnership, STEM toys, wholesale, B2B, TechTots",
+  title: "Devino furnizor TechTots",
+  description:
+    "TechTots lucrează cu furnizori din România de jucării educaționale și STEM. Scrie-ne pentru o colaborare.",
+  alternates: { canonical: "https://www.techtots.ro/supplier" },
   openGraph: {
-    title: "Become a Supplier | TechTots STEM Toys",
-    description: "Join TechTots as a supplier and reach thousands of families looking for quality STEM toys.",
+    title: "Devino furnizor TechTots",
+    description: `Colaborări cu furnizori de jucării educaționale și STEM. Contact: ${appConfig.contactEmail}.`,
     type: "website",
   },
 };

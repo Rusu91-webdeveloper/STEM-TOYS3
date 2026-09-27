@@ -79,12 +79,6 @@ export function ProductsHeroSection({
     setResolvedCategoryImagePath(categoryImagePath);
   }, [categoryImagePath]);
 
-  const mobileStats = [
-    { label: t("heroStatProducts", "Produse STEM"), value: "120+" },
-    { label: t("heroStatFamilies", "Familii fericite"), value: "2.5k+" },
-    { label: t("heroStatDelivery", "Livrare rapidă"), value: "24h" },
-  ];
-
   return (
     <section className="relative">
       <div className="relative overflow-hidden rounded-[1.5rem] border border-[#e5dcc9] bg-[#f7f1e5] shadow-[0_28px_55px_-45px_rgba(30,41,59,0.55)] sm:rounded-[2rem]">
@@ -155,50 +149,11 @@ export function ProductsHeroSection({
                     {t("seeSuccessStories")}
                   </Link>
 
-                  <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-600">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    <span className="font-semibold text-slate-900">
-                      {t("socialProofNumber")}
-                    </span>
-                    <span>{t("socialProofText")}</span>
-                  </div>
-                </div>
-
-                <div className="hidden sm:grid sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
-                  {mobileStats.map(stat => (
-                    <div
-                      key={stat.label}
-                      className="rounded-xl border border-slate-200 bg-white px-3 py-2.5"
-                    >
-                      <div className="text-lg font-semibold text-slate-900">
-                        {stat.value}
-                      </div>
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">
-                        {stat.label}
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-2 px-1 sm:hidden">
-        {mobileStats.map(stat => (
-          <div
-            key={stat.label}
-            className="rounded-xl border border-slate-200 bg-white/95 px-3 py-2.5 shadow-sm"
-          >
-            <div className="text-lg font-semibold text-slate-900">
-              {stat.value}
-            </div>
-            <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">
-              {stat.label}
-            </div>
-          </div>
-        ))}
       </div>
     </section>
   );

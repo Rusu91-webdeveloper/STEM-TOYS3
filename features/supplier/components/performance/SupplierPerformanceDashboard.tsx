@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
   TrendingUp,
-  TrendingDown,
   Star,
   Package,
   Clock,
@@ -11,10 +9,14 @@ import {
   CheckCircle,
   Target,
   BarChart3,
-  Calendar,
   Award,
   Zap,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,9 +24,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { PerformanceData } from "@/features/supplier/types/performance";
 
@@ -33,114 +32,24 @@ export function SupplierPerformanceDashboard() {
     useState<PerformanceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [period, setPeriod] = useState("30");
-
-  // Mock supplier ID - in real app this would come from auth context
-  const supplierId = "mock-supplier-id";
+  // const supplierId = "mock-supplier-id";
 
   useEffect(() => {
     fetchPerformanceData();
-  }, [period]);
+  }, []);
 
-  const fetchPerformanceData = async () => {
+  const fetchPerformanceData = () => {
     try {
       setLoading(true);
       setError(null);
 
-      // For now, we'll use mock data since we don't have supplier auth yet
-      // In production, this would call the real API with the authenticated supplier's ID
-      const mockData: PerformanceData = {
-        supplier: {
-          id: "supplier-1",
-          name: "TechToys Romania SRL",
-          email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "contact@techtots.ro",
-          status: "APPROVED",
-          commissionRate: 15.0,
-          paymentTerms: 30,
-          businessCountry: "Romania",
-          createdAt: "2024-01-15T10:00:00Z",
-          totalProducts: 45,
-          totalOrders: 127,
-        },
-        period: {
-          startDate: "2024-09-04",
-          endDate: "2024-10-04",
-          days: 30,
-        },
-        performance: {
-          overallScore: 87,
-          grade: "B+",
-          orderMetrics: {
-            totalOrders: 23,
-            fulfilledOrders: 21,
-            pendingOrders: 2,
-            cancelledOrders: 0,
-            fulfillmentRate: 91.3,
-            cancellationRate: 0,
-            totalRevenue: 12540.5,
-            averageOrderValue: 545.24,
-          },
-          qualityMetrics: {
-            reviewCount: 18,
-            averageRating: 4.2,
-            ratingDistribution: { "5": 12, "4": 4, "3": 2, "2": 0, "1": 0 },
-            satisfactionTrend: "improving",
-            qualityScore: 4.2,
-          },
-          deliveryMetrics: {
-            totalTrackedOrders: 21,
-            deliveredOrders: 19,
-            onTimeDeliveries: 17,
-            lateDeliveries: 2,
-            onTimeDeliveryRate: 89.5,
-            lateDeliveryRate: 10.5,
-            averageDeliveryDays: 4.2,
-          },
-        },
-        trends: [
-          { month: "2024-07", orderCount: 18, revenue: 9850 },
-          { month: "2024-08", orderCount: 22, revenue: 11200 },
-          { month: "2024-09", orderCount: 25, revenue: 13450 },
-          { month: "2024-10", orderCount: 23, revenue: 12540 },
-        ],
-        issues: [
-          {
-            id: "1",
-            orderNumber: "ORD-2024-001",
-            productName: "STEM Robotics Kit",
-            issue: "Late delivery by 2 days",
-            date: "2024-09-28T14:30:00Z",
-            impact: "negative",
-          },
-        ],
-        recommendations: [
-          {
-            type: "high",
-            title: "Improve On-Time Delivery",
-            description:
-              "Your on-time delivery rate is 89.5%, which is below the 95% target.",
-            action:
-              "Review shipping processes and carrier selection to reduce delivery times.",
-          },
-          {
-            type: "medium",
-            title: "Increase Product Reviews",
-            description:
-              "Only 18 reviews this month. More reviews help build trust.",
-            action:
-              "Encourage customers to leave reviews and respond promptly to feedback.",
-          },
-          {
-            type: "positive",
-            title: "Strong Fulfillment Rate",
-            description:
-              "Your 91.3% fulfillment rate is excellent. Keep up the great work!",
-            action: "Maintain current order processing standards.",
-          },
-        ],
-      };
+      // Performance figures are omitted until they come from real orders.
+      setPerformanceData(null);
+      setError(
+        "Statisticile de performanță apar după comenzi reale. Nu afișăm cifre estimate."
+      );
+      return;
 
-      setPerformanceData(mockData);
     } catch (err) {
       console.error("Error fetching performance data:", err);
       setError(
@@ -442,7 +351,7 @@ export function SupplierPerformanceDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {performanceData.trends.map((trend, index) => (
+            {performanceData.trends.map(trend => (
               <div key={trend.month} className="text-center">
                 <p className="text-sm font-medium text-gray-600">
                   {trend.month}
