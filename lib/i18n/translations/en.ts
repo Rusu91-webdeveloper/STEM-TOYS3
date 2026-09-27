@@ -1947,6 +1947,32 @@ export const en = {
   mixedSupplierPrepaidOnly:
     "This order contains products shipped by different suppliers, so cash on delivery is unavailable. Please complete your order with online card payment.",
 
+  productsSearchPlaceholder: "Search toys by name...",
+  clearSearch: "Clear search",
+  companyNameOptional: "Company name (optional)",
+  cuiOptional: "CUI/VAT (optional)",
+  enterDiscountCodeToSave: "Enter discount code to save",
+  discountCodeHelper:
+    "Have a discount code? Enter it above to save on your order.",
+  addressFullNameRequired: "Full name is required",
+  addressStreetRequired: "Street is required",
+  addressStreetNumberRequired: "Street number is required",
+  addressCityRequired: "City is required",
+  addressStateRequired: "State is required",
+  addressCountryRequired: "Country is required",
+  addressPostalCodeRequired: "Postal code is required",
+  addressPhoneRequired: "Phone number is required",
+  addressRomanianPostalCode:
+    "Please enter a valid Romanian postal code (6 digits)",
+  addressRomanianPhone: "Please enter a valid Romanian phone number",
+  selectSavedAddress: "Select a saved address",
+  defaultAddressBadge: "Default",
+  useNewAddress: "Use a new address",
+  selectCounty: "Select a county",
+  selectCountry: "Select a country",
+  guestEmailInvalid:
+    "Enter a valid email address so we can confirm your order.",
+
   "error.title.MIXED_SUPPLIER_PREPAID_REQUIRED": "Cash on delivery unavailable",
   "error.message.MIXED_SUPPLIER_PREPAID_REQUIRED":
     "This order contains products shipped by different suppliers, so cash on delivery is unavailable. Please complete your order with online card payment.",

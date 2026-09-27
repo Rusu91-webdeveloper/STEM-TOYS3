@@ -1,8 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import React, { useState, useEffect } from "react";
-import { z } from "zod";
+import React, { useState, useEffect, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { createCheckoutAddressValidator } from "@/features/checkout/lib/checkout-address-schema";
 import {
   checkoutCardClass,
   checkoutFieldInputClass,
@@ -22,7 +22,6 @@ import {
   checkoutInfoBannerClass,
 } from "@/features/checkout/lib/checkoutTheme";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
-import { createFormValidator } from "@/lib/formValidation";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -51,59 +50,6 @@ interface ShippingAddressFormProps {
   /** Guests enter an email on this step. Signed-in shoppers already have one. */
   collectGuestEmail?: boolean;
 }
-
-const optionalStructuredField = (maxLength = 64) =>
-  z.preprocess(
-    value =>
-      typeof value === "string" && value.trim().length === 0 ? undefined : value,
-    z.string().max(maxLength).optional()
-  );
-
-const checkoutAddressSchemaBase = {
-  companyName: optionalStructuredField(128),
-  cui: optionalStructuredField(64),
-  fullName: z.string().trim().min(2, "Full name is required"),
-  street: z.string().trim().min(2, "Street is required"),
-  streetNumber: z.string().trim().min(1, "Street number is required"),
-  block: optionalStructuredField(32),
-  entrance: optionalStructuredField(32),
-  floor: optionalStructuredField(32),
-  apartment: optionalStructuredField(32),
-  addressDetails: optionalStructuredField(200),
-  addressLine1: z.string().optional(),
-  addressLine2: z.string().optional(),
-  city: z.string().trim().min(2, "City is required"),
-  state: z.string().trim().min(1, "State is required"),
-  postalCode: z.string().trim(),
-  country: z.string().trim().min(2, "Country is required"),
-  phone: z.string().trim(),
-};
-
-const checkoutRomanianAddressSchema = z.object({
-  ...checkoutAddressSchemaBase,
-  postalCode: z
-    .string()
-    .trim()
-    .regex(/^\d{6}$/, "Please enter a valid Romanian postal code (6 digits)"),
-  phone: z
-    .string()
-    .trim()
-    .regex(
-      /^(07\d{8}|\+407\d{8}|0\d{9})$/,
-      "Please enter a valid Romanian phone number"
-    ),
-});
-
-const checkoutInternationalAddressSchema = z.object({
-  ...checkoutAddressSchemaBase,
-  postalCode: z.string().trim().min(2, "Postal code is required"),
-  phone: z.string().trim().min(6, "Phone number is required"),
-});
-
-const romanianAddressValidator = createFormValidator(checkoutRomanianAddressSchema);
-const internationalAddressValidator = createFormValidator(
-  checkoutInternationalAddressSchema
-);
 
 // Romanian counties
 const romanianCounties = [
@@ -274,14 +220,45 @@ export function ShippingAddressForm({
   allowInternational = false,
   collectGuestEmail = false,
 }: ShippingAddressFormProps) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const { data: session, status: sessionStatus } = useOptimizedSession();
   const canLoadSavedAddresses =
     sessionStatus === "authenticated" && Boolean(session?.user?.id);
   const defaultCountry = allowInternational ? "" : "RO";
-  const addressValidator = allowInternational
-    ? internationalAddressValidator
-    : romanianAddressValidator;
+  const addressValidator = useMemo(
+    () =>
+      createCheckoutAddressValidator(
+        {
+          fullNameRequired: t(
+            "addressFullNameRequired",
+            "Full name is required"
+          ),
+          streetRequired: t("addressStreetRequired", "Street is required"),
+          streetNumberRequired: t(
+            "addressStreetNumberRequired",
+            "Street number is required"
+          ),
+          cityRequired: t("addressCityRequired", "City is required"),
+          stateRequired: t("addressStateRequired", "State is required"),
+          countryRequired: t("addressCountryRequired", "Country is required"),
+          postalCodeRequired: t(
+            "addressPostalCodeRequired",
+            "Postal code is required"
+          ),
+          phoneRequired: t("addressPhoneRequired", "Phone number is required"),
+          romanianPostalCode: t(
+            "addressRomanianPostalCode",
+            "Please enter a valid Romanian postal code (6 digits)"
+          ),
+          romanianPhone: t(
+            "addressRomanianPhone",
+            "Please enter a valid Romanian phone number"
+          ),
+        },
+        allowInternational
+      ),
+    [allowInternational, t]
+  );
   const [formData, setFormData] = useState<ShippingAddress>(() => {
     if (initialData) {
       const parsed = parseStreetFromLegacyAddress(
@@ -509,7 +486,7 @@ export function ShippingAddressForm({
         ) : savedAddresses.length > 0 ? (
           <div className="mb-6">
             <Label className="mb-3 block text-base font-semibold text-slate-900">
-              Select a saved address
+              {t("selectSavedAddress", "Select a saved address")}
             </Label>
             <RadioGroup
               value={selectedAddressId}
@@ -542,7 +519,7 @@ export function ShippingAddressForm({
                         {address.name}{" "}
                         {address.isDefault && (
                           <span className="ml-2 rounded border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">
-                            Default
+                            {t("defaultAddressBadge", "Default")}
                           </span>
                         )}
                       </Label>
@@ -571,7 +548,7 @@ export function ShippingAddressForm({
                   htmlFor="address-new"
                   className="cursor-pointer font-semibold text-slate-900"
                 >
-                  Use a new address
+                  {t("useNewAddress", "Use a new address")}
                 </Label>
               </div>
             </RadioGroup>
@@ -831,11 +808,7 @@ export function ShippingAddressForm({
                       )}
                     >
                       <SelectValue
-                        placeholder={
-                          locale === "ro"
-                            ? "Selectează un județ"
-                            : "Select a county"
-                        }
+                        placeholder={t("selectCounty", "Select a county")}
                       />
                     </SelectTrigger>
                     <SelectContent>
@@ -903,11 +876,7 @@ export function ShippingAddressForm({
                       )}
                     >
                       <SelectValue
-                        placeholder={
-                          locale === "ro"
-                            ? "Selectează o țară"
-                            : "Select a country"
-                        }
+                        placeholder={t("selectCountry", "Select a country")}
                       />
                     </SelectTrigger>
                     <SelectContent>

@@ -19,7 +19,8 @@ import React, { useState, useEffect, useMemo, useRef, Suspense } from "react";
 import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
 import { formatStorefrontPrice } from "@/lib/format/storefront-price";
-import { giftOrder, visibleInBrowse } from "@/lib/products/merchandising";
+import { isVisibleOnProductsListing } from "@/lib/products/catalog-access";
+import { giftOrder } from "@/lib/products/merchandising";
 import { isListedInCategory } from "@/lib/products/stem-category";
 import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import {
@@ -344,7 +345,9 @@ function ClientProductsPageContent({
         )
       );
     } else if (!state.searchQuery) {
-      filtered = filtered.filter(product => visibleInBrowse(product));
+      filtered = filtered.filter(product =>
+        isVisibleOnProductsListing(product)
+      );
     }
 
     // Filter by price range if price filter is enabled
@@ -447,10 +450,11 @@ function ClientProductsPageContent({
     state.searchQuery,
   ]);
 
-  // Calculate total browseable products (excludes books which are filtered by visibleInBrowse)
+  // Same visibility function as sitemap product URLs.
   const totalBrowseableProducts = useMemo(() => {
-    // Apply the same visibility rules as the filtered listing
-    return products.filter(p => !p.isBook && visibleInBrowse(p as any)).length;
+    return products.filter(product =>
+      isVisibleOnProductsListing(product as any)
+    ).length;
   }, [products]);
 
   const bundleFilteredProducts = useMemo(() => {
