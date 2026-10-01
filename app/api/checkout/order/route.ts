@@ -1,12 +1,12 @@
-import {
-  CURATED_MAX_AGE_MS,
-  isCuratedSupplier,
-} from "@/lib/suppliers/curated-stock";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { z } from "zod";
 
+import {
+  buildOrderAnalytics,
+  type OrderAnalytics,
+} from "@/lib/analytics/order-payload";
 import { auth } from "@/lib/auth";
 import { shouldSendImmediateAdminOrderNotification } from "@/lib/checkout/admin-order-notifications";
 import {
@@ -45,6 +45,10 @@ import {
 } from "@/lib/shipping/cod-thresholds";
 import { calculateDeclaredValue } from "@/lib/shipping/declared-value";
 import { getStripeApiVersion, getStripeCurrency } from "@/lib/stripe-config";
+import {
+  CURATED_MAX_AGE_MS,
+  isCuratedSupplier,
+} from "@/lib/suppliers/curated-stock";
 import {
   shouldAutoFulfillOrder,
   calculateProcessingTime,
@@ -638,7 +642,7 @@ export async function POST(request: Request) {
     const appliedCoupon = pricing.appliedCoupon;
     const discountAmount = pricing.discountAmount;
     const codFee = pricing.codFee;
-    let codAmount = isCODPayment ? pricing.orderTotal : 0;
+    const codAmount = isCODPayment ? pricing.orderTotal : 0;
     const orderTotal = pricing.orderTotal;
 
     if (isCODPayment && supplierCartAnalysis.requiresPrepaid) {
@@ -1319,6 +1323,7 @@ export async function POST(request: Request) {
     }
 
     // Create order and items in a single database transaction
+    let analytics: OrderAnalytics | undefined;
     let dbOrder: {
       id: string;
       orderNumber: string;
@@ -1636,7 +1641,7 @@ export async function POST(request: Request) {
                 },
               });
 
-              if (!latestProductState || !latestProductState.isActive) {
+              if (!latestProductState?.isActive) {
                 throw new OrderPlacementError(
                   "PRODUCT_NOT_AVAILABLE",
                   `Product "${item.name}" is no longer available. Please refresh your cart and try again.`,
@@ -1942,6 +1947,27 @@ export async function POST(request: Request) {
       const paymentIsVerified =
         orderPaymentStatus === "PAID" || stripeSucceeded;
 
+      if (orderWithItems) {
+        analytics = buildOrderAnalytics({
+          id: dbOrder.id,
+          total: orderTotal,
+          tax,
+          shipping: finalShippingCost,
+          codFee: isCODPayment ? codFee : 0,
+          paymentMethod: isCODPayment
+            ? "cod"
+            : isNetopiaPayment
+              ? "netopia"
+              : "stripe",
+          paymentStatus: orderPaymentStatus,
+          testMode:
+            process.env.NODE_ENV !== "production" ||
+            (isNetopiaPayment && process.env.NETOPIA_SANDBOX === "true") ||
+            stripePaymentIntent?.livemode === false,
+          items: orderWithItems.items,
+        });
+      }
+
       if (hasDigitalBooks) {
         if (paymentIsVerified) {
           console.log(
@@ -2220,6 +2246,7 @@ export async function POST(request: Request) {
       orderId: dbOrder?.id || orderId,
       orderNumber: dbOrder?.orderNumber || orderNumber,
       message: "Order created successfully",
+      analytics,
     });
   } catch (error) {
     console.error("Failed to create order:", error);

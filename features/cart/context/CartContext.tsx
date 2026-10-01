@@ -9,6 +9,8 @@ import React, {
   type ReactNode,
 } from "react";
 
+import { trackAddToCart } from "@/lib/analytics/ga4";
+
 import { fetchCart, saveCart } from "../lib/cartApi";
 import {
   reconcileLoadedCart,
@@ -357,10 +359,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     return () => clearTimeout(timer);
   }, [loadCart]);
 
-  const addToCart = (
-    itemToAdd: AddToCartItemInput,
-    quantity: number = 1
-  ) => {
+  const addToCart = (itemToAdd: AddToCartItemInput, quantity: number = 1) => {
     const cartItemId = getCartItemId(
       itemToAdd.productId,
       itemToAdd.variantId,
@@ -427,6 +426,18 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     cartItemsRef.current = nextItems;
     setCartItems(nextItems);
 
+    const addedQuantity =
+      (nextItems.find(item => item.id === cartItemId)?.quantity ?? 0) -
+      (existingItem?.quantity ?? 0);
+    trackAddToCart({
+      item_id: itemToAdd.productId,
+      item_name: itemToAdd.name,
+      category: itemToAdd.isBook ? "Cărți" : "",
+      price: itemToAdd.price,
+      quantity: addedQuantity,
+      currency: "RON",
+    });
+
     pendingUpdatesRef.current.add(cartItemId);
     debouncedSync();
   };
@@ -442,7 +453,9 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         ? getCartItemId(itemId, variantId, selectedLanguage)
         : itemId;
 
-    const nextItems = cartItemsRef.current.filter(item => item.id !== cartItemId);
+    const nextItems = cartItemsRef.current.filter(
+      item => item.id !== cartItemId
+    );
     cartItemsRef.current = nextItems;
     setCartItems(nextItems);
 

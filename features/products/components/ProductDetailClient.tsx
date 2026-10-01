@@ -3,10 +3,12 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 import { LazyProductReviews } from "@/components/lazy/client";
+import { trackProductView } from "@/lib/analytics/ga4";
 import { useTranslation } from "@/lib/i18n";
+import { getProductBuyingGuide } from "@/lib/products/product-buying-guides";
 import { productPublicPath } from "@/lib/products/public-slug";
 import {
   disciplineBadgeLabel,
@@ -18,6 +20,7 @@ import { useProductActions } from "../hooks/useProductActions";
 
 import { BundleContents, type BundleContentItem } from "./BundleContents";
 import { ProductBreadcrumb } from "./ProductBreadcrumb";
+import { ProductBuyingSummary } from "./ProductBuyingSummary";
 import { ProductDescription } from "./ProductDescription";
 import ProductEducation from "./ProductEducation";
 import ProductFAQ from "./ProductFAQ";
@@ -66,6 +69,20 @@ export default function ProductDetailClient({
     number | null
   >(null);
   const [isFreeShippingActive, setIsFreeShippingActive] = useState(false);
+  const buyingGuide = getProductBuyingGuide(product.slug);
+  const viewedProduct = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (viewedProduct.current === product.id) return;
+    viewedProduct.current = product.id;
+    trackProductView({
+      item_id: product.id,
+      item_name: product.name,
+      category: product.category?.name ?? "",
+      price: product.price,
+      currency: "RON",
+    });
+  }, [product.id, product.name, product.price, product.category?.name]);
 
   // Use the custom hook for product actions
   const {
@@ -215,6 +232,11 @@ export default function ProductDetailClient({
                     t={t}
                     size="md"
                   />
+                  {buyingGuide && (
+                    <p className="text-sm leading-relaxed text-slate-700">
+                      {buyingGuide.summary}
+                    </p>
+                  )}
                   <ProductPurchaseActions
                     productName={product.name}
                     price={product.price}
@@ -225,6 +247,7 @@ export default function ProductDetailClient({
                     justAdded={justAddedToCart}
                     onAdd={handleQuickAddToCart}
                   />
+                  {buyingGuide && <ProductBuyingSummary guide={buyingGuide} />}
                   <p className="text-sm text-slate-600">
                     Plată cu cardul sau ramburs · Livrare 1–4 zile lucrătoare
                   </p>
@@ -265,6 +288,7 @@ export default function ProductDetailClient({
               <ProductEducation product={product} />
 
               <ProductFeatures
+                activities={buyingGuide?.activities}
                 isFreeShippingActive={isFreeShippingActive}
                 freeShippingThreshold={freeShippingThreshold}
                 categoryName={disciplineLabel ?? ""}

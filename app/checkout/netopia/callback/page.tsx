@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/features/cart";
+import { trackConfirmedNetopiaPurchase } from "@/lib/analytics/checkout-events";
 
 export default function NetopiaCallback() {
   const router = useRouter();
@@ -67,6 +68,7 @@ export default function NetopiaCallback() {
         }
 
         if (result.status === "paid" || result.status === "refunded") {
+          trackConfirmedNetopiaPurchase(currentOrderId, result);
           setStatus("success");
           setMessage("Plata a fost procesată cu succes!");
           await clearCart();
@@ -216,7 +218,8 @@ export default function NetopiaCallback() {
         ? `Bună ziua,\n\nAcesta este un raport automat pentru comanda ${orderId}.\nDescriere problemă:\n`
         : "Bună ziua,\n\nDescriere problemă:\n"
     );
-    const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@techtots.ro";
+    const supportEmail =
+      process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@techtots.ro";
     window.location.href = `mailto:${supportEmail}?subject=${subject}&body=${body}`;
   };
 

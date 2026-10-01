@@ -14,6 +14,7 @@ import {
 } from "./productTheme";
 
 interface ProductFeaturesProps {
+  activities?: string[];
   isFreeShippingActive: boolean;
   freeShippingThreshold: number | null;
   categoryName: string;
@@ -25,6 +26,7 @@ interface ProductFeaturesProps {
  * Product features component showing shipping info, benefits, and learn more links
  */
 export function ProductFeatures({
+  activities,
   isFreeShippingActive,
   freeShippingThreshold,
   categoryName,
@@ -90,59 +92,70 @@ export function ProductFeatures({
       {/* Detailed Features & Benefits */}
       <div className={`${productSubSectionCardClass} space-y-4`}>
         <h3 className={productTitleClass}>
-          {t("featuresBenefits", "Caracteristici și beneficii")}
+          {activities
+            ? "Ce poți încerca"
+            : t("featuresBenefits", "Caracteristici și beneficii")}
         </h3>
+        {activities ? (
+          <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed text-slate-700">
+            {activities.map(activity => (
+              <li key={activity}>{activity}</li>
+            ))}
+          </ol>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ul className="space-y-2">
+              <li className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-sky-400" />
+                <span className={productBodyTextClass}>
+                  {t(
+                    "developsCriticalThinking",
+                    "Dezvoltă gândirea critică și logica"
+                  )}
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-emerald-400" />
+                <span className={productBodyTextClass}>
+                  {t("encouragesCreativity", "Încurajează creativitatea")}
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-violet-400" />
+                <span className={productBodyTextClass}>
+                  {t("buildsConfidence", "Construiește încrederea în sine")}
+                </span>
+              </li>
+            </ul>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <ul className="space-y-2">
-            <li className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-sky-400" />
-              <span className={productBodyTextClass}>
-                {t(
-                  "developsCriticalThinking",
-                  "Dezvoltă gândirea critică și logica"
-                )}
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-emerald-400" />
-              <span className={productBodyTextClass}>
-                {t("encouragesCreativity", "Încurajează creativitatea")}
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-violet-400" />
-              <span className={productBodyTextClass}>
-                {t("buildsConfidence", "Construiește încrederea în sine")}
-              </span>
-            </li>
-          </ul>
-
-          <ul className="space-y-2">
-            <li className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-orange-400" />
-              <span className={productBodyTextClass}>
-                {categoryName.trim()
-                  ? `${t(
-                      "teachesFundamentalConcepts",
-                      "Predă concepte fundamentale în"
-                    )} ${categoryName.trim()} ${t("inEngagingWay", "într-un mod captivant")}`
-                  : "Predă concepte fundamentale într-un mod captivant"}
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-rose-400" />
-              <span className={productBodyTextClass}>
-                {t("safeMaterials", "Materiale sigure și de calitate")}
-              </span>
-            </li>
-          </ul>
-        </div>
+            <ul className="space-y-2">
+              <li className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-orange-400" />
+                <span className={productBodyTextClass}>
+                  {categoryName.trim()
+                    ? `${t(
+                        "teachesFundamentalConcepts",
+                        "Predă concepte fundamentale în"
+                      )} ${categoryName.trim()} ${t("inEngagingWay", "într-un mod captivant")}`
+                    : "Predă concepte fundamentale într-un mod captivant"}
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-rose-400" />
+                <span className={productBodyTextClass}>
+                  {t("safeMaterials", "Materiale sigure și de calitate")}
+                </span>
+              </li>
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Learn More Resources */}
       <div className={`${productSubSectionCardClass} space-y-3`}>
-        <h3 className={productTitleClass}>{t("learnMore", "Află mai multe")}</h3>
+        <h3 className={productTitleClass}>
+          {t("learnMore", "Află mai multe")}
+        </h3>
         <p className={`${productMutedTextClass} text-xs sm:text-sm`}>
           {t(
             "usefulGuides",

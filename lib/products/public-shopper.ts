@@ -1,3 +1,8 @@
+import type { Product } from "@/types/product";
+
+import { applyProductContentOverride } from "./catalog-content-overrides";
+import { getProductBuyingGuide } from "./product-buying-guides";
+
 const SUPPLIER_BUY_HOSTS = ["boribon.ro", "kidstory.ro"];
 const IMAGE_PATH = /\.(avif|gif|jpe?g|png|svg|webp)(?:$|[?#])/i;
 const SUPPLIER_LINK_KEYS = new Set([
@@ -73,6 +78,10 @@ export function toShopperProduct<T>(product: T): T {
   const sanitized = sanitizeValue(product);
   if (!sanitized || typeof sanitized !== "object" || Array.isArray(sanitized)) {
     return product;
+  }
+  const slug = (sanitized as { slug?: unknown }).slug;
+  if (typeof slug === "string" && getProductBuyingGuide(slug)) {
+    return applyProductContentOverride(sanitized as Product) as T;
   }
   return sanitized as T;
 }
