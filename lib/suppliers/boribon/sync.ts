@@ -36,6 +36,7 @@ export async function syncBoribonPortfolio(
   let explicitlyZeroed = 0;
   let failed = 0;
   let skipped = 0;
+  const errors: string[] = [];
   
   await db.$transaction(
     async tx => {
@@ -47,7 +48,7 @@ export async function syncBoribonPortfolio(
         },
         include: {
           product: {
-            select: { id: true, stockQuantity: true, reservedQuantity: true },
+            select: { id: true, stockQuantity: true, reservedQuantity: true, barcode: true },
           },
         },
       });
@@ -78,6 +79,7 @@ export async function syncBoribonPortfolio(
             status: "failed",
             reason: "Not installed",
           });
+          errors.push(`${item.entry.model}: not installed`);
           failed++;
           continue;
         }
@@ -85,38 +87,45 @@ export async function syncBoribonPortfolio(
         const oldStock = link.product?.stockQuantity ?? 0;
         
         // If item failed validation, keep existing stock (don't zero it)
+        // Don't update lastSyncAt - kept-stock items aren't freshly synced
         if (!item.valid) {
+          const errorMsg = item.error || "Validation failed";
           console.warn(
-            `[Boribon sync] Item ${item.entry.model} failed validation, keeping stock: ${item.error}`
+            `[Boribon sync] Item ${item.entry.model} failed validation, keeping stock: ${errorMsg}`
           );
           await tx.supplierProduct.update({
             where: { id: link.id },
             data: {
               feedId: feed.id,
               raw: item.row,
-              lastSyncAt: checkedAt,
+              // lastSyncAt NOT updated - stock is stale
               status: "ERROR",
-              lastError: item.error || "Validation failed",
+              lastError: errorMsg,
             },
           });
           outcomes.push({
             sku: item.entry.model,
             status: "kept_stock",
-            reason: item.error || "Validation failed",
+            reason: errorMsg,
             oldStock,
             newStock: oldStock,
           });
-          // Always count failures, even for UPSELL (they're tracked separately later)
+          errors.push(`${item.entry.model}: ${errorMsg}`);
           failed++;
           keptStock++;
           continue;
         }
         
-        // Update stock based on feed data
-        // Only set to 0 when feed explicitly reports 0 stock
-        const newStock = Math.max(0, item.stock - (link.product?.reservedQuantity ?? 0));
-        
+        // Use savepoint for transactional isolation per item
+        // If this item's SQL fails, rollback to savepoint and continue with others
+        const savepointName = `sp_${link.id}`;
         try {
+          await tx.$executeRaw`SAVEPOINT ${Prisma.raw(savepointName)}`;
+          
+          // Update stock based on feed data
+          // Only set to 0 when feed explicitly reports 0 stock
+          const newStock = Math.max(0, item.stock - (link.product?.reservedQuantity ?? 0));
+          
           const changed = await tx.$executeRaw(Prisma.sql`
             UPDATE "Product" SET "stockQuantity" = GREATEST(0, ${item.stock} - "reservedQuantity"),
               "price" = ${item.price ?? 0},
@@ -125,34 +134,54 @@ export async function syncBoribonPortfolio(
           `);
           
           if (changed !== 1) {
-            // Identity changed (EAN mismatch) - keep old stock, don't zero it
-            // This happens when supplier rotates product EANs (e.g., manufacturer change)
+            // Identity changed (EAN mismatch) - rollback item update, keep old stock
+            await tx.$executeRaw`ROLLBACK TO SAVEPOINT ${Prisma.raw(savepointName)}`;
+            
+            const mismatchMsg = `EAN/identity mismatch (expected ${item.entry.ean}, DB has ${link.product?.barcode})`;
             console.error(
-              `[Boribon sync] EAN/identity mismatch for ${item.entry.model} (expected ${item.entry.ean}), keeping stock at ${oldStock}. Requires manual Product.barcode + portfolio.json update.`
+              `[Boribon sync] ${mismatchMsg} for ${item.entry.model}, keeping stock at ${oldStock}. Requires manual Product.barcode + portfolio.json update.`
             );
+            
+            // Record mismatch on SupplierProduct (status ERROR, lastError)
+            // Don't update lastSyncAt - stock is stale
+            await tx.supplierProduct.update({
+              where: { id: link.id },
+              data: {
+                feedId: feed.id,
+                raw: item.row,
+                // lastSyncAt NOT updated - stock is stale
+                status: "ERROR",
+                lastError: mismatchMsg,
+              },
+            });
+            
             outcomes.push({
               sku: item.entry.model,
               status: "kept_stock",
-              reason: `EAN/identity mismatch (expected ${item.entry.ean})`,
+              reason: mismatchMsg,
               oldStock,
               newStock: oldStock,
             });
+            errors.push(`${item.entry.model}: ${mismatchMsg}`);
             keptStock++;
             failed++;
             continue;
           }
           
+          // Success - update SupplierProduct with fresh sync time
           await tx.supplierProduct.update({
             where: { id: link.id },
             data: {
               feedId: feed.id,
               stock: item.stock,
               raw: item.row,
-              lastSyncAt: checkedAt,
+              lastSyncAt: checkedAt, // Stock successfully refreshed
               status: "MAPPED",
               lastError: null,
             },
           });
+          
+          await tx.$executeRaw`RELEASE SAVEPOINT ${Prisma.raw(savepointName)}`;
           
           if (item.stock === 0) {
             outcomes.push({
@@ -173,11 +202,32 @@ export async function syncBoribonPortfolio(
           }
           updated++;
         } catch (itemError) {
-          // Individual item update failed - keep existing stock
+          // SQL error within item processing - rollback to savepoint
+          try {
+            await tx.$executeRaw`ROLLBACK TO SAVEPOINT ${Prisma.raw(savepointName)}`;
+          } catch (rollbackError) {
+            // Savepoint might not exist if error happened before SAVEPOINT
+            console.error(`[Boribon sync] Rollback failed for ${item.entry.model}:`, rollbackError);
+          }
+          
           const message = itemError instanceof Error ? itemError.message : String(itemError);
           console.error(
-            `[Boribon sync] Failed to update ${item.entry.model}: ${message}, keeping stock`
+            `[Boribon sync] Failed to update ${item.entry.model}: ${message}, keeping stock at ${oldStock}`
           );
+          
+          // Record SQL error on SupplierProduct
+          // Don't update lastSyncAt - stock is stale
+          await tx.supplierProduct.update({
+            where: { id: link.id },
+            data: {
+              feedId: feed.id,
+              raw: item.row,
+              // lastSyncAt NOT updated - stock is stale
+              status: "ERROR",
+              lastError: `Update failed: ${message}`,
+            },
+          });
+          
           outcomes.push({
             sku: item.entry.model,
             status: "kept_stock",
@@ -185,6 +235,7 @@ export async function syncBoribonPortfolio(
             oldStock,
             newStock: oldStock,
           });
+          errors.push(`${item.entry.model}: ${message}`);
           keptStock++;
           failed++;
         }
@@ -214,11 +265,16 @@ export async function syncBoribonPortfolio(
     );
   }
   
-  // Return stats - include all failures in the failed count
+  // Return stats with error summary for job tracking
+  const errorSummary = errors.length > 0 
+    ? errors.slice(0, 3).join("; ") + (errors.length > 3 ? ` (+${errors.length - 3} more)` : "")
+    : null;
+  
   return { 
     imported: 0, 
     updated, 
-    failed 
+    failed,
+    error: errorSummary,
   };
 }
 

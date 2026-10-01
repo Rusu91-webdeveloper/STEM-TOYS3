@@ -201,7 +201,7 @@ export async function runSupplierFeedSync(
         items = items.filter(item => !blockSet.has(item.supplierSku));
       }
 
-      const { imported, updated, failed } = curatedBoribon
+      const result = curatedBoribon
         ? await syncBoribonPortfolio(db, feed)
         : curatedKidstory ? await syncKidstoryPortfolio(db, feed) : await upsertProducts(feed, items, {
         requiredFields,
@@ -209,6 +209,9 @@ export async function runSupplierFeedSync(
         allowSet,
         autoCreateProducts,
       });
+
+      const { imported, updated, failed } = result;
+      const partialError = (result as { error?: string | null }).error;
 
       await db.supplierSyncJob.update({
         where: { id: job.id },
@@ -218,6 +221,8 @@ export async function runSupplierFeedSync(
           imported,
           updated,
           failed,
+          // Capture partial failure summary when failed > 0
+          error: failed > 0 && partialError ? `Partial sync: ${partialError}` : null,
         },
       });
 
@@ -226,7 +231,8 @@ export async function runSupplierFeedSync(
         data: {
           lastSyncAt: new Date(),
           lastSyncStatus: SupplierSyncStatus.SUCCESS,
-          lastError: null,
+          // Capture partial failure summary for visibility
+          lastError: failed > 0 && partialError ? `Partial: ${partialError}` : null,
         },
       });
 
@@ -237,6 +243,8 @@ export async function runSupplierFeedSync(
         imported,
         updated,
         failed,
+        // Include error summary in results for caller visibility
+        error: failed > 0 && partialError ? `Partial: ${partialError}` : null,
       });
       shouldRecomputeBundlePricing = true;
     } catch (error) {
