@@ -169,3 +169,14 @@ unchanged.
 [Google's CSP guide](https://developers.google.com/tag-platform/security/guides/csp)
 documents the Analytics collection origins and Tag Assistant diagnosis. The
 follow-up PR records production delivery verification after the header change.
+
+The live diagnosis also exposed a first-view buffering issue in release #50.
+Next 15.5.7's real script loader invokes inline-script `onReady` before
+appending and executing that script. The follow-up schedules the queue flush in
+a microtask, after the bootstrap defines `gtag`. A regression test renders the
+real Next Script component: the original callback fails to deliver the queued
+view; the deferred callback delivers it exactly once.
+
+Follow-up verification: 11 focused suites / 51 tests pass; both touched
+analytics files pass ESLint. Whole-repository TypeScript remains the same 1,188
+baseline diagnostics with no additional file/error-code combinations.
