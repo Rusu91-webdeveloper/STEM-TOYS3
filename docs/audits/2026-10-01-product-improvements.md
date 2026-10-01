@@ -146,3 +146,26 @@ The whole-suite test and TypeScript hooks have the documented baseline failures;
 this release uses the passing focused checks and the Vercel preview build. Hooks
 are skipped only for this release command, without changing hook files or Git
 configuration. No database credentials are loaded into local development.
+
+## Initial production release and collector diagnosis
+
+[PR #50](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/50) merged as
+`f1b28cc79a4abb663be8319966ef2cca94fcb376`. Production deployment
+`dpl_7Fbd4NHc9VUKiv1PH8p7jFH2mZZG` reached READY and serves both domains; build
+duration was 179 seconds. Live Secret Recorder copy/age and accepted cart
+addition were verified, and guest checkout rendered the shipping form with the
+correct item and total. No order/payment was submitted.
+
+GA4 property 489085677, web stream 12145372061, matches measurement ID
+`G-S79BW12N00`, but its UI reported no data in 48 hours. Google Tag Assistant
+connected to the live site and showed a page-view hit addressed to
+`https://region1.google-analytics.com/g/collect`; its Console explicitly
+reported that `connect-src` blocked this request. This is evidence of a delivery
+problem, not a measured conversion outcome.
+
+A focused follow-up permits that exact existing Google Analytics regional
+collector in `next.config.js`. Other directives and allowed connections stay
+unchanged.
+[Google's CSP guide](https://developers.google.com/tag-platform/security/guides/csp)
+documents the Analytics collection origins and Tag Assistant diagnosis. The
+follow-up PR records production delivery verification after the header change.
