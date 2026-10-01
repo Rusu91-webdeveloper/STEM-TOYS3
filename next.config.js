@@ -158,7 +158,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' data: https://fonts.gstatic.com",
               "img-src 'self' data: blob: https: http:",
-              "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://www.googletagmanager.com https://vitals.vercel-insights.com https://api.stripe.com https://m.stripe.com https://r.stripe.com https://checkout.stripe.com wss:",
+              "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://www.googletagmanager.com https://vitals.vercel-insights.com https://api.stripe.com https://m.stripe.com https://r.stripe.com https://checkout.stripe.com wss:",
               "frame-src 'self' https://www.googletagmanager.com https://td.doubleclick.net https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
               "media-src 'self'",
               "object-src 'none'",

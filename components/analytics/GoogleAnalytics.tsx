@@ -25,7 +25,10 @@ export default function GoogleAnalytics({
       <Script
         id="google-analytics"
         strategy="lazyOnload"
-        onReady={flushGA4Events}
+        onReady={() => {
+          // Next calls inline-script onReady before inserting/executing it.
+          queueMicrotask(flushGA4Events);
+        }}
         dangerouslySetInnerHTML={{
           __html: `
             window.dataLayer = window.dataLayer || [];
