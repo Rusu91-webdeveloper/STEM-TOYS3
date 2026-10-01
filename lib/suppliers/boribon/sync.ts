@@ -118,9 +118,10 @@ export async function syncBoribonPortfolio(
         
         // Use savepoint for transactional isolation per item
         // If this item's SQL fails, rollback to savepoint and continue with others
-        const savepointName = `sp_${link.id}`;
+        // Reuse constant name per iteration - Postgres allows sequential reuse
+        const savepointName = 'boribon_item';
         try {
-          await tx.$executeRaw`SAVEPOINT ${Prisma.raw(savepointName)}`;
+          await tx.$executeRaw`SAVEPOINT boribon_item`;
           
           // Update stock based on feed data
           // Only set to 0 when feed explicitly reports 0 stock
@@ -135,7 +136,7 @@ export async function syncBoribonPortfolio(
           
           if (changed !== 1) {
             // Identity changed (EAN mismatch) - rollback item update, keep old stock
-            await tx.$executeRaw`ROLLBACK TO SAVEPOINT ${Prisma.raw(savepointName)}`;
+            await tx.$executeRaw`ROLLBACK TO SAVEPOINT boribon_item`;
             
             const mismatchMsg = `EAN/identity mismatch (expected ${item.entry.ean}, DB has ${link.product?.barcode})`;
             console.error(
@@ -181,7 +182,7 @@ export async function syncBoribonPortfolio(
             },
           });
           
-          await tx.$executeRaw`RELEASE SAVEPOINT ${Prisma.raw(savepointName)}`;
+          await tx.$executeRaw`RELEASE SAVEPOINT boribon_item`;
           
           if (item.stock === 0) {
             outcomes.push({
@@ -204,7 +205,7 @@ export async function syncBoribonPortfolio(
         } catch (itemError) {
           // SQL error within item processing - rollback to savepoint
           try {
-            await tx.$executeRaw`ROLLBACK TO SAVEPOINT ${Prisma.raw(savepointName)}`;
+            await tx.$executeRaw`ROLLBACK TO SAVEPOINT boribon_item`;
           } catch (rollbackError) {
             // Savepoint might not exist if error happened before SAVEPOINT
             console.error(`[Boribon sync] Rollback failed for ${item.entry.model}:`, rollbackError);
