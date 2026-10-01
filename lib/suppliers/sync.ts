@@ -2,7 +2,7 @@ import { KIDSTORY_SYNC_MODE } from "@/lib/suppliers/kidstory/feed";
 import { syncKidstoryPortfolio, closeKidstoryStock } from "@/lib/suppliers/kidstory/sync";
 import { invalidateProductCaches } from "@/lib/cache-smart-invalidation";
 import { BORIBON_SYNC_MODE } from "@/lib/suppliers/boribon/feed";
-import { syncBoribonPortfolio, closeBoribonStock } from "@/lib/suppliers/boribon/sync";
+import { syncBoribonPortfolio } from "@/lib/suppliers/boribon/sync";
 import {
   SupplierFeed,
   SupplierFeedType,
@@ -201,7 +201,7 @@ export async function runSupplierFeedSync(
         items = items.filter(item => !blockSet.has(item.supplierSku));
       }
 
-      const { imported, updated, failed } = curatedBoribon
+      const result = curatedBoribon
         ? await syncBoribonPortfolio(db, feed)
         : curatedKidstory ? await syncKidstoryPortfolio(db, feed) : await upsertProducts(feed, items, {
         requiredFields,
@@ -209,6 +209,9 @@ export async function runSupplierFeedSync(
         allowSet,
         autoCreateProducts,
       });
+
+      const { imported, updated, failed } = result;
+      const partialError = (result as { error?: string | null }).error;
 
       await db.supplierSyncJob.update({
         where: { id: job.id },
@@ -218,6 +221,8 @@ export async function runSupplierFeedSync(
           imported,
           updated,
           failed,
+          // Capture partial failure summary when failed > 0
+          error: failed > 0 && partialError ? `Partial sync: ${partialError}` : null,
         },
       });
 
@@ -226,7 +231,8 @@ export async function runSupplierFeedSync(
         data: {
           lastSyncAt: new Date(),
           lastSyncStatus: SupplierSyncStatus.SUCCESS,
-          lastError: null,
+          // Capture partial failure summary for visibility
+          lastError: failed > 0 && partialError ? `Partial: ${partialError}` : null,
         },
       });
 
@@ -237,13 +243,15 @@ export async function runSupplierFeedSync(
         imported,
         updated,
         failed,
+        // Include error summary in results for caller visibility
+        error: failed > 0 && partialError ? `Partial: ${partialError}` : null,
       });
       shouldRecomputeBundlePricing = true;
     } catch (error) {
-      if (curatedBoribon) {
-        await closeBoribonStock(db);
-        await invalidateProductCaches({ reason: "Boribon sync failed: stock closed" });
-      }
+      // REMOVED: automatic closeBoribonStock call (2026-10-01 fix)
+      // Per owner requirements: sync failures should keep last known good stock,
+      // not zero everything. Individual item failures are now handled gracefully
+      // within syncBoribonPortfolio itself.
       if (curatedKidstory) {
         await closeKidstoryStock(db);
         await invalidateProductCaches({ reason: "Kidstory sync failed: availability closed" });

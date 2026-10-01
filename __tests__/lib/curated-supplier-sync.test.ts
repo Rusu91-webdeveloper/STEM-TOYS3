@@ -75,7 +75,9 @@ it("still refreshes Kidstory when Boribon fails", async () => {
   boribon.syncBoribonPortfolio.mockRejectedValueOnce(new Error("HTTP 503"));
   const result = await runSupplierFeedSync();
   expect(result.map(p => p.status)).toEqual(["FAILED", "SUCCESS"]);
-  expect(boribon.closeBoribonStock).toHaveBeenCalled();
+  // CHANGED (2026-10-01): closeBoribonStock is no longer called automatically
+  // Individual item failures are now handled gracefully within syncBoribonPortfolio
+  expect(boribon.closeBoribonStock).not.toHaveBeenCalled();
   expect(kidstory.syncKidstoryPortfolio).toHaveBeenCalled();
 });
 it("closes Kidstory availability on a failed refresh", async () => {
