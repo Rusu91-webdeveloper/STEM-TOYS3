@@ -1,7 +1,8 @@
 "use client";
 
 import Script from "next/script";
-import { GA4_CONFIG } from "@/lib/analytics/ga4";
+
+import { flushGA4Events, GA4_CONFIG } from "@/lib/analytics/ga4";
 
 interface GoogleAnalyticsProps {
   measurementId?: string;
@@ -24,6 +25,7 @@ export default function GoogleAnalytics({
       <Script
         id="google-analytics"
         strategy="lazyOnload"
+        onReady={flushGA4Events}
         dangerouslySetInnerHTML={{
           __html: `
             window.dataLayer = window.dataLayer || [];

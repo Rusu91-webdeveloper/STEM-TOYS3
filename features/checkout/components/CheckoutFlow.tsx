@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef } from "react";
 
 import { toast } from "@/components/ui/use-toast";
 import { useCart } from "@/features/cart/context/CartContext";
+import { trackEvent, GA4_CONFIG } from "@/lib/analytics/ga4";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation } from "@/lib/i18n";
 import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
@@ -56,6 +57,30 @@ export function CheckoutFlow() {
   } | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
+  const checkoutTracked = useRef(false);
+
+  useEffect(() => {
+    if (status === "loading" || !cartItems.length || checkoutTracked.current)
+      return;
+    try {
+      if (sessionStorage.getItem("orderCompleted") === "true") return;
+    } catch {
+      // Analytics must remain optional when browser storage is restricted.
+    }
+    checkoutTracked.current = trackEvent(GA4_CONFIG.EVENTS.BEGIN_CHECKOUT, {
+      currency: "RON",
+      value: cartItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      ),
+      items: cartItems.map(item => ({
+        item_id: item.productId,
+        item_name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+    });
+  }, [status, cartItems]);
 
   const computeShippingCost = () => {
     if (!hasPhysicalItems) {
@@ -376,9 +401,7 @@ export function CheckoutFlow() {
           customerData: {
             name: orderData.billingAddress.fullName,
             email:
-              session?.user?.email ||
-              checkoutData.shippingAddress?.email ||
-              "",
+              session?.user?.email || checkoutData.shippingAddress?.email || "",
             phone: orderData.billingAddress.phone,
           },
           paymentMethod: checkoutData.paymentMethod,

@@ -151,10 +151,10 @@ jest.mock("@/lib/db", () => ({
 }));
 
 const { auth } = require("@/lib/auth");
-const { validateCsrfForRequest } = require("@/lib/csrf");
 const {
   resolveCheckoutPricing,
 } = require("@/lib/checkout/authoritative-pricing");
+const { validateCsrfForRequest } = require("@/lib/csrf");
 const { db } = require("@/lib/db");
 
 describe("POST /api/checkout/order integrity", () => {
@@ -186,6 +186,10 @@ describe("POST /api/checkout/order integrity", () => {
         {
           id: "item_1",
           bookId: "book_1",
+          productId: null,
+          name: "Server Book",
+          price: 99,
+          quantity: 1,
           isDigital: true,
         },
       ],
@@ -301,6 +305,19 @@ describe("POST /api/checkout/order integrity", () => {
 
     expect(response.status).toBe(200);
     expect(payload.success).toBe(true);
+    expect(payload.analytics).toMatchObject({
+      transaction_id: "ord_1",
+      value: 99,
+      payment_status: "PENDING",
+      payment_method: "netopia",
+      items: [
+        { item_id: "book_1", item_name: "Server Book", price: 99, quantity: 1 },
+      ],
+    });
+    expect(JSON.stringify(payload.analytics)).not.toContain(
+      "buyer@example.com"
+    );
+    expect(JSON.stringify(payload.analytics)).not.toContain("Forged Name");
     expect(txOrderCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({

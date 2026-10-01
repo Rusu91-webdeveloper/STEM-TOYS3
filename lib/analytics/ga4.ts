@@ -3,6 +3,8 @@
  * Optimized for e-commerce and multilingual content
  */
 
+import { hasAnalyticsConsent } from "./consent";
+
 export const GA4_CONFIG = {
   // Replace with your actual GA4 Measurement ID
   MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || "G-XXXXXXXXXX",
@@ -47,16 +49,47 @@ export const GA4_CONFIG = {
   },
 };
 
+const pendingEvents: Array<{ name: string; parameters: Record<string, any> }> =
+  [];
+
+/** Flush first-paint events after the deferred Google tag has initialized. */
+export function flushGA4Events() {
+  if (typeof window === "undefined") return;
+  if (!hasAnalyticsConsent()) {
+    pendingEvents.length = 0;
+    return;
+  }
+  if (typeof window.gtag !== "function") return;
+  for (const event of pendingEvents.splice(0)) {
+    try {
+      window.gtag("event", event.name, event.parameters);
+    } catch {
+      // A blocked or broken third-party tag must not interrupt the shopper.
+    }
+  }
+}
+
 // GA4 Event tracking functions
 export const trackEvent = (
   eventName: string,
   parameters: Record<string, any> = {}
 ) => {
-  if (typeof window !== "undefined" && window.gtag) {
-    window.gtag("event", eventName, {
-      ...parameters,
-      custom_map: GA4_CONFIG.CUSTOM_DIMENSIONS,
-    });
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) return false;
+  const payload = {
+    ...parameters,
+    custom_map: GA4_CONFIG.CUSTOM_DIMENSIONS,
+  };
+  try {
+    if (typeof window.gtag === "function") {
+      flushGA4Events();
+      window.gtag("event", eventName, payload);
+    } else {
+      if (pendingEvents.length >= 50) return false;
+      pendingEvents.push({ name: eventName, parameters: payload });
+    }
+    return true;
+  } catch {
+    return false;
   }
 };
 
@@ -78,7 +111,7 @@ export const trackProductView = (product: {
       {
         item_id: product.item_id,
         item_name: product.item_name,
-        category: product.category,
+        item_category: product.category,
         price: product.price,
         quantity: 1,
         custom_parameters: {
@@ -100,6 +133,7 @@ export const trackAddToCart = (product: {
   currency: string;
   language?: string;
 }) => {
+  if (!Number.isFinite(product.quantity) || product.quantity <= 0) return;
   trackEvent(GA4_CONFIG.EVENTS.ADD_TO_CART, {
     currency: product.currency || GA4_CONFIG.ECOMMERCE.CURRENCY,
     value: product.price * product.quantity,
@@ -107,7 +141,7 @@ export const trackAddToCart = (product: {
       {
         item_id: product.item_id,
         item_name: product.item_name,
-        category: product.category,
+        item_category: product.category,
         price: product.price,
         quantity: product.quantity,
         custom_parameters: {
@@ -170,7 +204,7 @@ export const trackSearch = (
   trackEvent(GA4_CONFIG.EVENTS.SEARCH, {
     search_term: searchTerm,
     results_count: resultsCount,
-    language: language,
+    language,
   });
 };
 

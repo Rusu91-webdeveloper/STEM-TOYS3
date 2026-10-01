@@ -2,6 +2,8 @@
  * API functions for interacting with the checkout backend
  */
 
+import { trackAcceptedOrder } from "@/lib/analytics/checkout-events";
+
 import { CheckoutError, ERROR_CODES } from "./errorHandling";
 
 type CheckoutOrderApiError = {
@@ -211,7 +213,9 @@ export async function createOrder(orderData: any) {
       );
     }
 
-    return await response.json();
+    const result = await response.json();
+    if (result.success === true) trackAcceptedOrder(result.analytics);
+    return result;
   } catch (error) {
     console.error("Error creating order:", error);
     throw error;

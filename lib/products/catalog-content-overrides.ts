@@ -1,5 +1,10 @@
-import { ROCKET_SLUG } from "./merchandising";
 import type { Product } from "@/types/product";
+
+import { ROCKET_SLUG } from "./merchandising";
+import {
+  buyingGuideDescription,
+  getProductBuyingGuide,
+} from "./product-buying-guides";
 
 export const GLOVE_SLUG = "kit-stem-manusa-robotica-genius-toy-G_7080";
 
@@ -37,6 +42,14 @@ const PRODUCT_CONTENT_OVERRIDES: Record<string, ProductContentOverride> = {
 export function getProductContentOverride(
   slug: string
 ): ProductContentOverride | null {
+  const guide = getProductBuyingGuide(slug);
+  if (guide) {
+    return {
+      brand: guide.brand,
+      manufacturerAge: guide.age,
+      description: buyingGuideDescription(guide),
+    };
+  }
   return PRODUCT_CONTENT_OVERRIDES[slug] ?? null;
 }
 
