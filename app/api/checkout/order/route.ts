@@ -2211,16 +2211,14 @@ export async function POST(request: Request) {
           }
 
           // Send admin notification
-          if (shouldSendImmediateAdminOrderNotification(dbOrder || {})) {
-            const adminResult = await sendAdminNewOrderNotification(
-              dbOrder?.id || orderId
+          const adminResult = await sendAdminNewOrderNotification(
+            dbOrder?.id || orderId
+          );
+          if (!adminResult.success) {
+            console.error(
+              `❌ Failed to send admin notification for order ${orderNumberForEmail}:`,
+              adminResult.error
             );
-            if (!adminResult.success) {
-              console.error(
-                `❌ Failed to send admin notification for order ${orderNumberForEmail}:`,
-                adminResult.error
-              );
-            }
           }
         }
       }
