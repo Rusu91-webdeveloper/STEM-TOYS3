@@ -552,15 +552,24 @@ async function handleFailedPayment(paymentIntent: Stripe.PaymentIntent) {
     // Notify customer about failed payment if we have their email
     if (userEmail) {
       try {
-        const { DatabaseTemplateService } = await import(
-          "@/lib/email/database-template-service"
+        const { generatePaymentFailedEmail } = await import(
+          "@/lib/email/payment-and-refund-emails"
         );
+        const { sendEmailViaUnifiedSystem } = await import("@/lib/nodemailer");
 
-        await DatabaseTemplateService.sendEmail(
-          userEmail,
-          "Payment Failed",
-          `Your payment for order ${order.id} has failed. Please try again or contact support.`
-        );
+        const html = await generatePaymentFailedEmail({
+          customerName: order.user?.name || "Client",
+          customerEmail: userEmail,
+          orderNumber: order.orderNumber,
+          amount: order.total,
+          failureReason: "Plata nu a putut fi procesată. Te rugăm să verifici datele cardului și să încerci din nou.",
+        });
+
+        await sendEmailViaUnifiedSystem({
+          to: userEmail,
+          subject: `⚠️ Plată eșuată - Comanda #${order.orderNumber}`,
+          html,
+        });
       } catch (emailError) {
         console.error(
           `Failed to send payment failure email to ${userEmail}:`,
@@ -637,39 +646,51 @@ async function handleRefund(charge: Stripe.Charge) {
     });
 
     if (order) {
+      // Update order status to refunded
       await db.order.update({
         where: { id: order.id },
         data: {
           paymentStatus: "REFUNDED",
+          status: "CANCELLED",
         },
       });
 
       console.log(`Order ${order.id} marked as refunded`);
 
-      // Optionally send refund confirmation email
-      if (order.userId) {
-        const user = await db.user.findUnique({
-          where: { id: order.userId },
-          select: { email: true },
-        });
+      // Send refund confirmation email if we have user email
+      const user = await db.user.findUnique({
+        where: { id: order.userId },
+        select: { email: true, name: true },
+      });
 
-        if (user?.email) {
-          try {
-            const { DatabaseTemplateService } = await import(
-              "@/lib/email/database-template-service"
-            );
+      if (user?.email) {
+        try {
+          const { generateRefundEmail } = await import(
+            "@/lib/email/payment-and-refund-emails"
+          );
+          const { sendEmailViaUnifiedSystem } = await import("@/lib/nodemailer");
 
-            await DatabaseTemplateService.sendEmail(
-              user.email,
-              "Refund Processed",
-              `Your refund for order ${order.orderNumber} has been processed.`
-            );
-          } catch (emailError) {
-            console.error(
-              `Failed to send refund email to ${user.email}:`,
-              emailError
-            );
-          }
+          const refundAmount = charge.amount_refunded / 100; // Convert from cents
+
+          const html = await generateRefundEmail({
+            customerName: user.name || "Client",
+            customerEmail: user.email,
+            orderNumber: order.orderNumber,
+            refundAmount,
+            originalPaymentMethod: "Card bancar",
+            estimatedDays: 5,
+          });
+
+          await sendEmailViaUnifiedSystem({
+            to: user.email,
+            subject: `💳 Rambursare procesată - Comanda #${order.orderNumber}`,
+            html,
+          });
+        } catch (emailError) {
+          console.error(
+            `Failed to send refund email to ${user.email}:`,
+            emailError
+          );
         }
       }
     } else {
