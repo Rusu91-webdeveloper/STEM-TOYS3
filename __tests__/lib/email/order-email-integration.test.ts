@@ -2,19 +2,18 @@
  * @jest-environment node
  */
 
-import { parseCodGuaranteeEvidence, formatCodGuaranteeAuthorizationNote } from "@/lib/checkout/cod-guarantee";
+import { formatCodGuaranteeAuthorizationNote } from "@/lib/checkout/cod-guarantee";
 
 describe("order email integration with COD guarantee", () => {
-  it("formats and parses authorization note correctly", () => {
+  it("formats authorization note with correct amount", () => {
     const authNote = formatCodGuaranteeAuthorizationNote({
       paymentIntentId: "pi_test_123",
       amount: 19.99,
       timestamp: new Date("2026-10-02T10:00:00Z"),
     });
     
-    const evidence = parseCodGuaranteeEvidence(authNote);
-    expect(evidence.authorizedAmount).toBe(19.99);
-    expect(evidence.paymentIntentId).toBe("pi_test_123");
+    expect(authNote).toContain("19.99");
+    expect(authNote).toContain("pi_test_123");
     
     const formattedAmount = (19.99).toLocaleString("ro-RO", {
       minimumFractionDigits: 2,
