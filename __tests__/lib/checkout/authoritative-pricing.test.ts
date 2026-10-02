@@ -192,8 +192,8 @@ describe("COD guarantee admin-driven pricing", () => {
       mode: "standard",
     });
     calculateShippingQuote.mockReturnValue({
-      basePrice: 19.99,
-      totalPrice: 19.99,
+      basePrice: 25,
+      totalPrice: 25,
       pricingVersion: "v1",
     });
   });
@@ -490,5 +490,81 @@ describe("COD guarantee admin-driven pricing", () => {
 
     expect(pricing.codGuaranteeAmount).toBe(0);
     expect(pricing.codGuaranteeConfigError).toBe(false);
+  });
+
+  it("uses deliveryPrice when priceOverride is 0", async () => {
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "19.99", active: true },
+      freeThreshold: { price: "500", active: true },
+      couriers: [
+        {
+          id: "fancourier",
+          name: "FAN Courier",
+          enabled: true,
+          services: [
+            {
+              id: "standard",
+              name: "Standard",
+              enabled: true,
+              priceOverride: 0,
+            },
+          ],
+        },
+      ],
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "product_1",
+          quantity: 1,
+          isBook: false,
+        },
+      ],
+      shippingMethodId: "fancourier:standard",
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.codGuaranteeAmount).toBe(19.99);
+    expect(pricing.codGuaranteeConfigError).toBe(false);
+  });
+
+  it("sets config error when shipping settings come from defaults", async () => {
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "15.00", active: true },
+      freeThreshold: { price: "199.00", active: true },
+      couriers: [
+        {
+          id: "fancourier",
+          name: "FAN Courier",
+          enabled: true,
+          services: [
+            {
+              id: "standard",
+              name: "Standard",
+              enabled: true,
+            },
+          ],
+        },
+      ],
+      __source: "default",
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "product_1",
+          quantity: 1,
+          isBook: false,
+        },
+      ],
+      shippingMethodId: "fancourier:standard",
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.codGuaranteeAmount).toBe(null);
+    expect(pricing.codGuaranteeConfigError).toBe(true);
   });
 });

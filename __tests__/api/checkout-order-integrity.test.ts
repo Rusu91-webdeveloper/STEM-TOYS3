@@ -1303,5 +1303,62 @@ describe("POST /api/checkout/order integrity", () => {
         providedAmount: 25.0,
       });
     });
+
+    it("blocks COD order when guarantee required and price missing", async () => {
+      const policy = require("@/lib/checkout/cod-guarantee-policy");
+      policy.evaluateCodGuaranteePolicy.mockImplementation(() => ({
+        required: true,
+        reasons: ["high_order_value"],
+        mode: "risk_based",
+        thresholds: {
+          highOrderValue: 500,
+          newCustomerMinTotal: 200,
+          b2bMinTotal: 700,
+          codRtoCount: 1,
+        },
+      }));
+
+      resolveCheckoutPricing.mockResolvedValue({
+        ...price(520),
+        codGuaranteeAmount: null,
+        codGuaranteeConfigError: true,
+      });
+
+      const response = await POST(guestCodRequest(520));
+      const payload = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(payload.success).toBe(false);
+      expect(payload.error).toBe("COD_GUARANTEE_PRICE_NOT_CONFIGURED");
+      expect(payload.message).toContain("Momentan nu putem autoriza garanția");
+    });
+
+    it("allows COD order without guarantee despite config error", async () => {
+      const policy = require("@/lib/checkout/cod-guarantee-policy");
+      policy.evaluateCodGuaranteePolicy.mockImplementation(() => ({
+        required: false,
+        reasons: [],
+        mode: "risk_based",
+        thresholds: {
+          highOrderValue: 500,
+          newCustomerMinTotal: 200,
+          b2bMinTotal: 700,
+          codRtoCount: 1,
+        },
+      }));
+
+      resolveCheckoutPricing.mockResolvedValue({
+        ...price(150),
+        codGuaranteeAmount: null,
+        codGuaranteeConfigError: true,
+      });
+
+      const response = await POST(guestCodRequest(150));
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.success).toBe(true);
+      expect(txOrderCreate).toHaveBeenCalled();
+    });
   });
 });
