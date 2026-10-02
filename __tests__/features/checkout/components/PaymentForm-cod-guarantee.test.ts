@@ -1,5 +1,3 @@
-import { describe, it, expect } from "@jest/globals";
-
 /**
  * Pure function extracted from PaymentForm's codGuaranteeAmount useMemo.
  * Calculates the COD guarantee amount based on shipping method.

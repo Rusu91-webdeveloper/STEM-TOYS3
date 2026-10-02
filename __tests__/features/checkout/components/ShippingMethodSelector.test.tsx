@@ -1,5 +1,3 @@
-import { describe, it, expect } from "@jest/globals";
-
 /**
  * Pure function extracted from ShippingMethodSelector for testing.
  * Maps quote response methods to ShippingMethod objects.
