@@ -16,6 +16,11 @@ jest.mock("@/lib/db", () => ({
   },
 }));
 
+jest.mock("@/lib/shipping/shipping-pricing", () => ({
+  resolveShippingService: jest.fn(),
+  calculateShippingQuote: jest.fn(),
+}));
+
 jest.mock("@/lib/utils/store-settings", () => ({
   getCODSettings: jest.fn(),
   getShippingSettings: jest.fn(),
@@ -30,11 +35,6 @@ jest.mock("@/lib/services/discount-service", () => ({
   },
 }));
 
-jest.mock("@/lib/shipping/shipping-pricing", () => ({
-  resolveShippingService: jest.fn(),
-  calculateShippingQuote: jest.fn(),
-}));
-
 import {
   deriveInitialPaymentStatus,
   resolveCheckoutPricing,
@@ -42,15 +42,15 @@ import {
 
 const { db } = require("@/lib/db");
 const {
+  resolveShippingService,
+  calculateShippingQuote,
+} = require("@/lib/shipping/shipping-pricing");
+const {
   getCODSettings,
   getShippingSettings,
   getTaxSettings,
   getStoreSettings,
 } = require("@/lib/utils/store-settings");
-const {
-  resolveShippingService,
-  calculateShippingQuote,
-} = require("@/lib/shipping/shipping-pricing");
 
 describe("deriveInitialPaymentStatus", () => {
   beforeEach(() => {
