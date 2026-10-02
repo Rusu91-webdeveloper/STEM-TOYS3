@@ -27,120 +27,116 @@ export function formatRON(amount: number): string {
  */
 export function generateEmailHeader(title: string): string {
   return `
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);">
-      <tr>
-        <td align="center" style="padding: 40px 20px;">
-          <table width="600" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              <td align="center">
-                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                  ${title}
-                </h1>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
+    <tr>
+      <td align="center" style="padding: 40px 20px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);" class="mobile-padding">
+        <table role="presentation" class="inner-table" cellpadding="0" cellspacing="0" border="0" style="max-width: 560px; width: 100%;">
+          <tr>
+            <td align="center">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                ${title}
+              </h1>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
   `;
 }
 
 /**
  * Generate branded email footer with contact info, legal details, and links
  */
-export async function generateEmailFooter(): Promise<string> {
-  const config = await getAppConfig();
+export function generateEmailFooter(): string {
+  const config = getAppConfig();
   
   return `
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border-top: 1px solid #e5e7eb;">
-      <tr>
-        <td align="center" style="padding: 40px 20px;">
-          <table width="600" cellpadding="0" cellspacing="0" border="0">
-            <!-- Contact Information -->
-            <tr>
-              <td style="padding-bottom: 20px;">
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td align="center">
-                      <p style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        Contact
-                      </p>
-                      <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        📞 ${COMPANY_LEGAL.phone}
-                      </p>
-                      <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        📧 <a href="mailto:${COMPANY_LEGAL.email}" style="color: #3b82f6; text-decoration: none;">${COMPANY_LEGAL.email}</a>
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            
-            <!-- Legal Information -->
-            <tr>
-              <td style="padding-bottom: 20px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td align="center">
-                      <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        <strong>${COMPANY_LEGAL.name}</strong>
-                      </p>
-                      <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        CUI: ${COMPANY_LEGAL.cui} | Reg. Com.: ${COMPANY_LEGAL.regCom}
-                      </p>
-                      <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        ${COMPANY_LEGAL.address}
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            
-            <!-- Consumer Rights -->
-            <tr>
-              <td style="padding-bottom: 20px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td align="center">
-                      <p style="margin: 0 0 8px 0; color: #1f2937; font-size: 14px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        🛡️ Drepturile tale
-                      </p>
-                      <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        Ai dreptul de a returna produsele în termen de <strong>${CONSUMER_RIGHTS.withdrawalDays} zile</strong> de la primire, conform OUG 34/2014.
-                      </p>
-                      <p style="margin: 0; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        <a href="${CONSUMER_RIGHTS.policyUrl}" style="color: #3b82f6; text-decoration: none;">Politica de returnări</a>
-                        <span style="color: #d1d5db; margin: 0 8px;">|</span>
-                        <a href="${CONSUMER_RIGHTS.termsUrl}" style="color: #3b82f6; text-decoration: none;">Termeni și condiții</a>
-                        <span style="color: #d1d5db; margin: 0 8px;">|</span>
-                        <a href="${CONSUMER_RIGHTS.privacyUrl}" style="color: #3b82f6; text-decoration: none;">Confidențialitate</a>
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            
-            <!-- Branding -->
-            <tr>
-              <td style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td align="center">
-                      <p style="margin: 0; color: #9ca3af; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        <strong>${config.storeName}</strong> - Jucării STEM pentru Minți Curioase
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
+    <tr>
+      <td align="center" style="padding: 40px 20px; background-color: #f8fafc; border-top: 1px solid #e5e7eb;" class="mobile-padding">
+        <table role="presentation" class="inner-table" cellpadding="0" cellspacing="0" border="0" style="max-width: 560px; width: 100%;">
+          <!-- Contact Information -->
+          <tr>
+            <td style="padding-bottom: 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      Contact
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      📞 ${COMPANY_LEGAL.phone}
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      📧 <a href="mailto:${COMPANY_LEGAL.email}" style="color: #3b82f6; text-decoration: none;">${COMPANY_LEGAL.email}</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Legal Information -->
+          <tr>
+            <td style="padding-bottom: 20px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      <strong>${COMPANY_LEGAL.name}</strong>
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      CUI: ${COMPANY_LEGAL.cui} | Reg. Com.: ${COMPANY_LEGAL.regCom}
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      ${COMPANY_LEGAL.address}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Consumer Rights -->
+          <tr>
+            <td style="padding-bottom: 20px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0 0 8px 0; color: #1f2937; font-size: 14px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      🛡️ Drepturile tale
+                    </p>
+                    <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      Ai dreptul de a returna produsele în termen de <strong>${CONSUMER_RIGHTS.withdrawalDays} zile</strong> de la primire, conform OUG 34/2014.
+                    </p>
+                    <p style="margin: 0; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      <a href="${CONSUMER_RIGHTS.policyUrl}" style="color: #3b82f6; text-decoration: none;">Politica de returnări</a>
+                      <span style="color: #d1d5db; margin: 0 8px;">|</span>
+                      <a href="${CONSUMER_RIGHTS.termsUrl}" style="color: #3b82f6; text-decoration: none;">Termeni și condiții</a>
+                      <span style="color: #d1d5db; margin: 0 8px;">|</span>
+                      <a href="${CONSUMER_RIGHTS.privacyUrl}" style="color: #3b82f6; text-decoration: none;">Confidențialitate</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Branding -->
+          <tr>
+            <td style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0; color: #9ca3af; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      <strong>${config.storeName}</strong> - Jucării STEM pentru Minți Curioase
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
   `;
 }
 
