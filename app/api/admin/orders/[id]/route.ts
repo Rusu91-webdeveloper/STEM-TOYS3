@@ -427,23 +427,21 @@ export async function PATCH(
       const customerName = updatedOrder.user?.name || "Client";
       if (userEmail) {
         if (status === "SHIPPED") {
-          // You may want to fetch real tracking info from the order if available
-          const trackingNumber = "N/A"; // Replace with real tracking number if available
-          const estimatedDelivery = new Date(
-            Date.now() + 3 * 24 * 60 * 60 * 1000
-          ).toLocaleDateString("ro-RO");
-          const courierName = "Curier";
-          const { sendShippingNotificationEmail } = await import(
-            "@/lib/email/order-templates"
+          // Use improved shipped email with real tracking info
+          const { sendShippedEmailImproved } = await import(
+            "@/lib/email/order-email-integration"
           );
-          await sendShippingNotificationEmail({
-            to: userEmail,
-            customerName,
-            orderId: updatedOrder.orderNumber,
-            trackingNumber,
-            estimatedDelivery,
-            courierName,
-          });
+          const shippedResult = await sendShippedEmailImproved(
+            updatedOrder.id,
+            updatedOrder.trackingNumber || undefined,
+            updatedOrder.carrier || undefined
+          );
+          if (!shippedResult.success && !shippedResult.skipped) {
+            console.error(
+              `❌ Failed to send shipped email for order ${updatedOrder.orderNumber}:`,
+              shippedResult.error
+            );
+          }
         } else if (status === "DELIVERED") {
           const { sendOrderDeliveredEmail } = await import(
             "@/lib/email/order-templates"

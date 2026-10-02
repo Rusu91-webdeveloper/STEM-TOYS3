@@ -1,0 +1,283 @@
+/**
+ * Shared branded email layout for TechTots
+ * Professional, mobile-responsive table-based layout with Romanian branding
+ */
+
+import { getAppConfig } from "@/lib/config/app-config";
+import { COMPANY_LEGAL, CONSUMER_RIGHTS } from "@/lib/config/company-legal";
+
+export interface EmailLayoutOptions {
+  preheaderText?: string;
+  headerTitle?: string;
+  footerNote?: string;
+}
+
+/**
+ * Format currency in Romanian format (comma decimal, space thousands)
+ */
+export function formatRON(amount: number): string {
+  return new Intl.NumberFormat("ro-RO", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount) + " RON";
+}
+
+/**
+ * Generate branded email header with logo and styling
+ */
+export function generateEmailHeader(title: string): string {
+  return `
+    <tr>
+      <td align="center" style="padding: 40px 20px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);" class="mobile-padding">
+        <table role="presentation" class="inner-table" cellpadding="0" cellspacing="0" border="0" style="max-width: 560px; width: 100%;">
+          <tr>
+            <td align="center">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                ${title}
+              </h1>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  `;
+}
+
+/**
+ * Generate branded email footer with contact info, legal details, and links
+ */
+export function generateEmailFooter(storeName: string): string {
+  return `
+    <tr>
+      <td align="center" style="padding: 40px 20px; background-color: #f8fafc; border-top: 1px solid #e5e7eb;" class="mobile-padding">
+        <table role="presentation" class="inner-table" cellpadding="0" cellspacing="0" border="0" style="max-width: 560px; width: 100%;">
+          <!-- Contact Information -->
+          <tr>
+            <td style="padding-bottom: 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      Contact
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      📞 ${COMPANY_LEGAL.phone}
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      📧 <a href="mailto:${COMPANY_LEGAL.email}" style="color: #3b82f6; text-decoration: none;">${COMPANY_LEGAL.email}</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Legal Information -->
+          <tr>
+            <td style="padding-bottom: 20px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      <strong>${COMPANY_LEGAL.name}</strong>
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      CUI: ${COMPANY_LEGAL.cui} | Reg. Com.: ${COMPANY_LEGAL.regCom}
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      ${COMPANY_LEGAL.address}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Consumer Rights -->
+          <tr>
+            <td style="padding-bottom: 20px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0 0 8px 0; color: #1f2937; font-size: 14px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      🛡️ Drepturile tale
+                    </p>
+                    <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      Ai dreptul de a returna produsele în termen de <strong>${CONSUMER_RIGHTS.withdrawalDays} zile</strong> de la primire, conform OUG 34/2014.
+                    </p>
+                    <p style="margin: 0; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      <a href="${CONSUMER_RIGHTS.policyUrl}" style="color: #3b82f6; text-decoration: none;">Politica de returnări</a>
+                      <span style="color: #d1d5db; margin: 0 8px;">|</span>
+                      <a href="${CONSUMER_RIGHTS.termsUrl}" style="color: #3b82f6; text-decoration: none;">Termeni și condiții</a>
+                      <span style="color: #d1d5db; margin: 0 8px;">|</span>
+                      <a href="${CONSUMER_RIGHTS.privacyUrl}" style="color: #3b82f6; text-decoration: none;">Confidențialitate</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Branding -->
+          <tr>
+            <td style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0; color: #9ca3af; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      <strong>${storeName}</strong> - Jucării STEM pentru Minți Curioase
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  `;
+}
+
+/**
+ * Wrap content in a complete branded email layout
+ */
+export async function wrapEmailLayout(
+  content: string,
+  options: EmailLayoutOptions = {}
+): Promise<string> {
+  const { preheaderText = "", headerTitle = "TechTots", footerNote } = options;
+  const config = await getAppConfig();
+  const footer = generateEmailFooter(config.storeName);
+
+  return `
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>${headerTitle}</title>
+  <!--[if mso]>
+  <style type="text/css">
+    table { border-collapse: collapse; }
+    .ReadMsgBody { width: 100%; }
+    .ExternalClass { width: 100%; }
+  </style>
+  <![endif]-->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table {
+      border-spacing: 0;
+      border-collapse: collapse;
+    }
+    img {
+      border: 0;
+      display: block;
+      max-width: 100%;
+      height: auto !important;
+    }
+    .mobile-padding {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+    .inner-table {
+      width: 100%;
+      max-width: 560px;
+    }
+    @media only screen and (max-width: 620px) {
+      .mobile-padding {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+      }
+      .email-content {
+        width: 100% !important;
+      }
+      .inner-table {
+        width: 100% !important;
+      }
+      img {
+        width: 100% !important;
+        height: auto !important;
+      }
+      .button-container {
+        width: 100% !important;
+      }
+      .button-link {
+        display: block !important;
+        width: 100% !important;
+      }
+      h1 {
+        font-size: 24px !important;
+      }
+      .item-table {
+        width: 100% !important;
+      }
+    }
+  </style>
+  ${preheaderText ? `
+  <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
+    ${preheaderText}
+  </div>
+  ` : ""}
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc;">
+    <tr>
+      <td align="center" style="padding: 0;">
+        <table width="100%" style="max-width: 600px; background-color: #ffffff;" cellpadding="0" cellspacing="0" border="0" class="email-content">
+          ${generateEmailHeader(headerTitle)}
+          
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 40px 20px;">
+              ${content}
+            </td>
+          </tr>
+          
+          ${footerNote ? `
+          <!-- Footer Note -->
+          <tr>
+            <td style="padding: 0 20px 20px 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fef3c7; border-radius: 8px; border: 1px solid #fcd34d;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0; color: #92400e; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                      <strong>💡 Notă:</strong> ${footerNote}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ` : ""}
+          
+          ${footer}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Generate order tracking link for both guests and logged-in users
+ */
+export function generateOrderTrackingLink(orderNumber: string, email: string): string {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro";
+  return `${siteUrl}/track-order?orderNumber=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`;
+}
+
+/**
+ * Generate FanCourier tracking link
+ */
+export function generateFanCourierTrackingLink(awbNumber: string): string {
+  return `https://www.fancourier.ro/awb-tracking/?tracking=${encodeURIComponent(awbNumber)}`;
+}

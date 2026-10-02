@@ -36,8 +36,9 @@ export async function applyDerivedOrderUpdate(params: {
   notes: string;
   trackingNumber?: string | null;
   carrier?: string | null;
+  source?: SyncSource;
 }) {
-  const { order, nextStatus, reason, notes, trackingNumber, carrier } = params;
+  const { order, nextStatus, reason, notes, trackingNumber, carrier, source = "unknown" } = params;
 
   const updateData: Partial<{
     status: OrderStatus;
@@ -92,6 +93,39 @@ export async function applyDerivedOrderUpdate(params: {
         notes,
       },
     });
+
+    // Send automatic shipped email when order transitions to SHIPPED
+    if (nextStatus === "SHIPPED") {
+      try {
+        const { sendShippedEmailImproved } = await import(
+          "@/lib/email/order-email-integration"
+        );
+        const shippedResult = await sendShippedEmailImproved(
+          order.id,
+          trackingNumber || null,
+          carrier || null
+        );
+        if (!shippedResult.success && !shippedResult.skipped) {
+          console.error(
+            `[ORDER-FULFILLMENT-SYNC] Failed to send shipped email for order ${order.id}:`,
+            shippedResult.error
+          );
+        } else if (shippedResult.skipped) {
+          console.log(
+            `[ORDER-FULFILLMENT-SYNC] Shipped email already sent for order ${order.id}, skipped`
+          );
+        } else {
+          console.log(
+            `[ORDER-FULFILLMENT-SYNC] Automatic shipped email sent for order ${order.id}`
+          );
+        }
+      } catch (emailError) {
+        console.error(
+          `[ORDER-FULFILLMENT-SYNC] Failed to send shipped email for order ${order.id}:`,
+          emailError
+        );
+      }
+    }
 
     if (nextStatus === "DELIVERED" && isCodPaymentMethod(order.paymentMethod)) {
       await releaseCodGuaranteeHoldIfNeeded({
@@ -188,6 +222,7 @@ export async function syncParentOrderFromSupplierOrders(
       notes: `Source=${source}; fulfillment=${summary.displayStatus}; counts=${JSON.stringify(summary.byPhase)}`,
       trackingNumber: only.trackingNumber,
       carrier: only.carrier,
+      source,
     });
     return {
       updated: result.updated,
@@ -201,6 +236,7 @@ export async function syncParentOrderFromSupplierOrders(
       nextStatus,
       reason: "Status updated based on supplier order progress",
       notes: `Source=${source}; fulfillment=${summary.displayStatus}; counts=${JSON.stringify(summary.byPhase)}`,
+      source,
     });
     return {
       updated: result.updated,

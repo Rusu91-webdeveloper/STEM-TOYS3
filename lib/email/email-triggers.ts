@@ -23,9 +23,40 @@ export async function triggerPasswordChangeEmail(
 ) {
   console.log("🔐 Triggering password change email for user:", userId);
 
-  return await emailService.sendAuthenticationEmail("password-change", userId, {
-    data: changeData,
-  });
+  try {
+    // Get user info
+    const { prisma } = await import("@/lib/prisma");
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Generate email HTML
+    const { generatePasswordChangedEmail } = await import("./password-changed-email");
+    const html = await generatePasswordChangedEmail({
+      userName: user.name || user.email,
+      userEmail: user.email,
+      ...changeData,
+    });
+
+    // Send email
+    const { sendEmailViaUnifiedSystem } = await import("@/lib/nodemailer");
+    return await sendEmailViaUnifiedSystem({
+      to: user.email,
+      subject: "🔒 Parola a fost schimbată - TechTots",
+      html,
+    });
+  } catch (error) {
+    console.error("❌ Error sending password change email:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }
 
 export async function triggerNewDeviceLoginEmail(

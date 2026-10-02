@@ -1578,6 +1578,39 @@ export const createFanAwbForOrder = async (
     },
   });
 
+  // Send automatic shipped email to customer
+  if (order.user?.email) {
+    try {
+      const { sendShippedEmailImproved } = await import(
+        "@/lib/email/order-email-integration"
+      );
+      const shippedResult = await sendShippedEmailImproved(
+        order.id,
+        awbNumber,
+        COURIER_NAME
+      );
+      if (!shippedResult.success && !shippedResult.skipped) {
+        console.error(
+          `❌ Failed to send automatic shipped email for order ${order.orderNumber}:`,
+          shippedResult.error
+        );
+      } else if (shippedResult.skipped) {
+        console.log(
+          `✅ Shipped email already sent for order ${order.orderNumber}, skipped`
+        );
+      } else {
+        console.log(
+          `✅ Automatic shipped email sent for order ${order.orderNumber} with AWB ${awbNumber}`
+        );
+      }
+    } catch (emailError) {
+      console.error(
+        `❌ Failed to send automatic shipped email for order ${order.orderNumber}:`,
+        emailError
+      );
+    }
+  }
+
   if (!manualShippingReviewRequired && primarySupplier) {
     const supplierEmail = resolveSupplierEmail(primarySupplier);
     const productDataById = new Map(

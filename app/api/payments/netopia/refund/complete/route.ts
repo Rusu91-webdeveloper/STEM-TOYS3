@@ -168,17 +168,23 @@ export async function POST(request: Request) {
     // Send refund confirmation email to customer
     if (order.user?.email) {
       try {
-        await DatabaseTemplateService.sendEmail(
-          order.user.email,
-          `Refund Processed - Order ${order.orderNumber}`,
-          `Dear ${order.user.name || "Customer"},\n\n` +
-          `Your refund for order ${order.orderNumber} has been processed.\n\n` +
-          `Refund amount: ${(refundedAmount || order.total).toFixed(2)} RON\n\n` +
-          `The refund will be credited to your original payment method within 5-10 business days.\n\n` +
-          `If you have any questions, please contact our support team.\n\n` +
-          `Thank you for your patience.\n\n` +
-          `Best regards,\nThe STEM Toys Team`
-        );
+        const { generateRefundEmail } = await import("@/lib/email/payment-and-refund-emails");
+        const { sendEmailViaUnifiedSystem } = await import("@/lib/nodemailer");
+        
+        const refundEmailHtml = await generateRefundEmail({
+          customerName: order.user.name || "Client",
+          orderNumber: order.orderNumber,
+          refundedAmount: effectiveRefundedAmount,
+          originalTotal: order.total,
+          refundedAt: completedAt,
+        });
+
+        await sendEmailViaUnifiedSystem({
+          to: order.user.email,
+          subject: `💰 Rambursare procesată - Comanda #${order.orderNumber} - TechTots`,
+          html: refundEmailHtml,
+        });
+
         console.log(`Refund confirmation email sent to ${order.user.email}`);
       } catch (emailError) {
         console.error(`Failed to send refund confirmation email:`, emailError);

@@ -264,30 +264,31 @@ async function handleSuccessfulPayment(
     });
 
     if (!hasWebhookTag(orderTags, WEBHOOK_TAGS.adminNewOrderEmailSent)) {
-      const adminResult =
-        await AdminNotificationService.sendNewOrderNotification(order.id);
-      if (!adminResult.success) {
-        throw new Error(
-          adminResult.error ||
-            `Failed to send admin new-order notification for ${order.id}`
-        );
+      try {
+        const { sendAdminNewOrderNotification } = await import("@/lib/email/order-email-integration");
+        const adminResult = await sendAdminNewOrderNotification(order.id);
+        
+        if (adminResult.success && !adminResult.skipped) {
+          await logWebhookEmailDelivery({
+            db,
+            templateSlug: "admin-new-order",
+            to: appConfig.adminEmail,
+            subject: `Admin new order notification: ${order.orderNumber || order.id}`,
+            orderId: order.id,
+            messageId: "sent",
+          });
+
+          orderTags = await addWebhookTag(
+            db,
+            order.id,
+            orderTags,
+            WEBHOOK_TAGS.adminNewOrderEmailSent
+          );
+        }
+      } catch (emailError) {
+        // Log but don't throw - email failure shouldn't fail the webhook
+        console.error(`Admin notification failed for order ${order.id}:`, emailError);
       }
-
-      await logWebhookEmailDelivery({
-        db,
-        templateSlug: "admin-new-order",
-        to: appConfig.adminEmail,
-        subject: `Admin new order notification: ${order.orderNumber || order.id}`,
-        orderId: order.id,
-        messageId: adminResult.messageId,
-      });
-
-      orderTags = await addWebhookTag(
-        db,
-        order.id,
-        orderTags,
-        WEBHOOK_TAGS.adminNewOrderEmailSent
-      );
     }
 
     // Verify payment status was updated before processing digital books
@@ -448,50 +449,29 @@ async function handleSuccessfulPayment(
     if (userEmail || order.user?.email) {
       const recipientEmail = userEmail || order.user?.email;
       if (!hasWebhookTag(orderTags, WEBHOOK_TAGS.orderConfirmationEmailSent)) {
-        const { DatabaseTemplateService } = await import(
-          "@/lib/email/database-template-service"
+        const { sendOrderConfirmationImproved, sendAdminNewOrderNotification } = await import(
+          "@/lib/email/order-email-integration"
         );
 
-        const orderNumberForEmail = order.orderNumber || order.id;
-
-        const sendResult =
-          await DatabaseTemplateService.sendOrderConfirmationEmail(
-            recipientEmail,
-            {
-              customerName:
-                order?.shippingAddress?.fullName ||
-                order?.user?.name ||
-                "Client",
-              orderNumber: String(orderNumberForEmail),
-              orderTotal: order.total,
-              items: (order.items || []).map(item => ({
-                name: item.name,
-                quantity: item.quantity,
-                price: item.price,
-              })),
-              shippingAddress: order.shippingAddress || null,
-              subtotal: order.subtotal,
-              tax: order.tax,
-              shippingCost: order.shippingCost,
-              discountAmount: order.discountAmount ?? 0,
-              codFee: order.codFeeEstimate ?? 0,
-            }
-          );
-
-        if (!sendResult.success) {
+        const confirmResult = await sendOrderConfirmationImproved(order.id);
+        
+        if (!confirmResult.success) {
           throw new Error(
-            sendResult.error ||
+            confirmResult.error ||
               `Failed to send order confirmation email for ${order.id}`
           );
         }
+
+        // Send admin notification
+        await sendAdminNewOrderNotification(order.id);
 
         await logWebhookEmailDelivery({
           db,
           templateSlug: "order-confirmation",
           to: recipientEmail,
-          subject: `Order confirmation: ${orderNumberForEmail}`,
+          subject: `Order confirmation: ${order.orderNumber || order.id}`,
           orderId: order.id,
-          messageId: sendResult.messageId,
+          messageId: undefined,
         });
 
         orderTags = await addWebhookTag(
@@ -502,7 +482,7 @@ async function handleSuccessfulPayment(
         );
 
         console.log(
-          `✅ [STRIPE][WEBHOOK] Order confirmation email sent to ${recipientEmail} for order ${order.id}`
+          `✅ [STRIPE][WEBHOOK] Improved order confirmation email sent to ${recipientEmail} for order ${order.id}`
         );
       }
     }
@@ -525,10 +505,14 @@ async function handleFailedPayment(paymentIntent: Stripe.PaymentIntent) {
     const { db } = await import("@/lib/db");
     const order =
       (orderId
-        ? await db.order.findUnique({ where: { id: orderId } })
+        ? await db.order.findUnique({
+            where: { id: orderId },
+            include: { user: true, shippingAddress: true },
+          })
         : null) ||
       (await db.order.findFirst({
         where: { stripePaymentIntentId: paymentIntentId },
+        include: { user: true, shippingAddress: true },
       }));
 
     if (!order) {
@@ -537,6 +521,9 @@ async function handleFailedPayment(paymentIntent: Stripe.PaymentIntent) {
       );
       return;
     }
+
+    // Store previous payment status to guard against duplicate emails
+    const wasAlreadyFailed = order.paymentStatus === "FAILED";
 
     // Update order status to "payment_failed" in database
     await db.order.update({
@@ -549,18 +536,39 @@ async function handleFailedPayment(paymentIntent: Stripe.PaymentIntent) {
 
     console.log(`Order ${order.id} marked as payment failed`);
 
-    // Notify customer about failed payment if we have their email
-    if (userEmail) {
+    // Send payment failed email once per order (guard against webhook retries)
+    if (userEmail && !wasAlreadyFailed) {
       try {
-        const { DatabaseTemplateService } = await import(
-          "@/lib/email/database-template-service"
+        const { generatePaymentFailedEmail } = await import(
+          "@/lib/email/payment-and-refund-emails"
         );
+        const { sendEmailViaUnifiedSystem } = await import("@/lib/nodemailer");
 
-        await DatabaseTemplateService.sendEmail(
-          userEmail,
-          "Payment Failed",
-          `Your payment for order ${order.id} has failed. Please try again or contact support.`
-        );
+      let failureReason = "Plata nu a fost aprobată de bancă.";
+      if (
+        paymentIntent.last_payment_error?.message?.includes("insufficient")
+      ) {
+        failureReason = "Fonduri insuficiente.";
+      } else if (
+        paymentIntent.last_payment_error?.message?.includes("declined")
+      ) {
+        failureReason = "Plata a fost refuzată de bancă.";
+      }
+
+      const html = await generatePaymentFailedEmail({
+        customerName:
+          order.user?.name || order.shippingAddress?.fullName || "Client",
+        customerEmail: userEmail,
+        orderNumber: order.orderNumber,
+        amount: order.total,
+        failureReason,
+      });
+
+        await sendEmailViaUnifiedSystem({
+          to: userEmail,
+          subject: `⚠️ Plată eșuată - Comanda #${order.orderNumber}`,
+          html,
+        });
       } catch (emailError) {
         console.error(
           `Failed to send payment failure email to ${userEmail}:`,
@@ -637,39 +645,59 @@ async function handleRefund(charge: Stripe.Charge) {
     });
 
     if (order) {
+      // Determine if full or partial refund
+      const refundedAmount = charge.amount_refunded / 100; // Convert from cents
+      const isFullRefund = refundedAmount >= order.total;
+
+      // Update order: set CANCELLED and REFUNDED for full refunds
+      // For partial refunds, keep existing paymentStatus and order status unchanged
       await db.order.update({
         where: { id: order.id },
         data: {
-          paymentStatus: "REFUNDED",
+          ...(isFullRefund
+            ? {
+                paymentStatus: "REFUNDED",
+                status: "CANCELLED",
+              }
+            : {}),
         },
       });
 
-      console.log(`Order ${order.id} marked as refunded`);
+      console.log(`Order ${order.id} ${isFullRefund ? "fully" : "partially"} refunded: ${refundedAmount} RON`);
 
-      // Optionally send refund confirmation email
-      if (order.userId) {
-        const user = await db.user.findUnique({
-          where: { id: order.userId },
-          select: { email: true },
-        });
+      // Send refund confirmation email if we have user email
+      const user = await db.user.findUnique({
+        where: { id: order.userId },
+        select: { email: true, name: true },
+      });
 
-        if (user?.email) {
-          try {
-            const { DatabaseTemplateService } = await import(
-              "@/lib/email/database-template-service"
-            );
+      if (user?.email) {
+        try {
+          const { generateRefundEmail } = await import(
+            "@/lib/email/payment-and-refund-emails"
+          );
+          const { sendEmailViaUnifiedSystem } = await import("@/lib/nodemailer");
 
-            await DatabaseTemplateService.sendEmail(
-              user.email,
-              "Refund Processed",
-              `Your refund for order ${order.orderNumber} has been processed.`
-            );
-          } catch (emailError) {
-            console.error(
-              `Failed to send refund email to ${user.email}:`,
-              emailError
-            );
-          }
+          const refundAmount = charge.amount_refunded / 100; // Convert from cents
+
+          const html = await generateRefundEmail({
+            customerName: user.name || "Client",
+            orderNumber: order.orderNumber,
+            refundedAmount: refundAmount,
+            originalTotal: order.total,
+            refundedAt: new Date(),
+          });
+
+          await sendEmailViaUnifiedSystem({
+            to: user.email,
+            subject: `💳 Rambursare procesată - Comanda #${order.orderNumber}`,
+            html,
+          });
+        } catch (emailError) {
+          console.error(
+            `Failed to send refund email to ${user.email}:`,
+            emailError
+          );
         }
       }
     } else {
