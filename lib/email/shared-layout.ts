@@ -4,6 +4,7 @@
  */
 
 import { getAppConfig } from "@/lib/config/app-config";
+import { COMPANY_LEGAL, CONSUMER_RIGHTS } from "@/lib/config/company-legal";
 
 export interface EmailLayoutOptions {
   preheaderText?: string;
@@ -49,7 +50,6 @@ export function generateEmailHeader(title: string): string {
  */
 export async function generateEmailFooter(): Promise<string> {
   const config = await getAppConfig();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro";
   
   return `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border-top: 1px solid #e5e7eb;">
@@ -66,10 +66,10 @@ export async function generateEmailFooter(): Promise<string> {
                         Contact
                       </p>
                       <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        📞 ${config.storePhoneFormatted}
+                        📞 ${COMPANY_LEGAL.phone}
                       </p>
                       <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        📧 <a href="mailto:${config.contactEmail}" style="color: #3b82f6; text-decoration: none;">${config.contactEmail}</a>
+                        📧 <a href="mailto:${COMPANY_LEGAL.email}" style="color: #3b82f6; text-decoration: none;">${COMPANY_LEGAL.email}</a>
                       </p>
                     </td>
                   </tr>
@@ -84,10 +84,13 @@ export async function generateEmailFooter(): Promise<string> {
                   <tr>
                     <td align="center">
                       <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        <strong>${config.legalName}</strong>
+                        <strong>${COMPANY_LEGAL.name}</strong>
                       </p>
                       <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        ${config.fullAddress}
+                        CUI: ${COMPANY_LEGAL.cui} | Reg. Com.: ${COMPANY_LEGAL.regCom}
+                      </p>
+                      <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                        ${COMPANY_LEGAL.address}
                       </p>
                     </td>
                   </tr>
@@ -105,14 +108,14 @@ export async function generateEmailFooter(): Promise<string> {
                         🛡️ Drepturile tale
                       </p>
                       <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        Ai dreptul de a returna produsele în termen de <strong>14 zile</strong> de la primire, conform OUG 34/2014.
+                        Ai dreptul de a returna produsele în termen de <strong>${CONSUMER_RIGHTS.withdrawalDays} zile</strong> de la primire, conform OUG 34/2014.
                       </p>
                       <p style="margin: 0; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        <a href="${siteUrl}/politica-returnari" style="color: #3b82f6; text-decoration: none;">Politica de returnări</a>
+                        <a href="${CONSUMER_RIGHTS.policyUrl}" style="color: #3b82f6; text-decoration: none;">Politica de returnări</a>
                         <span style="color: #d1d5db; margin: 0 8px;">|</span>
-                        <a href="${siteUrl}/termeni-si-conditii" style="color: #3b82f6; text-decoration: none;">Termeni și condiții</a>
+                        <a href="${CONSUMER_RIGHTS.termsUrl}" style="color: #3b82f6; text-decoration: none;">Termeni și condiții</a>
                         <span style="color: #d1d5db; margin: 0 8px;">|</span>
-                        <a href="${siteUrl}/politica-confidentialitate" style="color: #3b82f6; text-decoration: none;">Confidențialitate</a>
+                        <a href="${CONSUMER_RIGHTS.privacyUrl}" style="color: #3b82f6; text-decoration: none;">Confidențialitate</a>
                       </p>
                     </td>
                   </tr>
