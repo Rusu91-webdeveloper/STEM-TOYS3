@@ -318,7 +318,6 @@ describe("Payment Failed Email", () => {
       orderNumber: "TT-2024-12349",
       amount: 199.0,
       failureReason: "Card declined",
-      retryPaymentLink: "https://techtots.ro/checkout/retry/12349",
     });
 
     expect(html).toContain("Mihai Stancu");
@@ -327,17 +326,16 @@ describe("Payment Failed Email", () => {
     expect(html).toContain("nu a putut fi procesată");
   });
 
-  it("includes retry payment link", async () => {
+  it("does NOT include retry payment link (orders are cancelled)", async () => {
     const html = await generatePaymentFailedEmail({
       customerName: "Test",
       customerEmail: "test@example.com",
       orderNumber: "TT-123",
       amount: 100,
-      retryPaymentLink: "https://techtots.ro/checkout/retry/123",
     });
 
-    expect(html).toContain("https://techtots.ro/checkout/retry/123");
-    expect(html).toContain("Încearcă din nou");
+    expect(html).not.toContain("Încearcă din nou");
+    expect(html).toContain("plasezi o nouă comandă");
   });
 });
 

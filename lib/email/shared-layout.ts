@@ -46,9 +46,7 @@ export function generateEmailHeader(title: string): string {
 /**
  * Generate branded email footer with contact info, legal details, and links
  */
-export function generateEmailFooter(): string {
-  const config = getAppConfig();
-  
+export function generateEmailFooter(storeName: string): string {
   return `
     <tr>
       <td align="center" style="padding: 40px 20px; background-color: #f8fafc; border-top: 1px solid #e5e7eb;" class="mobile-padding">
@@ -127,7 +125,7 @@ export function generateEmailFooter(): string {
                 <tr>
                   <td align="center">
                     <p style="margin: 0; color: #9ca3af; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                      <strong>${config.storeName}</strong> - Jucării STEM pentru Minți Curioase
+                      <strong>${storeName}</strong> - Jucării STEM pentru Minți Curioase
                     </p>
                   </td>
                 </tr>
@@ -148,7 +146,8 @@ export async function wrapEmailLayout(
   options: EmailLayoutOptions = {}
 ): Promise<string> {
   const { preheaderText = "", headerTitle = "TechTots", footerNote } = options;
-  const footer = await generateEmailFooter();
+  const config = await getAppConfig();
+  const footer = generateEmailFooter(config.storeName);
 
   return `
 <!DOCTYPE html>
