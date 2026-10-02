@@ -81,11 +81,8 @@ export function usePricingBreakdown({
       // Use explicitly selected shipping method price (e.g., Sameday Easybox)
       shippingCost = checkoutData.shippingMethod.price;
     } else {
-      // Use payment-method-aware pricing (19.99 online / 24.99 ramburs)
-      const resolved = resolveShippingPrice(
-        checkoutData.paymentMethod || "card",
-        settings?.shippingSettings
-      );
+      // Use admin deliveryPrice as single source of truth
+      const resolved = resolveShippingPrice(settings?.shippingSettings);
       shippingCost = resolved.price;
     }
   }

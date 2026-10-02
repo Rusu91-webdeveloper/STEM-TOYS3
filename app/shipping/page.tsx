@@ -49,12 +49,10 @@ export default async function ShippingPage() {
   // Fetch shipping settings from database
   const shippingSettings = await getShippingSettings();
 
-  // Extract values with fallbacks
-  const onlinePaymentPrice = String(
-    merchantShippingRate(0, shippingSettings) ??
-      shippingSettings.onlinePaymentPrice ??
-      "19.99"
-  );
+  // Extract values - use merchantShippingRate or deliveryPrice as single source of truth
+  const shippingRate = merchantShippingRate(0, shippingSettings) ?? 
+    parseFloat(shippingSettings.deliveryPrice?.price || "0");
+  const onlinePaymentPrice = String(shippingRate || "0");
   const freeThreshold = shippingSettings.freeThreshold?.price || "199";
   const isFreeShippingActive = shippingSettings.freeThreshold?.active !== false;
 
