@@ -123,7 +123,7 @@ export async function generatePaymentFailedEmail(data: PaymentFailedData): Promi
   `;
   
   return await wrapEmailLayout(content, {
-    preheaderText: `Plata pentru comanda #${data.orderNumber} nu a putut fi procesată. Încearcă din nou.`,
+    preheaderText: `Comanda #${data.orderNumber} a fost anulată. Poți plasa o nouă comandă.`,
     headerTitle: "⚠️ Plată eșuată",
   });
 }

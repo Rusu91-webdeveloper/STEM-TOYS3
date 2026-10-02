@@ -8,7 +8,6 @@ import {
   type OrderAnalytics,
 } from "@/lib/analytics/order-payload";
 import { auth } from "@/lib/auth";
-import { shouldSendImmediateAdminOrderNotification } from "@/lib/checkout/admin-order-notifications";
 import {
   CheckoutPricingError,
   deriveInitialPaymentStatus,

@@ -14,6 +14,12 @@ jest.mock("@/lib/csrf", () => ({
   validateCsrfForRequest: jest.fn(),
 }));
 
+jest.mock("@/lib/email/order-email-integration", () => ({
+  sendOrderConfirmationImproved: jest.fn().mockResolvedValue({
+    success: true,
+  }),
+}));
+
 jest.mock("@/lib/checkout/authoritative-pricing", () => ({
   CheckoutPricingError: class CheckoutPricingError extends Error {
     code: string;

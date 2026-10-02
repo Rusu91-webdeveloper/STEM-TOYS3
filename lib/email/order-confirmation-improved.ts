@@ -329,6 +329,5 @@ export async function generateOrderConfirmationEmail(
   return await wrapEmailLayout(content, {
     preheaderText: `Comanda #${data.orderNumber} confirmată! ${data.isCOD ? "Plată la livrare" : "Plată finalizată cu succes"}`,
     headerTitle: "✅ Comanda confirmată!",
-    footerNote: data.isCOD ? "Te vom contacta telefonic pentru confirmarea comenzii înainte de expediere." : undefined,
   });
 }

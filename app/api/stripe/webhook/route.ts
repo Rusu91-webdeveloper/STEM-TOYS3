@@ -540,13 +540,25 @@ async function handleFailedPayment(paymentIntent: Stripe.PaymentIntent) {
         );
         const { sendEmailViaUnifiedSystem } = await import("@/lib/nodemailer");
 
-        const html = await generatePaymentFailedEmail({
-          customerName: order.user?.name || "Client",
-          customerEmail: userEmail,
-          orderNumber: order.orderNumber,
-          amount: order.total,
-          failureReason: "Plata nu a putut fi procesată. Te rugăm să verifici datele cardului și să încerci din nou.",
-        });
+      let failureReason = "Plata nu a fost aprobată de bancă.";
+      if (
+        paymentIntent.last_payment_error?.message?.includes("insufficient")
+      ) {
+        failureReason = "Fonduri insuficiente.";
+      } else if (
+        paymentIntent.last_payment_error?.message?.includes("declined")
+      ) {
+        failureReason = "Plata a fost refuzată de bancă.";
+      }
+
+      const html = await generatePaymentFailedEmail({
+        customerName:
+          order.user?.name || order.shippingAddress?.fullName || "Client",
+        customerEmail: userEmail,
+        orderNumber: order.orderNumber,
+        amount: order.total,
+        failureReason,
+      });
 
         await sendEmailViaUnifiedSystem({
           to: userEmail,
