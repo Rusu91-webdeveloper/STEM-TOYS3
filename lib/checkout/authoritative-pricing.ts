@@ -219,6 +219,7 @@ export async function resolveCheckoutPricing(input: {
   let shippingBasePrice = 0;
   let shippingTotalEstimate = 0;
   let pricingVersion: string | null = null;
+  let selectedAdminShippingPrice: number | null = null;
 
   if (!isDigitalOnlyOrder) {
     const shippingMethodId = input.shippingMethodId || "";
@@ -243,7 +244,6 @@ export async function resolveCheckoutPricing(input: {
       (service: any) => service.id === serviceId && service.enabled !== false
     );
 
-    let selectedAdminShippingPrice: number | null = null;
     const overrideRaw = selectedService?.priceOverride;
     if (
       overrideRaw !== undefined &&

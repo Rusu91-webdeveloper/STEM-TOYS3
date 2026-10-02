@@ -1259,6 +1259,7 @@ describe("POST /api/checkout/order integrity", () => {
     });
 
     it("rejects COD order with mismatched guarantee amount", async () => {
+      const Stripe = require("stripe");
       const policy = require("@/lib/checkout/cod-guarantee-policy");
       policy.evaluateCodGuaranteePolicy.mockImplementation(() => ({
         required: true,

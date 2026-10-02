@@ -20,6 +20,7 @@ jest.mock("@/lib/utils/store-settings", () => ({
   getCODSettings: jest.fn(),
   getShippingSettings: jest.fn(),
   getTaxSettings: jest.fn(),
+  getStoreSettings: jest.fn(),
 }));
 
 jest.mock("@/lib/services/discount-service", () => ({
@@ -27,6 +28,11 @@ jest.mock("@/lib/services/discount-service", () => ({
     getNewUserDiscount: jest.fn(async () => null),
     compareDiscounts: jest.fn(() => null),
   },
+}));
+
+jest.mock("@/lib/shipping/shipping-pricing", () => ({
+  resolveShippingService: jest.fn(),
+  calculateShippingQuote: jest.fn(),
 }));
 
 import {
@@ -39,7 +45,12 @@ const {
   getCODSettings,
   getShippingSettings,
   getTaxSettings,
+  getStoreSettings,
 } = require("@/lib/utils/store-settings");
+const {
+  resolveShippingService,
+  calculateShippingQuote,
+} = require("@/lib/shipping/shipping-pricing");
 
 describe("deriveInitialPaymentStatus", () => {
   beforeEach(() => {
@@ -61,6 +72,9 @@ describe("deriveInitialPaymentStatus", () => {
       rate: "0",
       active: false,
       includeInPrice: true,
+    });
+    getStoreSettings.mockResolvedValue({
+      weightUnit: "kg",
     });
   });
 
@@ -169,6 +183,19 @@ describe("COD guarantee admin-driven pricing", () => {
       active: false,
       includeInPrice: true,
     });
+    getStoreSettings.mockResolvedValue({
+      weightUnit: "kg",
+    });
+    resolveShippingService.mockReturnValue({
+      id: "standard",
+      name: "Standard",
+      mode: "standard",
+    });
+    calculateShippingQuote.mockReturnValue({
+      basePrice: 19.99,
+      totalPrice: 19.99,
+      pricingVersion: "v1",
+    });
   });
 
   it("uses admin deliveryPrice for COD guarantee when free shipping applies", async () => {
@@ -200,7 +227,7 @@ describe("COD guarantee admin-driven pricing", () => {
           isBook: false,
         },
       ],
-      shippingMethodId: "fancourier_standard",
+      shippingMethodId: "fancourier:standard",
       paymentMethod: "cash_on_delivery",
     });
 
@@ -239,7 +266,7 @@ describe("COD guarantee admin-driven pricing", () => {
           isBook: false,
         },
       ],
-      shippingMethodId: "fancourier_standard",
+      shippingMethodId: "fancourier:standard",
       paymentMethod: "cash_on_delivery",
     });
 
@@ -276,7 +303,7 @@ describe("COD guarantee admin-driven pricing", () => {
           isBook: false,
         },
       ],
-      shippingMethodId: "fancourier_standard",
+      shippingMethodId: "fancourier:standard",
       paymentMethod: "cash_on_delivery",
     });
 
@@ -313,7 +340,7 @@ describe("COD guarantee admin-driven pricing", () => {
           isBook: false,
         },
       ],
-      shippingMethodId: "fancourier_standard",
+      shippingMethodId: "fancourier:standard",
       paymentMethod: "cash_on_delivery",
     });
 
@@ -350,7 +377,7 @@ describe("COD guarantee admin-driven pricing", () => {
           isBook: false,
         },
       ],
-      shippingMethodId: "fancourier_standard",
+      shippingMethodId: "fancourier:standard",
       paymentMethod: "cash_on_delivery",
     });
 
@@ -387,7 +414,7 @@ describe("COD guarantee admin-driven pricing", () => {
           isBook: false,
         },
       ],
-      shippingMethodId: "fancourier_standard",
+      shippingMethodId: "fancourier:standard",
       paymentMethod: "cash_on_delivery",
     });
 
@@ -425,7 +452,7 @@ describe("COD guarantee admin-driven pricing", () => {
           isBook: false,
         },
       ],
-      shippingMethodId: "fancourier_standard",
+      shippingMethodId: "fancourier:standard",
       paymentMethod: "cash_on_delivery",
     });
 
