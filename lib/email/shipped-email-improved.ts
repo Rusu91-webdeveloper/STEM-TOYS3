@@ -125,7 +125,7 @@ export async function generateShippedEmail(data: ShippedEmailData): Promise<stri
                   📱 Urmărește-ți coletul
                 </p>
                 <p style="margin: 0; color: #1e40af; font-size: 14px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                  Folosește numărul AWB de mai sus pentru a urmări statusul coletului în timp real pe site-ul ${data.carrier}.
+                  Folosește numărul AWB de mai sus pentru a urmări statusul coletului în timp real pe site-ul ${displayCarrier}.
                 </p>
               </td>
             </tr>
@@ -181,7 +181,7 @@ export async function generateShippedEmail(data: ShippedEmailData): Promise<stri
             <tr>
               <td align="center" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; padding: 16px 32px;">
                 <a href="${trackingLink}" style="color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                  📦 Urmărește pe ${data.carrier}
+                  📦 Urmărește pe ${displayCarrier}
                 </a>
               </td>
             </tr>
