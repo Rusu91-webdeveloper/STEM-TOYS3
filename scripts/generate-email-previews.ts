@@ -1,187 +1,209 @@
 /**
- * Generate Email Preview Artifacts
- * Creates HTML previews for all improved transactional emails at desktop and mobile widths
+ * Generate email preview artifacts with Playwright
+ * Outputs HTML and screenshots to /opt/cursor/artifacts/email-previews/
  */
 
-import { writeFileSync, mkdirSync } from "fs";
-import { join } from "path";
-import { generateOrderConfirmationEmail, type OrderConfirmationData } from "../lib/email/order-confirmation-improved";
-import { generateShippedEmail, type ShippedEmailData } from "../lib/email/shipped-email-improved";
-import { generatePaymentFailedEmail } from "../lib/email/payment-and-refund-emails";
-import { generateRefundEmail } from "../lib/email/payment-and-refund-emails";
+import { chromium } from 'playwright';
+import { generateOrderConfirmationEmail } from '@/lib/email/order-confirmation-improved';
+import { generateShippedEmail } from '@/lib/email/shipped-email-improved';
+import { generatePaymentFailedEmail, generateRefundEmail } from '@/lib/email/payment-and-refund-emails';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
 
-const OUTPUT_DIR = join(process.cwd(), "email-previews");
+const ARTIFACT_DIR = '/opt/cursor/artifacts/email-previews';
 
-// Ensure output directory exists
-try {
-  mkdirSync(OUTPUT_DIR, { recursive: true });
-} catch (err) {
-  // Directory might already exist
+interface EmailScenario {
+  name: string;
+  filename: string;
+  generator: () => Promise<string>;
 }
 
-/**
- * Scenario 1: COD Guest Order
- * 2×89,90 + 1×49,90 = 229,70 subtotal
- * + 15 shipping
- * + 2,45 COD fee (1% of 244,70)
- * = 247,15 total
- */
-async function generateCODGuestOrderPreview() {
-  const data: OrderConfirmationData = {
-    customerName: "Maria Popescu",
-    customerEmail: "guest@example.com",
-    orderNumber: "TT-2024-10001",
-    orderDate: new Date("2024-10-02T10:30:00Z"),
-    paymentMethod: "cash_on_delivery",
-    paymentStatus: "PENDING",
-    items: [
-      { name: "Set STEM Constructor 200 piese", quantity: 2, price: 89.9 },
-      { name: "Microscop digital pentru copii", quantity: 1, price: 49.9 },
-    ],
-    subtotal: 229.7,
-    shippingCost: 15,
-    codFee: 2.45,
-    total: 247.15,
-    shippingAddress: {
-      fullName: "Maria Popescu",
-      addressLine1: "Str. Avram Iancu nr. 15, Ap. 23",
-      city: "Cluj-Napoca",
-      state: "Cluj",
-      postalCode: "400000",
-      country: "România",
-      phone: "+40712345678",
+async function main() {
+  console.log('🚀 Starting email preview generation...\n');
+
+  // Ensure artifact directory exists
+  await mkdir(ARTIFACT_DIR, { recursive: true });
+
+  // Define 6 scenarios
+  const scenarios: EmailScenario[] = [
+    {
+      name: 'COD Guest Order',
+      filename: '01-cod-guest',
+      generator: async () => generateOrderConfirmationEmail({
+        customerName: "Ion Popescu",
+        customerEmail: "ion.popescu@example.com",
+        orderNumber: "TEST-COD-001",
+        orderDate: new Date('2026-10-02'),
+        paymentMethod: "cash_on_delivery",
+        paymentStatus: "PENDING",
+        items: [
+          { name: "Set LEGO Classic 900 piese", quantity: 1, price: 189.99 },
+          { name: "Carte educativă - Explorarea Spațiului", quantity: 2, price: 45.00 },
+        ],
+        subtotal: 279.99,
+        shippingCost: 15.00,
+        codFee: 5.00,
+        total: 299.99,
+        shippingAddress: {
+          fullName: "Ion Popescu",
+          addressLine1: "Str. Moților 12",
+          city: "Cluj-Napoca",
+          postalCode: "400001",
+          country: "România",
+          phone: "+40712345678",
+        },
+        isCOD: true,
+        codAmount: 299.99,
+        hasCardHold: false,
+      }),
     },
-    isCOD: true,
-    codAmount: 247.15,
-    hasCardHold: false,
-  };
-
-  const html = await generateOrderConfirmationEmail(data);
-  const filename = "01-order-confirmation-cod-guest.html";
-  writeFileSync(join(OUTPUT_DIR, filename), html);
-  console.log(`✅ Generated: ${filename}`);
-}
-
-/**
- * Scenario 2: Paid Card Order
- */
-async function generatePaidCardOrderPreview() {
-  const data: OrderConfirmationData = {
-    customerName: "Ion Ionescu",
-    customerEmail: "ion.ionescu@example.com",
-    orderNumber: "TT-2024-10002",
-    orderDate: new Date("2024-10-02T11:15:00Z"),
-    paymentMethod: "card",
-    paymentStatus: "PAID",
-    items: [
-      { name: "Robot programabil mBot", quantity: 1, price: 299.0 },
-      { name: "Kit experimente fizică", quantity: 1, price: 89.9 },
-    ],
-    subtotal: 388.9,
-    shippingCost: 0, // Free shipping for orders over 199 lei
-    total: 388.9,
-    shippingAddress: {
-      fullName: "Ion Ionescu",
-      addressLine1: "Bd. Unirii nr. 45, Bl. A2, Sc. 1, Et. 3, Ap. 12",
-      city: "București",
-      state: "București",
-      postalCode: "030823",
-      country: "România",
-      phone: "+40721234567",
+    {
+      name: 'COD with 25 lei Card Hold',
+      filename: '02-cod-hold',
+      generator: async () => generateOrderConfirmationEmail({
+        customerName: "Maria Ionescu",
+        customerEmail: "maria.ionescu@example.com",
+        orderNumber: "TEST-COD-002",
+        orderDate: new Date('2026-10-02'),
+        paymentMethod: "cash_on_delivery",
+        paymentStatus: "PENDING",
+        items: [
+          { name: "Robot educativ programabil", quantity: 1, price: 329.99 },
+        ],
+        subtotal: 329.99,
+        shippingCost: 15.00,
+        codFee: 5.00,
+        total: 349.99,
+        shippingAddress: {
+          fullName: "Maria Ionescu",
+          addressLine1: "Bd. Eroilor 25",
+          city: "București",
+          postalCode: "050001",
+          country: "România",
+          phone: "+40723456789",
+        },
+        isCOD: true,
+        codAmount: 349.99,
+        hasCardHold: true,
+        cardHoldAmount: 25.00,
+      }),
     },
-    isCOD: false,
-  };
+    {
+      name: 'Card Paid Order',
+      filename: '03-card-paid',
+      generator: async () => generateOrderConfirmationEmail({
+        customerName: "Alex Dumitrescu",
+        customerEmail: "alex.dumitrescu@example.com",
+        orderNumber: "TEST-CARD-001",
+        orderDate: new Date('2026-10-02'),
+        paymentMethod: "stripe_new",
+        paymentStatus: "PAID",
+        items: [
+          { name: "Puzzle educativ 500 piese", quantity: 2, price: 75.00 },
+          { name: "Joc de societate - Catan", quantity: 1, price: 159.99 },
+        ],
+        subtotal: 309.99,
+        shippingCost: 15.00,
+        total: 324.99,
+        shippingAddress: {
+          fullName: "Alex Dumitrescu",
+          addressLine1: "Str. Libertății 8",
+          city: "Timișoara",
+          postalCode: "300001",
+          country: "România",
+          phone: "+40734567890",
+        },
+        isCOD: false,
+      }),
+    },
+    {
+      name: 'Shipped COD Order',
+      filename: '04-shipped-cod',
+      generator: async () => generateShippedEmail({
+        customerName: "Elena Popescu",
+        customerEmail: "elena.popescu@example.com",
+        orderNumber: "TEST-SHIP-001",
+        trackingNumber: "FAN123456789RO",
+        carrier: "FanCourier",
+        shippedDate: new Date('2026-10-02'),
+        estimatedDeliveryDays: 2,
+        isCOD: true,
+        codAmount: 249.99,
+      }),
+    },
+    {
+      name: 'Payment Failed',
+      filename: '05-payment-failed',
+      generator: async () => generatePaymentFailedEmail({
+        customerName: "Cristian Marin",
+        customerEmail: "cristian.marin@example.com",
+        orderNumber: "TEST-FAIL-001",
+        amount: 199.99,
+        failureReason: "Fonduri insuficiente pe card",
+      }),
+    },
+    {
+      name: 'Refund Processed',
+      filename: '06-refund',
+      generator: async () => generateRefundEmail({
+        customerName: "Andreea Stan",
+        orderNumber: "TEST-REF-001",
+        refundedAmount: 299.99,
+        originalTotal: 299.99,
+        refundedAt: new Date('2026-10-02'),
+      }),
+    },
+  ];
 
-  const html = await generateOrderConfirmationEmail(data);
-  const filename = "02-order-confirmation-card-paid.html";
-  writeFileSync(join(OUTPUT_DIR, filename), html);
-  console.log(`✅ Generated: ${filename}`);
-}
+  // Launch browser
+  const browser = await chromium.launch();
+  const context = await browser.newContext();
 
-/**
- * Scenario 3: Shipped with AWB
- */
-async function generateShippedPreview() {
-  const data: ShippedEmailData = {
-    customerName: "Elena Dumitrescu",
-    customerEmail: "elena.dumitrescu@example.com",
-    orderNumber: "TT-2024-10003",
-    trackingNumber: "1234567890123",
-    carrier: "FanCourier",
-    shippedDate: new Date("2024-10-02T09:00:00Z"),
-    estimatedDeliveryDays: 2,
-    isCOD: true,
-    codAmount: 189.5,
-  };
+  // Generate each scenario
+  for (const scenario of scenarios) {
+    console.log(`📧 Generating: ${scenario.name}`);
 
-  const html = await generateShippedEmail(data);
-  const filename = "03-shipped-with-awb-cod.html";
-  writeFileSync(join(OUTPUT_DIR, filename), html);
-  console.log(`✅ Generated: ${filename}`);
-}
+    // Generate HTML
+    const html = await scenario.generator();
+    const htmlPath = join(ARTIFACT_DIR, `${scenario.filename}.html`);
+    await writeFile(htmlPath, html);
+    console.log(`   ✓ HTML saved: ${htmlPath}`);
 
-/**
- * Scenario 4: Payment Failed
- */
-async function generatePaymentFailedPreview() {
-  const html = await generatePaymentFailedEmail({
-    customerName: "Mihai Stancu",
-    orderNumber: "TT-2024-10004",
-    attemptedAmount: 249.0,
-    failureDate: new Date("2024-10-02T12:45:00Z"),
-    failureReason: "Card declined - Insufficient funds",
-    retryPaymentLink: "https://www.techtots.ro/checkout/retry/TT-2024-10004?token=abc123xyz",
-  });
+    // Check for NaN, undefined, or missing CUI/J20
+    if (html.includes('NaN') || html.includes('undefined')) {
+      console.error(`   ❌ ERROR: Contains NaN or undefined!`);
+    }
+    if (!html.includes('CUI:') || !html.includes('J20')) {
+      console.error(`   ❌ ERROR: Missing CUI or J20 line!`);
+    }
 
-  const filename = "04-payment-failed.html";
-  writeFileSync(join(OUTPUT_DIR, filename), html);
-  console.log(`✅ Generated: ${filename}`);
-}
+    // Screenshot at 600px
+    const page600 = await context.newPage();
+    await page600.setViewportSize({ width: 600, height: 1000 });
+    await page600.setContent(html);
+    const screenshot600Path = join(ARTIFACT_DIR, `${scenario.filename}-600px.png`);
+    await page600.screenshot({ path: screenshot600Path, fullPage: true });
+    console.log(`   ✓ Screenshot 600px: ${screenshot600Path}`);
+    await page600.close();
 
-/**
- * Scenario 5: Refund
- */
-async function generateRefundPreview() {
-  const html = await generateRefundEmail({
-    customerName: "Adina Popa",
-    orderNumber: "TT-2024-10005",
-    refundedAmount: 179.9,
-    originalTotal: 179.9,
-    refundedAt: new Date("2024-10-02T14:20:00Z"),
-  });
+    // Screenshot at 390px
+    const page390 = await context.newPage();
+    await page390.setViewportSize({ width: 390, height: 844 });
+    await page390.setContent(html);
+    const screenshot390Path = join(ARTIFACT_DIR, `${scenario.filename}-390px.png`);
+    await page390.screenshot({ path: screenshot390Path, fullPage: true });
+    console.log(`   ✓ Screenshot 390px: ${screenshot390Path}`);
+    await page390.close();
 
-  const filename = "05-refund-processed.html";
-  writeFileSync(join(OUTPUT_DIR, filename), html);
-  console.log(`✅ Generated: ${filename}`);
-}
-
-/**
- * Generate all previews
- */
-async function generateAllPreviews() {
-  console.log("🎨 Generating email preview artifacts...\n");
-
-  try {
-    await generateCODGuestOrderPreview();
-    await generatePaidCardOrderPreview();
-    await generateShippedPreview();
-    await generatePaymentFailedPreview();
-    await generateRefundPreview();
-
-    console.log(`\n✨ All previews generated successfully!`);
-    console.log(`📁 Output directory: ${OUTPUT_DIR}`);
-    console.log("\nℹ️  View these HTML files in a browser to see:");
-    console.log("   - Desktop width (default)");
-    console.log("   - Mobile width (resize browser to < 600px or use device emulation)");
-    console.log("\n📱 To test mobile rendering:");
-    console.log("   1. Open file in Chrome/Firefox");
-    console.log("   2. Press F12 for DevTools");
-    console.log("   3. Toggle device toolbar (Ctrl+Shift+M)");
-    console.log("   4. Select iPhone/Android device or set custom width (320-480px)");
-  } catch (error) {
-    console.error("\n❌ Error generating previews:", error);
-    process.exit(1);
+    console.log('');
   }
+
+  await browser.close();
+
+  console.log(`✅ All email previews generated in ${ARTIFACT_DIR}`);
+  console.log('📂 Files created:');
+  console.log('   - 6 HTML files');
+  console.log('   - 12 PNG screenshots (600px and 390px for each)');
 }
 
-generateAllPreviews();
+main().catch(console.error);

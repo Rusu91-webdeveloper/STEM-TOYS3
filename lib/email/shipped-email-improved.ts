@@ -84,14 +84,6 @@ export async function generateShippedEmail(data: ShippedEmailData): Promise<stri
                       ${formattedDate}
                     </td>
                   </tr>
-                  <tr>
-                    <td style="padding: 8px 0; color: #065f46; font-size: 14px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                      Livrare estimată:
-                    </td>
-                    <td style="padding: 8px 0; color: #065f46; font-size: 14px; font-weight: 700; text-align: right; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                      ${estimatedDelivery}
-                    </td>
-                  </tr>
                 </table>
               </td>
             </tr>
