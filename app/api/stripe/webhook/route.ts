@@ -626,16 +626,22 @@ async function handleRefund(charge: Stripe.Charge) {
     });
 
     if (order) {
-      // Update order status to refunded
+      // Determine if full or partial refund
+      const refundedAmount = charge.amount_refunded / 100; // Convert from cents
+      const isFullRefund = refundedAmount >= order.total;
+
+      // Update order status to CANCELLED only for full refunds
       await db.order.update({
         where: { id: order.id },
         data: {
           paymentStatus: "REFUNDED",
-          status: "CANCELLED",
+          status: isFullRefund ? "CANCELLED" : order.status,
+          refundedAmount,
+          refundedAt: new Date(),
         },
       });
 
-      console.log(`Order ${order.id} marked as refunded`);
+      console.log(`Order ${order.id} ${isFullRefund ? "fully" : "partially"} refunded: ${refundedAmount} RON`);
 
       // Send refund confirmation email if we have user email
       const user = await db.user.findUnique({
