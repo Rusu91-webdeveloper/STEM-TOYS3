@@ -1,1 +1,4 @@
-pnpm run typecheck
+git diff --quiet HEAD || { echo "Commit or preserve local changes before checking the push."; exit 1; }
+test -z "$(git ls-files --others --exclude-standard)" || { echo "Commit or preserve untracked files before checking the push."; exit 1; }
+pnpm run validate:migrations --base origin/main || exit 1
+node scripts/typecheck-regressions.js origin/main
