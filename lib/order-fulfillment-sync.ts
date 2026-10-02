@@ -94,6 +94,39 @@ export async function applyDerivedOrderUpdate(params: {
       },
     });
 
+    // Send automatic shipped email when order transitions to SHIPPED
+    if (nextStatus === "SHIPPED") {
+      try {
+        const { sendShippedEmailImproved } = await import(
+          "@/lib/email/order-email-integration"
+        );
+        const shippedResult = await sendShippedEmailImproved(
+          order.id,
+          trackingNumber || null,
+          carrier || null
+        );
+        if (!shippedResult.success && !shippedResult.skipped) {
+          console.error(
+            `[ORDER-FULFILLMENT-SYNC] Failed to send shipped email for order ${order.id}:`,
+            shippedResult.error
+          );
+        } else if (shippedResult.skipped) {
+          console.log(
+            `[ORDER-FULFILLMENT-SYNC] Shipped email already sent for order ${order.id}, skipped`
+          );
+        } else {
+          console.log(
+            `[ORDER-FULFILLMENT-SYNC] Automatic shipped email sent for order ${order.id}`
+          );
+        }
+      } catch (emailError) {
+        console.error(
+          `[ORDER-FULFILLMENT-SYNC] Failed to send shipped email for order ${order.id}:`,
+          emailError
+        );
+      }
+    }
+
     if (nextStatus === "DELIVERED" && isCodPaymentMethod(order.paymentMethod)) {
       await releaseCodGuaranteeHoldIfNeeded({
         orderId: order.id,

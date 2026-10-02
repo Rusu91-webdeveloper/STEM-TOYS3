@@ -28,14 +28,50 @@ export interface SendEmailWithDatabaseTemplateOptions {
  *
  * This service handles all email sending using templates stored in the database
  * instead of hardcoded file templates.
+ * 
+ * CODE-OWNED TEMPLATES: These template keys skip the database lookup entirely
+ * and always use the improved code-based implementations:
+ * - order-confirmation
+ * - payment-failed
+ * - refund
+ * - password-changed
+ * - shipped
+ * - admin-new-order
  */
 export class DatabaseTemplateService {
+  
+  /**
+   * Template keys that are code-owned and skip DB lookup
+   */
+  private static CODE_OWNED_TEMPLATES = new Set([
+    'order-confirmation',
+    'payment-failed',
+    'refund',
+    'password-changed',
+    'shipped',
+    'admin-new-order',
+  ]);
+
+  /**
+   * Check if a template is code-owned (skips DB lookup)
+   */
+  static isCodeOwned(slug: string): boolean {
+    return this.CODE_OWNED_TEMPLATES.has(slug);
+  }
+
   /**
    * Get template by slug from database
+   * Returns null for code-owned templates (they should use direct code implementations)
    */
   static async getTemplateBySlug(
     slug: string
   ): Promise<DatabaseEmailTemplate | null> {
+    // Code-owned templates skip database lookup
+    if (this.isCodeOwned(slug)) {
+      console.log(`✅ Template "${slug}" is code-owned, skipping DB lookup`);
+      return null;
+    }
+
     try {
       const template = await prisma.emailTemplate.findUnique({
         where: {

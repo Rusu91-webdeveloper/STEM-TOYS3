@@ -499,45 +499,22 @@ export async function POST(request: Request) {
             // Send confirmation email for digital orders (in addition to delivery email)
             if (updatedOrder.user?.email) {
               try {
-                const { DatabaseTemplateService } = await import(
-                  "@/lib/email/database-template-service"
+                const { sendOrderConfirmationImproved, sendAdminNewOrderNotification } = await import(
+                  "@/lib/email/order-email-integration"
                 );
-
-                const orderNumberForEmail =
-                  updatedOrder.orderNumber || updatedOrder.id;
-
-                const sendResult =
-                  await DatabaseTemplateService.sendOrderConfirmationEmail(
-                    updatedOrder.user.email,
-                    {
-                      customerName:
-                        updatedOrder.shippingAddress?.fullName ||
-                        updatedOrder.user?.name ||
-                        "Client",
-                      orderNumber: String(orderNumberForEmail),
-                      orderTotal: updatedOrder.total,
-                      items: (updatedOrder.items || []).map((item: any) => ({
-                        name: item.name,
-                        quantity: item.quantity,
-                        price: item.price,
-                      })),
-                      shippingAddress: updatedOrder.shippingAddress || null,
-                      subtotal: updatedOrder.subtotal,
-                      tax: updatedOrder.tax,
-                      shippingCost: updatedOrder.shippingCost,
-                      discountAmount: updatedOrder.discountAmount ?? 0,
-                      codFee: updatedOrder.codFeeEstimate ?? 0,
-                    }
-                  );
-
-                if (!sendResult.success) {
+                
+                const confirmResult = await sendOrderConfirmationImproved(updatedOrder.id);
+                if (!confirmResult.success) {
                   console.error(
-                    `❌ [WEBHOOK] Failed to send order confirmation email:`,
-                    sendResult.error
+                    `❌ [WEBHOOK] Failed to send improved order confirmation email:`,
+                    confirmResult.error
                   );
                 } else {
-                  console.log("✅ [WEBHOOK] Order confirmation email sent");
+                  console.log("✅ [WEBHOOK] Improved order confirmation email sent");
                 }
+
+                // Send admin notification
+                await sendAdminNewOrderNotification(updatedOrder.id);
               } catch (emailError) {
                 console.error(
                   `❌ [WEBHOOK] Failed to send order confirmation email:`,
