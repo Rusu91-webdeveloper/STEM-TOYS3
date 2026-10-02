@@ -1261,6 +1261,8 @@ describe("POST /api/checkout/order integrity", () => {
     it("rejects COD order with mismatched guarantee amount", async () => {
       const Stripe = require("stripe");
       const policy = require("@/lib/checkout/cod-guarantee-policy");
+      const codThresholds = require("@/lib/shipping/cod-thresholds");
+      
       policy.evaluateCodGuaranteePolicy.mockImplementation(() => ({
         required: true,
         reasons: ["high_order_value"],
@@ -1272,6 +1274,8 @@ describe("POST /api/checkout/order integrity", () => {
           codRtoCount: 1,
         },
       }));
+      
+      codThresholds.getCodThreshold.mockReturnValue(1000);
 
       resolveCheckoutPricing.mockResolvedValue({
         ...price(520),
@@ -1306,6 +1310,8 @@ describe("POST /api/checkout/order integrity", () => {
 
     it("blocks COD order when guarantee required and price missing", async () => {
       const policy = require("@/lib/checkout/cod-guarantee-policy");
+      const codThresholds = require("@/lib/shipping/cod-thresholds");
+      
       policy.evaluateCodGuaranteePolicy.mockImplementation(() => ({
         required: true,
         reasons: ["high_order_value"],
@@ -1317,6 +1323,8 @@ describe("POST /api/checkout/order integrity", () => {
           codRtoCount: 1,
         },
       }));
+      
+      codThresholds.getCodThreshold.mockReturnValue(1000);
 
       resolveCheckoutPricing.mockResolvedValue({
         ...price(520),
