@@ -245,30 +245,25 @@ export async function sendAdminNewOrderNotification(orderId: string): Promise<{ 
     }
 
     const config = await getAppConfig();
-    const adminEmail = config.alertEmail || config.email || "admin@techtots.ro";
+    const adminEmail = config.alertEmail;
 
     const isCOD = isCodPaymentMethod(order.paymentMethod);
 
     const emailData: AdminNewOrderData = {
-      adminEmail,
+      orderNumber: order.orderNumber,
+      orderId: orderId,
       customerName: order.user?.name || order.shippingAddress?.fullName || "Guest",
       customerEmail: order.user?.email || "N/A",
-      orderNumber: order.orderNumber,
-      orderDate: order.createdAt,
       paymentMethod: isCOD ? "Ramburs (plată la livrare)" : "Card bancar",
       items: order.items.map(item => ({
         name: item.name,
         quantity: item.quantity,
         price: item.price,
       })),
+      subtotal: order.subtotal,
+      shippingCost: order.shippingCost,
+      codFee: order.codFeeEstimate || undefined,
       total: order.total,
-      shippingAddress: {
-        fullName: order.shippingAddress?.fullName,
-        addressLine1: order.shippingAddress?.addressLine1,
-        city: order.shippingAddress?.city,
-        phone: order.shippingAddress?.phone,
-      },
-      adminOrderUrl: `${config.siteUrl}/admin/orders/${orderId}`,
     };
 
     const html = await generateAdminNewOrderEmail(emailData);

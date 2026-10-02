@@ -343,7 +343,6 @@ export async function POST(request: Request) {
             item => item.isDigital !== true
           );
           if (hasPhysicalItems) {
-          if (hasPhysicalItems) {
             let supplierOrderCount = await db.supplierOrder.count({
               where: { orderId: resolvedOrderId },
             });

@@ -633,14 +633,13 @@ async function handleRefund(charge: Stripe.Charge) {
       const refundedAmount = charge.amount_refunded / 100; // Convert from cents
       const isFullRefund = refundedAmount >= order.total;
 
-      // Update order status to CANCELLED only for full refunds
+      // Update order: set CANCELLED only for full refunds, REFUNDED for partial
+      // Note: Partial refund keeps order active but marks payment as REFUNDED
       await db.order.update({
         where: { id: order.id },
         data: {
           paymentStatus: "REFUNDED",
           status: isFullRefund ? "CANCELLED" : order.status,
-          refundedAmount,
-          refundedAt: new Date(),
         },
       });
 

@@ -273,7 +273,7 @@ export async function generateRefundEmail(data: RefundData): Promise<string> {
           <table cellpadding="0" cellspacing="0" border="0">
             <tr>
               <td align="center" style="background-color: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 24px;">
-                <a href="${trackingLink}" style="color: #374151; text-decoration: none; font-size: 14px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                <a href="${accountLink}" style="color: #374151; text-decoration: none; font-size: 14px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
                   👁️ Vezi toate comenzile
                 </a>
               </td>
