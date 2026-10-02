@@ -191,9 +191,9 @@ export async function sendShippedEmailImproved(
       codAmount: isCOD ? order.total : undefined,
     };
 
-    const html = await generateShippedEmail(emailData);
-
     try {
+      const html = await generateShippedEmail(emailData);
+
       const result = await sendEmailViaUnifiedSystem({
         to: order.user.email,
         subject: `📦 Comandă expediată #${order.orderNumber} - TechTots`,
