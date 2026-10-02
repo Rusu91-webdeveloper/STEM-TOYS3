@@ -2201,38 +2201,37 @@ export async function POST(request: Request) {
           const orderNumberForEmail =
             dbOrder?.orderNumber || dbOrder?.id || orderId;
 
-          const sendResult =
-            await DatabaseTemplateService.sendOrderConfirmationEmail(
-              recipientEmail,
-              {
-                customerName:
-                  shippingAddressData?.fullName || user?.name || "Client",
-                orderNumber: String(orderNumberForEmail),
-                orderTotal,
-                items: items.map(item => ({
-                  name: item.name,
-                  quantity: item.quantity,
-                  price: item.price,
-                })),
-                shippingAddress: shippingAddressData,
-                subtotal,
-                tax,
-                shippingCost: finalShippingCost,
-                discountAmount,
-                codFee,
-                taxRatePercentage,
-              }
-            );
+          // Use improved order confirmation email
+          const { sendOrderConfirmationImproved, sendAdminNewOrderNotification } = await import(
+            "@/lib/email/order-email-integration"
+          );
+
+          const sendResult = await sendOrderConfirmationImproved(
+            dbOrder?.id || orderId
+          );
 
           if (sendResult.success) {
             console.log(
-              `✅ Order confirmation email sent to ${recipientEmail}`
+              `✅ Improved order confirmation email sent to ${recipientEmail}`
             );
           } else {
             console.error(
-              `❌ Failed to send order confirmation email for order ${orderNumberForEmail}:`,
+              `❌ Failed to send improved order confirmation email for order ${orderNumberForEmail}:`,
               sendResult.error
             );
+          }
+
+          // Send admin notification
+          if (shouldSendImmediateAdminOrderNotification(dbOrder || {})) {
+            const adminResult = await sendAdminNewOrderNotification(
+              dbOrder?.id || orderId
+            );
+            if (!adminResult.success) {
+              console.error(
+                `❌ Failed to send admin notification for order ${orderNumberForEmail}:`,
+                adminResult.error
+              );
+            }
           }
         }
       }

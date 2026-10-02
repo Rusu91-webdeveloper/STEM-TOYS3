@@ -36,8 +36,9 @@ export async function applyDerivedOrderUpdate(params: {
   notes: string;
   trackingNumber?: string | null;
   carrier?: string | null;
+  source?: SyncSource;
 }) {
-  const { order, nextStatus, reason, notes, trackingNumber, carrier } = params;
+  const { order, nextStatus, reason, notes, trackingNumber, carrier, source = "unknown" } = params;
 
   const updateData: Partial<{
     status: OrderStatus;
@@ -188,6 +189,7 @@ export async function syncParentOrderFromSupplierOrders(
       notes: `Source=${source}; fulfillment=${summary.displayStatus}; counts=${JSON.stringify(summary.byPhase)}`,
       trackingNumber: only.trackingNumber,
       carrier: only.carrier,
+      source,
     });
     return {
       updated: result.updated,
@@ -201,6 +203,7 @@ export async function syncParentOrderFromSupplierOrders(
       nextStatus,
       reason: "Status updated based on supplier order progress",
       notes: `Source=${source}; fulfillment=${summary.displayStatus}; counts=${JSON.stringify(summary.byPhase)}`,
+      source,
     });
     return {
       updated: result.updated,
