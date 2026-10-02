@@ -84,10 +84,6 @@ interface StoreSettings {
       price: string;
       active: boolean;
     };
-    /** Online payment shipping price (card, bank transfer) */
-    onlinePaymentPrice?: string;
-    /** Ramburs (COD) shipping price - higher to cover handling */
-    rambursPrice?: string;
     /** Insurance threshold - orders above this value get declared value */
     insuranceThreshold?: string;
     fanCourierPickup?: {
@@ -432,8 +428,6 @@ const defaultSettings: StoreSettings = {
       price: "199.00",
       active: true,
     },
-    onlinePaymentPrice: "19.99",
-    rambursPrice: "24.99",
     insuranceThreshold: "500",
     fanCourierPickup: {
       enabled: false,
@@ -768,8 +762,6 @@ export default function SettingsPage() {
   const defaultShippingSettings = defaultSettings.shippingSettings ?? {
     deliveryPrice: { price: "15.00", active: true },
     freeThreshold: { price: "199.00", active: true },
-    onlinePaymentPrice: "19.99",
-    rambursPrice: "24.99",
     insuranceThreshold: "500",
     fanCourierPickup: {
       enabled: false,
@@ -819,12 +811,6 @@ export default function SettingsPage() {
               freeThreshold:
                 existing.freeThreshold ||
                 defaultShippingSettings.freeThreshold,
-              onlinePaymentPrice:
-                existing.onlinePaymentPrice ||
-                defaultShippingSettings.onlinePaymentPrice,
-              rambursPrice:
-                existing.rambursPrice ||
-                defaultShippingSettings.rambursPrice,
               insuranceThreshold:
                 existing.insuranceThreshold ||
                 defaultShippingSettings.insuranceThreshold,
@@ -837,20 +823,16 @@ export default function SettingsPage() {
                 defaultShippingSettings.couriers,
             };
           }
+          // Strip legacy fields
+          const { onlinePaymentPrice, rambursPrice, ...cleanExisting } = existing as any;
           return {
-            ...existing,
+            ...cleanExisting,
             deliveryPrice:
               existing.deliveryPrice ||
               defaultShippingSettings.deliveryPrice,
             freeThreshold:
               existing.freeThreshold ||
               defaultShippingSettings.freeThreshold,
-            onlinePaymentPrice:
-              existing.onlinePaymentPrice ||
-              defaultShippingSettings.onlinePaymentPrice,
-            rambursPrice:
-              existing.rambursPrice ||
-              defaultShippingSettings.rambursPrice,
             insuranceThreshold:
               existing.insuranceThreshold ||
               defaultShippingSettings.insuranceThreshold,
@@ -2264,88 +2246,6 @@ export default function SettingsPage() {
                       }
                       id="free-shipping-active"
                     />
-                  </div>
-                </div>
-                <Separator />
-                {/* Payment-Aware Shipping Prices */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <h4 className="font-medium">Payment Method Pricing</h4>
-                    <HelpTooltip
-                      content={
-                        <div className="space-y-2">
-                          <p className="font-medium">
-                            Payment Method Shipping Pricing
-                          </p>
-                          <p>
-                            Different shipping prices based on payment method.
-                            Ramburs (COD) orders are priced higher to cover
-                            cash handling costs and courier fees.
-                          </p>
-                        </div>
-                      }
-                    />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Set different shipping prices for online payments vs. cash on delivery (ramburs)
-                  </p>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="online-payment-price">
-                        Online Payment Price (RON)
-                      </Label>
-                      <Input
-                        id="online-payment-price"
-                        value={
-                          settings.shippingSettings?.onlinePaymentPrice || "19.99"
-                        }
-                        onChange={e =>
-                          setSettings(prev => ({
-                            ...prev,
-                            shippingSettings: {
-                              ...prev.shippingSettings!,
-                              onlinePaymentPrice: e.target.value,
-                            },
-                          }))
-                        }
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="19.99"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        For card, bank transfer payments
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="ramburs-price">
-                        Ramburs (COD) Price (RON)
-                      </Label>
-                      <Input
-                        id="ramburs-price"
-                        value={
-                          settings.shippingSettings?.rambursPrice || "24.99"
-                        }
-                        onChange={e =>
-                          setSettings(prev => ({
-                            ...prev,
-                            shippingSettings: {
-                              ...prev.shippingSettings!,
-                              rambursPrice: e.target.value,
-                            },
-                          }))
-                        }
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="24.99"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Cash on delivery - higher to cover handling
-                      </p>
-                    </div>
                   </div>
                 </div>
                 <Separator />

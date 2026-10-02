@@ -13,10 +13,6 @@ export interface CheckoutSettings {
   shippingSettings: {
     deliveryPrice: { price: string; active: boolean };
     freeThreshold: { active: boolean; price: string };
-    /** Online payment shipping price (default: 19.99 RON) */
-    onlinePaymentPrice?: string;
-    /** Ramburs (COD) shipping price (default: 24.99 RON) */
-    rambursPrice?: string;
   };
   /** When true, checkout is restricted to admins only. */
   checkoutAdminOnly?: boolean;

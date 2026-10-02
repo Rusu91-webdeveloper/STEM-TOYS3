@@ -76,19 +76,20 @@ export async function getStoreSettings() {
         businessState: "Cluj",
         businessCountry: "România",
         businessPostalCode: "400000",
-        shippingSettings: {
-          deliveryPrice: { price: "15.00", active: true },
-          freeThreshold: { price: "199.00", active: true },
-          fanCourierPickup: {
-            enabled: false,
-            windowStart: "09:00",
-            windowEnd: "16:00",
-            offsetDays: 0,
-            observations: "",
-          },
-          couriers: DEFAULT_COURIERS,
-          __source: "default" as const,
+      shippingSettings: {
+        deliveryPrice: { price: "15.00", active: true },
+        freeThreshold: { price: "199.00", active: true },
+        insuranceThreshold: "500",
+        fanCourierPickup: {
+          enabled: false,
+          windowStart: "09:00",
+          windowEnd: "16:00",
+          offsetDays: 0,
+          observations: "",
         },
+        couriers: DEFAULT_COURIERS,
+        __source: "default" as const,
+      },
         codSettings: {
           percentage: "3",
           fixedFee: "5.00",
@@ -161,6 +162,7 @@ export async function getStoreSettings() {
       shippingSettings: {
         deliveryPrice: { price: "15.00", active: true },
         freeThreshold: { price: "199.00", active: true },
+        insuranceThreshold: "500",
         fanCourierPickup: {
           enabled: false,
           windowStart: "09:00",
@@ -206,8 +208,6 @@ export async function getShippingSettings() {
     settings.shippingSettings || {
       deliveryPrice: { price: "15.00", active: true },
       freeThreshold: { price: "199.00", active: true },
-      onlinePaymentPrice: "19.99",
-      rambursPrice: "24.99",
       insuranceThreshold: "500",
       fanCourierPickup: {
         enabled: false,

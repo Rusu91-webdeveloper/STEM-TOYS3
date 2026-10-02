@@ -206,9 +206,11 @@ export function OrderReview({
                 </p>
               )}
               <p
-                className={`font-medium ${pricingData.shippingCost === 0 ? "text-emerald-600" : ""}`}
+                className={`font-medium ${pricingData.shippingCost === 0 ? "text-emerald-600" : pricingData.shippingCost === null ? "text-xs text-slate-500 italic" : ""}`}
               >
-                {pricingData.shippingCost === 0 ? (
+                {pricingData.shippingCost === null ? (
+                  "Se calculează la pasul de livrare"
+                ) : pricingData.shippingCost === 0 ? (
                   <>
                     {checkoutData.shippingMethod.price > 0 && (
                       <span className="mr-2 line-through text-slate-400">

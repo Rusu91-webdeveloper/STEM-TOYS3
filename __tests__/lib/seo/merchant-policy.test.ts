@@ -7,7 +7,6 @@ import type { Product } from "@/types/product";
 const settings = {
   deliveryPrice: { active: true, price: "19.99" },
   freeThreshold: { active: true, price: "500" },
-  onlinePaymentPrice: "24.99",
 };
 it("uses checkout delivery pricing and free-shipping threshold", () => {
   expect(merchantShippingRate(100, settings)).toBe(19.99);

@@ -9,7 +9,7 @@ import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 interface OrderSummarySectionProps {
   subtotal: number;
   tax: number;
-  shippingCost: number;
+  shippingCost: number | null;
   total: number;
   codFee?: number;
   discountAmount?: number;
@@ -69,9 +69,14 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
             )}
           </span>
           <span
-            className={shippingCost === 0 ? "font-medium text-emerald-600" : ""}
+            className={shippingCost === 0 ? "font-medium text-emerald-600" : shippingCost === null ? "text-xs text-slate-500 italic" : ""}
           >
-            {shippingCost === 0 ? "GRATUIT" : formatPrice(shippingCost)}
+            {shippingCost === null 
+              ? t("shippingCalculatedAtDelivery", "Se calculează la pasul de livrare")
+              : shippingCost === 0 
+                ? "GRATUIT" 
+                : formatPrice(shippingCost)
+            }
           </span>
         </div>
 
@@ -83,7 +88,12 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
         )}
 
         <div className="border-t pt-3 flex justify-between font-semibold text-base sm:text-lg">
-          <span>{t("total", "Total")}</span>
+          <span>
+            {shippingCost === null 
+              ? t("totalExcludingShipping", "Total (fără livrare)")
+              : t("total", "Total")
+            }
+          </span>
           <span>{formatPrice(total)}</span>
         </div>
 
