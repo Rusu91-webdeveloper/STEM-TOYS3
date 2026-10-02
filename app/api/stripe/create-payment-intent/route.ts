@@ -136,11 +136,22 @@ export async function POST(request: NextRequest) {
         });
 
         pricedOrderTotal = pricing.orderTotal;
-        resolvedAmount = Math.round(
-          (paymentFlow === "cod_guarantee"
-            ? pricing.codGuaranteeAmount
-            : pricing.orderTotal) * 100
-        );
+        
+        if (paymentFlow === "cod_guarantee") {
+          if (pricing.codGuaranteeAmount === null || pricing.codGuaranteeConfigError) {
+            return NextResponse.json(
+              {
+                success: false,
+                error: "COD_GUARANTEE_PRICE_NOT_CONFIGURED",
+                message: "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu.",
+              },
+              { status: 400 }
+            );
+          }
+          resolvedAmount = Math.round(pricing.codGuaranteeAmount * 100);
+        } else {
+          resolvedAmount = Math.round(pricing.orderTotal * 100);
+        }
       } catch (error) {
         if (error instanceof CheckoutPricingError) {
           return NextResponse.json(

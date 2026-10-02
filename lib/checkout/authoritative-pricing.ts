@@ -421,9 +421,23 @@ export async function resolveCheckoutPricing(input: {
   const orderTotal = roundMoney(
     Math.max(0, subtotal + tax + finalShippingCost - discountAmount + codFee)
   );
-  const codGuaranteeAmount = isCODPaymentMethod(input.paymentMethod)
-    ? roundMoney(Math.max(finalShippingCost, shippingBasePrice))
-    : 0;
+
+  let codGuaranteeAmount: number | null = null;
+  let codGuaranteeConfigError = false;
+
+  if (isCODPaymentMethod(input.paymentMethod) && !isDigitalOnlyOrder) {
+    if (selectedAdminShippingPrice !== null && selectedAdminShippingPrice > 0) {
+      codGuaranteeAmount = roundMoney(selectedAdminShippingPrice);
+    } else {
+      codGuaranteeConfigError = true;
+      console.error("[cod-guarantee] missing admin shipping price", {
+        shippingMethodId: input.shippingMethodId,
+        selectedAdminShippingPrice,
+      });
+    }
+  } else if (isCODPaymentMethod(input.paymentMethod) && isDigitalOnlyOrder) {
+    codGuaranteeAmount = 0;
+  }
 
   return {
     items: authoritativeItems,
@@ -440,6 +454,7 @@ export async function resolveCheckoutPricing(input: {
     codFee,
     orderTotal,
     codGuaranteeAmount,
+    codGuaranteeConfigError,
     isDigitalOnlyOrder,
     supplierCartAnalysis,
     products,

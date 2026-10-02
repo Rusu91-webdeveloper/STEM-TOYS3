@@ -252,13 +252,22 @@ export function PaymentForm({
     if (selectedPaymentMethod !== "cash_on_delivery") {
       return 0;
     }
-    const shippingBase = Math.max(
-      0,
-      calculatedShippingCost,
-      baseShippingForGuarantee
-    );
-    return Math.round(shippingBase * 100) / 100;
-  }, [selectedPaymentMethod, calculatedShippingCost, baseShippingForGuarantee]);
+    
+    const shippingSettings = settings?.shippingSettings;
+    if (!shippingSettings) return 0;
+
+    let adminPrice = 0;
+    if (shippingMethod?.priceOverride !== undefined && shippingMethod.priceOverride !== null && shippingMethod.priceOverride > 0) {
+      adminPrice = shippingMethod.priceOverride;
+    } else if (shippingSettings.deliveryPrice?.active === true) {
+      const parsed = parseFloat(shippingSettings.deliveryPrice.price || "0");
+      if (Number.isFinite(parsed) && parsed > 0) {
+        adminPrice = parsed;
+      }
+    }
+
+    return Math.round(adminPrice * 100) / 100;
+  }, [selectedPaymentMethod, shippingMethod, settings]);
   const codOrderTotalForPolicy = useMemo(() => {
     if (selectedPaymentMethod !== "cash_on_delivery") return 0;
     if (codTotals) return Math.max(0, codTotals.total);
@@ -647,7 +656,11 @@ export function PaymentForm({
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || "Failed to create COD guarantee");
+          const errorCode = errorData.error || "";
+          const errorMessage = errorCode === "COD_GUARANTEE_PRICE_NOT_CONFIGURED"
+            ? errorData.message || "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu."
+            : errorData.error || "Failed to create COD guarantee";
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();

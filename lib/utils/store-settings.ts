@@ -4,9 +4,10 @@ import { getCached, invalidateCache, CacheKeys } from "@/lib/cache";
 import { DEFAULT_COURIERS } from "@/lib/shipping/couriers";
 
 // **PERFORMANCE**: Cache store settings at module level to avoid repeated database calls
+// Shortened duration ensures admin shipping price changes reach checkout pricing promptly
 let cachedStoreSettings: any = null;
 let settingsLastFetched = 0;
-const SETTINGS_CACHE_DURATION = 60 * 60 * 1000; // 1 hour cache for store settings
+const SETTINGS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache (reduced from 1h for COD guarantee responsiveness)
 
 function isBusinessVatRegistered(): boolean {
   return process.env.BUSINESS_VAT_REGISTERED === "true";

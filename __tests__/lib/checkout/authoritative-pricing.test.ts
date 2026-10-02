@@ -135,3 +135,333 @@ describe("curated Boribon checkout freshness", () => {
     await expect(resolveCheckoutPricing({ userId: "user", items: [{ productId: "boribon-test", quantity: 1 }] })).rejects.toMatchObject({ code: "SUPPLIER_STOCK_UNAVAILABLE", status: 503 });
   });
 });
+
+describe("COD guarantee admin-driven pricing", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    db.book.findMany.mockResolvedValue([]);
+    db.product.findMany.mockResolvedValue([
+      {
+        id: "product_1",
+        name: "Test Product",
+        price: 100.0,
+        weight: 1.0,
+        dimensions: null,
+        supplierId: "supplier_1",
+        metadata: null,
+        stockQuantity: 10,
+        supplierProducts: [],
+        supplier: {
+          id: "supplier_1",
+          name: "Test Supplier",
+          companyName: "Test Supplier Co",
+        },
+      },
+    ]);
+    db.coupon.findUnique.mockResolvedValue(null);
+    getCODSettings.mockResolvedValue({
+      percentage: "3",
+      fixedFee: "5.00",
+      active: true,
+    });
+    getTaxSettings.mockResolvedValue({
+      rate: "0",
+      active: false,
+      includeInPrice: true,
+    });
+  });
+
+  it("uses admin deliveryPrice for COD guarantee when free shipping applies", async () => {
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "19.99", active: true },
+      freeThreshold: { price: "500", active: true },
+      couriers: [
+        {
+          id: "fancourier",
+          name: "FAN Courier",
+          enabled: true,
+          services: [
+            {
+              id: "standard",
+              name: "Standard",
+              enabled: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "product_1",
+          quantity: 6,
+          isBook: false,
+        },
+      ],
+      shippingMethodId: "fancourier_standard",
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.subtotal).toBe(600.0);
+    expect(pricing.finalShippingCost).toBe(0);
+    expect(pricing.codGuaranteeAmount).toBe(19.99);
+    expect(pricing.codGuaranteeConfigError).toBe(false);
+  });
+
+  it("uses updated admin deliveryPrice when changed from 19.99 to 22.50", async () => {
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "22.50", active: true },
+      freeThreshold: { price: "500", active: true },
+      couriers: [
+        {
+          id: "fancourier",
+          name: "FAN Courier",
+          enabled: true,
+          services: [
+            {
+              id: "standard",
+              name: "Standard",
+              enabled: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "product_1",
+          quantity: 1,
+          isBook: false,
+        },
+      ],
+      shippingMethodId: "fancourier_standard",
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.codGuaranteeAmount).toBe(22.5);
+    expect(pricing.codGuaranteeConfigError).toBe(false);
+  });
+
+  it("sets codGuaranteeAmount to null and flags config error when deliveryPrice is missing", async () => {
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "", active: true },
+      freeThreshold: { price: "500", active: true },
+      couriers: [
+        {
+          id: "fancourier",
+          name: "FAN Courier",
+          enabled: true,
+          services: [
+            {
+              id: "standard",
+              name: "Standard",
+              enabled: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "product_1",
+          quantity: 1,
+          isBook: false,
+        },
+      ],
+      shippingMethodId: "fancourier_standard",
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.codGuaranteeAmount).toBe(null);
+    expect(pricing.codGuaranteeConfigError).toBe(true);
+  });
+
+  it("sets codGuaranteeAmount to null and flags config error when deliveryPrice is inactive", async () => {
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "19.99", active: false },
+      freeThreshold: { price: "500", active: true },
+      couriers: [
+        {
+          id: "fancourier",
+          name: "FAN Courier",
+          enabled: true,
+          services: [
+            {
+              id: "standard",
+              name: "Standard",
+              enabled: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "product_1",
+          quantity: 1,
+          isBook: false,
+        },
+      ],
+      shippingMethodId: "fancourier_standard",
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.codGuaranteeAmount).toBe(null);
+    expect(pricing.codGuaranteeConfigError).toBe(true);
+  });
+
+  it("sets codGuaranteeAmount to null and flags config error when deliveryPrice is non-numeric", async () => {
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "abc", active: true },
+      freeThreshold: { price: "500", active: true },
+      couriers: [
+        {
+          id: "fancourier",
+          name: "FAN Courier",
+          enabled: true,
+          services: [
+            {
+              id: "standard",
+              name: "Standard",
+              enabled: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "product_1",
+          quantity: 1,
+          isBook: false,
+        },
+      ],
+      shippingMethodId: "fancourier_standard",
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.codGuaranteeAmount).toBe(null);
+    expect(pricing.codGuaranteeConfigError).toBe(true);
+  });
+
+  it("sets codGuaranteeAmount to null and flags config error when deliveryPrice is zero", async () => {
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "0", active: true },
+      freeThreshold: { price: "500", active: true },
+      couriers: [
+        {
+          id: "fancourier",
+          name: "FAN Courier",
+          enabled: true,
+          services: [
+            {
+              id: "standard",
+              name: "Standard",
+              enabled: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "product_1",
+          quantity: 1,
+          isBook: false,
+        },
+      ],
+      shippingMethodId: "fancourier_standard",
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.codGuaranteeAmount).toBe(null);
+    expect(pricing.codGuaranteeConfigError).toBe(true);
+  });
+
+  it("uses service priceOverride instead of deliveryPrice when available", async () => {
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "19.99", active: true },
+      freeThreshold: { price: "500", active: true },
+      couriers: [
+        {
+          id: "fancourier",
+          name: "FAN Courier",
+          enabled: true,
+          services: [
+            {
+              id: "standard",
+              name: "Standard",
+              enabled: true,
+              priceOverride: 25.0,
+            },
+          ],
+        },
+      ],
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "product_1",
+          quantity: 1,
+          isBook: false,
+        },
+      ],
+      shippingMethodId: "fancourier_standard",
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.codGuaranteeAmount).toBe(25.0);
+    expect(pricing.codGuaranteeConfigError).toBe(false);
+  });
+
+  it("sets codGuaranteeAmount to 0 for digital-only orders with COD", async () => {
+    db.book.findMany.mockResolvedValue([
+      {
+        id: "book_1",
+        name: "Test Book",
+        price: 50.0,
+      },
+    ]);
+    db.product.findMany.mockResolvedValue([]);
+
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "19.99", active: true },
+      freeThreshold: { price: "500", active: true },
+      couriers: [],
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "book_1",
+          quantity: 1,
+          isBook: true,
+        },
+      ],
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.codGuaranteeAmount).toBe(0);
+    expect(pricing.codGuaranteeConfigError).toBe(false);
+  });
+});

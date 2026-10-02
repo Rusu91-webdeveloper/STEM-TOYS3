@@ -592,4 +592,46 @@ describe("POST /api/stripe/create-payment-intent", () => {
       userEmail: "user@example.com",
     });
   });
+
+  it("blocks COD guarantee intent when admin shipping price is not configured", async () => {
+    const { auth } = require("@/lib/auth");
+    auth.mockResolvedValue(null);
+
+    mockResolveCheckoutPricing.mockResolvedValue({
+      orderTotal: 250.0,
+      codGuaranteeAmount: null,
+      codGuaranteeConfigError: true,
+    });
+
+    const request = new NextRequest(
+      "http://localhost/api/stripe/create-payment-intent",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: 2000,
+          guestEmail: "guest@example.com",
+          checkoutContext: {
+            items: [
+              { productId: "prod_1", quantity: 1, price: 250, name: "Product" },
+            ],
+            shippingMethodId: "fancourier_standard",
+            paymentMethod: "cash_on_delivery",
+          },
+          metadata: {
+            paymentFlow: "cod_guarantee",
+          },
+        }),
+      }
+    );
+
+    const response = await handler(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.success).toBe(false);
+    expect(payload.error).toBe("COD_GUARANTEE_PRICE_NOT_CONFIGURED");
+    expect(payload.message).toContain("Momentan nu putem autoriza garanția");
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
 });

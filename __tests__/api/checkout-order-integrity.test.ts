@@ -1257,5 +1257,50 @@ describe("POST /api/checkout/order integrity", () => {
         phone: "0712345678",
       });
     });
+
+    it("rejects COD order with mismatched guarantee amount", async () => {
+      const policy = require("@/lib/checkout/cod-guarantee-policy");
+      policy.evaluateCodGuaranteePolicy.mockImplementation(() => ({
+        required: true,
+        reasons: ["high_order_value"],
+        mode: "risk_based",
+        thresholds: {
+          highOrderValue: 500,
+          newCustomerMinTotal: 200,
+          b2bMinTotal: 700,
+          codRtoCount: 1,
+        },
+      }));
+
+      resolveCheckoutPricing.mockResolvedValue({
+        ...price(520),
+        codGuaranteeAmount: 19.99,
+      });
+
+      process.env.STRIPE_SECRET_KEY = "sk_test_123";
+      Stripe.paymentIntents.retrieve.mockResolvedValue({
+        id: "pi_guarantee_mismatch",
+        amount: 2500,
+        currency: "ron",
+        status: "requires_capture",
+        metadata: { guestEmail: "guest@example.com", paymentFlow: "cod_guarantee" },
+      });
+
+      const response = await POST(
+        guestCodRequest(520, {
+          codGuaranteePaymentIntentId: "pi_guarantee_mismatch",
+          codGuaranteeAmount: 25.0,
+        })
+      );
+      const payload = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(payload.success).toBe(false);
+      expect(payload.error).toBe("COD_GUARANTEE_AMOUNT_MISMATCH");
+      expect(payload.details).toMatchObject({
+        expectedAmount: 19.99,
+        providedAmount: 25.0,
+      });
+    });
   });
 });
