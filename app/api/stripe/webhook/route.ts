@@ -518,6 +518,9 @@ async function handleFailedPayment(paymentIntent: Stripe.PaymentIntent) {
       return;
     }
 
+    // Store previous payment status to guard against duplicate emails
+    const wasAlreadyFailed = order.paymentStatus === "FAILED";
+
     // Update order status to "payment_failed" in database
     await db.order.update({
       where: { id: order.id },
@@ -529,8 +532,8 @@ async function handleFailedPayment(paymentIntent: Stripe.PaymentIntent) {
 
     console.log(`Order ${order.id} marked as payment failed`);
 
-    // Notify customer about failed payment if we have their email
-    if (userEmail) {
+    // Send payment failed email once per order (guard against webhook retries)
+    if (userEmail && !wasAlreadyFailed) {
       try {
         const { generatePaymentFailedEmail } = await import(
           "@/lib/email/payment-and-refund-emails"
