@@ -71,8 +71,11 @@ production database connection or build script was run.
 
 ## Publication checks and production status
 
-The fix is prepared for a draft PR. Production was checked before the change;
-deployed authentication remains unverified until this change is released.
+[Draft PR #57](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/57) is
+open. The actual Git commit and push hooks passed with zero added failures. It
+has not been merged or deployed to production. Production was checked before the
+change; deployed authentication remains unverified until this change is
+released.
 
 The original `.cursorrules` required full migration validation before every
 push. `pnpm run validate:migrations` fails on four historical DROP INDEX
