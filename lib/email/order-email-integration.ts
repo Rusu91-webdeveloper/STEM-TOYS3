@@ -1,5 +1,5 @@
 /**
- * Order Email Integration Service
+ * Order Email Integration Service  
  * Connects improved email templates to order lifecycle events
  * Handles order confirmation, shipped, and admin notifications
  */
@@ -12,11 +12,31 @@ import { generateAdminNewOrderEmail, type AdminNewOrderData } from "./admin-new-
 import { getAppConfig } from "@/lib/config/app-config";
 
 /**
+ * Check if a payment method is Cash on Delivery (COD/Ramburs)
+ */
+export function isCodPaymentMethod(paymentMethod: string | null | undefined): boolean {
+  if (!paymentMethod) return false;
+  const method = paymentMethod.toLowerCase();
+  return method === "cash_on_delivery" || 
+         method === "cod" || 
+         method === "ramburs" ||
+         method.includes("cash_on_delivery");
+}
+
+/**
+ * Parse COD guarantee evidence from order notes
+ */
+function parseCodGuaranteeAmount(notes: string | null): number | null {
+  if (!notes) return null;
+  const match = notes.match(/authorized[_\s]?amount[:\s]+(\d+\.?\d*)/i);
+  return match ? parseFloat(match[1]) : null;
+}
+
+/**
  * Send order confirmation email with proper COD/paid handling
  */
 export async function sendOrderConfirmationImproved(orderId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    // Fetch order with all necessary details
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -30,16 +50,14 @@ export async function sendOrderConfirmationImproved(orderId: string): Promise<{ 
       throw new Error("Order or user not found");
     }
 
-    // Determine if this is a COD order
-    const isCOD = order.paymentMethod.toLowerCase().includes("cod") || 
-                  order.paymentMethod.toLowerCase().includes("ramburs");
+    const isCOD = isCodPaymentMethod(order.paymentMethod);
 
-    // Check if there's a card hold (notes contain "card hold" or codAmount exists)
-    const hasCardHold = order.notes?.toLowerCase().includes("card hold") || 
-                       (order.codAmount !== null && order.codAmount > 0 && order.codAmount < order.total);
-    const cardHoldAmount = hasCardHold ? (order.codAmount || 25) : undefined;
+    // Card hold: check COD_GUARANTEE_AUTHORIZED tag or notes
+    const hasCardHoldTag = order.tags?.includes("COD_GUARANTEE_AUTHORIZED") || false;
+    const authorizedAmount = parseCodGuaranteeAmount(order.notes);
+    const hasCardHold = hasCardHoldTag || authorizedAmount !== null;
+    const cardHoldAmount = authorizedAmount || 25; // Policy: 25 lei
 
-    // Prepare email data
     const emailData: OrderConfirmationData = {
       customerName: order.user.name || "Client",
       customerEmail: order.user.email,
@@ -69,14 +87,12 @@ export async function sendOrderConfirmationImproved(orderId: string): Promise<{ 
       },
       isCOD,
       codAmount: isCOD ? order.total : undefined,
-      hasCardHold,
-      cardHoldAmount,
+      hasCardHold: hasCardHold && isCOD,
+      cardHoldAmount: hasCardHold && isCOD ? cardHoldAmount : undefined,
     };
 
-    // Generate HTML
     const html = await generateOrderConfirmationEmail(emailData);
 
-    // Send email
     const result = await sendEmailViaUnifiedSystem({
       to: order.user.email,
       subject: `✅ Confirmare comandă #${order.orderNumber} - TechTots`,
@@ -94,12 +110,33 @@ export async function sendOrderConfirmationImproved(orderId: string): Promise<{ 
 }
 
 /**
- * Send shipped email when AWB is created
- * Prevents duplicate emails using order tags
+ * Send shipped email with atomic tag-based deduplication
  */
-export async function sendShippedEmailImproved(orderId: string, awbNumber?: string, carrier?: string): Promise<{ success: boolean; error?: string; skipped?: boolean }> {
+export async function sendShippedEmailImproved(
+  orderId: string, 
+  awbNumber?: string | null, 
+  carrier?: string | null
+): Promise<{ success: boolean; error?: string; skipped?: boolean }> {
   try {
-    // Fetch order
+    const TAG = "shipped-email-sent";
+
+    // Atomic claim: update only if tag doesn't exist
+    const claimed = await prisma.order.updateMany({
+      where: {
+        id: orderId,
+        NOT: { tags: { has: TAG } },
+      },
+      data: {
+        tags: { push: TAG },
+      },
+    });
+
+    if (claimed.count === 0) {
+      console.log(`✅ Shipped email already sent for order ${orderId}, skipping`);
+      return { success: true, skipped: true };
+    }
+
+    // Fetch order details
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -108,34 +145,34 @@ export async function sendShippedEmailImproved(orderId: string, awbNumber?: stri
     });
 
     if (!order || !order.user) {
+      // Remove tag if order not found
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { tags: { set: order?.tags?.filter(t => t !== TAG) || [] } },
+      });
       throw new Error("Order or user not found");
     }
 
-    // Check if shipped email already sent (using tags)
-    const SHIPPED_EMAIL_TAG = "shipped-email-sent";
-    if (order.tags?.includes(SHIPPED_EMAIL_TAG)) {
-      console.log(`✅ Shipped email already sent for order ${orderId}, skipping`);
+    const trackingNumber = awbNumber || order.trackingNumber;
+    const courierName = carrier || order.carrier || "Curier";
+
+    // Skip if no tracking number and order not marked SHIPPED
+    if (!trackingNumber && order.status !== "SHIPPED") {
+      console.log(`⏭️ Order ${orderId} has no tracking number and not SHIPPED yet, skipping shipped email`);
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { tags: { set: order.tags?.filter(t => t !== TAG) || [] } },
+      });
       return { success: true, skipped: true };
     }
 
-    // Use AWB from order if not provided
-    const trackingNumber = awbNumber || order.trackingNumber;
-    const courierName = carrier || order.carrier || "FanCourier";
+    const isCOD = isCodPaymentMethod(order.paymentMethod);
 
-    if (!trackingNumber) {
-      throw new Error("No tracking number available");
-    }
-
-    // Determine if COD
-    const isCOD = order.paymentMethod.toLowerCase().includes("cod") || 
-                  order.paymentMethod.toLowerCase().includes("ramburs");
-
-    // Prepare email data
     const emailData: ShippedEmailData = {
       customerName: order.user.name || "Client",
       customerEmail: order.user.email,
       orderNumber: order.orderNumber,
-      trackingNumber,
+      trackingNumber: trackingNumber || "",
       carrier: courierName,
       shippedDate: order.shippedAt || new Date(),
       estimatedDeliveryDays: 2,
@@ -143,29 +180,24 @@ export async function sendShippedEmailImproved(orderId: string, awbNumber?: stri
       codAmount: isCOD ? order.total : undefined,
     };
 
-    // Generate HTML
     const html = await generateShippedEmail(emailData);
 
-    // Send email
     const result = await sendEmailViaUnifiedSystem({
       to: order.user.email,
-      subject: `🚚 Comanda #${order.orderNumber} a fost expediată - TechTots`,
+      subject: `📦 Comandă expediată #${order.orderNumber} - TechTots`,
       html,
     });
 
-    if (result.success) {
-      // Mark email as sent using tags
+    if (!result.success) {
+      // Remove tag if send failed
       await prisma.order.update({
         where: { id: orderId },
-        data: {
-          tags: {
-            set: [...(order.tags || []), SHIPPED_EMAIL_TAG],
-          },
-        },
+        data: { tags: { set: order.tags?.filter(t => t !== TAG) || [] } },
       });
+      return { success: false, error: result.error };
     }
 
-    return { success: result.success, error: result.error };
+    return { success: true };
   } catch (error) {
     console.error("❌ Error sending shipped email:", error);
     return {
@@ -176,80 +208,86 @@ export async function sendShippedEmailImproved(orderId: string, awbNumber?: stri
 }
 
 /**
- * Send admin new order notification with correct data
+ * Send admin new order notification
+ * Send exactly once per order, after confirmation is sent
  */
-export async function sendAdminNewOrderNotification(orderId: string): Promise<{ success: boolean; error?: string }> {
+export async function sendAdminNewOrderNotification(orderId: string): Promise<{ success: boolean; error?: string; skipped?: boolean }> {
   try {
-    const config = await getAppConfig();
-    
-    // Fetch order with all details
+    const TAG = "admin-new-order-sent";
+
+    // Atomic claim
+    const claimed = await prisma.order.updateMany({
+      where: {
+        id: orderId,
+        NOT: { tags: { has: TAG } },
+      },
+      data: {
+        tags: { push: TAG },
+      },
+    });
+
+    if (claimed.count === 0) {
+      console.log(`✅ Admin notification already sent for order ${orderId}, skipping`);
+      return { success: true, skipped: true };
+    }
+
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
         user: { select: { name: true, email: true } },
-        items: {
-          select: {
-            name: true,
-            quantity: true,
-            price: true,
-            product: { select: { sku: true } },
-          },
-        },
+        items: { select: { name: true, quantity: true, price: true } },
+        shippingAddress: true,
       },
     });
 
-    if (!order || !order.user) {
-      throw new Error("Order or user not found");
+    if (!order) {
+      throw new Error("Order not found");
     }
 
-    // Determine payment method display
-    let paymentMethodDisplay = order.paymentMethod;
-    if (order.paymentMethod.toLowerCase().includes("cod") || order.paymentMethod.toLowerCase().includes("ramburs")) {
-      paymentMethodDisplay = "Ramburs (plată la livrare)";
-    } else if (order.paymentMethod.toLowerCase().includes("card")) {
-      paymentMethodDisplay = "Card bancar";
-    } else if (order.paymentMethod.toLowerCase().includes("netopia")) {
-      paymentMethodDisplay = "Card bancar (Netopia)";
-    }
+    const config = await getAppConfig();
+    const adminEmail = config.alertEmail || config.email || "admin@techtots.ro";
 
-    // Prepare email data
+    const isCOD = isCodPaymentMethod(order.paymentMethod);
+
     const emailData: AdminNewOrderData = {
+      adminEmail,
+      customerName: order.user?.name || order.shippingAddress?.fullName || "Guest",
+      customerEmail: order.user?.email || "N/A",
       orderNumber: order.orderNumber,
-      orderId: order.id,
-      customerName: order.user.name || "Client anonim",
-      customerEmail: order.user.email,
-      paymentMethod: paymentMethodDisplay,
+      orderDate: order.createdAt,
+      paymentMethod: isCOD ? "Ramburs (plată la livrare)" : "Card bancar",
       items: order.items.map(item => ({
         name: item.name,
         quantity: item.quantity,
         price: item.price,
-        sku: item.product?.sku || undefined,
       })),
-      subtotal: order.subtotal,
-      shippingCost: order.shippingCost,
-      codFee: order.codFeeEstimate || undefined,
       total: order.total,
+      shippingAddress: {
+        fullName: order.shippingAddress?.fullName,
+        addressLine1: order.shippingAddress?.addressLine1,
+        city: order.shippingAddress?.city,
+        phone: order.shippingAddress?.phone,
+      },
+      adminOrderUrl: `${config.siteUrl}/admin/orders/${orderId}`,
     };
 
-    // Generate HTML
     const html = await generateAdminNewOrderEmail(emailData);
 
-    // Send to admin email(s)
-    const adminEmails = [config.alertEmail, config.adminEmail].filter(Boolean);
-    const uniqueAdmins = Array.from(new Set(adminEmails));
+    const result = await sendEmailViaUnifiedSystem({
+      to: adminEmail,
+      subject: `🔔 Comandă nouă #${order.orderNumber} - ${emailData.customerName}`,
+      html,
+    });
 
-    const results = await Promise.all(
-      uniqueAdmins.map(email =>
-        sendEmailViaUnifiedSystem({
-          to: email,
-          subject: `🛒 Comandă nouă #${order.orderNumber} - TechTots Admin`,
-          html,
-        })
-      )
-    );
+    if (!result.success) {
+      // Remove tag if send failed
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { tags: { set: order.tags?.filter(t => t !== TAG) || [] } },
+      });
+    }
 
-    const allSuccess = results.every(r => r.success);
-    return { success: allSuccess };
+    return { success: result.success, error: result.error };
   } catch (error) {
     console.error("❌ Error sending admin notification:", error);
     return {

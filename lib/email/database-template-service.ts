@@ -42,13 +42,15 @@ export class DatabaseTemplateService {
   
   /**
    * Template keys that are code-owned and skip DB lookup
+   * Maps to actual slugs used in database/callers
    */
   private static CODE_OWNED_TEMPLATES = new Set([
     'order-confirmation',
+    'order-shipped-fancourier',
+    'order-shipped',
+    'password-change-confirmation',
     'payment-failed',
     'refund',
-    'password-changed',
-    'shipped',
     'admin-new-order',
   ]);
 
