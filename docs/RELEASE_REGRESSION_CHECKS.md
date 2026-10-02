@@ -18,8 +18,9 @@ failures in the commit being checked. Preserve such work before publishing.
   occurrence counts; it does not certify the existing failing assertions.
 - Pre-push checks whether the schema or migration directory differs from the
   base, including untracked files. No database changes means no database release
-  checks apply. Any database change invokes the unchanged full migration and
-  recent-backup checks. This mode does not certify historical migrations or
+  checks apply. Changes/deletions to historical migrations and deletion of the
+  schema are rejected. Other database changes invoke the original full migration
+  and recent-backup checks. This mode does not certify historical migrations or
   approve a deployment. Manual database SQL/production edits still require the
   existing database safety protocol.
 - Pre-push compiles the base and candidate in separate processes using the same

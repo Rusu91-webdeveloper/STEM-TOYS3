@@ -11,6 +11,11 @@ const {
 } = require("../../scripts/typecheck-diagnostics");
 const { addedDiagnostics } = require("../../scripts/typecheck-regressions");
 
+// Git hooks export repository-specific variables. Never let fixtures target it.
+const fixtureEnvironment = Object.fromEntries(
+  Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_"))
+);
+
 describe("release regression comparison", () => {
   const diagnostic = {
     file: "lib/existing.ts",
@@ -119,7 +124,11 @@ describe("real compiler comparison", () => {
 describe("migration change scope", () => {
   let root;
   const git = (...args) =>
-    execFileSync("git", args, { cwd: root, encoding: "utf8" });
+    execFileSync("git", args, {
+      cwd: root,
+      env: fixtureEnvironment,
+      encoding: "utf8",
+    });
   const write = (file, content) => {
     fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
     fs.writeFileSync(path.join(root, file), content);
@@ -144,7 +153,9 @@ describe("migration change scope", () => {
 
   it("does not certify unchanged historical migrations", () => {
     write("route.ts", "// no database changes\n");
-    expect(databaseChanges("baseline", root).files).toEqual([]);
+    expect(databaseChanges("baseline", root, fixtureEnvironment).files).toEqual(
+      []
+    );
     const validator = path.resolve(
       __dirname,
       "../../scripts/validate-migrations.js"
@@ -152,12 +163,13 @@ describe("migration change scope", () => {
     const scoped = spawnSync(
       process.execPath,
       [validator, "--base", "baseline"],
-      { cwd: root, encoding: "utf8" }
+      { cwd: root, env: fixtureEnvironment, encoding: "utf8" }
     );
     expect(scoped.status).toBe(0);
     expect(scoped.stdout).toContain("have not been certified");
     const full = spawnSync(process.execPath, [validator], {
       cwd: root,
+      env: fixtureEnvironment,
       encoding: "utf8",
     });
     expect(full.status).toBe(1);
@@ -169,15 +181,16 @@ describe("migration change scope", () => {
       "prisma/migrations/new/migration.sql",
       "CREATE TABLE safe (id INTEGER);\n"
     );
-    expect(databaseChanges("baseline", root).files).toContain(
-      "prisma/migrations/new/migration.sql"
-    );
+    expect(
+      databaseChanges("baseline", root, fixtureEnvironment).files
+    ).toContain("prisma/migrations/new/migration.sql");
     const validator = path.resolve(
       __dirname,
       "../../scripts/validate-migrations.js"
     );
     const run = spawnSync(process.execPath, [validator, "--base", "baseline"], {
       cwd: root,
+      env: fixtureEnvironment,
       encoding: "utf8",
     });
     expect(run.status).toBe(1);
@@ -188,25 +201,27 @@ describe("migration change scope", () => {
 
   it("detects modified, staged, committed and deleted database files", () => {
     write("prisma/schema.prisma", "// changed\n");
-    expect(databaseChanges("baseline", root).files).toContain(
-      "prisma/schema.prisma"
-    );
+    expect(
+      databaseChanges("baseline", root, fixtureEnvironment).files
+    ).toContain("prisma/schema.prisma");
     git("add", ".");
-    expect(databaseChanges("baseline", root).files).toContain(
-      "prisma/schema.prisma"
-    );
+    expect(
+      databaseChanges("baseline", root, fixtureEnvironment).files
+    ).toContain("prisma/schema.prisma");
     git("-c", "core.hooksPath=/dev/null", "commit", "-qm", "schema change");
-    expect(databaseChanges("baseline", root).files).toContain(
-      "prisma/schema.prisma"
-    );
+    expect(
+      databaseChanges("baseline", root, fixtureEnvironment).files
+    ).toContain("prisma/schema.prisma");
     fs.unlinkSync(path.join(root, "prisma/migrations/old/migration.sql"));
-    expect(databaseChanges("baseline", root).files).toContain(
-      "prisma/migrations/old/migration.sql"
-    );
+    expect(
+      databaseChanges("baseline", root, fixtureEnvironment).files
+    ).toContain("prisma/migrations/old/migration.sql");
   });
 
   it("fails closed when the base reference is unavailable", () => {
-    expect(() => databaseChanges("missing-base", root)).toThrow();
+    expect(() =>
+      databaseChanges("missing-base", root, fixtureEnvironment)
+    ).toThrow();
     const validator = path.resolve(
       __dirname,
       "../../scripts/validate-migrations.js"
@@ -214,10 +229,41 @@ describe("migration change scope", () => {
     expect(
       spawnSync(process.execPath, [validator, "--base", "missing-base"], {
         cwd: root,
+        env: fixtureEnvironment,
       }).status
     ).toBe(1);
     expect(
-      spawnSync(process.execPath, [validator, "--base"], { cwd: root }).status
+      spawnSync(process.execPath, [validator, "--base"], {
+        cwd: root,
+        env: fixtureEnvironment,
+      }).status
+    ).toBe(1);
+  });
+
+  it("rejects deleting all historical migrations or the schema", () => {
+    fs.unlinkSync(path.join(root, "prisma/migrations/old/migration.sql"));
+    const validator = path.resolve(
+      __dirname,
+      "../../scripts/validate-migrations.js"
+    );
+    const run = spawnSync(process.execPath, [validator, "--base", "baseline"], {
+      cwd: root,
+      env: fixtureEnvironment,
+      encoding: "utf8",
+    });
+    expect(run.status).toBe(1);
+    expect(run.stderr).toContain(
+      "Historical migrations cannot be changed or deleted"
+    );
+    fs.unlinkSync(path.join(root, "prisma/schema.prisma"));
+    expect(
+      databaseChanges("baseline", root, fixtureEnvironment).deletedSchema
+    ).toBe(true);
+    expect(
+      spawnSync(process.execPath, [validator, "--base", "baseline"], {
+        cwd: root,
+        env: fixtureEnvironment,
+      }).status
     ).toBe(1);
   });
 });

@@ -193,6 +193,11 @@ function main() {
     }
     try {
       const scope = databaseChanges(args[1]);
+      if (scope.modifiedHistory.length || scope.deletedSchema) {
+        throw new Error(
+          `Historical migrations cannot be changed or deleted, and the schema cannot be deleted: ${scope.modifiedHistory.join(", ")}${scope.deletedSchema ? " prisma/schema.prisma" : ""}`
+        );
+      }
       if (scope.files.length === 0) {
         console.log(
           `No schema or migration changes against ${scope.base}; database release checks do not apply.`

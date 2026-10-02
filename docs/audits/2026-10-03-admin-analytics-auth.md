@@ -50,9 +50,10 @@ account or access a database.
 - Before the patch: 27 tests failed and 5 passed, demonstrating missing auth,
   failure to stop data retrieval when auth fails, and absent cache headers.
 - After the patch: all 32 tests passed.
-- Release-check tests also pass: 13 tests cover comparison messages/counts,
+- Release-check tests also pass: 14 tests cover comparison messages/counts,
   changed-test failures, real compiler diagnostics, schema/migration detection,
-  and failure on an unavailable base. Combined focused result: 45 tests passed.
+  immutable historical migrations, and failure on an unavailable base. Combined
+  focused result: 46 tests passed.
 - Coverage includes full/realtime/report GET paths and POST; anonymous,
   malformed-session, CUSTOMER, SUPPLIER and VISITOR denials; ADMIN success;
   validation behavior; auth failure; and rejection before POST body parsing.
@@ -87,10 +88,11 @@ Full validation still fails on the historical migrations and backup check.
 Neither historical migration SQL nor schema is modified.
 
 Complete Jest snapshots of unchanged main and the candidate both report 65
-failing suites and 179 failed tests. Pre-commit compares failed test identities
-and occurrence counts, and requires every changed test file to pass. Pre-push
-compares complete TypeScript diagnostic messages and counts and blocks added
-errors. These are regression gates; the full checks remain failing. See
+failing suites and 179 failed tests, with zero added failures. Pre-commit
+compares failed test identities and occurrence counts, and requires every
+changed test file to pass. Pre-push compares complete TypeScript diagnostic
+messages and counts and blocks added errors. These are regression gates; the
+full checks remain failing. See
 [release-check limits](../RELEASE_REGRESSION_CHECKS.md).
 
 Repository-wide CI remains unchanged and may fail on the existing debt. Once
