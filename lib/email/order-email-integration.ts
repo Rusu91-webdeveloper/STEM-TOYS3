@@ -300,9 +300,9 @@ export async function sendAdminNewOrderNotification(orderId: string): Promise<{ 
       total: order.total,
     };
 
-    const html = await generateAdminNewOrderEmail(emailData);
-
     try {
+      const html = await generateAdminNewOrderEmail(emailData);
+
       const result = await sendEmailViaUnifiedSystem({
         to: adminEmail,
         subject: `🔔 Comandă nouă #${order.orderNumber} - ${emailData.customerName}`,
