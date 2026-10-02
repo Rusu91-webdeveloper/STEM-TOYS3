@@ -98,6 +98,18 @@ describe("Order Confirmation Email - COD Order", () => {
     expect(html).toContain("49,90");
   });
 
+  it("shows exact card hold amount of 19.99 lei when guarantee is authorized", async () => {
+    const codOrderWithGuarantee: OrderConfirmationData = {
+      ...codOrderData,
+      hasCardHold: true,
+      cardHoldAmount: 19.99,
+    };
+    const html = await generateOrderConfirmationEmail(codOrderWithGuarantee);
+    expect(html).toContain("19,99 RON");
+    expect(html).toContain("blocat temporar");
+    expect(html).toContain("garanție");
+  });
+
   it("shows correct subtotal, shipping, COD fee breakdown", async () => {
     const html = await generateOrderConfirmationEmail(codOrderData);
     expect(html).toContain("229,70 RON"); // subtotal

@@ -148,6 +148,7 @@ export function ShippingMethodSelector({
               serviceId?: string;
               methodType?: "home" | "easybox";
               requiresLocker?: boolean;
+              codGuaranteeHoldPrice?: number | null;
             }) => ({
               id: method.id,
               name: method.name,
@@ -164,6 +165,7 @@ export function ShippingMethodSelector({
               supplierCount: method.supplierCount,
               supplierNames: method.supplierNames,
               shippingPolicyMessage: method.shippingPolicyMessage || null,
+              codGuaranteeHoldPrice: method.codGuaranteeHoldPrice ?? null,
               // For mixed-supplier carts, keep the split-shipment surcharge even when
               // the standard first shipment qualifies for free shipping.
               price: isFreeShipping
@@ -208,6 +210,7 @@ export function ShippingMethodSelector({
                       ? Number(service.priceOverride)
                       : finalPrice,
                   estimatedDelivery: service.estimatedDelivery,
+                  codGuaranteeHoldPrice: null,
                 }))
             );
 

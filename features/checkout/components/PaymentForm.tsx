@@ -136,7 +136,6 @@ export function PaymentForm({
   const [totalAmount, setTotalAmount] = useState(0);
   const [isCalculatingTotal, setIsCalculatingTotal] = useState(true);
   const [calculatedShippingCost, setCalculatedShippingCost] = useState(0);
-  const [baseShippingForGuarantee, setBaseShippingForGuarantee] = useState(0);
   const [userLocation, setUserLocation] = useState<string>("");
   const [userLocale, setUserLocale] = useState<string>("");
   const [codConfig, setCodConfig] = useState<{
@@ -252,13 +251,14 @@ export function PaymentForm({
     if (selectedPaymentMethod !== "cash_on_delivery") {
       return 0;
     }
-    const shippingBase = Math.max(
-      0,
-      calculatedShippingCost,
-      baseShippingForGuarantee
-    );
-    return Math.round(shippingBase * 100) / 100;
-  }, [selectedPaymentMethod, calculatedShippingCost, baseShippingForGuarantee]);
+    
+    if (!shippingMethod?.codGuaranteeHoldPrice) {
+      return 0;
+    }
+
+    const holdPrice = shippingMethod.codGuaranteeHoldPrice;
+    return Math.round(holdPrice * 100) / 100;
+  }, [selectedPaymentMethod, shippingMethod]);
   const codOrderTotalForPolicy = useMemo(() => {
     if (selectedPaymentMethod !== "cash_on_delivery") return 0;
     if (codTotals) return Math.max(0, codTotals.total);
@@ -340,12 +340,6 @@ export function PaymentForm({
             0
           : 0;
 
-        const baseShippingPrice =
-          shippingMethod?.price !== undefined && shippingMethod.price >= 0
-            ? shippingMethod.price
-            : deliveryPrice;
-        setBaseShippingForGuarantee(baseShippingPrice);
-
         let shippingCost = 0;
         if (hasPhysicalItems) {
           const isMixedSupplierCart =
@@ -358,7 +352,10 @@ export function PaymentForm({
           if (checkFreeShipping(subtotal, settings?.shippingSettings)) {
             shippingCost = isMixedSupplierCart ? mixedSupplierSurcharge : 0;
           } else {
-            shippingCost = baseShippingPrice;
+            shippingCost =
+              shippingMethod?.price !== undefined && shippingMethod.price >= 0
+                ? shippingMethod.price
+                : deliveryPrice;
           }
         }
 
@@ -582,7 +579,15 @@ export function PaymentForm({
       return undefined;
     }
 
-    if (isCalculatingTotal || codGuaranteeAmount <= 0) {
+    if (isCalculatingTotal) {
+      return undefined;
+    }
+
+    if (codGuaranteeAmount <= 0) {
+      setCodGuaranteeIntentError(
+        "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu."
+      );
+      setIsCreatingCodGuaranteeIntent(false);
       return undefined;
     }
 
@@ -647,7 +652,11 @@ export function PaymentForm({
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || "Failed to create COD guarantee");
+          const errorCode = errorData.error || "";
+          const errorMessage = errorCode === "COD_GUARANTEE_PRICE_NOT_CONFIGURED"
+            ? errorData.message || "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu."
+            : errorData.error || "Failed to create COD guarantee";
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
@@ -669,12 +678,11 @@ export function PaymentForm({
         }
         console.error("Error creating COD guarantee intent:", error);
         clearCodGuaranteeIntent();
-        setCodGuaranteeIntentError(
-          t(
-            "codGuaranteeIntentError",
-            "Nu am reușit să autorizăm garanția COD. Reîncearcă."
-          )
+        const errorMessage = error instanceof Error ? error.message : t(
+          "codGuaranteeIntentError",
+          "Nu am reușit să autorizăm garanția COD. Reîncearcă."
         );
+        setCodGuaranteeIntentError(errorMessage);
       } finally {
         if (isActive) {
           setIsCreatingCodGuaranteeIntent(false);
@@ -926,10 +934,7 @@ export function PaymentForm({
 
       if (codGuaranteeAmount <= 0) {
         setPaymentError(
-          t(
-            "codGuaranteeAmountInvalid",
-            "Nu am putut calcula garanția COD. Reîncearcă după actualizarea adresei de livrare."
-          )
+          "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu."
         );
         return;
       }

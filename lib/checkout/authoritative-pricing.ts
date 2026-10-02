@@ -1,10 +1,9 @@
-import { CURATED_SUPPLIER_IDS, curatedStockIsFresh, isCuratedSupplier } from "@/lib/suppliers/curated-stock";
-import { db } from "@/lib/db";
 import {
   analyzeSupplierCartComposition,
   applyMixedSupplierShippingRules,
   type SupplierCartAnalysis,
 } from "@/lib/checkout/supplier-cart-rules";
+import { db } from "@/lib/db";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 import {
   DEFAULT_COURIERS,
@@ -16,6 +15,7 @@ import {
   resolveShippingService,
 } from "@/lib/shipping/shipping-pricing";
 import { productStoredWeightToKg } from "@/lib/shipping/store-weight-to-kg";
+import { CURATED_SUPPLIER_IDS, curatedStockIsFresh, isCuratedSupplier } from "@/lib/suppliers/curated-stock";
 import {
   getCODSettings,
   getShippingSettings,
@@ -219,6 +219,9 @@ export async function resolveCheckoutPricing(input: {
   let shippingBasePrice = 0;
   let shippingTotalEstimate = 0;
   let pricingVersion: string | null = null;
+  let selectedAdminShippingPrice: number | null = null;
+  let holdAdminPrice: number | null = null;
+  let isDefaultSettings = false;
 
   if (!isDigitalOnlyOrder) {
     const shippingMethodId = input.shippingMethodId || "";
@@ -235,6 +238,8 @@ export async function resolveCheckoutPricing(input: {
         ? shippingSettings.couriers
         : DEFAULT_COURIERS;
 
+    isDefaultSettings = (shippingSettings as any)?.__source === "default";
+
     const { courierId, serviceId } = parseShippingMethodId(shippingMethodId);
     const selectedCourier = configuredCouriers.find(
       (courier: any) => courier.id === courierId && courier.enabled !== false
@@ -243,8 +248,8 @@ export async function resolveCheckoutPricing(input: {
       (service: any) => service.id === serviceId && service.enabled !== false
     );
 
-    let selectedAdminShippingPrice: number | null = null;
     const overrideRaw = selectedService?.priceOverride;
+    
     if (
       overrideRaw !== undefined &&
       overrideRaw !== null &&
@@ -253,16 +258,24 @@ export async function resolveCheckoutPricing(input: {
       const parsedOverride = Number(overrideRaw);
       if (Number.isFinite(parsedOverride)) {
         selectedAdminShippingPrice = parsedOverride;
+        if (parsedOverride > 0) {
+          holdAdminPrice = parsedOverride;
+        }
       }
     }
 
     if (
-      selectedAdminShippingPrice === null &&
+      holdAdminPrice === null &&
       shippingSettings?.deliveryPrice?.active === true
     ) {
       const legacyDeliveryPrice = Number(shippingSettings.deliveryPrice.price);
       if (Number.isFinite(legacyDeliveryPrice)) {
-        selectedAdminShippingPrice = legacyDeliveryPrice;
+        if (selectedAdminShippingPrice === null) {
+          selectedAdminShippingPrice = legacyDeliveryPrice;
+        }
+        if (legacyDeliveryPrice > 0) {
+          holdAdminPrice = legacyDeliveryPrice;
+        }
       }
     }
 
@@ -421,9 +434,28 @@ export async function resolveCheckoutPricing(input: {
   const orderTotal = roundMoney(
     Math.max(0, subtotal + tax + finalShippingCost - discountAmount + codFee)
   );
-  const codGuaranteeAmount = isCODPaymentMethod(input.paymentMethod)
-    ? roundMoney(Math.max(finalShippingCost, shippingBasePrice))
-    : 0;
+
+  let codGuaranteeAmount: number | null = null;
+  let codGuaranteeConfigError = false;
+
+  if (isCODPaymentMethod(input.paymentMethod) && !isDigitalOnlyOrder) {
+    if (isDefaultSettings) {
+      codGuaranteeConfigError = true;
+      console.error("[cod-guarantee] using default shipping settings (no StoreSettings row or DB error)", {
+        shippingMethodId: input.shippingMethodId,
+      });
+    } else if (holdAdminPrice !== null) {
+      codGuaranteeAmount = roundMoney(holdAdminPrice);
+    } else {
+      codGuaranteeConfigError = true;
+      console.error("[cod-guarantee] missing admin shipping price", {
+        shippingMethodId: input.shippingMethodId,
+        holdAdminPrice,
+      });
+    }
+  } else if (isCODPaymentMethod(input.paymentMethod) && isDigitalOnlyOrder) {
+    codGuaranteeAmount = 0;
+  }
 
   return {
     items: authoritativeItems,
@@ -440,6 +472,7 @@ export async function resolveCheckoutPricing(input: {
     codFee,
     orderTotal,
     codGuaranteeAmount,
+    codGuaranteeConfigError,
     isDigitalOnlyOrder,
     supplierCartAnalysis,
     products,

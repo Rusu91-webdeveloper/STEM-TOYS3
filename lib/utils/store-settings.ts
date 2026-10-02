@@ -1,12 +1,13 @@
+import { getCached, invalidateCache, CacheKeys } from "@/lib/cache";
 import { appConfig } from "@/lib/config/app-config";
 import { prisma } from "@/lib/prisma";
-import { getCached, invalidateCache, CacheKeys } from "@/lib/cache";
 import { DEFAULT_COURIERS } from "@/lib/shipping/couriers";
 
 // **PERFORMANCE**: Cache store settings at module level to avoid repeated database calls
+// Shortened duration ensures admin shipping price changes reach checkout pricing promptly
 let cachedStoreSettings: any = null;
 let settingsLastFetched = 0;
-const SETTINGS_CACHE_DURATION = 60 * 60 * 1000; // 1 hour cache for store settings
+const SETTINGS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache (reduced from 1h for COD guarantee responsiveness)
 
 function isBusinessVatRegistered(): boolean {
   return process.env.BUSINESS_VAT_REGISTERED === "true";
@@ -86,6 +87,7 @@ export async function getStoreSettings() {
             observations: "",
           },
           couriers: DEFAULT_COURIERS,
+          __source: "default" as const,
         },
         codSettings: {
           percentage: "3",
@@ -129,11 +131,12 @@ export async function getStoreSettings() {
     console.error("Error fetching store settings:", error);
 
     // **PERFORMANCE**: Return cached settings even on error to avoid repeated failures
+    // But don't cache a DB-error default for 5 minutes - return directly without caching
     if (cachedStoreSettings) {
       return cachedStoreSettings;
     }
 
-    // Return default settings on error
+    // Return default settings on error WITHOUT caching
     const defaultSettings = {
       storeName: process.env.EMAIL_FROM_NAME || "TechTots",
       storeUrl: process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro",
@@ -166,6 +169,7 @@ export async function getStoreSettings() {
           observations: "",
         },
         couriers: DEFAULT_COURIERS,
+        __source: "default" as const,
       },
       codSettings: {
         percentage: "3",
@@ -179,9 +183,6 @@ export async function getStoreSettings() {
       },
     };
 
-    // Cache default settings to avoid repeated database calls
-    cachedStoreSettings = defaultSettings;
-    settingsLastFetched = now;
     return defaultSettings;
   }
 }
@@ -216,6 +217,7 @@ export async function getShippingSettings() {
         observations: "",
       },
       couriers: DEFAULT_COURIERS,
+      __source: "default" as const,
     }
   );
 }
