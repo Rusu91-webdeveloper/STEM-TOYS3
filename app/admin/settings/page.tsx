@@ -823,8 +823,10 @@ export default function SettingsPage() {
                 defaultShippingSettings.couriers,
             };
           }
+          // Strip legacy fields
+          const { onlinePaymentPrice, rambursPrice, ...cleanExisting } = existing as any;
           return {
-            ...existing,
+            ...cleanExisting,
             deliveryPrice:
               existing.deliveryPrice ||
               defaultShippingSettings.deliveryPrice,

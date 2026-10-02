@@ -208,8 +208,6 @@ export async function getShippingSettings() {
     settings.shippingSettings || {
       deliveryPrice: { price: "15.00", active: true },
       freeThreshold: { price: "199.00", active: true },
-      onlinePaymentPrice: "19.99",
-      rambursPrice: "24.99",
       insuranceThreshold: "500",
       fanCourierPickup: {
         enabled: false,

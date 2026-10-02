@@ -49,10 +49,9 @@ export default async function ShippingPage() {
   // Fetch shipping settings from database
   const shippingSettings = await getShippingSettings();
 
-  // Extract values - use merchantShippingRate or deliveryPrice as single source of truth
-  const shippingRate = merchantShippingRate(0, shippingSettings) ?? 
-    parseFloat(shippingSettings.deliveryPrice?.price || "0");
-  const onlinePaymentPrice = String(shippingRate || "0");
+  // Extract values - use merchantShippingRate as single source of truth
+  const shippingRate = merchantShippingRate(0, shippingSettings);
+  const deliveryPrice = shippingRate !== null ? String(shippingRate) : null;
   const freeThreshold = shippingSettings.freeThreshold?.price || "199";
   const isFreeShippingActive = shippingSettings.freeThreshold?.active !== false;
 
@@ -85,12 +84,14 @@ export default async function ShippingPage() {
               <span className="text-green-600">✓</span>
               Livrare în 1–4 zile lucrătoare
             </li>
-            <li className="flex items-center gap-2">
-              <span className="text-green-600">✓</span>
-              Cost livrare: {formatPrice(onlinePaymentPrice)} RON (online) /{" "}
-              {formatPrice(onlinePaymentPrice)} RON + taxa ramburs calculată la
-              checkout (ramburs)
-            </li>
+            {deliveryPrice !== null && (
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span>
+                Cost livrare: {formatPrice(deliveryPrice)} RON (online) /{" "}
+                {formatPrice(deliveryPrice)} RON + taxa ramburs calculată la
+                checkout (ramburs)
+              </li>
+            )}
             {isFreeShippingActive && (
               <li className="flex items-center gap-2">
                 <span className="text-green-600">✓</span>
@@ -129,29 +130,41 @@ export default async function ShippingPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <CreditCard className="w-5 h-5 text-blue-600" />
-                      <span>Plată online (card, transfer)</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-green-600 text-right text-lg">
-                    {formatPrice(onlinePaymentPrice)} RON
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <Package className="w-5 h-5 text-orange-600" />
-                      <span>Ramburs (plată la livrare)</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-slate-900 text-right text-lg">
-                    {formatPrice(onlinePaymentPrice)} RON + taxa ramburs
-                    calculată la checkout
-                  </td>
-                </tr>
+                {deliveryPrice !== null ? (
+                  <>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <CreditCard className="w-5 h-5 text-blue-600" />
+                          <span>Plată online (card, transfer)</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-bold text-green-600 text-right text-lg">
+                        {formatPrice(deliveryPrice)} RON
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <Package className="w-5 h-5 text-orange-600" />
+                          <span>Ramburs (plată la livrare)</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-bold text-slate-900 text-right text-lg">
+                        {formatPrice(deliveryPrice)} RON + taxa ramburs
+                        calculată la checkout
+                      </td>
+                    </tr>
+                  </>
+                ) : (
+                  <tr className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4" colSpan={2}>
+                      <div className="text-center text-slate-600">
+                        Costul de livrare se calculează la finalizarea comenzii
+                      </div>
+                    </td>
+                  </tr>
+                )}
                 {isFreeShippingActive && (
                   <tr className="bg-green-50 hover:bg-green-100 transition-colors">
                     <td className="px-6 py-4">

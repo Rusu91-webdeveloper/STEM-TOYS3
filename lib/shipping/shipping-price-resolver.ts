@@ -3,17 +3,18 @@
  *
  * Centralized logic for resolving shipping prices from admin settings.
  * Uses deliveryPrice as the single source of truth.
- * Fail-closed if deliveryPrice is missing (consistent with server pricing).
+ * Returns null if deliveryPrice is missing/inactive/invalid (server will charge courier quote).
  */
 
 export interface ResolvedShippingPrice {
-    price: number;
+    price: number | null;
     source: "admin" | "missing";
 }
 
 /**
  * Resolve shipping price from admin settings
- * Returns the configured deliveryPrice or fails closed with 0 if not configured
+ * Returns the configured deliveryPrice or null if not configured.
+ * When null, the server charges the courier quote - client must not invent a number.
  */
 export function resolveShippingPrice(
     shippingSettings: unknown
@@ -22,7 +23,7 @@ export function resolveShippingPrice(
 
     if (!settings) {
         return {
-            price: 0,
+            price: null,
             source: "missing",
         };
     }
@@ -31,20 +32,20 @@ export function resolveShippingPrice(
         | { price?: string; active?: boolean }
         | undefined;
 
-    // Fail closed if deliveryPrice is not configured or inactive
+    // Return null if deliveryPrice is not configured or inactive
     if (!deliveryPrice?.active || !deliveryPrice.price) {
         return {
-            price: 0,
+            price: null,
             source: "missing",
         };
     }
 
-    const price = parseFloat(deliveryPrice.price || "0");
+    const price = Number(deliveryPrice.price);
     
-    // Fail closed if price is invalid
+    // Return null if price is invalid
     if (!Number.isFinite(price) || price < 0) {
         return {
-            price: 0,
+            price: null,
             source: "missing",
         };
     }

@@ -9,13 +9,17 @@ export async function GET(_request: NextRequest) {
   try {
     // Public endpoint: checkout pricing (shipping, tax) is not sensitive
     const taxSettings = await getTaxSettings();
-    const shippingSettings = await getShippingSettings();
+    const rawShippingSettings = await getShippingSettings();
+    
+    // Strip legacy fields and internal metadata from shipping settings
+    const { onlinePaymentPrice, rambursPrice, __source, ...cleanShippingSettings } = rawShippingSettings as any;
+    
     const checkoutAdminOnly = process.env.CHECKOUT_ADMIN_ONLY === "true";
 
     // Set cache headers for static data (5 minutes)
     const response = NextResponse.json({
       taxSettings,
-      shippingSettings,
+      shippingSettings: cleanShippingSettings,
       checkoutAdminOnly,
     });
 

@@ -126,7 +126,13 @@ export async function PUT(req: NextRequest) {
     const jsonFields = ['shippingSettings', 'taxSettings'];
     for (const field of jsonFields) {
       if (sectionData[field] !== undefined) {
-        updateData[field] = sectionData[field];
+        let value = sectionData[field];
+        // Strip legacy fields from shippingSettings
+        if (field === 'shippingSettings' && value && typeof value === 'object') {
+          const { onlinePaymentPrice, rambursPrice, ...cleanShippingSettings } = value as any;
+          value = cleanShippingSettings;
+        }
+        updateData[field] = value;
         delete sectionData[field];
       }
     }

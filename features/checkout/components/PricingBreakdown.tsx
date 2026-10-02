@@ -66,7 +66,7 @@ export function usePricingBreakdown({
         .toLowerCase()
         .includes("easybox")
   );
-  let shippingCost = 0;
+  let shippingCost: number | null = 0;
 
   if (hasPhysicalItems) {
     const isMixedSupplierCart = checkoutData.shippingMethod?.isMixedSupplierCart === true;
@@ -82,6 +82,7 @@ export function usePricingBreakdown({
       shippingCost = checkoutData.shippingMethod.price;
     } else {
       // Use admin deliveryPrice as single source of truth
+      // If null, shipping will be calculated at checkout step
       const resolved = resolveShippingPrice(settings?.shippingSettings);
       shippingCost = resolved.price;
     }
@@ -113,9 +114,11 @@ export function usePricingBreakdown({
   }
 
   // **UPDATED TOTAL CALCULATION WITH DISCOUNT**
+  // When shippingCost is null, it will be calculated at delivery step
+  const shippingForTotal = shippingCost ?? 0;
   const totalBeforeDiscount = isTaxEnabled && !includeInPrice
-    ? cartSubtotal + shippingCost + tax
-    : cartSubtotal + shippingCost;
+    ? cartSubtotal + shippingForTotal + tax
+    : cartSubtotal + shippingForTotal;
   const baseTotal = Math.max(0, totalBeforeDiscount - discountAmount);
   let codFee = 0;
   if (isCOD) {
