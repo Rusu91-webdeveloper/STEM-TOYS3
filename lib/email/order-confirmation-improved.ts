@@ -107,9 +107,9 @@ export async function generateOrderConfirmationEmail(
                 <p style="margin: 0 0 8px 0; color: #92400e; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
                   ☎️ Te vom suna pentru confirmarea comenzii înainte de a o expedia.
                 </p>
-                ${data.hasCardHold ? `
+                ${data.hasCardHold && data.cardHoldAmount != null ? `
                 <p style="margin: 0; color: #92400e; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                  💳 Am blocat temporar ${formatRON(data.cardHoldAmount || 25)} pe cardul tău ca garanție. Această sumă va fi eliberată automat după livrare.
+                  💳 Am blocat temporar ${formatRON(data.cardHoldAmount)} pe cardul tău ca garanție. Această sumă va fi eliberată automat după livrare.
                 </p>
                 ` : ""}
               </td>
