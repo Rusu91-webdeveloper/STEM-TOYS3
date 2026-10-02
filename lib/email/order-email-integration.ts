@@ -10,6 +10,7 @@ import { generateOrderConfirmationEmail, type OrderConfirmationData } from "./or
 import { generateShippedEmail, type ShippedEmailData } from "./shipped-email-improved";
 import { generateAdminNewOrderEmail, type AdminNewOrderData } from "./admin-new-order-email";
 import { getAppConfig } from "@/lib/config/app-config";
+import { parseCodGuaranteeEvidence } from "@/lib/checkout/cod-guarantee";
 
 /**
  * Check if a payment method is Cash on Delivery (COD/Ramburs)
@@ -21,15 +22,6 @@ export function isCodPaymentMethod(paymentMethod: string | null | undefined): bo
          method === "cod" || 
          method === "ramburs" ||
          method.includes("cash_on_delivery");
-}
-
-/**
- * Parse COD guarantee evidence from order notes
- */
-function parseCodGuaranteeAmount(notes: string | null): number | null {
-  if (!notes) return null;
-  const match = notes.match(/authorized[_\s]?amount[:\s]+(\d+\.?\d*)/i);
-  return match ? parseFloat(match[1]) : null;
 }
 
 /**
@@ -52,11 +44,12 @@ export async function sendOrderConfirmationImproved(orderId: string): Promise<{ 
 
     const isCOD = isCodPaymentMethod(order.paymentMethod);
 
-    // Card hold: check COD_GUARANTEE_AUTHORIZED tag or notes
+    // Card hold: check COD_GUARANTEE_AUTHORIZED tag and parse evidence from notes
     const hasCardHoldTag = order.tags?.includes("COD_GUARANTEE_AUTHORIZED") || false;
-    const authorizedAmount = parseCodGuaranteeAmount(order.notes);
-    const hasCardHold = hasCardHoldTag || authorizedAmount !== null;
-    const cardHoldAmount = authorizedAmount || 25; // Use actual amount or fallback to 25 lei policy
+    const codEvidence = order.notes ? parseCodGuaranteeEvidence(order.notes) : null;
+    const authorizedAmount = codEvidence?.authorizedAmount;
+    const hasCardHold = hasCardHoldTag && authorizedAmount !== undefined;
+    const cardHoldAmount = authorizedAmount; // Use exact authorized amount, no fallback
 
     const emailData: OrderConfirmationData = {
       customerName: order.user.name || "Client",
