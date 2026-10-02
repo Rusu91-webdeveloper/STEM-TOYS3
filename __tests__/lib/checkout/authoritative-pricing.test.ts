@@ -30,7 +30,7 @@ jest.mock("@/lib/utils/store-settings", () => ({
 
 jest.mock("@/lib/services/discount-service", () => ({
   AutoDiscountService: {
-    getNewUserDiscount: jest.fn(async () => null),
+    getNewUserDiscount: jest.fn(() => Promise.resolve(null)),
     compareDiscounts: jest.fn(() => null),
   },
 }));
