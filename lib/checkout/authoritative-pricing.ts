@@ -1,10 +1,9 @@
-import { CURATED_SUPPLIER_IDS, curatedStockIsFresh, isCuratedSupplier } from "@/lib/suppliers/curated-stock";
-import { db } from "@/lib/db";
 import {
   analyzeSupplierCartComposition,
   applyMixedSupplierShippingRules,
   type SupplierCartAnalysis,
 } from "@/lib/checkout/supplier-cart-rules";
+import { db } from "@/lib/db";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 import {
   DEFAULT_COURIERS,
@@ -16,6 +15,7 @@ import {
   resolveShippingService,
 } from "@/lib/shipping/shipping-pricing";
 import { productStoredWeightToKg } from "@/lib/shipping/store-weight-to-kg";
+import { CURATED_SUPPLIER_IDS, curatedStockIsFresh, isCuratedSupplier } from "@/lib/suppliers/curated-stock";
 import {
   getCODSettings,
   getShippingSettings,

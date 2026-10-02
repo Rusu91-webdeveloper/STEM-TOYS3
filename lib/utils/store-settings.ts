@@ -1,6 +1,6 @@
+import { getCached, invalidateCache, CacheKeys } from "@/lib/cache";
 import { appConfig } from "@/lib/config/app-config";
 import { prisma } from "@/lib/prisma";
-import { getCached, invalidateCache, CacheKeys } from "@/lib/cache";
 import { DEFAULT_COURIERS } from "@/lib/shipping/couriers";
 
 // **PERFORMANCE**: Cache store settings at module level to avoid repeated database calls
