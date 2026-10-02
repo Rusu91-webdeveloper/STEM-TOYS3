@@ -482,8 +482,8 @@ describe("POST /api/checkout/order integrity", () => {
       COD_CONSENT_VERSION,
     } = require("@/lib/checkout/cod-consent");
     const {
-      DatabaseTemplateService,
-    } = require("@/lib/email/database-template-service");
+      sendOrderConfirmationImproved,
+    } = require("@/lib/email/order-email-integration");
 
     auth.mockResolvedValue(null);
     db.user.findUnique.mockResolvedValue(null);
@@ -588,13 +588,8 @@ describe("POST /api/checkout/order integrity", () => {
         }),
       })
     );
-    expect(
-      DatabaseTemplateService.sendOrderConfirmationEmail
-    ).toHaveBeenCalledWith(
-      "guest@example.com",
-      expect.objectContaining({
-        customerName: "Ana Pop",
-      })
+    expect(sendOrderConfirmationImproved).toHaveBeenCalledWith(
+      expect.stringMatching(/^[a-f0-9-]+$/)
     );
     const createOrder = db.user.create.mock.invocationCallOrder[0];
     const priceOrder = resolveCheckoutPricing.mock.invocationCallOrder[0];
