@@ -275,7 +275,7 @@ async function handleSuccessfulPayment(
             to: appConfig.adminEmail,
             subject: `Admin new order notification: ${order.orderNumber || order.id}`,
             orderId: order.id,
-            messageId: adminResult.messageId || "sent",
+            messageId: "sent",
           });
 
           orderTags = await addWebhookTag(
@@ -505,10 +505,14 @@ async function handleFailedPayment(paymentIntent: Stripe.PaymentIntent) {
     const { db } = await import("@/lib/db");
     const order =
       (orderId
-        ? await db.order.findUnique({ where: { id: orderId } })
+        ? await db.order.findUnique({
+            where: { id: orderId },
+            include: { user: true, shippingAddress: true },
+          })
         : null) ||
       (await db.order.findFirst({
         where: { stripePaymentIntentId: paymentIntentId },
+        include: { user: true, shippingAddress: true },
       }));
 
     if (!order) {

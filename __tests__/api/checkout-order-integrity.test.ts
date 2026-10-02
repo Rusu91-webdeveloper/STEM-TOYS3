@@ -18,6 +18,9 @@ jest.mock("@/lib/email/order-email-integration", () => ({
   sendOrderConfirmationImproved: jest.fn().mockResolvedValue({
     success: true,
   }),
+  sendAdminNewOrderNotification: jest.fn().mockResolvedValue({
+    success: true,
+  }),
 }));
 
 jest.mock("@/lib/checkout/authoritative-pricing", () => ({
@@ -588,9 +591,7 @@ describe("POST /api/checkout/order integrity", () => {
         }),
       })
     );
-    expect(sendOrderConfirmationImproved).toHaveBeenCalledWith(
-      expect.stringMatching(/^[a-f0-9-]+$/)
-    );
+    expect(sendOrderConfirmationImproved).toHaveBeenCalledWith("ord_1");
     const createOrder = db.user.create.mock.invocationCallOrder[0];
     const priceOrder = resolveCheckoutPricing.mock.invocationCallOrder[0];
     expect(priceOrder).toBeLessThan(createOrder);
@@ -658,8 +659,8 @@ describe("POST /api/checkout/order integrity", () => {
       COD_CONSENT_VERSION,
     } = require("@/lib/checkout/cod-consent");
     const {
-      DatabaseTemplateService,
-    } = require("@/lib/email/database-template-service");
+      sendOrderConfirmationImproved,
+    } = require("@/lib/email/order-email-integration");
 
     auth.mockResolvedValue(null);
     db.user.findUnique.mockResolvedValue({
@@ -668,7 +669,7 @@ describe("POST /api/checkout/order integrity", () => {
       name: "Parent",
       role: "CUSTOMER",
     });
-    DatabaseTemplateService.sendOrderConfirmationEmail.mockRejectedValueOnce(
+    sendOrderConfirmationImproved.mockRejectedValueOnce(
       new Error("smtp down")
     );
     resolveCheckoutPricing.mockResolvedValue({

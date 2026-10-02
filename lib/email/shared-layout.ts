@@ -230,7 +230,7 @@ export async function wrapEmailLayout(
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc;">
     <tr>
       <td align="center" style="padding: 0;">
-        <table width="100%" style="max-width: 600px;" cellpadding="0" cellspacing="0" border="0" class="email-content">
+        <table width="100%" style="max-width: 600px; background-color: #ffffff;" cellpadding="0" cellspacing="0" border="0" class="email-content">
           ${generateEmailHeader(headerTitle)}
           
           <!-- Main Content -->

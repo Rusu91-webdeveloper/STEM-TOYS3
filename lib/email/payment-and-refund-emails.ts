@@ -42,9 +42,9 @@ export async function generatePaymentFailedEmail(data: PaymentFailedData): Promi
       <!-- Status Badge -->
       <tr>
         <td align="center" style="padding-bottom: 24px;">
-          <table cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border-radius: 8px; padding: 16px 24px;">
+          <table cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border-radius: 8px;">
             <tr>
-              <td align="center">
+              <td align="center" style="padding: 16px 24px;">
                 <p style="margin: 0; color: #ffffff; font-size: 18px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
                   ⚠️ Plata nu a putut fi procesată
                 </p>
@@ -154,9 +154,9 @@ export async function generateRefundEmail(data: RefundData): Promise<string> {
       <!-- Status Badge -->
       <tr>
         <td align="center" style="padding-bottom: 24px;">
-          <table cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; padding: 16px 24px;">
+          <table cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px;">
             <tr>
-              <td align="center">
+              <td align="center" style="padding: 16px 24px;">
                 <p style="margin: 0; color: #ffffff; font-size: 18px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
                   💳 Rambursare procesată cu succes
                 </p>
