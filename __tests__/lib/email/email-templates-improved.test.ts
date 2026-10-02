@@ -272,7 +272,7 @@ describe("Shipped Email", () => {
   it("includes delivery tips", async () => {
     const html = await generateShippedEmail(shippedData);
     expect(html).toContain("Urmărește");
-    expect(html).toContain("FanCourier");
+    expect(html).toContain("FAN Courier");
   });
 });
 
