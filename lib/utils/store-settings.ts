@@ -87,6 +87,7 @@ export async function getStoreSettings() {
             observations: "",
           },
           couriers: DEFAULT_COURIERS,
+          __source: "default" as const,
         },
         codSettings: {
           percentage: "3",
@@ -130,11 +131,12 @@ export async function getStoreSettings() {
     console.error("Error fetching store settings:", error);
 
     // **PERFORMANCE**: Return cached settings even on error to avoid repeated failures
+    // But don't cache a DB-error default for 5 minutes - return directly without caching
     if (cachedStoreSettings) {
       return cachedStoreSettings;
     }
 
-    // Return default settings on error
+    // Return default settings on error WITHOUT caching
     const defaultSettings = {
       storeName: process.env.EMAIL_FROM_NAME || "TechTots",
       storeUrl: process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro",
@@ -167,6 +169,7 @@ export async function getStoreSettings() {
           observations: "",
         },
         couriers: DEFAULT_COURIERS,
+        __source: "default" as const,
       },
       codSettings: {
         percentage: "3",
@@ -180,9 +183,6 @@ export async function getStoreSettings() {
       },
     };
 
-    // Cache default settings to avoid repeated database calls
-    cachedStoreSettings = defaultSettings;
-    settingsLastFetched = now;
     return defaultSettings;
   }
 }
@@ -217,6 +217,7 @@ export async function getShippingSettings() {
         observations: "",
       },
       couriers: DEFAULT_COURIERS,
+      __source: "default" as const,
     }
   );
 }

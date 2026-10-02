@@ -136,7 +136,6 @@ export function PaymentForm({
   const [totalAmount, setTotalAmount] = useState(0);
   const [isCalculatingTotal, setIsCalculatingTotal] = useState(true);
   const [calculatedShippingCost, setCalculatedShippingCost] = useState(0);
-  const [baseShippingForGuarantee, setBaseShippingForGuarantee] = useState(0);
   const [userLocation, setUserLocation] = useState<string>("");
   const [userLocale, setUserLocale] = useState<string>("");
   const [codConfig, setCodConfig] = useState<{
@@ -253,21 +252,13 @@ export function PaymentForm({
       return 0;
     }
     
-    const shippingSettings = settings?.shippingSettings;
-    if (!shippingSettings) return 0;
-
-    let adminPrice = 0;
-    if (shippingMethod?.priceOverride !== undefined && shippingMethod.priceOverride !== null && shippingMethod.priceOverride > 0) {
-      adminPrice = shippingMethod.priceOverride;
-    } else if (shippingSettings.deliveryPrice?.active === true) {
-      const parsed = parseFloat(shippingSettings.deliveryPrice.price || "0");
-      if (Number.isFinite(parsed) && parsed > 0) {
-        adminPrice = parsed;
-      }
+    if (!shippingMethod?.singleShipmentPrice) {
+      return 0;
     }
 
+    const adminPrice = shippingMethod.singleShipmentPrice;
     return Math.round(adminPrice * 100) / 100;
-  }, [selectedPaymentMethod, shippingMethod, settings]);
+  }, [selectedPaymentMethod, shippingMethod]);
   const codOrderTotalForPolicy = useMemo(() => {
     if (selectedPaymentMethod !== "cash_on_delivery") return 0;
     if (codTotals) return Math.max(0, codTotals.total);
@@ -348,12 +339,6 @@ export function PaymentForm({
           ? parseFloat(settings.shippingSettings.deliveryPrice.price || "0") ||
             0
           : 0;
-
-        const baseShippingPrice =
-          shippingMethod?.price !== undefined && shippingMethod.price >= 0
-            ? shippingMethod.price
-            : deliveryPrice;
-        setBaseShippingForGuarantee(baseShippingPrice);
 
         let shippingCost = 0;
         if (hasPhysicalItems) {
@@ -591,7 +576,15 @@ export function PaymentForm({
       return undefined;
     }
 
-    if (isCalculatingTotal || codGuaranteeAmount <= 0) {
+    if (isCalculatingTotal) {
+      return undefined;
+    }
+
+    if (codGuaranteeAmount <= 0) {
+      setCodGuaranteeIntentError(
+        "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu."
+      );
+      setIsCreatingCodGuaranteeIntent(false);
       return undefined;
     }
 
@@ -682,12 +675,11 @@ export function PaymentForm({
         }
         console.error("Error creating COD guarantee intent:", error);
         clearCodGuaranteeIntent();
-        setCodGuaranteeIntentError(
-          t(
-            "codGuaranteeIntentError",
-            "Nu am reușit să autorizăm garanția COD. Reîncearcă."
-          )
+        const errorMessage = error instanceof Error ? error.message : t(
+          "codGuaranteeIntentError",
+          "Nu am reușit să autorizăm garanția COD. Reîncearcă."
         );
+        setCodGuaranteeIntentError(errorMessage);
       } finally {
         if (isActive) {
           setIsCreatingCodGuaranteeIntent(false);
@@ -939,10 +931,7 @@ export function PaymentForm({
 
       if (codGuaranteeAmount <= 0) {
         setPaymentError(
-          t(
-            "codGuaranteeAmountInvalid",
-            "Nu am putut calcula garanția COD. Reîncearcă după actualizarea adresei de livrare."
-          )
+          "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu."
         );
         return;
       }

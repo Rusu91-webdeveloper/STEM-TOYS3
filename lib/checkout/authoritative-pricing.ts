@@ -220,6 +220,7 @@ export async function resolveCheckoutPricing(input: {
   let shippingTotalEstimate = 0;
   let pricingVersion: string | null = null;
   let selectedAdminShippingPrice: number | null = null;
+  let isDefaultSettings = false;
 
   if (!isDigitalOnlyOrder) {
     const shippingMethodId = input.shippingMethodId || "";
@@ -236,6 +237,8 @@ export async function resolveCheckoutPricing(input: {
         ? shippingSettings.couriers
         : DEFAULT_COURIERS;
 
+    isDefaultSettings = (shippingSettings as any)?.__source === "default";
+
     const { courierId, serviceId } = parseShippingMethodId(shippingMethodId);
     const selectedCourier = configuredCouriers.find(
       (courier: any) => courier.id === courierId && courier.enabled !== false
@@ -251,7 +254,7 @@ export async function resolveCheckoutPricing(input: {
       overrideRaw !== ""
     ) {
       const parsedOverride = Number(overrideRaw);
-      if (Number.isFinite(parsedOverride)) {
+      if (Number.isFinite(parsedOverride) && parsedOverride > 0) {
         selectedAdminShippingPrice = parsedOverride;
       }
     }
@@ -261,7 +264,7 @@ export async function resolveCheckoutPricing(input: {
       shippingSettings?.deliveryPrice?.active === true
     ) {
       const legacyDeliveryPrice = Number(shippingSettings.deliveryPrice.price);
-      if (Number.isFinite(legacyDeliveryPrice)) {
+      if (Number.isFinite(legacyDeliveryPrice) && legacyDeliveryPrice > 0) {
         selectedAdminShippingPrice = legacyDeliveryPrice;
       }
     }
@@ -426,7 +429,12 @@ export async function resolveCheckoutPricing(input: {
   let codGuaranteeConfigError = false;
 
   if (isCODPaymentMethod(input.paymentMethod) && !isDigitalOnlyOrder) {
-    if (selectedAdminShippingPrice !== null && selectedAdminShippingPrice > 0) {
+    if (isDefaultSettings) {
+      codGuaranteeConfigError = true;
+      console.error("[cod-guarantee] using default shipping settings (no StoreSettings row or DB error)", {
+        shippingMethodId: input.shippingMethodId,
+      });
+    } else if (selectedAdminShippingPrice !== null && selectedAdminShippingPrice > 0) {
       codGuaranteeAmount = roundMoney(selectedAdminShippingPrice);
     } else {
       codGuaranteeConfigError = true;
