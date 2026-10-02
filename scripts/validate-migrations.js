@@ -2,17 +2,17 @@
 
 /**
  * MIGRATION VALIDATION SCRIPT
- * 
+ *
  * This script validates all Prisma migration files to ensure they only contain
  * safe, additive operations (ADD COLUMN, CREATE TABLE, CREATE INDEX, etc.)
  * and flags any destructive operations (DROP TABLE, DROP COLUMN, DELETE, etc.)
- * 
+ *
  * Usage: pnpm run validate:migrations
  */
 
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
+const { databaseChanges } = require("./migration-change-scope");
 
 // Colors for terminal output
 const colors = {
@@ -55,7 +55,7 @@ const DANGEROUS_PATTERNS = [
 
 function findMigrationFiles() {
   const migrationsDir = path.join(process.cwd(), "prisma", "migrations");
-  
+
   if (!fs.existsSync(migrationsDir)) {
     log("✗ Migrations directory not found", "red");
     return [];
@@ -66,7 +66,11 @@ function findMigrationFiles() {
 
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      const migrationPath = path.join(migrationsDir, entry.name, "migration.sql");
+      const migrationPath = path.join(
+        migrationsDir,
+        entry.name,
+        "migration.sql"
+      );
       if (fs.existsSync(migrationPath)) {
         migrationFiles.push({
           name: entry.name,
@@ -82,14 +86,14 @@ function findMigrationFiles() {
 function analyzeMigration(migrationPath) {
   const content = fs.readFileSync(migrationPath, "utf8");
   const lines = content.split("\n");
-  
+
   const issues = [];
   let lineNumber = 0;
 
   for (const line of lines) {
     lineNumber++;
     const trimmedLine = line.trim();
-    
+
     // Skip empty lines and comments
     if (!trimmedLine || trimmedLine.startsWith("--")) {
       continue;
@@ -126,7 +130,7 @@ function analyzeMigration(migrationPath) {
 
 function checkRecentBackup() {
   const backupsDir = path.join(process.cwd(), "backups");
-  
+
   if (!fs.existsSync(backupsDir)) {
     return {
       exists: false,
@@ -136,8 +140,12 @@ function checkRecentBackup() {
 
   try {
     // Find most recent production backup
-    const files = fs.readdirSync(backupsDir)
-      .filter(file => file.startsWith("backup_production_") && file.endsWith(".sql.gz"))
+    const files = fs
+      .readdirSync(backupsDir)
+      .filter(
+        file =>
+          file.startsWith("backup_production_") && file.endsWith(".sql.gz")
+      )
       .map(file => {
         const filePath = path.join(backupsDir, file);
         const stats = fs.statSync(filePath);
@@ -177,6 +185,31 @@ function checkRecentBackup() {
 }
 
 function main() {
+  const args = process.argv.slice(2);
+  if (args.length) {
+    if (args.length !== 2 || args[0] !== "--base" || !args[1]) {
+      console.error("Usage: pnpm run validate:migrations [--base <base-ref>]");
+      process.exit(1);
+    }
+    try {
+      const scope = databaseChanges(args[1]);
+      if (scope.files.length === 0) {
+        console.log(
+          `No schema or migration changes against ${scope.base}; database release checks do not apply.`
+        );
+        console.log(
+          "Historical migrations and backup status have not been certified. Use the full command for database releases."
+        );
+        return;
+      }
+      console.log(
+        `Database files changed: ${scope.files.join(", ")}. Running full migration and backup validation.`
+      );
+    } catch (error) {
+      console.error(`Cannot establish migration scope: ${error.message}`);
+      process.exit(1);
+    }
+  }
   console.log("\n");
   log("=".repeat(80), "cyan");
   log("MIGRATION VALIDATION - Production Safety Check", "cyan");
@@ -202,7 +235,7 @@ function main() {
   for (const migration of migrationFiles) {
     const analysis = analyzeMigration(migration.path);
     const hasIssues = analysis.issues.length > 0;
-    
+
     if (hasIssues) {
       totalIssues += analysis.issues.length;
       results.push({
@@ -226,7 +259,7 @@ function main() {
     if (result.status === "FAILED") {
       allPassed = false;
       log(`✗ ${result.migration}`, "red");
-      
+
       for (const issue of result.issues) {
         log(`  Line ${issue.line}: ${issue.content}`, "yellow");
         log(`    ⚠️  DANGEROUS OPERATION DETECTED`, "red");
@@ -247,11 +280,23 @@ function main() {
   if (backupStatus.exists) {
     if (backupStatus.isRecent) {
       log(`✓ Recent backup found: ${backupStatus.latest}`, "green");
-      log(`  Age: ${backupStatus.ageHours} hours (${backupStatus.ageDays} days)`, "green");
+      log(
+        `  Age: ${backupStatus.ageHours} hours (${backupStatus.ageDays} days)`,
+        "green"
+      );
     } else {
-      log(`⚠️  Backup found but older than 24 hours: ${backupStatus.latest}`, "yellow");
-      log(`  Age: ${backupStatus.ageHours} hours (${backupStatus.ageDays} days)`, "yellow");
-      log(`  Recommendation: Run 'pnpm run backup:production' before deploying`, "yellow");
+      log(
+        `⚠️  Backup found but older than 24 hours: ${backupStatus.latest}`,
+        "yellow"
+      );
+      log(
+        `  Age: ${backupStatus.ageHours} hours (${backupStatus.ageDays} days)`,
+        "yellow"
+      );
+      log(
+        `  Recommendation: Run 'pnpm run backup:production' before deploying`,
+        "yellow"
+      );
     }
   } else {
     log(`✗ ${backupStatus.message}`, "red");
@@ -276,7 +321,10 @@ function main() {
       log("⚠️  MIGRATIONS ARE SAFE BUT BACKUP CHECK FAILED", "yellow");
       log("✓ All migrations are safe (additive only)", "green");
       log("⚠️  Production backup is missing or outdated", "yellow");
-      log("\n⚠️  Create backup before pushing: pnpm run backup:production", "yellow");
+      log(
+        "\n⚠️  Create backup before pushing: pnpm run backup:production",
+        "yellow"
+      );
       console.log("\n");
       process.exit(1); // Exit with error to prevent push
     }
@@ -287,7 +335,10 @@ function main() {
     log("\nFix the following issues:", "yellow");
     log("1. Review migration files flagged above", "yellow");
     log("2. Remove or modify destructive operations", "yellow");
-    log("3. Use additive-only operations (ADD COLUMN, CREATE TABLE, etc.)", "yellow");
+    log(
+      "3. Use additive-only operations (ADD COLUMN, CREATE TABLE, etc.)",
+      "yellow"
+    );
     log("4. Re-run validation: pnpm run validate:migrations", "yellow");
     console.log("\n");
     process.exit(1);

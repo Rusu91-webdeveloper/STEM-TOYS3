@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { auth } from "@/lib/auth";
 import {
   getAnalyticsData,
   getRealTimeAnalytics,
@@ -8,6 +9,14 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Unauthorized. Admin access required." },
+        { status: 403, headers: { "Cache-Control": "private, no-store" } }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const timeRange = searchParams.get("timeRange") || "30d";
     const type = searchParams.get("type") || "full";
@@ -34,13 +43,16 @@ export async function GET(request: NextRequest) {
         break;
     }
 
-    return NextResponse.json({
-      success: true,
-      data,
-      timeRange,
-      type,
-      generatedAt: new Date().toISOString(),
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data,
+        timeRange,
+        type,
+        generatedAt: new Date().toISOString(),
+      },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
   } catch (error) {
     console.error("Error fetching analytics data:", error);
     return NextResponse.json(
@@ -55,6 +67,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Unauthorized. Admin access required." },
+        { status: 403, headers: { "Cache-Control": "private, no-store" } }
+      );
+    }
+
     const body = await request.json();
     const { timeRange = "30d", reportType } = body;
 
@@ -67,11 +87,14 @@ export async function POST(request: NextRequest) {
 
     const report = await generateAnalyticsReport(timeRange, reportType);
 
-    return NextResponse.json({
-      success: true,
-      report,
-      generatedAt: new Date().toISOString(),
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        report,
+        generatedAt: new Date().toISOString(),
+      },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
   } catch (error) {
     console.error("Error generating analytics report:", error);
     return NextResponse.json(

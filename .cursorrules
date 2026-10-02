@@ -162,17 +162,29 @@ Check deployment logs for details.
 **The AI MUST use the validation script before any push:**
 
 ```bash
-# Run migration validation
-pnpm run validate:migrations
+# Establish database-change scope against the fetched branch base.
+# With database changes, this runs the full validation and backup checks.
+pnpm run validate:migrations --base origin/main
 ```
 
-**This script checks:**
+**For a push without schema/migration changes**, the scoped command reports that
+database release checks do not apply. It does not certify historical migrations
+or approve deployment. **For any schema/migration change**, it runs the full
+validation below and all database safety requirements still apply.
+
+**The full validation checks:**
 - All migration SQL files for dangerous operations
 - Ensures only additive changes (ADD, CREATE statements)
 - Flags any DROP, DELETE, TRUNCATE operations
 - Reports validation results clearly
 
 **If validation fails → PUSH IS BLOCKED until fixed**
+
+Local Git hooks also compare complete TypeScript/Jest results against the
+`origin/main` merge base. Existing failures remain visible; added errors and test
+failures block publication. Every changed test file must pass. Dependency,
+schema or compiler-configuration changes require clean full checks. Fetch origin
+before publishing. See `docs/RELEASE_REGRESSION_CHECKS.md` for limits and commands.
 
 ---
 
