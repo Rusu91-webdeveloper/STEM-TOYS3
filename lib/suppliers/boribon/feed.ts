@@ -1,10 +1,9 @@
 import * as XLSX from "xlsx";
+
 import portfolio from "./portfolio.json";
 
 export const BORIBON_ID = "ee75eea8-9f64-4076-96a2-52f5d6926c14";
 export const BORIBON_SYNC_MODE = "boribon-curated-v1";
-export const BORIBON_FEED_URL =
-  "https://www.boribon.ro/feed/products/6b4ddf7503cbf24a7fe711636e57d127";
 export const BORIBON_MAX_AGE_MS = 14 * 60 * 60 * 1000;
 export { portfolio };
 export type BoribonRow = Record<string, string>;
@@ -44,14 +43,48 @@ export function selectBoribonProducts(rows: BoribonRow[]) {
   });
 }
 
-export async function fetchBoribonProducts() {
-  const response = await fetch(BORIBON_FEED_URL, {
-    headers: { "User-Agent": "Mozilla/5.0", Accept: "text/csv,*/*" },
-    cache: "no-store",
-    signal: AbortSignal.timeout(15000),
-  });
+export function getBoribonFeedUrl(
+  sourceUrl: string | null | undefined = process.env.BORIBON_FEED_URL
+) {
+  if (!sourceUrl?.trim()) throw new Error("Missing Boribon feed URL");
+  let url: URL;
+  try {
+    url = new URL(sourceUrl.trim());
+  } catch {
+    throw new Error("Invalid Boribon feed URL");
+  }
+  if (
+    url.protocol !== "https:" ||
+    !["boribon.ro", "www.boribon.ro"].includes(url.hostname) ||
+    !url.pathname.startsWith("/feed/products/") ||
+    url.username ||
+    url.password
+  ) {
+    throw new Error("Invalid Boribon feed URL");
+  }
+  return url.toString();
+}
+
+export async function fetchBoribonProducts(sourceUrl?: string | null) {
+  const url = getBoribonFeedUrl(sourceUrl);
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0", Accept: "text/csv,*/*" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15000),
+    });
+  } catch {
+    // Fetch errors can contain the private URL; don't persist it in job logs.
+    throw new Error("Boribon feed request failed");
+  }
   if (!response.ok) throw new Error(`Boribon feed HTTP ${response.status}`);
-  const text = await response.text();
+  let text: string;
+  try {
+    text = await response.text();
+  } catch {
+    throw new Error("Boribon feed request failed");
+  }
   if (text.length > 20_000_000)
     throw new Error("Boribon feed exceeds size limit");
   return parseBoribonCsv(text);
@@ -110,15 +143,15 @@ export function boribonContent(row: BoribonRow) {
   ]
     .filter(Boolean)
     .filter(url => /^https?:\/\//.test(url));
-  
+
   // Extract description and name
   const description = row.description?.trim() || "";
   const name = row.name?.trim() || "";
-  
+
   if (!name || !description || !images.length) {
     throw new Error(`Missing or invalid Boribon content: ${row.model}`);
   }
-  
+
   return {
     name,
     description,

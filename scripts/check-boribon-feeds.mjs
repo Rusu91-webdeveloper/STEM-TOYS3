@@ -2,15 +2,11 @@ import fs from "fs";
 import path from "path";
 import XLSX from "xlsx";
 
-const FEEDS = [
-  "https://www.boribon.ro/feed/products/6b4ddf7503cbf24a7fe711636e57d127",
-  "https://www.boribon.ro/feed/products/eede0e22ab27952666cabcdb8286a8f5",
-  "https://www.boribon.ro/feed/products/ccd46761bcd1b8d7f9fbc285df4b0c87",
-  "https://www.boribon.ro/feed/products/02c7bdc8cdaadae49a162d1857ee38d5",
-  "https://www.boribon.ro/feed/products/8e6b0708a46d57d49bf189f18156cd7c",
-  "https://www.boribon.ro/feed/products/ef1948938b4414b1026d27f17254e7f7",
-  "https://www.boribon.ro/feed/products/2656fdf3dd7bc41d805f0f7a8bc24179",
-];
+// Pass private feed URLs through the environment, never source control.
+const FEEDS = (process.env.BORIBON_FEED_URLS || "")
+  .split(",")
+  .map(url => url.trim())
+  .filter(Boolean);
 
 function parseDelimitedText(text, delimiter) {
   const rows = [];
@@ -51,9 +47,9 @@ function parseDelimitedText(text, delimiter) {
   if (rows.length < 2) return [];
 
   const headers = rows[0].map(h => h.trim());
-  const dataRows = rows.slice(1).filter(r =>
-    r.some(cell => String(cell).trim() !== "")
-  );
+  const dataRows = rows
+    .slice(1)
+    .filter(r => r.some(cell => String(cell).trim() !== ""));
 
   return dataRows.map(cols => {
     const record = {};
@@ -84,7 +80,7 @@ function parseRowsFromText(text) {
 async function fetchFeedRows(url) {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Failed to download ${url} (${response.status})`);
+    throw new Error(`Boribon feed HTTP ${response.status}`);
   }
   const text = await response.text();
   return parseRowsFromText(text);
@@ -117,6 +113,7 @@ function loadLocalModels() {
 }
 
 async function main() {
+  if (!FEEDS.length) throw new Error("Missing BORIBON_FEED_URLS env var.");
   const localModels = loadLocalModels();
   console.log(`Local boribon models: ${localModels.size}`);
 
@@ -134,7 +131,11 @@ async function main() {
       }
       skus += 1;
     }
-    perFeedCounts.push({ url, rows: rows.length, skus });
+    perFeedCounts.push({
+      index: perFeedCounts.length + 1,
+      rows: rows.length,
+      skus,
+    });
   }
 
   const missing = Array.from(localModels).filter(
@@ -143,7 +144,9 @@ async function main() {
 
   console.log("Per-feed counts:");
   for (const feed of perFeedCounts) {
-    console.log(`- ${feed.url}: rows=${feed.rows}, skuRows=${feed.skus}`);
+    console.log(
+      `- Feed ${feed.index}: rows=${feed.rows}, skuRows=${feed.skus}`
+    );
   }
   console.log(`Total unique SKUs across feeds: ${feedSkuSet.size}`);
   console.log(`Missing from feeds: ${missing.length}`);
@@ -156,11 +159,16 @@ async function main() {
     const header = "model\n";
     fs.writeFileSync(outputPath, header + missing.join("\n"));
     console.log(`Missing list saved to ${outputPath}`);
-    console.log(`Sample missing (first 30): ${missing.slice(0, 30).join(", ")}`);
+    console.log(
+      `Sample missing (first 30): ${missing.slice(0, 30).join(", ")}`
+    );
   }
 }
 
 main().catch(error => {
-  console.error("Boribon feed check failed:", error);
+  console.error(
+    "Boribon feed check failed:",
+    error instanceof Error ? error.message : "Unknown error"
+  );
   process.exit(1);
 });

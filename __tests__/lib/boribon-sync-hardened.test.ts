@@ -58,10 +58,21 @@ describe("hardened Boribon sync", () => {
     mockFeed = {
       id: "feed1",
       supplierId: BORIBON_ID,
+      sourceUrl: "https://www.boribon.ro/feed/products/test-fixture",
     };
   });
 
   describe("feed-level failures", () => {
+    it("uses the configured private URL before opening a transaction", async () => {
+      mockFetchBoribonProducts.mockRejectedValue(
+        new Error("Stop before transaction")
+      );
+      await expect(syncBoribonPortfolio(db, mockFeed)).rejects.toThrow(
+        "Feed fetch failed"
+      );
+      expect(mockFetchBoribonProducts).toHaveBeenCalledWith(mockFeed.sourceUrl);
+      expect(db.$transaction).not.toHaveBeenCalled();
+    });
     it("should not modify stock on feed timeout", async () => {
       mockFetchBoribonProducts.mockRejectedValue(
         new Error("Boribon feed HTTP timeout")

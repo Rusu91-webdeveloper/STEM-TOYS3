@@ -77,6 +77,7 @@ async function main() {
   const feed = {
     id: "integration-feed",
     supplierId: BORIBON_ID,
+    sourceUrl: "https://www.boribon.ro/feed/products/test-fixture",
   } as SupplierFeed;
   await syncBoribonPortfolio(db, feed);
   const p = await db.product.findUniqueOrThrow({

@@ -1,3 +1,4 @@
 git diff --quiet || { echo "Stage or preserve unstaged changes before checking the commit."; exit 1; }
 test -z "$(git ls-files --others --exclude-standard)" || { echo "Stage or preserve untracked files before checking the commit."; exit 1; }
+node scripts/check-public-secrets.js || exit 1
 node scripts/test-regressions.js origin/main
