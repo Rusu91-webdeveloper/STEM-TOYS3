@@ -352,7 +352,10 @@ export function PaymentForm({
           if (checkFreeShipping(subtotal, settings?.shippingSettings)) {
             shippingCost = isMixedSupplierCart ? mixedSupplierSurcharge : 0;
           } else {
-            shippingCost = baseShippingPrice;
+            shippingCost =
+              shippingMethod?.price !== undefined && shippingMethod.price >= 0
+                ? shippingMethod.price
+                : deliveryPrice;
           }
         }
 
