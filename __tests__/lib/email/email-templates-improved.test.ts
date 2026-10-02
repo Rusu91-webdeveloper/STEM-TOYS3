@@ -324,7 +324,7 @@ describe("Refund Email", () => {
     expect(html).toContain("rambursat");
   });
 
-  it("shows processing time notice", async () => {
+  it("shows processing time notice without specific day claims", async () => {
     const html = await generateRefundEmail({
       customerName: "Test",
       orderNumber: "TT-123",
@@ -333,7 +333,10 @@ describe("Refund Email", () => {
       refundedAt: new Date(),
     });
 
-    expect(html).toContain("5-10 zile");
+    // Should mention processing time depends on payment processor/bank but no specific "5-10 days" claim
+    expect(html).toContain("procesată");
+    expect(html).toContain("procesator");
+    expect(html).not.toContain("5-10 zile"); // Removed unverifiable claim
   });
 });
 
