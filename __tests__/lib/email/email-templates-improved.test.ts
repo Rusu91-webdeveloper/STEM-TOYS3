@@ -241,7 +241,6 @@ describe("Shipped Email", () => {
     trackingNumber: "1234567890123",
     carrier: "FanCourier",
     shippedDate: new Date("2024-10-02T14:00:00Z"),
-    estimatedDeliveryDays: 2,
     isCOD: true,
     codAmount: 189.5,
   };
