@@ -128,7 +128,7 @@ export async function generateOrderConfirmationEmail(
                   ✅ Plată finalizată cu succes
                 </p>
                 <p style="margin: 8px 0 0 0; color: #065f46; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                  Plata în valoare de <strong>${formatRON(data.total)}</strong> a fost procesată. Vei primi factura pe email.
+                  Plata în valoare de <strong>${formatRON(data.total)}</strong> a fost procesată.
                 </p>
               </td>
             </tr>
@@ -246,7 +246,7 @@ export async function generateOrderConfirmationEmail(
                   ${data.codFee ? `
                   <tr>
                     <td style="padding: 8px 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                      Taxă ramburs (1%):
+                      Taxă ramburs:
                     </td>
                     <td style="padding: 8px 0; color: #1f2937; font-size: 14px; text-align: right; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
                       ${formatRON(data.codFee)}

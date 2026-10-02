@@ -1,8 +1,4 @@
-/**
- * Password Changed Email
- * Send when user changes password (via reset or account settings)
- */
-
+import { COMPANY_LEGAL } from "@/lib/config/company-legal";
 import { wrapEmailLayout } from "./shared-layout";
 
 export interface PasswordChangedData {
@@ -18,7 +14,7 @@ export interface PasswordChangedData {
  */
 export async function generatePasswordChangedEmail(data: PasswordChangedData): Promise<string> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro";
-  const supportEmail = process.env.EMAIL_FROM || "info@techtots.ro";
+  const supportEmail = COMPANY_LEGAL.email;
   
   const content = `
     <table width="100%" cellpadding="0" cellspacing="0" border="0">

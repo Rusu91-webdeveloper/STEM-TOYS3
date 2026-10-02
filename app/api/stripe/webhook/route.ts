@@ -264,30 +264,31 @@ async function handleSuccessfulPayment(
     });
 
     if (!hasWebhookTag(orderTags, WEBHOOK_TAGS.adminNewOrderEmailSent)) {
-      const adminResult =
-        await AdminNotificationService.sendNewOrderNotification(order.id);
-      if (!adminResult.success) {
-        throw new Error(
-          adminResult.error ||
-            `Failed to send admin new-order notification for ${order.id}`
-        );
+      try {
+        const { sendAdminNewOrderNotification } = await import("@/lib/email/order-email-integration");
+        const adminResult = await sendAdminNewOrderNotification(order.id);
+        
+        if (adminResult.success && !adminResult.skipped) {
+          await logWebhookEmailDelivery({
+            db,
+            templateSlug: "admin-new-order",
+            to: appConfig.adminEmail,
+            subject: `Admin new order notification: ${order.orderNumber || order.id}`,
+            orderId: order.id,
+            messageId: adminResult.messageId || "sent",
+          });
+
+          orderTags = await addWebhookTag(
+            db,
+            order.id,
+            orderTags,
+            WEBHOOK_TAGS.adminNewOrderEmailSent
+          );
+        }
+      } catch (emailError) {
+        // Log but don't throw - email failure shouldn't fail the webhook
+        console.error(`Admin notification failed for order ${order.id}:`, emailError);
       }
-
-      await logWebhookEmailDelivery({
-        db,
-        templateSlug: "admin-new-order",
-        to: appConfig.adminEmail,
-        subject: `Admin new order notification: ${order.orderNumber || order.id}`,
-        orderId: order.id,
-        messageId: adminResult.messageId,
-      });
-
-      orderTags = await addWebhookTag(
-        db,
-        order.id,
-        orderTags,
-        WEBHOOK_TAGS.adminNewOrderEmailSent
-      );
     }
 
     // Verify payment status was updated before processing digital books

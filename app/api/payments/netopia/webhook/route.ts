@@ -326,13 +326,12 @@ export async function POST(request: Request) {
             "✅ [WEBHOOK] Payment successful and verified - processing order fulfillment"
           );
 
+          // Send admin notification once per order
           if (orderBeforeUpdate.paymentStatus !== "PAID") {
-            const { AdminNotificationService } = await import(
-              "@/lib/email/admin-notification-service"
+            const { sendAdminNewOrderNotification } = await import(
+              "@/lib/email/order-email-integration"
             );
-            AdminNotificationService.sendNewOrderNotification(
-              resolvedOrderId
-            ).catch(err => {
+            sendAdminNewOrderNotification(resolvedOrderId).catch(err => {
               console.error(
                 `❌ [WEBHOOK] Failed to send admin new order notification for ${resolvedOrderId}:`,
                 err

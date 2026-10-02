@@ -1804,22 +1804,13 @@ export async function POST(request: Request) {
       try {
         const notificationSettings = await getNotificationSettings();
 
-        const shouldSendAdminNewOrderNotification =
-          dbOrder?.id &&
-          shouldSendImmediateAdminOrderNotification({
-            isCODPayment,
-            isNetopiaPayment,
-            requiresOnlineAuthorization,
-            stripePaymentIntentStatus: stripePaymentIntent?.status,
-          });
-
-        if (shouldSendAdminNewOrderNotification && dbOrder?.id) {
-          const adminNotificationOrderId = dbOrder.id;
-          AdminNotificationService.sendNewOrderNotification(
-            adminNotificationOrderId
-          ).catch(err => {
+        // Admin notifications are now sent via webhook after payment confirmation
+        // For COD orders, we can send immediately since no payment confirmation is needed
+        if (isCODPayment && dbOrder?.id) {
+          const { sendAdminNewOrderNotification } = await import("@/lib/email/order-email-integration");
+          sendAdminNewOrderNotification(dbOrder.id).catch(err => {
             console.error(
-              `Failed to send admin new order notification for ${adminNotificationOrderId}:`,
+              `Failed to send admin new order notification for ${dbOrder.id}:`,
               err
             );
           });
@@ -1833,7 +1824,6 @@ export async function POST(request: Request) {
           console.log(
             `Sending order confirmation email for order ${dbOrder.id}`
           );
-          // Order confirmation email will be sent by existing email logic
         }
 
         if (notificationSettings?.adminAlerts.highValueOrders) {
@@ -1842,7 +1832,6 @@ export async function POST(request: Request) {
             console.log(
               `High value order alert triggered for order ${dbOrder.id} (${orderTotal} RON)`
             );
-            // Send high value order alert to admin
             AdminNotificationService.sendOrderIssueNotification(
               dbOrder.id,
               "HIGH_VALUE_ORDER",
