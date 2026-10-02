@@ -88,7 +88,12 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
         )}
 
         <div className="border-t pt-3 flex justify-between font-semibold text-base sm:text-lg">
-          <span>{t("total", "Total")}</span>
+          <span>
+            {shippingCost === null 
+              ? t("totalExcludingShipping", "Total (fără livrare)")
+              : t("total", "Total")
+            }
+          </span>
           <span>{formatPrice(total)}</span>
         </div>
 
