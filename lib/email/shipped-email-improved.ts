@@ -17,7 +17,6 @@ export interface ShippedEmailData {
   trackingNumber: string;
   carrier: string;
   shippedDate: Date;
-  estimatedDeliveryDays?: number;
   
   // For COD orders
   isCOD?: boolean;

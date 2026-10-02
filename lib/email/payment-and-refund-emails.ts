@@ -11,7 +11,6 @@ export interface PaymentFailedData {
   orderNumber: string;
   amount: number;
   failureReason?: string;
-  retryPaymentLink?: string;
 }
 
 export interface RefundData {
@@ -59,7 +58,7 @@ export async function generatePaymentFailedEmail(data: PaymentFailedData): Promi
       <tr>
         <td style="padding-bottom: 24px;">
           <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-            Plata pentru comanda <strong>#${data.orderNumber}</strong> în valoare de <strong>${formatRON(data.amount)}</strong> nu a putut fi procesată, iar comanda a fost anulată.
+            Plata pentru comanda <strong>#${data.orderNumber}</strong> în valoare de <strong>${formatRON(data.amount)}</strong> nu a putut fi procesată, iar comanda a fost anulată. Te rugăm să plasezi o nouă comandă.
           </p>
           ${data.failureReason ? `
           <p style="margin: 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
