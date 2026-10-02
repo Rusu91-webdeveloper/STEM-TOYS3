@@ -1,18 +1,27 @@
 # Remaining Work for PR #54 - Transactional Email Fixes
 
-## Critical Items to Complete Before Review
+## Progress Summary
 
-### 1. ✅ Legal Details from Shared Constants (DONE)
-- [x] Created `lib/config/company-legal.ts` with COMPANY_LEGAL and CONSUMER_RIGHTS
-- [x] Updated `shared-layout.ts` to import and use these constants
-- [x] Values match Footer.tsx: CUI 51813997, Reg. Com. J20/352/2025
+### ✅ Completed Items:
 
-### 2. Coverage of Every Send Path (IN PROGRESS)
+1. **Legal Details from Shared Constants**
+   - Created `lib/config/company-legal.ts` with COMPANY_LEGAL and CONSUMER_RIGHTS
+   - Updated `shared-layout.ts` to import and use these constants
+   - Values match Footer.tsx: CUI 51813997, Reg. Com. J20/352/2025
 
-#### Order Confirmation Paths:
-- [x] COD checkout - `app/api/checkout/order/route.ts` (uses improved)
-- [ ] Stripe webhook paid - `app/api/stripe/webhook/route.ts` line ~458 (still uses old DatabaseTemplateService)
-- [ ] Netopia webhook paid - `app/api/payments/netopia/webhook/route.ts` lines 510 & 561 (still uses old DatabaseTemplateService)
+2. **Send Path Improvements (Partial)**
+   - ✅ Stripe webhook order confirmation - now uses `sendOrderConfirmationImproved`
+   - ✅ Netopia webhook order confirmation (1 of 2 places) - improved version
+   - ✅ FanCourier AWB creation - automatic shipped email when AWB created
+   - ✅ Stripe refund - updated parameters (removed unverifiable estimatedDays)
+
+### 🟡 In Progress / Needs Completion:
+
+#### 1. Complete All Send Paths
+
+**Order Confirmation:**
+- ✅ COD checkout
+- ✅ Stripe webhook paid (DONE)
 
 #### Payment Failed:
 - [ ] Stripe webhook - `app/api/stripe/webhook/route.ts` line ~151 (check if uses improved)

@@ -448,50 +448,29 @@ async function handleSuccessfulPayment(
     if (userEmail || order.user?.email) {
       const recipientEmail = userEmail || order.user?.email;
       if (!hasWebhookTag(orderTags, WEBHOOK_TAGS.orderConfirmationEmailSent)) {
-        const { DatabaseTemplateService } = await import(
-          "@/lib/email/database-template-service"
+        const { sendOrderConfirmationImproved, sendAdminNewOrderNotification } = await import(
+          "@/lib/email/order-email-integration"
         );
 
-        const orderNumberForEmail = order.orderNumber || order.id;
-
-        const sendResult =
-          await DatabaseTemplateService.sendOrderConfirmationEmail(
-            recipientEmail,
-            {
-              customerName:
-                order?.shippingAddress?.fullName ||
-                order?.user?.name ||
-                "Client",
-              orderNumber: String(orderNumberForEmail),
-              orderTotal: order.total,
-              items: (order.items || []).map(item => ({
-                name: item.name,
-                quantity: item.quantity,
-                price: item.price,
-              })),
-              shippingAddress: order.shippingAddress || null,
-              subtotal: order.subtotal,
-              tax: order.tax,
-              shippingCost: order.shippingCost,
-              discountAmount: order.discountAmount ?? 0,
-              codFee: order.codFeeEstimate ?? 0,
-            }
-          );
-
-        if (!sendResult.success) {
+        const confirmResult = await sendOrderConfirmationImproved(order.id);
+        
+        if (!confirmResult.success) {
           throw new Error(
-            sendResult.error ||
+            confirmResult.error ||
               `Failed to send order confirmation email for ${order.id}`
           );
         }
+
+        // Send admin notification
+        await sendAdminNewOrderNotification(order.id);
 
         await logWebhookEmailDelivery({
           db,
           templateSlug: "order-confirmation",
           to: recipientEmail,
-          subject: `Order confirmation: ${orderNumberForEmail}`,
+          subject: `Order confirmation: ${order.orderNumber || order.id}`,
           orderId: order.id,
-          messageId: sendResult.messageId,
+          messageId: undefined,
         });
 
         orderTags = await addWebhookTag(
@@ -502,7 +481,7 @@ async function handleSuccessfulPayment(
         );
 
         console.log(
-          `✅ [STRIPE][WEBHOOK] Order confirmation email sent to ${recipientEmail} for order ${order.id}`
+          `✅ [STRIPE][WEBHOOK] Improved order confirmation email sent to ${recipientEmail} for order ${order.id}`
         );
       }
     }
@@ -674,11 +653,10 @@ async function handleRefund(charge: Stripe.Charge) {
 
           const html = await generateRefundEmail({
             customerName: user.name || "Client",
-            customerEmail: user.email,
             orderNumber: order.orderNumber,
-            refundAmount,
-            originalPaymentMethod: "Card bancar",
-            estimatedDays: 5,
+            refundedAmount: refundAmount,
+            originalTotal: order.total,
+            refundedAt: new Date(),
           });
 
           await sendEmailViaUnifiedSystem({
