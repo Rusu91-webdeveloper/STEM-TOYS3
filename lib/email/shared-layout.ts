@@ -164,6 +164,62 @@ export async function wrapEmailLayout(
     .ExternalClass { width: 100%; }
   </style>
   <![endif]-->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table {
+      border-spacing: 0;
+      border-collapse: collapse;
+    }
+    img {
+      border: 0;
+      display: block;
+      max-width: 100%;
+      height: auto !important;
+    }
+    .mobile-padding {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+    .inner-table {
+      width: 100%;
+      max-width: 560px;
+    }
+    @media only screen and (max-width: 620px) {
+      .mobile-padding {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+      }
+      .email-content {
+        width: 100% !important;
+      }
+      .inner-table {
+        width: 100% !important;
+      }
+      img {
+        width: 100% !important;
+        height: auto !important;
+      }
+      .button-container {
+        width: 100% !important;
+      }
+      .button-link {
+        display: block !important;
+        width: 100% !important;
+      }
+      h1 {
+        font-size: 24px !important;
+      }
+      .item-table {
+        width: 100% !important;
+      }
+    }
+  </style>
   ${preheaderText ? `
   <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
     ${preheaderText}
@@ -174,7 +230,7 @@ export async function wrapEmailLayout(
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc;">
     <tr>
       <td align="center" style="padding: 0;">
-        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff;">
+        <table width="100%" style="max-width: 600px;" cellpadding="0" cellspacing="0" border="0" class="email-content">
           ${generateEmailHeader(headerTitle)}
           
           <!-- Main Content -->
