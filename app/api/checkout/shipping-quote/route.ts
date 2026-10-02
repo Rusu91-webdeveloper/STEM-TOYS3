@@ -167,6 +167,14 @@ async function handleShippingQuote(request: NextRequest) {
                 : normalizedLegacyDeliveryPrice !== null
                   ? normalizedLegacyDeliveryPrice
                 : (quote?.totalPrice ?? 0);
+            
+            const codGuaranteeHoldPrice =
+              Number.isFinite(priceOverride) && priceOverride !== null && priceOverride > 0
+                ? priceOverride
+                : normalizedLegacyDeliveryPrice !== null && normalizedLegacyDeliveryPrice > 0
+                  ? normalizedLegacyDeliveryPrice
+                  : null;
+            
             const mixedSupplierSurcharge =
               calculateMixedSupplierShippingSurcharge(
                 singleShipmentPrice,
@@ -183,6 +191,7 @@ async function handleShippingQuote(request: NextRequest) {
               pricingVersion: quote?.pricingVersion ?? null,
               basePrice: quote?.basePrice ?? null,
               singleShipmentPrice,
+              codGuaranteeHoldPrice,
               mixedSupplierSurcharge,
               isMixedSupplierCart: supplierCartRules.isMixedSupplierCart,
               requiresPrepaid: supplierCartRules.requiresPrepaid,

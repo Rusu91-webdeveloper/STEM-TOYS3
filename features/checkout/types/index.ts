@@ -32,6 +32,7 @@ export interface ShippingMethod {
   description: string;
   price: number;
   singleShipmentPrice?: number;
+  codGuaranteeHoldPrice?: number | null;
   mixedSupplierSurcharge?: number;
   isMixedSupplierCart?: boolean;
   requiresPrepaid?: boolean;

@@ -220,6 +220,7 @@ export async function resolveCheckoutPricing(input: {
   let shippingTotalEstimate = 0;
   let pricingVersion: string | null = null;
   let selectedAdminShippingPrice: number | null = null;
+  let holdAdminPrice: number | null = null;
   let isDefaultSettings = false;
 
   if (!isDigitalOnlyOrder) {
@@ -248,24 +249,33 @@ export async function resolveCheckoutPricing(input: {
     );
 
     const overrideRaw = selectedService?.priceOverride;
+    
     if (
       overrideRaw !== undefined &&
       overrideRaw !== null &&
       overrideRaw !== ""
     ) {
       const parsedOverride = Number(overrideRaw);
-      if (Number.isFinite(parsedOverride) && parsedOverride > 0) {
+      if (Number.isFinite(parsedOverride)) {
         selectedAdminShippingPrice = parsedOverride;
+        if (parsedOverride > 0) {
+          holdAdminPrice = parsedOverride;
+        }
       }
     }
 
     if (
-      selectedAdminShippingPrice === null &&
+      holdAdminPrice === null &&
       shippingSettings?.deliveryPrice?.active === true
     ) {
       const legacyDeliveryPrice = Number(shippingSettings.deliveryPrice.price);
-      if (Number.isFinite(legacyDeliveryPrice) && legacyDeliveryPrice > 0) {
-        selectedAdminShippingPrice = legacyDeliveryPrice;
+      if (Number.isFinite(legacyDeliveryPrice)) {
+        if (selectedAdminShippingPrice === null) {
+          selectedAdminShippingPrice = legacyDeliveryPrice;
+        }
+        if (legacyDeliveryPrice > 0) {
+          holdAdminPrice = legacyDeliveryPrice;
+        }
       }
     }
 
@@ -434,13 +444,13 @@ export async function resolveCheckoutPricing(input: {
       console.error("[cod-guarantee] using default shipping settings (no StoreSettings row or DB error)", {
         shippingMethodId: input.shippingMethodId,
       });
-    } else if (selectedAdminShippingPrice !== null && selectedAdminShippingPrice > 0) {
-      codGuaranteeAmount = roundMoney(selectedAdminShippingPrice);
+    } else if (holdAdminPrice !== null) {
+      codGuaranteeAmount = roundMoney(holdAdminPrice);
     } else {
       codGuaranteeConfigError = true;
       console.error("[cod-guarantee] missing admin shipping price", {
         shippingMethodId: input.shippingMethodId,
-        selectedAdminShippingPrice,
+        holdAdminPrice,
       });
     }
   } else if (isCODPaymentMethod(input.paymentMethod) && isDigitalOnlyOrder) {

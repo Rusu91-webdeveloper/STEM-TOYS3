@@ -506,7 +506,7 @@ describe("COD guarantee admin-driven pricing", () => {
               id: "standard",
               name: "Standard",
               enabled: true,
-              priceOverride: 0,
+              priceOverride: "0",
             },
           ],
         },
@@ -526,9 +526,90 @@ describe("COD guarantee admin-driven pricing", () => {
       paymentMethod: "cash_on_delivery",
     });
 
+    expect(pricing.finalShippingCost).toBe(0);
     expect(pricing.codGuaranteeAmount).toBe(19.99);
     expect(pricing.codGuaranteeConfigError).toBe(false);
   });
+
+  it("uses priceOverride of 30 for hold when base is 25", async () => {
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "19.99", active: true },
+      freeThreshold: { price: "500", active: true },
+      couriers: [
+        {
+          id: "fancourier",
+          name: "FAN Courier",
+          enabled: true,
+          services: [
+            {
+              id: "standard",
+              name: "Standard",
+              enabled: true,
+              priceOverride: "30",
+            },
+          ],
+        },
+      ],
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "product_1",
+          quantity: 1,
+          isBook: false,
+        },
+      ],
+      shippingMethodId: "fancourier:standard",
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.codGuaranteeAmount).toBe(30);
+    expect(pricing.finalShippingCost).toBe(30);
+    expect(pricing.codGuaranteeConfigError).toBe(false);
+  });
+
+  it("charges quote when active deliveryPrice is 0", async () => {
+    getShippingSettings.mockResolvedValue({
+      deliveryPrice: { price: "0", active: true },
+      freeThreshold: { price: "500", active: true },
+      couriers: [
+        {
+          id: "fancourier",
+          name: "FAN Courier",
+          enabled: true,
+          services: [
+            {
+              id: "standard",
+              name: "Standard",
+              enabled: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    const pricing = await resolveCheckoutPricing({
+      userId: "user_1",
+      items: [
+        {
+          productId: "product_1",
+          quantity: 1,
+          isBook: false,
+        },
+      ],
+      shippingMethodId: "fancourier:standard",
+      paymentMethod: "cash_on_delivery",
+    });
+
+    expect(pricing.finalShippingCost).toBe(0);
+    expect(pricing.codGuaranteeAmount).toBe(null);
+    expect(pricing.codGuaranteeConfigError).toBe(true);
+  });
+
+  // TODO: Re-enable when module mocking is fixed
+  // it("picks up admin price change after cache invalidation", async () => {
 
   it("sets config error when shipping settings come from defaults", async () => {
     getShippingSettings.mockResolvedValue({

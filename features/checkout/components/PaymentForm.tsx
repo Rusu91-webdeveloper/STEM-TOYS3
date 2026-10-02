@@ -252,12 +252,12 @@ export function PaymentForm({
       return 0;
     }
     
-    if (!shippingMethod?.singleShipmentPrice) {
+    if (!shippingMethod?.codGuaranteeHoldPrice) {
       return 0;
     }
 
-    const adminPrice = shippingMethod.singleShipmentPrice;
-    return Math.round(adminPrice * 100) / 100;
+    const holdPrice = shippingMethod.codGuaranteeHoldPrice;
+    return Math.round(holdPrice * 100) / 100;
   }, [selectedPaymentMethod, shippingMethod]);
   const codOrderTotalForPolicy = useMemo(() => {
     if (selectedPaymentMethod !== "cash_on_delivery") return 0;
