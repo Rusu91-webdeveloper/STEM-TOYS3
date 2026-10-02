@@ -137,25 +137,44 @@ export async function sendShippedEmailImproved(
       },
     });
 
-    if (!order || !order.user) {
-      // Remove tag if order not found
-      await prisma.order.update({
-        where: { id: orderId },
-        data: { tags: { set: order?.tags?.filter(t => t !== TAG) || [] } },
-      });
-      throw new Error("Order or user not found");
+    if (!order) {
+      console.error(`Order ${orderId} not found after claiming tag`);
+      // Re-read tags and remove only this tag
+      const current = await prisma.order.findUnique({ where: { id: orderId }, select: { tags: true } });
+      if (current?.tags?.includes(TAG)) {
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { tags: { set: current.tags.filter(t => t !== TAG) } },
+        });
+      }
+      throw new Error("Order not found");
+    }
+
+    if (!order.user) {
+      console.error(`User not found for order ${orderId}`);
+      const current = await prisma.order.findUnique({ where: { id: orderId }, select: { tags: true } });
+      if (current?.tags?.includes(TAG)) {
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { tags: { set: current.tags.filter(t => t !== TAG) } },
+        });
+      }
+      throw new Error("User not found");
     }
 
     const trackingNumber = awbNumber || order.trackingNumber;
     const courierName = carrier || order.carrier || "Curier";
 
-    // Skip if no tracking number and order not marked SHIPPED
-    if (!trackingNumber && order.status !== "SHIPPED") {
-      console.log(`⏭️ Order ${orderId} has no tracking number and not SHIPPED yet, skipping shipped email`);
-      await prisma.order.update({
-        where: { id: orderId },
-        data: { tags: { set: order.tags?.filter(t => t !== TAG) || [] } },
-      });
+    // Skip if no tracking number - don't send email without AWB
+    if (!trackingNumber) {
+      console.log(`⏭️ Order ${orderId} has no tracking number, skipping shipped email`);
+      const current = await prisma.order.findUnique({ where: { id: orderId }, select: { tags: true } });
+      if (current?.tags?.includes(TAG)) {
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { tags: { set: current.tags.filter(t => t !== TAG) } },
+        });
+      }
       return { success: true, skipped: true };
     }
 
@@ -165,32 +184,46 @@ export async function sendShippedEmailImproved(
       customerName: order.user.name || "Client",
       customerEmail: order.user.email,
       orderNumber: order.orderNumber,
-      trackingNumber: trackingNumber || "",
+      trackingNumber: trackingNumber,
       carrier: courierName,
       shippedDate: order.shippedAt || new Date(),
-      estimatedDeliveryDays: 2,
       isCOD,
       codAmount: isCOD ? order.total : undefined,
     };
 
     const html = await generateShippedEmail(emailData);
 
-    const result = await sendEmailViaUnifiedSystem({
-      to: order.user.email,
-      subject: `📦 Comandă expediată #${order.orderNumber} - TechTots`,
-      html,
-    });
-
-    if (!result.success) {
-      // Remove tag if send failed
-      await prisma.order.update({
-        where: { id: orderId },
-        data: { tags: { set: order.tags?.filter(t => t !== TAG) || [] } },
+    try {
+      const result = await sendEmailViaUnifiedSystem({
+        to: order.user.email,
+        subject: `📦 Comandă expediată #${order.orderNumber} - TechTots`,
+        html,
       });
-      return { success: false, error: result.error };
-    }
 
-    return { success: true };
+      if (!result.success) {
+        // Remove tag if send failed - re-read first
+        const current = await prisma.order.findUnique({ where: { id: orderId }, select: { tags: true } });
+        if (current?.tags?.includes(TAG)) {
+          await prisma.order.update({
+            where: { id: orderId },
+            data: { tags: { set: current.tags.filter(t => t !== TAG) } },
+          });
+        }
+        return { success: false, error: result.error };
+      }
+
+      return { success: true };
+    } catch (sendError) {
+      // Re-read tags and rollback if send threw
+      const current = await prisma.order.findUnique({ where: { id: orderId }, select: { tags: true } });
+      if (current?.tags?.includes(TAG)) {
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { tags: { set: current.tags.filter(t => t !== TAG) } },
+        });
+      }
+      throw sendError;
+    }
   } catch (error) {
     console.error("❌ Error sending shipped email:", error);
     return {
