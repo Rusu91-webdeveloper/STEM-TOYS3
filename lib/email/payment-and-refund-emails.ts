@@ -3,7 +3,7 @@
  * Romanian professional emails for failed payments and refunds
  */
 
-import { wrapEmailLayout, formatRON, generateOrderTrackingLink } from "./shared-layout";
+import { wrapEmailLayout, formatRON } from "./shared-layout";
 
 export interface PaymentFailedData {
   customerName: string;
