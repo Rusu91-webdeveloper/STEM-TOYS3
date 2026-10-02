@@ -6,7 +6,7 @@ import * as dotenv from "dotenv";
 import { PrismaClient, Prisma } from "@prisma/client";
 import {
   BORIBON_ID,
-  BORIBON_FEED_URL,
+  getBoribonFeedUrl,
   BORIBON_SYNC_MODE,
   fetchBoribonProducts,
   parseBoribonCsv,
@@ -62,7 +62,9 @@ async function main() {
   const items =
     fixtureIndex !== -1
       ? parseBoribonCsv(fs.readFileSync(process.argv[fixtureIndex + 1], "utf8"))
-      : await fetchBoribonProducts();
+      : await fetchBoribonProducts(
+          env.BORIBON_FEED_URL || process.env.BORIBON_FEED_URL
+        );
   if (items.some(p => !p.valid))
     throw new Error(
       items
@@ -267,7 +269,9 @@ async function main() {
         where: { id: feed.id },
         data: {
           name: "Boribon — curated 63, live B2C and stock",
-          sourceUrl: BORIBON_FEED_URL,
+          sourceUrl: getBoribonFeedUrl(
+            env.BORIBON_FEED_URL || process.env.BORIBON_FEED_URL
+          ),
           pollingIntervalMinutes: 720,
           mapping: {
             syncMode: BORIBON_SYNC_MODE,

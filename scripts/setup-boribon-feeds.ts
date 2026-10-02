@@ -14,54 +14,16 @@ if (fs.existsSync(envLocalPath)) {
   dotenv.config();
 }
 
-const DEFAULT_FEEDS = [
-  {
-    name: "Boribon General",
-    sourceUrl: "https://www.boribon.ro/feed/products/6b4ddf7503cbf24a7fe711636e57d127",
-  },
-  {
-    name: "Boribon Djeco",
-    sourceUrl: "https://www.boribon.ro/feed/products/eede0e22ab27952666cabcdb8286a8f5",
-  },
-  {
-    name: "Boribon Londji",
-    sourceUrl: "https://www.boribon.ro/feed/products/ccd46761bcd1b8d7f9fbc285df4b0c87",
-  },
-  {
-    name: "Boribon Egmont",
-    sourceUrl: "https://www.boribon.ro/feed/products/02c7bdc8cdaadae49a162d1857ee38d5",
-  },
-  {
-    name: "Boribon Fridolin",
-    sourceUrl: "https://www.boribon.ro/feed/products/8e6b0708a46d57d49bf189f18156cd7c",
-  },
-  {
-    name: "Boribon Creativamente",
-    sourceUrl: "https://www.boribon.ro/feed/products/ef1948938b4414b1026d27f17254e7f7",
-  },
-  {
-    name: "Boribon Clicstoys",
-    sourceUrl: "https://www.boribon.ro/feed/products/2656fdf3dd7bc41d805f0f7a8bc24179",
-  },
-];
-
-const BORIBON_FEED_NAME_BY_URL = new Map(
-  DEFAULT_FEEDS.map(feed => [feed.sourceUrl, feed.name])
-);
-
+// Feed URLs contain supplier credentials. Configure them privately; no defaults.
 const envFeedUrls = (process.env.BORIBON_FEED_URLS || "")
   .split(",")
   .map(url => url.trim())
   .filter(Boolean);
 
-const FEEDS =
-  envFeedUrls.length > 0
-    ? envFeedUrls.map((url, index) => ({
-        name:
-          BORIBON_FEED_NAME_BY_URL.get(url) ?? `Boribon Feed ${index + 1}`,
-        sourceUrl: url,
-      }))
-    : DEFAULT_FEEDS;
+const FEEDS = envFeedUrls.map((url, index) => ({
+  name: `Boribon Feed ${index + 1}`,
+  sourceUrl: url,
+}));
 
 type LaunchPackRow = Record<string, string>;
 
@@ -112,6 +74,7 @@ const mapping = {
 };
 
 async function main() {
+  if (!FEEDS.length) throw new Error("Missing BORIBON_FEED_URLS env var.");
   const allowlistPath =
     process.env.BORIBON_ALLOWED_SKUS_FILE &&
     path.resolve(process.cwd(), process.env.BORIBON_ALLOWED_SKUS_FILE);
@@ -184,7 +147,6 @@ async function main() {
       await prisma.supplierFeed.update({
         where: { id: existing.id },
         data: {
-          name: feed.name,
           type: SupplierFeedType.CSV,
           mapping: allowedSkus
             ? { ...mappingWithLookup, allowedSkus }

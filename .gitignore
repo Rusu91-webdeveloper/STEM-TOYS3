@@ -32,6 +32,12 @@ tests/**/*.md
 .DS_Store
 *.pem
 
+# Browser/session exports must never enter the public repository.
+cookies.txt
+*-cookies.txt
+cookies-*.txt
+*.cookies.txt
+
 # debug
 npm-debug.log*
 yarn-debug.log*

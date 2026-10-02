@@ -57,7 +57,7 @@ async function main() {
   if (bFeed.length !== 1 || kFeed.length !== 1 || !kFeed[0].sourceUrl)
     throw new Error("Expected one active feed per supplier");
   const [boribon, kidstory] = await Promise.all([
-    fetchBoribonProducts(),
+    fetchBoribonProducts(bFeed[0].sourceUrl),
     fetchKidstoryProducts(kFeed[0].sourceUrl),
   ]);
   const checkedAt = new Date();

@@ -15,7 +15,7 @@ is assigned to individual route handlers. Both GET and POST in
 `app/api/admin/analytics/route.ts` omitted that authorization entirely. The
 admin UI login gate therefore did not protect direct requests to this API. The
 POST omission was confirmed in source and reproduced in local tests; no
-production POST was submitted.
+production POST was submitted before the patch was deployed.
 
 Adjacent dashboard, COD and unit-economics analytics handlers require the ADMIN
 role. Project architecture and API documentation also reserve global analytics
@@ -71,11 +71,39 @@ production database connection or build script was run.
 
 ## Publication checks and production status
 
-[Draft PR #57](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/57) is
-open. The actual Git commit and push hooks passed with zero added failures. It
-has not been merged or deployed to production. Production was checked before the
-change; deployed authentication remains unverified until this change is
-released.
+[PR #57](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/57) was squash
+merged at 2026-10-02 22:14:31 UTC as `33f24a6a096f4e798bcbfcb6685e337c27e11c6c`.
+The actual Git commit and push hooks passed with zero added failures. At the
+owner's explicit request, the patch was released on the production domain so
+Google admin login can be tested without adding a preview domain to OAuth
+configuration.
+
+Vercel deployment `dpl_5nNryPHZdmbhaMR9Z3LWeHU7KRPN` is READY and
+`www.techtots.ro` resolves to that deployment and commit. Direct HTTPS requests
+without cookies verified all of the following on the production domain:
+
+- Full, realtime and report GET requests return 403 and
+  `Unauthorized. Admin access required.`, without a data field.
+- POST with an empty JSON object returns the same 403 before report validation.
+- These denials use `Cache-Control: private, no-store`.
+- Homepage, login page and `/api/auth/providers` return 200. Providers include
+  Google and credentials; this does not verify a completed Google login.
+- The error/fatal runtime-log query for this deployment over the preceding 10
+  minutes returned no entries. Build logs were unavailable through the connector
+  and were not reviewed.
+
+Owner-provided screenshots subsequently confirmed a real Google login with
+`role: "ADMIN"` and `isActive: true`, followed by an analytics GET response
+containing `success: true`, data, and generatedAt `2026-10-02T22:33:12.890Z`. No
+personal identifiers or metric values are recorded here. The earlier denial does
+not establish an authentication defect: the fresh request with the confirmed
+session succeeded. No further code change or rollback was needed. A signed-in
+non-admin denial and an authenticated report POST remain untested live; both
+have focused route-test coverage. No admin credentials were supplied to this
+audit. The previous READY production deployment was recorded for rollback:
+`dpl_Dmv5v2Bv3u1iWpm1NLadiEZCgHoQ`, commit
+`f928577a423f7a92157124e779d06728363a64a5`, immutable URL
+`stem-toys-3-5tkrijt1m-rusujobs-3774s-projects.vercel.app`.
 
 The original `.cursorrules` required full migration validation before every
 push. `pnpm run validate:migrations` fails on four historical DROP INDEX
@@ -98,7 +126,7 @@ messages and counts and blocks added errors. These are regression gates; the
 full checks remain failing. See
 [release-check limits](../RELEASE_REGRESSION_CHECKS.md).
 
-Repository-wide CI remains unchanged and may fail on the existing debt. Once
-deployed, verify no-session and non-admin GET/POST denials and a real
-authenticated ADMIN request on the deployed version. A draft PR is not
-production closure.
+Repository-wide CI remains unchanged and may fail on the existing debt.
+Anonymous production denials and real authenticated ADMIN GET success are
+verified. Signed-in non-admin denial and authenticated report POST remain
+untested live.

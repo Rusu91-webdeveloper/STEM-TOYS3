@@ -21,7 +21,7 @@ export async function syncBoribonPortfolio(
   // without modifying any stock. This prevents zeroing on timeout/HTTP error.
   let items;
   try {
-    items = await fetchBoribonProducts();
+    items = await fetchBoribonProducts(feed.sourceUrl);
   } catch (feedError) {
     const message = feedError instanceof Error ? feedError.message : String(feedError);
     console.error("[Boribon sync] Feed fetch failed, no stock modified:", message);
