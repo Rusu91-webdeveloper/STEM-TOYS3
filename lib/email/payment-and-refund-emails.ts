@@ -26,9 +26,8 @@ export interface RefundData {
  * Generate payment failed email HTML
  */
 export async function generatePaymentFailedEmail(data: PaymentFailedData): Promise<string> {
-  const trackingLink = generateOrderTrackingLink(data.orderNumber, data.customerEmail);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro";
-  const retryLink = data.retryPaymentLink || `${siteUrl}/checkout?retry=${data.orderNumber}`;
+  const accountLink = `${siteUrl}/account/orders`;
   
   const content = `
     <table width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -60,7 +59,7 @@ export async function generatePaymentFailedEmail(data: PaymentFailedData): Promi
       <tr>
         <td style="padding-bottom: 24px;">
           <p style="margin: 0 0 16px 0; color: #1f2937; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-            Plata pentru comanda <strong>#${data.orderNumber}</strong> în valoare de <strong>${formatRON(data.amount)}</strong> nu a putut fi procesată.
+            Plata pentru comanda <strong>#${data.orderNumber}</strong> în valoare de <strong>${formatRON(data.amount)}</strong> nu a putut fi procesată, iar comanda a fost anulată.
           </p>
           ${data.failureReason ? `
           <p style="margin: 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
@@ -93,17 +92,7 @@ export async function generatePaymentFailedEmail(data: PaymentFailedData): Promi
                   <tr>
                     <td style="padding: 12px 0;">
                       <p style="margin: 0 0 4px 0; color: #1f2937; font-size: 14px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        2️⃣ Încearcă din nou
-                      </p>
-                      <p style="margin: 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        Poți încerca să finalizezi plata folosind butonul de mai jos
-                      </p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 12px 0;">
-                      <p style="margin: 0 0 4px 0; color: #1f2937; font-size: 14px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                        3️⃣ Contactează banca
+                        2️⃣ Contactează banca
                       </p>
                       <p style="margin: 0; color: #6b7280; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
                         Dacă problema persistă, contactează banca pentru clarificări
@@ -117,28 +106,14 @@ export async function generatePaymentFailedEmail(data: PaymentFailedData): Promi
         </td>
       </tr>
       
-      <!-- CTA Buttons -->
-      <tr>
-        <td align="center" style="padding-bottom: 12px;">
-          <table cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              <td align="center" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border-radius: 8px; padding: 16px 32px;">
-                <a href="${retryLink}" style="color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                  🔄 Încearcă din nou plata
-                </a>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      
+      <!-- CTA Button -->
       <tr>
         <td align="center" style="padding-top: 12px;">
           <table cellpadding="0" cellspacing="0" border="0">
             <tr>
               <td align="center" style="background-color: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 24px;">
-                <a href="${trackingLink}" style="color: #374151; text-decoration: none; font-size: 14px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                  👁️ Vezi detalii comandă
+                <a href="${accountLink}" style="color: #374151; text-decoration: none; font-size: 14px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                  👁️ Vezi comenzile mele
                 </a>
               </td>
             </tr>
@@ -159,7 +134,7 @@ export async function generatePaymentFailedEmail(data: PaymentFailedData): Promi
  */
 export async function generateRefundEmail(data: RefundData): Promise<string> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro";
-  const trackingLink = `${siteUrl}/orders`;
+  const accountLink = `${siteUrl}/account/orders`;
   const refundDate = data.refundedAt.toLocaleDateString("ro-RO", {
     day: "numeric",
     month: "long",
