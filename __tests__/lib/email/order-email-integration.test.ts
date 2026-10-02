@@ -9,7 +9,7 @@ describe("order email integration with COD guarantee", () => {
     const authNote = formatCodGuaranteeAuthorizationNote({
       paymentIntentId: "pi_test_123",
       amount: 19.99,
-      timestamp: new Date("2026-10-02T10:00:00Z"),
+      authorizedAt: "2026-10-02T10:00:00Z",
     });
     
     expect(authNote).toContain("19.99");
