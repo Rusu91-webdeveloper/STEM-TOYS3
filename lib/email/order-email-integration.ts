@@ -48,7 +48,7 @@ export async function sendOrderConfirmationImproved(orderId: string): Promise<{ 
     const hasCardHoldTag = order.tags?.includes("COD_GUARANTEE_AUTHORIZED") || false;
     const codEvidence = order.notes ? parseCodGuaranteeEvidence(order.notes) : null;
     const authorizedAmount = codEvidence?.authorizedAmount;
-    const hasCardHold = hasCardHoldTag && authorizedAmount !== undefined;
+    const hasCardHold = hasCardHoldTag && authorizedAmount != null;
     const cardHoldAmount = authorizedAmount; // Use exact authorized amount, no fallback
 
     const emailData: OrderConfirmationData = {
