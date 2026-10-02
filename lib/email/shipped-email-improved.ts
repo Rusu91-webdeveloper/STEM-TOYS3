@@ -31,6 +31,11 @@ export async function generateShippedEmail(data: ShippedEmailData): Promise<stri
     ? generateFanCourierTrackingLink(data.trackingNumber)
     : generateOrderTrackingLink(data.orderNumber, data.customerEmail);
     
+  // Display "FAN Courier" instead of "FANCOURIER"
+  const displayCarrier = data.carrier.toLowerCase().includes("fancourier")
+    ? "FAN Courier"
+    : data.carrier;
+    
   const formattedDate = new Intl.DateTimeFormat("ro-RO", {
     dateStyle: "long",
   }).format(data.shippedDate);
@@ -44,7 +49,7 @@ export async function generateShippedEmail(data: ShippedEmailData): Promise<stri
             Bună ${data.customerName}! 🎉
           </h2>
           <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-            Vestea bună! Comanda ta <strong>#${data.orderNumber}</strong> a fost predată curierului ${data.carrier}.
+            Vestea bună! Comanda ta <strong>#${data.orderNumber}</strong> a fost predată curierului ${displayCarrier}.
           </p>
         </td>
       </tr>
@@ -72,7 +77,7 @@ export async function generateShippedEmail(data: ShippedEmailData): Promise<stri
                       Curier:
                     </td>
                     <td style="padding: 8px 0; color: #065f46; font-size: 14px; font-weight: 700; text-align: right; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                      ${data.carrier}
+                      ${displayCarrier}
                     </td>
                   </tr>
                   <tr>
