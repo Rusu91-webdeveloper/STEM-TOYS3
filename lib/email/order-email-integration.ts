@@ -267,6 +267,14 @@ export async function sendAdminNewOrderNotification(orderId: string): Promise<{ 
     });
 
     if (!order) {
+      console.error(`Order ${orderId} not found after claiming admin tag`);
+      const current = await prisma.order.findUnique({ where: { id: orderId }, select: { tags: true } });
+      if (current?.tags?.includes(TAG)) {
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { tags: { set: current.tags.filter(t => t !== TAG) } },
+        });
+      }
       throw new Error("Order not found");
     }
 
@@ -294,21 +302,36 @@ export async function sendAdminNewOrderNotification(orderId: string): Promise<{ 
 
     const html = await generateAdminNewOrderEmail(emailData);
 
-    const result = await sendEmailViaUnifiedSystem({
-      to: adminEmail,
-      subject: `🔔 Comandă nouă #${order.orderNumber} - ${emailData.customerName}`,
-      html,
-    });
-
-    if (!result.success) {
-      // Remove tag if send failed
-      await prisma.order.update({
-        where: { id: orderId },
-        data: { tags: { set: order.tags?.filter(t => t !== TAG) || [] } },
+    try {
+      const result = await sendEmailViaUnifiedSystem({
+        to: adminEmail,
+        subject: `🔔 Comandă nouă #${order.orderNumber} - ${emailData.customerName}`,
+        html,
       });
-    }
 
-    return { success: result.success, error: result.error };
+      if (!result.success) {
+        // Remove tag if send failed - re-read first
+        const current = await prisma.order.findUnique({ where: { id: orderId }, select: { tags: true } });
+        if (current?.tags?.includes(TAG)) {
+          await prisma.order.update({
+            where: { id: orderId },
+            data: { tags: { set: current.tags.filter(t => t !== TAG) } },
+          });
+        }
+      }
+
+      return { success: result.success, error: result.error };
+    } catch (sendError) {
+      // Re-read tags and rollback if send threw
+      const current = await prisma.order.findUnique({ where: { id: orderId }, select: { tags: true } });
+      if (current?.tags?.includes(TAG)) {
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { tags: { set: current.tags.filter(t => t !== TAG) } },
+        });
+      }
+      throw sendError;
+    }
   } catch (error) {
     console.error("❌ Error sending admin notification:", error);
     return {
