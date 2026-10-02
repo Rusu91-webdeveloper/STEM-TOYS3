@@ -36,10 +36,6 @@ export async function generateShippedEmail(data: ShippedEmailData): Promise<stri
     dateStyle: "long",
   }).format(data.shippedDate);
   
-  const estimatedDelivery = data.estimatedDeliveryDays
-    ? `${data.estimatedDeliveryDays} zile lucrătoare`
-    : "2-3 zile lucrătoare";
-  
   const content = `
     <table width="100%" cellpadding="0" cellspacing="0" border="0">
       <!-- Greeting -->
@@ -49,7 +45,7 @@ export async function generateShippedEmail(data: ShippedEmailData): Promise<stri
             Bună ${data.customerName}! 🎉
           </h2>
           <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-            Vestea bună! Comanda ta <strong>#${data.orderNumber}</strong> a fost expediată și este pe drum către tine.
+            Vestea bună! Comanda ta <strong>#${data.orderNumber}</strong> a fost predată curierului ${data.carrier}.
           </p>
         </td>
       </tr>

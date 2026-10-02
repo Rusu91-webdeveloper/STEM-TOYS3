@@ -326,7 +326,7 @@ export async function POST(request: Request) {
             "✅ [WEBHOOK] Payment successful and verified - processing order fulfillment"
           );
 
-          // Send admin notification once per order
+          // Send admin notification once per order (guard against repeat callbacks)
           if (orderBeforeUpdate.paymentStatus !== "PAID") {
             const { sendAdminNewOrderNotification } = await import(
               "@/lib/email/order-email-integration"
@@ -342,6 +342,7 @@ export async function POST(request: Request) {
           const hasPhysicalItems = updatedOrder.items.some(
             item => item.isDigital !== true
           );
+          if (hasPhysicalItems) {
           if (hasPhysicalItems) {
             let supplierOrderCount = await db.supplierOrder.count({
               where: { orderId: resolvedOrderId },
@@ -495,10 +496,10 @@ export async function POST(request: Request) {
               // Continue to send confirmation email even if digital processing fails
             }
 
-            // Send confirmation email for digital orders (in addition to delivery email)
-            if (updatedOrder.user?.email) {
+            // Send confirmation email for digital orders (guard against repeat callbacks)
+            if (updatedOrder.user?.email && orderBeforeUpdate.paymentStatus !== "PAID") {
               try {
-                const { sendOrderConfirmationImproved, sendAdminNewOrderNotification } = await import(
+                const { sendOrderConfirmationImproved } = await import(
                   "@/lib/email/order-email-integration"
                 );
                 
@@ -511,9 +512,6 @@ export async function POST(request: Request) {
                 } else {
                   console.log("✅ [WEBHOOK] Improved order confirmation email sent");
                 }
-
-                // Send admin notification
-                await sendAdminNewOrderNotification(updatedOrder.id);
               } catch (emailError) {
                 console.error(
                   `❌ [WEBHOOK] Failed to send order confirmation email:`,
@@ -523,10 +521,10 @@ export async function POST(request: Request) {
             }
           } else {
             console.log("📦 [WEBHOOK] Processing physical product order...");
-            // Send order confirmation email for physical products
-            if (updatedOrder.user?.email) {
+            // Send order confirmation email for physical products (guard against repeat callbacks)
+            if (updatedOrder.user?.email && orderBeforeUpdate.paymentStatus !== "PAID") {
               try {
-                const { sendOrderConfirmationImproved, sendAdminNewOrderNotification } = await import(
+                const { sendOrderConfirmationImproved } = await import(
                   "@/lib/email/order-email-integration"
                 );
                 
@@ -539,9 +537,6 @@ export async function POST(request: Request) {
                 } else {
                   console.log("✅ [WEBHOOK] Improved order confirmation email sent");
                 }
-
-                // Send admin notification
-                await sendAdminNewOrderNotification(updatedOrder.id);
               } catch (emailError) {
                 console.error(
                   `❌ [WEBHOOK] Failed to send order confirmation email:`,

@@ -56,7 +56,7 @@ export async function sendOrderConfirmationImproved(orderId: string): Promise<{ 
     const hasCardHoldTag = order.tags?.includes("COD_GUARANTEE_AUTHORIZED") || false;
     const authorizedAmount = parseCodGuaranteeAmount(order.notes);
     const hasCardHold = hasCardHoldTag || authorizedAmount !== null;
-    const cardHoldAmount = authorizedAmount || 25; // Policy: 25 lei
+    const cardHoldAmount = authorizedAmount || 25; // Use actual amount or fallback to 25 lei policy
 
     const emailData: OrderConfirmationData = {
       customerName: order.user.name || "Client",
