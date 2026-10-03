@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { useCookieConsent } from "@/lib/analytics/use-cookie-consent";
+
 const AnalyticsWrapper = dynamic(
   () => import("@/components/analytics/AnalyticsWrapper"),
   { ssr: false }
@@ -43,6 +45,7 @@ function canShowPopupOnDevice(): boolean {
 }
 
 export default function DeferredClientFeatures() {
+  const { consent } = useCookieConsent();
   const pathname = usePathname();
   const [enableCoreFeatures, setEnableCoreFeatures] = useState(false);
   const [enablePromotionalPopup, setEnablePromotionalPopup] = useState(false);
@@ -110,9 +113,9 @@ export default function DeferredClientFeatures() {
       {enableCoreFeatures ? (
         <>
           <AnalyticsWrapper />
-          <PerformanceMonitor />
+          {consent?.analytics && <PerformanceMonitor />}
           <ServiceWorkerRegistration />
-          <ConversionTrackingProvider />
+          {consent?.analytics && <ConversionTrackingProvider />}
         </>
       ) : null}
       {enablePromotionalPopup && pathname !== "/" ? <PromotionalPopup /> : null}

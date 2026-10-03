@@ -7,8 +7,10 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
 import Script from "next/script";
+import { useEffect, useState } from "react";
+
+import { hasMarketingConsent } from "@/lib/analytics/consent";
 
 interface TikTokPixelConfig {
   pixelId: string;
@@ -60,7 +62,7 @@ export default function TikTokPixel() {
         productName: string,
         price: number
       ) => {
-        if (window.ttq) {
+        if (hasMarketingConsent() && window.ttq) {
           window.ttq.track("ViewContent", {
             content_id: productId,
             content_name: productName,
@@ -78,7 +80,7 @@ export default function TikTokPixel() {
         price: number,
         quantity: number
       ) => {
-        if (window.ttq) {
+        if (hasMarketingConsent() && window.ttq) {
           window.ttq.track("AddToCart", {
             content_id: productId,
             content_name: productName,
@@ -97,7 +99,7 @@ export default function TikTokPixel() {
         productIds: string[],
         currency: string = "RON"
       ) => {
-        if (window.ttq) {
+        if (hasMarketingConsent() && window.ttq) {
           window.ttq.track("CompletePayment", {
             content_ids: productIds,
             content_type: "product",
@@ -114,7 +116,7 @@ export default function TikTokPixel() {
         productIds: string[],
         numItems: number
       ) => {
-        if (window.ttq) {
+        if (hasMarketingConsent() && window.ttq) {
           window.ttq.track("InitiateCheckout", {
             content_ids: productIds,
             content_type: "product",
@@ -128,7 +130,7 @@ export default function TikTokPixel() {
   }, [config]);
 
   // Don't render anything while loading or if no config
-  if (isLoading || !config?.pixelId || !config?.isActive) {
+  if (!hasMarketingConsent() || isLoading || !config?.pixelId || !config?.isActive) {
     return null;
   }
 

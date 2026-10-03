@@ -1,3 +1,5 @@
+import { hasAnalyticsConsent } from "@/lib/analytics/consent";
+
 export interface ConversionEvent {
   id: string;
   timestamp: string;
@@ -354,6 +356,10 @@ class ConversionTracker {
    * Force flush conversions to server
    */
   async flushConversions(): Promise<void> {
+    if (!hasAnalyticsConsent()) {
+      this.conversions.length = 0;
+      return;
+    }
     if (this.isFlushing || this.conversions.length === 0) return;
 
     this.isFlushing = true;
@@ -490,6 +496,7 @@ class ConversionTracker {
   }
 
   private addConversion(conversion: ConversionEvent): void {
+    if (!hasAnalyticsConsent()) return;
     this.conversions.push(conversion);
     this.userActions.push(conversion.action);
 
@@ -650,6 +657,7 @@ class ConversionTracker {
   private async sendConversionsToServer(
     conversions: ConversionEvent[]
   ): Promise<void> {
+    if (!hasAnalyticsConsent()) return;
     const response = await fetch(this.config.endpoint, {
       method: "POST",
       headers: {
@@ -667,7 +675,7 @@ class ConversionTracker {
 let conversionTrackerInstance: ConversionTracker | null = null;
 
 export function getConversionTracker(): ConversionTracker | null {
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) {
     return null;
   }
 

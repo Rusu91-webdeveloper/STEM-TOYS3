@@ -1,0 +1,23 @@
+[
+  {
+    "viewport": 1440,
+    "preConsentTrackingRequests": 0,
+    "refusalPersists": true,
+    "cartSurvivesReload": true,
+    "analyticsOnly": true,
+    "withdrawalReload": true,
+    "pageErrors": []
+  },
+  {
+    "viewport": 390,
+    "preConsentTrackingRequests": 0,
+    "refusalPersists": true,
+    "cartSurvivesReload": true,
+    "analyticsOnly": true,
+    "withdrawalReload": true,
+    "pageErrors": []
+  },
+  {
+    "crossTabWithdrawalReload": true
+  }
+]

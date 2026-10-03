@@ -1,6 +1,8 @@
 // Hormozi Style Conversion Tracking System
 // Tracks all conversion events for optimization and A/B testing
 
+import { hasAnalyticsConsent, hasMarketingConsent } from "@/lib/analytics/consent";
+
 export interface ConversionEvent {
   action: string;
   category: string;
@@ -128,7 +130,7 @@ class ConversionTracker {
   }
 
   private loadStoredEvents(): void {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && hasAnalyticsConsent()) {
       const stored = localStorage.getItem("conversion_events");
       if (stored) {
         try {
@@ -150,6 +152,7 @@ class ConversionTracker {
   trackEvent(
     event: Omit<ConversionEvent, "timestamp" | "sessionId" | "userId">
   ): void {
+    if (!hasAnalyticsConsent()) return;
     const fullEvent: ConversionEvent = {
       ...event,
       timestamp: Date.now(),
@@ -169,7 +172,7 @@ class ConversionTracker {
     if (typeof window === "undefined") return;
 
     // Google Analytics 4
-    if (window.gtag) {
+    if (hasAnalyticsConsent() && window.gtag) {
       window.gtag("event", event.action, {
         event_category: event.category,
         event_label: event.label,
@@ -180,7 +183,7 @@ class ConversionTracker {
     }
 
     // Facebook Pixel
-    if (window.fbq) {
+    if (hasMarketingConsent() && window.fbq) {
       window.fbq("track", "CustomEvent", {
         event_name: event.action,
         category: event.category,
@@ -203,6 +206,7 @@ class ConversionTracker {
     if (!test || !test.isActive) {
       return null;
     }
+    if (!hasAnalyticsConsent()) return test.variants.find(variant => variant.isControl) ?? null;
 
     // Check if user already has a variant assigned
     const storedVariant = this.getStoredVariant(testId);

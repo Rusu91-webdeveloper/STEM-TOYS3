@@ -5,6 +5,8 @@
 
 import { onCLS, onINP, onFCP, onLCP, onTTFB } from "web-vitals";
 
+import { hasAnalyticsConsent } from "./consent";
+
 interface WebVitalsMetric {
   name: string;
   value: number;
@@ -49,7 +51,7 @@ function getRating(
 }
 
 function sendToGoogleAnalytics(metric: WebVitalsMetric) {
-  if (typeof window !== "undefined" && window.gtag) {
+  if (typeof window !== "undefined" && hasAnalyticsConsent() && window.gtag) {
     window.gtag("event", metric.name, {
       event_category: "Web Vitals",
       event_label: metric.id,
@@ -79,7 +81,7 @@ function sendToConsole(metric: WebVitalsMetric) {
 }
 
 function sendToAPI(metric: WebVitalsMetric, config: WebVitalsConfig) {
-  if (!config.apiEndpoint) return;
+  if (!config.apiEndpoint || !hasAnalyticsConsent()) return;
 
   fetch(config.apiEndpoint, {
     method: "POST",
@@ -161,7 +163,7 @@ export function trackPagePerformance() {
     const loadTime =
       performance.timing.loadEventEnd - performance.timing.navigationStart;
 
-    if (window.gtag) {
+    if (hasAnalyticsConsent() && window.gtag) {
       window.gtag("event", "page_load_time", {
         event_category: "Performance",
         value: loadTime,
@@ -183,7 +185,7 @@ export function trackPagePerformance() {
               `Slow resource: ${resource.name} (${resource.duration.toFixed(2)}ms)`
             );
 
-            if (window.gtag) {
+            if (hasAnalyticsConsent() && window.gtag) {
               window.gtag("event", "slow_resource", {
                 event_category: "Performance",
                 event_label: resource.name,
@@ -211,7 +213,7 @@ export function trackEcommercePerformance() {
     window.addEventListener("load", () => {
       const loadTime = performance.now() - startTime;
 
-      if (window.gtag) {
+      if (hasAnalyticsConsent() && window.gtag) {
         window.gtag("event", "product_page_load", {
           event_category: "E-commerce Performance",
           value: Math.round(loadTime),
@@ -228,7 +230,7 @@ export function trackEcommercePerformance() {
     window.addEventListener("load", () => {
       const loadTime = performance.now() - startTime;
 
-      if (window.gtag) {
+      if (hasAnalyticsConsent() && window.gtag) {
         window.gtag("event", "checkout_page_load", {
           event_category: "E-commerce Performance",
           value: Math.round(loadTime),
@@ -253,7 +255,7 @@ export function trackMobilePerformance() {
     if ("connection" in navigator) {
       const connection = (navigator as any).connection;
 
-      if (window.gtag) {
+      if (hasAnalyticsConsent() && window.gtag) {
         window.gtag("event", "mobile_connection", {
           event_category: "Mobile Performance",
           event_label: connection.effectiveType || "unknown",

@@ -7,8 +7,10 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
 import Script from "next/script";
+import { useEffect, useState } from "react";
+
+import { hasMarketingConsent } from "@/lib/analytics/consent";
 
 interface InstagramPixelConfig {
   pixelId: string;
@@ -60,7 +62,7 @@ export default function InstagramPixel() {
         productName: string,
         price: number
       ) => {
-        if (window.fbq) {
+        if (hasMarketingConsent() && window.fbq) {
           window.fbq("track", "ViewContent", {
             content_ids: [productId],
             content_name: productName,
@@ -83,7 +85,7 @@ export default function InstagramPixel() {
         price: number,
         quantity: number
       ) => {
-        if (window.fbq) {
+        if (hasMarketingConsent() && window.fbq) {
           window.fbq("track", "AddToCart", {
             content_ids: [productId],
             content_name: productName,
@@ -107,7 +109,7 @@ export default function InstagramPixel() {
         productIds: string[],
         currency: string = "RON"
       ) => {
-        if (window.fbq) {
+        if (hasMarketingConsent() && window.fbq) {
           window.fbq("track", "Purchase", {
             content_ids: productIds,
             content_type: "product",
@@ -125,7 +127,7 @@ export default function InstagramPixel() {
 
       // Track Instagram share
       window.trackInstagramShare = (contentId: string, platform: string = "instagram") => {
-        if (window.fbq) {
+        if (hasMarketingConsent() && window.fbq) {
           window.fbq("trackCustom", "InstagramShare", {
             content_id: contentId,
             platform: platform,
@@ -138,7 +140,7 @@ export default function InstagramPixel() {
   }, [config]);
 
   // Don't render anything while loading or if no config
-  if (isLoading || !config?.pixelId || !config?.isActive) {
+  if (!hasMarketingConsent() || isLoading || !config?.pixelId || !config?.isActive) {
     return null;
   }
 
@@ -158,6 +160,7 @@ export default function InstagramPixel() {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('consent', 'grant');
             fbq('init', '${config.pixelId}');
             fbq('track', 'PageView');
             

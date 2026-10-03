@@ -2,6 +2,10 @@
 
 import Script from "next/script";
 
+import {
+  hasAnalyticsConsent,
+  hasMarketingConsent,
+} from "@/lib/analytics/consent";
 import { flushGA4Events, GA4_CONFIG } from "@/lib/analytics/ga4";
 
 interface GoogleAnalyticsProps {
@@ -12,7 +16,12 @@ export default function GoogleAnalytics({
   measurementId = GA4_CONFIG.MEASUREMENT_ID,
 }: GoogleAnalyticsProps) {
   // Don't load GA4 in development
-  if (process.env.NODE_ENV === "development") {
+  if (
+    process.env.NODE_ENV === "development" ||
+    !hasAnalyticsConsent() ||
+    !/^G-[A-Z0-9]+$/.test(measurementId) ||
+    measurementId === "G-XXXXXXXXXX"
+  ) {
     return null;
   }
 
@@ -33,8 +42,20 @@ export default function GoogleAnalytics({
           __html: `
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
+            gtag('consent', 'default', {
+              analytics_storage: 'denied', ad_storage: 'denied',
+              ad_user_data: 'denied', ad_personalization: 'denied'
+            });
+            gtag('consent', 'update', {
+              analytics_storage: 'granted',
+              ad_storage: '${hasMarketingConsent() ? "granted" : "denied"}',
+              ad_user_data: '${hasMarketingConsent() ? "granted" : "denied"}',
+              ad_personalization: '${hasMarketingConsent() ? "granted" : "denied"}'
+            });
             gtag('js', new Date());
             gtag('config', '${measurementId}', {
+              allow_google_signals: ${hasMarketingConsent()},
+              allow_ad_personalization_signals: ${hasMarketingConsent()},
               page_title: document.title,
               page_location: window.location.href,
               custom_map: {

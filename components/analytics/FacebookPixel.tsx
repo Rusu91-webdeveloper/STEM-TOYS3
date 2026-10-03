@@ -7,8 +7,10 @@
 
 "use client";
 
-import { useEffect } from "react";
 import Script from "next/script";
+import { useEffect } from "react";
+
+import { hasMarketingConsent } from "@/lib/analytics/consent";
 
 interface FacebookPixelProps {
   children?: React.ReactNode;
@@ -42,7 +44,7 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
         blogId: string,
         platform: string = "facebook"
       ) => {
-        if (window.fbq) {
+        if (hasMarketingConsent() && window.fbq) {
           window.fbq("trackCustom", "ViralShare", {
             blog_id: blogId,
             platform: platform,
@@ -61,7 +63,7 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
         engagementType: string,
         timeSpent?: number
       ) => {
-        if (window.fbq) {
+        if (hasMarketingConsent() && window.fbq) {
           window.fbq("trackCustom", "BlogEngagement", {
             blog_id: blogId,
             engagement_type: engagementType,
@@ -77,7 +79,7 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
 
       // Track product views from Romanian blog traffic
       window.trackProductViewFromBlog = (blogId: string, productId: string) => {
-        if (window.fbq) {
+        if (hasMarketingConsent() && window.fbq) {
           window.fbq("track", "ViewContent", {
             content_ids: [productId],
             content_type: "product",
@@ -104,7 +106,7 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
         productIds: string[],
         blogId?: string
       ) => {
-        if (window.fbq) {
+        if (hasMarketingConsent() && window.fbq) {
           window.fbq("track", "Purchase", {
             content_ids: productIds,
             content_type: "product",
@@ -131,7 +133,7 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
     process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || "123456789012345";
 
   // Only render pixel if configured
-  if (!FACEBOOK_PIXEL_ID || FACEBOOK_PIXEL_ID === "123456789012345") {
+  if (!hasMarketingConsent() || !/^\d+$/.test(FACEBOOK_PIXEL_ID) || FACEBOOK_PIXEL_ID === "123456789012345") {
     return <>{children}</>;
   }
 
@@ -151,6 +153,7 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('consent', 'grant');
             fbq('init', '${FACEBOOK_PIXEL_ID}');
             fbq('track', 'PageView');
 
@@ -203,7 +206,8 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
 
                 // Track Romanian social shares
                 document.addEventListener('click', function(e) {
-                  const target = e.target as HTMLElement;
+                  const target = e.target;
+                  if (!(target instanceof Element)) return;
                   if (target.matches('[data-share]') || target.closest('[data-share]')) {
                     const shareElement = target.matches('[data-share]') ? target : target.closest('[data-share]');
                     const platform = shareElement?.getAttribute('data-platform') || 'unknown';

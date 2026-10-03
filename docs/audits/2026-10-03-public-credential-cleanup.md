@@ -1,6 +1,45 @@
-# Public cookie and supplier credential cleanup
+# Public cookie and supplier feed URL cleanup
 
 Date: 3 October 2026. Base: `33f24a6a` (fetched `origin/main`).
+
+## Corrected assessment: owner confirmation
+
+On 3 October 2026, the owner clarified that the Boribon URLs are public catalog
+feeds. Their appearance in a public repository does not establish disclosure of
+confidential credentials. The earlier private-feed classification was an
+unverified assumption and is superseded by this clarification. No misuse was
+established by this investigation.
+
+URL revocation/replacement and the prepared repository history rewrite are not
+required for these public feeds or the already expired/rejected exported admin
+cookie. Both proposed follow-ups are closed as unnecessary for this finding.
+No remote history rewrite, supplier contact or URL rotation was performed. The
+deployed source cleanup and configured feed remain in place. This conclusion is
+limited to the findings below, not a complete audit of other secrets.
+
+## Released source cleanup
+
+[PR #58](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/58) was merged
+at 2026-10-02 23:35:11 UTC as `eeadaab64592ff6c400437e2f08a1c54d7370304`. Vercel
+deployment `dpl_BEoGgQAttgi2De6tJaL3or3UFoCz` is READY, and both production
+domains resolve to it. Public GitHub reads at that exact commit return 404 for
+both cookie files and show no known credential in any of the three affected
+source files.
+
+Production homepage, product listing and authentication providers return 200;
+Google and credentials providers remain available. Anonymous analytics GET and
+POST return 403 without data and use private/no-store cache headers. The
+error/fatal runtime-log query scoped to this deployment over the preceding ten
+minutes returned no rows. A real production sync job was not invoked.
+
+Actual commit and push hooks passed: full Jest remains at 65 failing suites and
+179 failing tests, and TypeScript remains at 1,205 errors, with zero added
+failures in either comparison. No schema or migration changed. These results
+certify no added failures, not a clean full repository check.
+
+Rollback, if needed: previous READY deployment
+`dpl_5nNryPHZdmbhaMR9Z3LWeHU7KRPN` (`33f24a6a`). That version contains the old
+hardcoded URLs, so any rollback requires carrying the source cleanup forward.
 
 ## Confirmed exposure
 
@@ -13,16 +52,18 @@ session leak or disclosure of the authentication signing secret. An otherwise
 unauthenticated live request supplying the exported cookie to
 `/api/admin/email-templates` returned 401 Unauthorized.
 
-Seven private Boribon feed URLs are hardcoded in three current source files. The
+Seven Boribon catalog feed URLs were hardcoded in three source files. The
 primary URL returned HTTP 200 with the expected CSV headers during a read-only
-check. Treat the URLs as compromised and have Boribon revoke and replace them.
-No tokens, cookie values or personal identifiers are stored in this audit.
+check. The owner confirms these are intended public catalog feeds; their
+availability does not establish a secret leak or require revocation. No URL
+identifier values, cookie values or personal identifiers are stored in this
+audit.
 
 The live admin's active curated Boribon feed stores exactly the URL currently
 hardcoded in the sync. Comparison used a private-URL fingerprint, not printed
 credentials. Its status is SUCCESS. Six older brand feeds are inactive.
 
-## Candidate change
+## Released change
 
 - Delete both cookie files and ignore cookie-jar filenames.
 - Block tracked cookie exports and literal credential-bearing Boribon feed URLs
@@ -38,9 +79,9 @@ credentials. Its status is SUCCESS. Six older brand feeds are inactive.
   credential-bearing URLs from persistent sync errors.
 - The checker reports numbered feeds rather than logging private URLs.
 
-No schema, migration, production database writes or credential rotations are
-included in the candidate. The unrelated completed analytics release record is
-also updated with the owner's production ADMIN success evidence.
+No schema, migration, manual production database writes or credential rotations
+are included in this patch. The completed analytics release record is also
+updated with the owner's production ADMIN success evidence.
 
 ## Verification and history preparation
 
@@ -74,16 +115,30 @@ unrelated file changes occurred. The preparation is a snapshot of the
 pre-cleanup remote and must be refreshed/reverified after the candidate lands or
 remote refs move.
 
-GitHub history has not been replaced. Replacing 50 branch histories changes
-commit identities, affects existing pull requests and requires clone cleanup.
-The user must approve that destructive repository-wide operation after reviewing
-the candidate and the concrete impact. Use an atomic push with explicit leases
-for writable heads/tags, not a blind mirror push. GitHub pull-request refs are
-read-only and cached views require GitHub Support cleanup; that external contact
-has not been authorized or sent.
+After release, the original mirror was refreshed and a new clean mirror was
+prepared. Final verification covers all 116 refs, 901 rewritten commits, 50
+branch tips and 64 pull-request refs. All 7,938 reachable blob versions are free
+of the known feed credentials, cookie paths and exported cookie value; tip
+comparison again found no unrelated tree changes. The sanitized main has an
+identical tree to released `eeadaab6` and maps to `9866ed43`.
 
-The active supplier credential is still usable until Boribon revokes it.
-Removing source/history cannot revoke a copy someone already downloaded. No
+Private preparation and verification are under
+`/tmp/techtots-secret-remediation/`. The original and final clean mirrors are
+retained, alongside a plan-only apply script. It requires `--apply` after owner
+approval and refuses to push if remote heads/tags have moved or changed in
+number. The intended push is atomic and uses explicit leases per changed ref.
+
+GitHub history has not been replaced. The preparation above was undertaken
+before the owner clarified that the feeds are public. Its references to feed
+credentials describe the initial classification, not a confirmed secret leak.
+The proposed rewrite is now closed as unnecessary for this finding. Replacing
+50 branch histories would change commit identities, affect existing pull
+requests and require clone cleanup; no such change is planned. No GitHub Support
+request was sent. The private draft and prepared mirrors are unused artifacts,
+not authorization to apply or submit them.
+
+The active public catalog feed remains usable as intended. No rotation is
+required on the basis of this finding. No
 authentication secret has been proven exposed by these cookie files, so a mass
 logout is not justified by the expired token alone. Any separately proven
 signing-secret leak would require rotation and a production redeployment.

@@ -3,7 +3,7 @@
  * Optimized for e-commerce and multilingual content
  */
 
-import { hasAnalyticsConsent } from "./consent";
+import { hasAnalyticsConsent, readCookieConsent } from "./consent";
 
 export const GA4_CONFIG = {
   // Replace with your actual GA4 Measurement ID
@@ -49,8 +49,11 @@ export const GA4_CONFIG = {
   },
 };
 
-const pendingEvents: Array<{ name: string; parameters: Record<string, any> }> =
-  [];
+const pendingEvents: Array<{
+  name: string;
+  parameters: Record<string, any>;
+  consentRevision: string;
+}> = [];
 
 /** Flush first-paint events after the deferred Google tag has initialized. */
 export function flushGA4Events() {
@@ -61,6 +64,7 @@ export function flushGA4Events() {
   }
   if (typeof window.gtag !== "function") return;
   for (const event of pendingEvents.splice(0)) {
+    if (event.consentRevision !== readCookieConsent()?.revision) continue;
     try {
       window.gtag("event", event.name, event.parameters);
     } catch {
@@ -85,7 +89,11 @@ export const trackEvent = (
       window.gtag("event", eventName, payload);
     } else {
       if (pendingEvents.length >= 50) return false;
-      pendingEvents.push({ name: eventName, parameters: payload });
+      pendingEvents.push({
+        name: eventName,
+        parameters: payload,
+        consentRevision: readCookieConsent()!.revision,
+      });
     }
     return true;
   } catch {

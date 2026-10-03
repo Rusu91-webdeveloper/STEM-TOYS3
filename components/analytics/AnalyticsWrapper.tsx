@@ -1,9 +1,11 @@
 "use client";
 
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
 
 import { hasAnalyticsConsent } from "@/lib/analytics/consent";
+import { useCookieConsent } from "@/lib/analytics/use-cookie-consent";
 
 // Dynamically import client-only analytics components to avoid SSR issues
 // This must be a Client Component to use ssr: false
@@ -41,30 +43,28 @@ const TikTokPixel = dynamic(
  * and only renders if the pixel is configured and active.
  */
 export default function AnalyticsWrapper() {
-  const [canLoadAnalytics, setCanLoadAnalytics] = useState(false);
-
-  useEffect(() => {
-    const activate = () => setCanLoadAnalytics(hasAnalyticsConsent());
-
-    if ("requestIdleCallback" in window) {
-      const idleId = window.requestIdleCallback(activate, { timeout: 3000 });
-      return () => window.cancelIdleCallback(idleId);
-    }
-
-    const timeoutId = window.setTimeout(activate, 1200);
-    return () => window.clearTimeout(timeoutId);
-  }, []);
-
-  if (!canLoadAnalytics) {
-    return null;
-  }
+  const { consent } = useCookieConsent();
 
   return (
     <>
-      <GoogleAnalytics />
-      <FacebookPixel />
-      <InstagramPixel />
-      <TikTokPixel />
+      {consent?.analytics && (
+        <>
+          <GoogleAnalytics />
+          <SpeedInsights
+            beforeSend={event => (hasAnalyticsConsent() ? event : null)}
+          />
+          <Analytics
+            beforeSend={event => (hasAnalyticsConsent() ? event : null)}
+          />
+        </>
+      )}
+      {consent?.marketing && (
+        <>
+          <FacebookPixel />
+          <InstagramPixel />
+          <TikTokPixel />
+        </>
+      )}
     </>
   );
 }

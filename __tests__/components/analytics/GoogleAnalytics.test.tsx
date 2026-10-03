@@ -1,11 +1,14 @@
 import { render, waitFor } from "@testing-library/react";
 import React from "react";
 
+import { saveCookieConsent } from "@/lib/analytics/consent";
+
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import { trackProductView } from "@/lib/analytics/ga4";
 
 it("flushes initial product views after Next inserts the inline bootstrap", async () => {
   localStorage.clear();
+  saveCookieConsent({ analytics: true, marketing: false });
   const previousTag = window.gtag;
   delete (window as Partial<Window>).gtag;
   trackProductView({

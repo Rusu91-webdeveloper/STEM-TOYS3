@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 
 import { publicConfig } from "@/lib/config/app-config";
+import { openCookiePreferences } from "@/lib/analytics/consent";
 
 import { Button } from "@/components/ui/button";
 import { LegalPageShell } from "@/components/legal/LegalPageShell";
@@ -133,10 +134,18 @@ export default function PrivacyPage() {
             <section id="cookies">
               <h2>4. Cookie-uri și tehnologii</h2>
               <p>
-                Folosim cookie-uri și tehnologii similare pentru a colecta
-                informații despre activitatea dvs. Puteți seta browserul să
-                refuze cookie-urile sau să vă notifice când sunt utilizate.
+                Stocarea necesară permite folosirea coșului, autentificarea și
+                finalizarea comenzilor. Analiza traficului și performanței
+                (Google Analytics, Vercel) și publicitatea (Meta, TikTok) sunt
+                opționale și se activează numai după acordul dvs. pentru
+                categoria respectivă. Refuzul nu împiedică efectuarea unei comenzi.
               </p>
+              <p>
+                Păstrăm alegerea în acest browser timp de 6 luni. Puteți modifica
+                sau retrage acordul oricând din „Setări cookie-uri”. La retragere,
+                pagina se reîncarcă pentru a opri serviciile deja încărcate.
+              </p>
+              <Button variant="outline" onClick={openCookiePreferences}>Setări cookie-uri</Button>
             </section>
             <Separator className="my-6 border-white/10" />
             <section id="partajare">

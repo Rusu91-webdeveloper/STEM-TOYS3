@@ -1,9 +1,8 @@
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import { SafeSessionProvider } from "@/components/auth/SafeSessionProvider";
+import CookieConsent from "@/components/analytics/CookieConsent";
 import { CriticalCSS } from "@/components/CriticalCSS";
 import DeferredClientFeatures from "@/components/DeferredClientFeatures";
 import ClientLayout from "@/components/layout/ClientLayout";
@@ -57,6 +56,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen flex flex-col font-sans antialiased">
         <StructuredDataInjector />
+        <CookieConsent />
         <SafeSessionProvider>
           <CentralizedSessionProvider>
             <I18nProvider initialLanguage={initialLanguage}>
@@ -64,8 +64,6 @@ export default function RootLayout({
                 <CartProviderWrapper>
                   <ClientLayout initialStoreSettings={initialStoreSettings}>
                     {children}
-                    <SpeedInsights />
-                    <Analytics />
                   </ClientLayout>
                   <Toaster />
                   <DeferredClientFeatures />
