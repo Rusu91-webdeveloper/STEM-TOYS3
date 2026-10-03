@@ -111,12 +111,13 @@ browser generated those receipts, prove the Test events UI, or verify purchases.
    backup/log retention and transfer safeguards remain unverified. An owner
    question is pending. General category-specific criteria avoid fabricated
    durations but still need an operational schedule and owner review.
-4. **Operator review:** preview verification exposed a registration-number
-   conflict: the shared config uses `J20/352/2025`, while the About page and
-   Romanian/English footer translations use `J2025035239005`. The privacy
-   draft omits this optional identifier until the owner confirms the certificate;
-   no other company pages or shared legal config were changed. Confirm company
-   registry/address, receipt and handling
+4. **Operator review:** initial preview verification exposed a registration-number
+   conflict: the shared config used `J20/352/2025`, while About and the translated
+   footer used `J2025035239005`. The owner confirmed `J2025035239005` in this chat
+   on 2026-10-03. The shared config and footer fallback now agree; the privacy
+   notice includes that value through the shared config. The confirmation is
+   owner-supplied, not an independent registry lookup. Confirm company address,
+   receipt and handling
    of privacy requests, financial-record exceptions, lawful-basis positions,
    provider agreements and new tracking uses before treating the draft as final.
    Advanced Matching, CAPI and purchase tracking are not enabled by this change.
@@ -146,3 +147,16 @@ visibility or secret/history changes are part of this policy update.
 - These layout/interaction checks also exposed the registration conflict above.
   The follow-up changes only omit that number and record this audit; its final
   deployment/text verification is recorded in PR #59. No production promotion.
+
+
+## Owner registration-number confirmation — 2026-10-03
+
+The owner supplied `J2025035239005`. Applied it to `COMPANY_LEGAL.regCom`
+(which also supplies the email legal footer), corrected the footer fallback,
+and reinstated the shared register number in the privacy notice. Existing About
+and Romanian/English translated footer values already match. No other legal
+facts, dates, payment behavior or database/schema files changed.
+
+Changed source files pass ESLint; privacy/config formatting and diff checks pass.
+Required regression hooks and the exact final deployment/rendered value are
+reported in draft PR #59 after publication. Other operational findings remain open.

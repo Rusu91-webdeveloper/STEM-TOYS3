@@ -1,5 +1,13 @@
 # Current tasks
 
+- [x] 2026-10-03 — Apply the owner's confirmed trade-register number
+      `J2025035239005` to the shared legal config, footer fallback and privacy
+      notice. Completed: 2026-10-03. Estimate: 15–30 minutes; editing and scoped
+      validation took about 3 minutes, excluding Git hooks and Vercel build.
+      Existing About/footer translations already agree. Formatting, ESLint and
+      diff checks pass. Publication/preview verification recorded in
+      [draft PR #59](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/59).
+
 - [x] 2026-10-03 — Review and correct the privacy policy against verified
       operator, processing flows, consent behavior and official legal/provider
       sources. Record Meta account receipt and publish a reviewable preview.
@@ -11,7 +19,7 @@
       found in preview; optional identifier omitted pending certificate confirmation.
       Full comparisons add no Jest failures or TypeScript errors.
       See [privacy audit](docs/audits/2026-10-03-privacy-policy.md).
-- [ ] Owner follow-up: confirm the company registration certificate/address,
+- [ ] Owner follow-up: confirm the company address,
       GA4 retention setting, operational deletion schedule and provider agreements
       before final privacy approval. Production Meta activation remains separate.
 - [ ] Follow-up from 2026-10-03 privacy review: investigate the authenticated saved-card

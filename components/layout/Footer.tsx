@@ -345,7 +345,7 @@ export default function Footer({
                 {t("footerLegalCui", "CUI: 51813997")}
               </p>
               <p className="mt-1.5 text-[11px] leading-snug text-slate-600 sm:text-xs sm:leading-relaxed">
-                {t("footerLegalRegCom", "J20/352/2025")}
+                {t("footerLegalRegCom", "J2025035239005")}
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 sm:justify-start sm:gap-x-5">
