@@ -11,9 +11,11 @@
 
 - [ ] 2026-10-03 — Add explicit cookie consent with separate analytics and
       advertising choices, withdrawal and tracking gates; verify a preview PR.
-      Estimate: 1–2 hours. Implementation and 41 focused tests complete;
-      desktop, mobile and cross-tab browser checks pass. Preview PR publication
-      pending. Repository visibility/history stay unchanged. See
+      Estimate: 1–2 hours. Implementation and 44 focused tests complete;
+      desktop, mobile and cross-tab local browser checks pass.
+      [Draft PR #59](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/59)
+      is published; deployed checks found and corrected an ungated homepage
+      impression. Updated-preview verification is pending. Repository visibility/history stay unchanged. See
       [consent audit](docs/audits/2026-10-03-cookie-consent.md).
 
 ## Discovered during work

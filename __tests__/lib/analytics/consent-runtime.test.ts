@@ -7,6 +7,7 @@ it("clears known tracking identifiers while preserving shopping state", () => {
   localStorage.setItem("cart", "keep-cart");
   localStorage.setItem("conversion_events", "remove-events");
   sessionStorage.setItem("conversion_session_id", "remove-session");
+  sessionStorage.setItem("homepage_conversion_session_id", "remove-homepage-session");
   document.cookie = "_ga=tracking; Path=/";
   document.cookie = "_fbp=tracking; Path=/";
   document.cookie = "cart_cookie=keep-cart; Path=/";
@@ -19,6 +20,7 @@ it("clears known tracking identifiers while preserving shopping state", () => {
   expect(localStorage.getItem("cart")).toBe("keep-cart");
   expect(localStorage.getItem("conversion_events")).toBeNull();
   expect(sessionStorage.getItem("conversion_session_id")).toBeNull();
+  expect(sessionStorage.getItem("homepage_conversion_session_id")).toBeNull();
 });
 it("sets Google's disable flag until analytics is granted", () => {
   const originalId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;

@@ -12,6 +12,14 @@ existed or storage was unavailable. AnalyticsWrapper evaluated that helper only
 once. It also used the analytics decision to load advertising pixels, while
 Vercel Analytics and Speed Insights loaded outside the wrapper.
 
+The first deployed-preview browser check caught a separate homepage helper
+mirroring its hero impression to `/api/analytics/conversions` before consent.
+The helper now requires analytics permission before either GA or first-party
+collection, and withdrawal also removes its homepage session identifier. Three
+regression cases cover no choice, advertising-only choice and withdrawal.
+The local fixture did not include the real homepage hero; deployed checks are
+therefore required before marking this task complete.
+
 Live public Instagram and TikTok config endpoints both returned `data: null`.
 This does not certify Vercel's environment-variable settings or the owner's Meta
 account configuration. No real Meta ID has been supplied for this task. Meta is
@@ -58,11 +66,13 @@ to an Element check.
 
 ## Verification
 
-Eight focused suites cover the consent reader, runtime cleanup, rendered
+Nine focused suites cover the consent reader, runtime cleanup, rendered
 choices, category separation, same-document/cross-tab changes, expiry, blocked
 storage, GA4 buffering, valid Meta inline JavaScript and the existing
-cart/checkout event rules. The initial run passed 40 tests; final results are
-recorded below after publication checks.
+cart/checkout event rules. All 44 focused tests pass. Commit/push regression checks pass against the
+unchanged main: Jest remains at 65 failed suites / 179 failed tests with zero
+added failures; TypeScript baseline 1208 diagnostics, current 1207, zero added.
+These are regression checks, not a clean full-suite/compiler result.
 
 The real Next.js layout was checked with agent-browser and isolated browser
 contexts using a temporary local fixture and the actual cart provider. The
@@ -82,9 +92,13 @@ checks do not prove delivery to the real GA or Meta account.
 [browser results](../qa/cookie-consent/browser-results.json).
 
 No local build/migration was run because the build script runs migrations.
-Repository regression hooks must pass before push; existing full-suite/compiler
+Repository commit/push regression hooks pass; existing full-suite/compiler
 failures remain visible. Production remains on `eeadaab6` until owner review.
 Repository visibility/history remain unchanged.
+
+Draft [PR #59](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/59).
+Initial preview `dpl_CSjx9vCzx5UakTXL3CXwDzCcFdip` is READY; the homepage
+collection correction awaits a new preview and repeated deployed checks.
 
 ## Preview review
 

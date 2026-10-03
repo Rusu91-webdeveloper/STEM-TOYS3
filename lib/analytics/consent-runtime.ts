@@ -39,6 +39,7 @@ export function syncConsentRuntime(
     removeTrackingCookies(/^_ga(?:_|$)|^_gid$|^_gat(?:_|$)/);
     try {
       window.sessionStorage.removeItem("conversion_session_id");
+      window.sessionStorage.removeItem("homepage_conversion_session_id");
       window.localStorage.removeItem("conversion_events");
     } catch {}
   }
