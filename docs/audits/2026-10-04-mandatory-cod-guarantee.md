@@ -48,7 +48,7 @@ shipping hold price, not the full order total. No database/schema changes.
 
 ## Verification
 
-79 focused tests pass across eight suites, including actual signed guest and
+81 focused tests pass across nine suites, including actual signed guest and
 authenticated CSRF round trips, missing/wrong/tampered/expired token denial,
 real PaymentForm behavior for low-value guest/returning customers with a stale
 policy response, missing shipping-price denial, manual-capture intent pricing,
@@ -56,8 +56,38 @@ and order rejection for missing, captured, reused or mismatched authorizations.
 Stripe calls, order writes and email are mocked in tests. No real card charged
 or owner order submitted by the agent.
 
-Release comparison and deployed-browser results will be appended after preview
-publication. [Draft PR #61](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/61).
+Required release comparisons against `origin/main` merge base `a635bfb7` pass:
+Jest baseline/current both have 65 failed suites and 179 failed tests, with zero
+regressions; TypeScript baseline/current both have 1207 errors, with zero added
+diagnostics. These are regression comparisons, not clean full-suite results.
+The first push caught an incomplete threshold test fixture; supplying its real
+typed fields resolved that new diagnostic without weakening the test. Focused
+new-file lint passes; broad changed-file lint retains seven pre-existing errors
+and 133 warnings. Diff and focused formatting checks pass. No schema, migration,
+dependency or environment-variable changes.
+
+Deployment `dpl_Gc1knbtDYPjwSkJA3bK9oAvrwxU1` is READY at source
+`3c6412e8d946053d87e2f7e07b800570a0ee1f21`:
+[verified preview](https://stem-toys-3-rhcc931zz-rusujobs-3774s-projects.vercel.app/).
+The deployed policy API returns HTTP 200, `required: true`, mode `always` for
+the owner's 193.01 lei example. Its `amount` field is the evaluated order total,
+not the amount held. Chrome refused direct navigation to that policy URL with
+`ERR_BLOCKED_BY_CLIENT`; the authenticated Vercel fetch verified the response.
+
+Chrome verifies the mandatory wording at `/shipping#rto` and anonymous
+`/api/csrf-token` issuance without exposing token/session values in evidence.
+Vercel fetch confirms HTTP 200, a nonempty guest token, `no-store` caching and
+the new guest cookie's HttpOnly, Secure and SameSite=Lax flags. Actual mutation
+round trips and rejected invalid tokens are covered by the integration tests;
+no real checkout POST was submitted by the agent.
+
+A fresh guest checkout is prepared with one 168 lei rocket, 19.99 lei shipping
+and blank contact fields, with optional cookies refused. The owner's old filled
+checkout tab is preserved. The owner must enter real details on this new host,
+choose FanCourier home delivery and COD, accept the terms and authorize the
+19.99 lei shipping hold. Real Stripe authorization, successful order submission
+and any refusal capture/release remain owner acceptance checks. Production has
+not been promoted. [Draft PR #61](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/61).
 
 ## Remaining acceptance and operations
 

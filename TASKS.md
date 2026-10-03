@@ -1,11 +1,23 @@
 # Current tasks
 
-- [ ] 2026-10-04 — Require a shipping-cost card authorization for every COD
-      order, including low-value orders, returning customers and lockers, as
+- [x] 2026-10-04 — Require a shipping-cost card authorization for every COD
+      order, including low-value orders and returning customers, as
       explicitly requested by the owner. Trace and fix the guest checkout CSRF
       failure observed in the owner test; preserve signed-token validation.
       Estimate: 1–2 hours. Verify denial paths and publish a reviewable preview.
       Real card authorization/order submission remains an owner acceptance step.
+      Completed 2026-10-04; elapsed time was not recorded. Every eligible COD
+      order now requires a server-priced shipping hold; lockers remain prepaid
+      only. Guest token issuance/parsing and original-request validation are
+      repaired. 81 focused tests pass and required full Jest/TypeScript
+      comparisons have zero added failures/diagnostics. Source `3c6412e8` is
+      READY; deployed policy/token/cookie flags and shipping copy are verified.
+      Fresh checkout prepared with blank customer fields; production unchanged.
+      [Draft PR #61](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/61);
+      see [COD audit](docs/audits/2026-10-04-mandatory-cod-guarantee.md).
+- [ ] 2026-10-04 — Review Stripe authorization expiry against delivery and
+      refusal timing; define operational handling of `capture_before` before
+      promising that every late refusal's shipping cost remains recoverable.
 - [x] 2026-10-03, 21:58 EEST — Connect consent-gated Meta product/cart/checkout
       events to the real storefront, verify authoritative paid-purchase signals,
       correct IDs/RON values and duplicate prevention, and publish a preview.
