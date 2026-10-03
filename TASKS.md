@@ -1,5 +1,16 @@
 # Current tasks
 
+- [x] 2026-10-03 — Configure confirmed Meta Pixel ID `787839287564208`
+      for the `codex/cookie-consent` Vercel preview branch and verify consent
+      gates against real browser requests. Completed: 2026-10-03.
+      Estimate: 30–60 minutes; actual elapsed time was not recorded.
+      Preview `ac1fcd70`, deployment `dpl_77ERreNXB3VJUPxBSrRYQiUVozsW`, READY.
+      Both viewport checks pass: one PageView HTTP 200 after advertising consent,
+      no Meta requests before consent/refusal/analytics-only or after withdrawal.
+      Default headless UA suppresses transmission; standard Chrome UA passes.
+      See [Pixel audit](docs/audits/2026-10-03-meta-pixel-preview.md).
+      Production activation and the full privacy-policy review remain separate.
+
 - [x] 2026-10-03 — Protect admin analytics GET/POST and publish a draft PR.
       Completed: 2026-10-03. Estimate: 1–2 hours; actual elapsed work time was
       not recorded.
