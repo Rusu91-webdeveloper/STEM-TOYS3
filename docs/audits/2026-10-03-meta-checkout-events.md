@@ -81,6 +81,45 @@ Allow that specific tracking path in both directives; keep the existing
 destinations and all other restrictions. Consent gating remains mandatory.
 The rebuilt preview must prove actual event delivery before release.
 
+## Verified rebuilt preview
+
+On 2026-10-04, deployment `dpl_DNpajSW5aFqms1znWfWMynovYt94` is READY
+at source `ae3f48d46492acfd213af861ac8040a0861985b0`:
+[tested preview](https://stem-toys-3-8xndlfg6b-rusujobs-3774s-projects.vercel.app/).
+Chrome DevTools Network/Payload/Headers, through actual storefront controls,
+confirms all three events target Pixel `787839287564208` and return HTTP 200:
+
+- ViewContent on granting advertising-only consent while viewing the rocket.
+- AddToCart after one accepted cart addition.
+- InitiateCheckout on entering the guest checkout.
+
+All use product ID `cmtvafnwi000tybxy0n4itjr6`, quantity 1, item price/value
+168, currency RON and num_items 1. Analytics consent was unchecked. Inspecting
+the complete event request list after image changes and consent-dialog
+opening/closing found exactly one of each of these three events. Additional
+PageView, RomanianSTEMView and Meta-configured SubscribedButtonClick events
+are present; they are not duplicate storefront conversion calls.
+
+Fresh product load before consent sends no Meta requests. Withdrawal reloads
+the guest checkout and again yields zero Facebook requests. The specific CSP
+path allowance resolves the observed iframe/form blocker. Source commit checks:
+Jest baseline/candidate remain 65 failed suites / 179 failed tests, zero added;
+TypeScript remains 1207 errors in both, zero added. Config syntax/diff checks
+pass. Whole-file Prettier still flags the existing next.config.js/TASKS layout;
+no unrelated formatting rewrite was made.
+
+Guest checkout is prepared with one rocket and blank contact/delivery fields.
+It shows 168 lei merchandise + 19,99 lei shipping = 187,99 lei before choosing
+payment. Owner must enter real details, choose delivery/COD and complete the
+real order. No paid-card transaction or COD order was submitted; Purchase
+boundaries are covered by the 55 focused tests, not a live paid-order proof.
+Meta Events Manager receipt is also an owner check; HTTP 200 alone does not
+prove account processing. Production is unchanged.
+
+Discovered separately: cart drawer displays shipping as Gratuit for this
+168 lei cart, while checkout correctly charges 19,99 lei. Investigate that
+display in the next shipping task; it is not changed in this tracking patch.
+
 Official references consulted:
 [Meta Pixel reference](https://developers.facebook.com/documentation/meta-pixel/reference)
 and

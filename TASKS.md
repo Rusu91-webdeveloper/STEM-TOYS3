@@ -1,6 +1,6 @@
 # Current tasks
 
-- [ ] 2026-10-03, 21:58 EEST — Connect consent-gated Meta product/cart/checkout
+- [x] 2026-10-03, 21:58 EEST — Connect consent-gated Meta product/cart/checkout
       events to the real storefront, verify authoritative paid-purchase signals,
       correct IDs/RON values and duplicate prevention, and publish a preview.
       Estimate: 1–2 hours. Owner confirmed COD Purchase only after payment
@@ -9,6 +9,20 @@
       2026-10-04 browser investigation: analytics-only/refusal correctly block
       Meta; its consented iframe/form event transport is blocked by CSP.
       Allow only the Facebook tracking path and repeat preview verification.
+      Completed 2026-10-04; active work spanned interrupted sessions (elapsed
+      time includes restart/waits). Browser proves one ViewContent, AddToCart
+      and InitiateCheckout, correct ID/quantity/168 RON and HTTP 200, with no
+      advertising traffic before consent/after withdrawal. 55 focused tests
+      pass; full baseline comparisons have zero added failures/diagnostics.
+      [Draft PR #61](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/61);
+      verified source `ae3f48d4`, audit records deployment and limitations.
+- [ ] 2026-10-04 — Owner: complete prepared guest COD order with real details
+      and verify receipt in Meta Events Manager. Live paid-card Purchase proof
+      remains open. Actual COD Purchase requires a verified cash-collection
+      signal and consent-aware server integration; delivery alone is insufficient.
+- [ ] 2026-10-04 — Discovered during tracking verification: cart drawer shows
+      Gratuit shipping for a 168 lei cart; checkout correctly shows 19,99 lei.
+      Trace and correct the drawer shipping display in the shipping follow-up.
 - [x] 2026-10-03, 21:39 EEST — Merge the owner-approved saved-card fix, verify
       the resulting production deployment and record authenticated acceptance.
       Estimate: 10–20 minutes. Existing-record inventory remains a separate
