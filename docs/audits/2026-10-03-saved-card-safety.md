@@ -66,9 +66,14 @@ included in this patch.
   than 300 lines.
 - Full TypeScript comparison: 1,207 baseline and candidate errors; zero added.
   Existing repository errors remain; this is a regression comparison.
-- Required full Jest and pre-push checks are recorded in the pull request after
-  publication. No local production build was run because its script invokes
-  database migrations.
+- Required full Jest: baseline/candidate both have 65 failing suites and 179
+  failing tests, zero regressions. The first snapshot failed with disk
+  exhaustion; clearing generated Jest cache allowed the unchanged hook to pass.
+  Pre-push confirms no schema/migration changes and repeats the passing
+  TypeScript comparison. Published
+  [draft PR #60](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/60),
+  source `c5fd218f`. No local production build was run because its script
+  invokes database migrations.
 - Authenticated browser acceptance and actual database cleanup remain separate
   checks. The preview domain lacks the owner's Google OAuth configuration; no
   authentication bypass or production test identity is introduced.

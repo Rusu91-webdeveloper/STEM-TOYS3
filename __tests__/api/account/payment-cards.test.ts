@@ -208,6 +208,7 @@ describe("legacy card metadata and removal", () => {
     });
     expect(mockCards.delete).toHaveBeenCalledWith({
       where: { id: "card-1", userId: "customer-1" },
+      select: { id: true },
     });
   });
 
@@ -227,6 +228,7 @@ describe("legacy card metadata and removal", () => {
     expect(mockCards.update).toHaveBeenCalledWith({
       where: { id: "card-2" },
       data: { isDefault: true },
+      select: { id: true },
     });
   });
 

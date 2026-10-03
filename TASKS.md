@@ -7,6 +7,15 @@
       Estimate for step 1: 1–2 hours. Inventory/cleanup of any existing
       sensitive records requires a separate verified operation; no speculative
       data purge.
+- [x] 2026-10-03 — Implement and publish saved-card collection containment.
+      Completed 2026-10-03, 20:54 EEST; elapsed time was not recorded.
+      [Draft PR #60](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/60),
+      source `c5fd218f`. Fifty-six focused tests pass; required full Jest and
+      TypeScript comparisons report zero regressions. Disk exhaustion initially
+      blocked the test snapshot; clearing generated Jest cache resolved it. No
+      schema/migration changes or database cleanup. Production deployment,
+      authenticated acceptance and existing-record inventory remain pending.
+      See [saved-card audit](docs/audits/2026-10-03-saved-card-safety.md).
 - [ ] Subsequent steps: checkout and Meta conversion verification; deletion and
       retention handling; terms/warranty and consumer links; evidence-based
       verification and fixes for remaining COD/FANbox, claims, catalog and SEO

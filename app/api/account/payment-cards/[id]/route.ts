@@ -109,6 +109,7 @@ export async function DELETE(
         id: cardId,
         userId: session.user.id,
       },
+      select: { id: true },
     });
 
     // If the deleted card was the default, set another card as default if available
@@ -128,6 +129,7 @@ export async function DELETE(
           data: {
             isDefault: true,
           },
+          select: { id: true },
         });
       }
     }
