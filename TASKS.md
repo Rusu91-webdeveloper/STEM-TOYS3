@@ -1,5 +1,17 @@
 # Current tasks
 
+- [ ] 2026-10-03 — Review and correct the privacy policy against verified
+      operator, processing flows, consent behavior and official legal/provider
+      sources. Record Meta account receipt and publish a reviewable preview.
+      Estimate: 1–2 hours. Do not invent operational retention or transfer facts.
+      Draft implementation complete; verification and owner-controlled retention details pending.
+- [ ] Follow-up from 2026-10-03 privacy review: investigate the authenticated saved-card
+      POST that persists encrypted PAN/CVV; replace direct card storage with provider
+      tokenization and plan authorized cleanup. Estimate: after scope/data inventory.
+- [ ] Follow-up from 2026-10-03 privacy review: reconcile the GDPR deletion endpoint
+      with actual scheduled cleanup, guest/order retention and one-month response rules.
+      Estimate: after scope/data inventory.
+
 - [x] 2026-10-03 — Configure confirmed Meta Pixel ID `787839287564208`
       for the `codex/cookie-consent` Vercel preview branch and verify consent
       gates against real browser requests. Completed: 2026-10-03.

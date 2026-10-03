@@ -62,10 +62,13 @@ regression hooks run for publication. There are no schema/migration changes.
 
 ## Remaining work
 
-Meta Events Manager receipt must be verified separately in Test events.
-These checks do not establish purchase conversion tracking, attribution or
-campaign readiness. The full privacy-policy operator, processors and retention
-review remains open before production activation.
+The owner's 2026-10-03 16:04:26 screenshot confirms Meta Events Manager
+Overview receipt: dataset `787839287564208`, `PageView` and
+`RomanianSTEMView` Active, three events each. This does not identify the source
+browser or verify the separate Test events pane. Purchase conversion tracking,
+attribution and campaign readiness remain unverified. The privacy review is
+recorded in [2026-10-03-privacy-policy.md](2026-10-03-privacy-policy.md); its
+remaining operational/security findings must be handled before release approval.
 
 To disable this preview configuration, remove the branch-specific public key
 and rebuild the preview. Previously built immutable deployments retain their
