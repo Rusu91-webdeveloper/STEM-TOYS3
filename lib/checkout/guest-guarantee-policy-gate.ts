@@ -18,8 +18,18 @@ export async function guestGuaranteePolicyRejection(input: {
   orderTotal: number;
   shippingMethodId?: string | null;
   recipientType?: RecipientType | null;
-  phone?: string | null;
+ phone?: string | null;
 }): Promise<NextResponse | null> {
+  if (isLockerShippingMethodId(input.shippingMethodId)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "COD_NOT_ALLOWED_FOR_LOCKER",
+        message: "Pentru livrarea la FANbox, plata ramburs nu este disponibilă.",
+      },
+      { status: 400 }
+    );
+  }
   const stats = await resolveCodGuaranteeCustomerStats({
     guestEmail: input.guestEmail,
     phone: input.phone,

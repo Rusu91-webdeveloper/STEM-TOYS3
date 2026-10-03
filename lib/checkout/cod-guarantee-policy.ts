@@ -3,6 +3,7 @@ import type { RecipientType } from "@/lib/shipping/cod-thresholds";
 export type CodGuaranteeMode = "off" | "always" | "risk_based";
 
 export type CodGuaranteeReason =
+  | "all_cod_orders"
   | "high_order_value"
   | "new_customer_high_value"
   | "repeat_cod_rto"
@@ -39,19 +40,7 @@ const parseNumber = (value: string | undefined, fallback: number): number => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const normalizeMode = (value: string | undefined): CodGuaranteeMode => {
-  const normalized = value?.trim().toLowerCase();
-  if (normalized === "off") return "off";
-  if (normalized === "always") return "always";
-  if (normalized === "risk_based") return "risk_based";
-  return "risk_based";
-};
-
-const getMode = (): CodGuaranteeMode =>
-  normalizeMode(
-    process.env.COD_GUARANTEE_MODE || process.env.NEXT_PUBLIC_COD_GUARANTEE_MODE
-  );
-
+// Retained as legacy response metadata; these thresholds no longer grant exemptions.
 const getThresholds = () => ({
   highOrderValue: parseNumber(
     process.env.COD_GUARANTEE_HIGH_ORDER_THRESHOLD,
@@ -83,57 +72,14 @@ export const isLockerShippingMethodId = (shippingMethodId?: string | null) => {
 };
 
 export const evaluateCodGuaranteePolicy = (
-  input: CodGuaranteePolicyInput
-): CodGuaranteePolicyResult => {
-  const mode = getMode();
-  const thresholds = getThresholds();
-
-  if (mode === "off" || input.isLockerDelivery) {
-    return {
-      required: false,
-      mode,
-      reasons: [],
-      thresholds,
-    };
-  }
-
-  if (mode === "always") {
-    return {
-      required: true,
-      mode,
-      reasons: ["high_order_value"],
-      thresholds,
-    };
-  }
-
-  const reasons: CodGuaranteeReason[] = [];
-
-  if (input.orderTotal >= thresholds.highOrderValue) {
-    reasons.push("high_order_value");
-  }
-
-  if (
-    input.priorOrderCount === 0 &&
-    input.orderTotal >= thresholds.newCustomerMinTotal
-  ) {
-    reasons.push("new_customer_high_value");
-  }
-
-  if (input.priorCodRtoCount >= thresholds.codRtoCount) {
-    reasons.push("repeat_cod_rto");
-  }
-
-  if (
-    input.recipientType === "B2B" &&
-    input.orderTotal >= thresholds.b2bMinTotal
-  ) {
-    reasons.push("b2b_high_value");
-  }
-
-  return {
-    required: reasons.length > 0,
-    mode,
-    reasons,
-    thresholds,
-  };
-};
+  _input: CodGuaranteePolicyInput
+): CodGuaranteePolicyResult =>
+  // Owner policy: every COD order needs authorization. Legacy env overrides,
+  // customer history and delivery method cannot disable this server invariant.
+  // Delivery eligibility (e.g. prepaid-only lockers) is checked separately.
+  ({
+    required: true,
+    mode: "always",
+    reasons: ["all_cod_orders"],
+    thresholds: getThresholds(),
+  });

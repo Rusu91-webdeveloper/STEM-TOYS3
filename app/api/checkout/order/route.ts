@@ -313,10 +313,7 @@ export async function POST(request: Request) {
     try {
       const bodyText = await request.text();
       body = JSON.parse(bodyText);
-      console.log(
-        "Processing order with payload:",
-        JSON.stringify(body, null, 2)
-      );
+      console.log("Processing checkout order request.");
     } catch (parseError) {
       console.error("Failed to parse request body:", parseError);
       return NextResponse.json(
@@ -330,15 +327,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create a new Request object for CSRF validation since we consumed the body
-    const requestForCsrf = new Request(request.url, {
-      method: request.method,
-      headers: request.headers,
-      body: JSON.stringify(body),
-    });
-
-    // Validate CSRF token
-    const csrfResult = await validateCsrfForRequest(requestForCsrf, body);
+    // Pass the parsed body separately and preserve NextRequest's session resolver.
+    const csrfResult = await validateCsrfForRequest(request, body);
     if (!csrfResult.valid) {
       console.error(
         `CSRF validation failed for /api/checkout/order: ${csrfResult.error}`
@@ -884,10 +874,7 @@ export async function POST(request: Request) {
           );
         }
 
-        if (
-          codGuaranteeIntent.status !== "requires_capture" &&
-          codGuaranteeIntent.status !== "succeeded"
-        ) {
+        if (codGuaranteeIntent.status !== "requires_capture") {
           return NextResponse.json(
             {
               success: false,

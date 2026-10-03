@@ -76,17 +76,13 @@ export function sanitizeInput(input: string): string {
  * @returns The CSRF secret key
  */
 function getCsrfSecretKey(): string {
-  const envKey = process.env.CSRF_SECRET_KEY;
+  const envKey = process.env.CSRF_SECRET_KEY || process.env.NEXTAUTH_SECRET;
   if (envKey) {
     return envKey;
   }
 
-  // If no key is provided in environment variables, use a fallback
-  // Warning is logged in production environment
   if (process.env.NODE_ENV === "production") {
-    console.warn(
-      "WARNING: CSRF_SECRET_KEY is not set in production. Using fallback key which is insecure."
-    );
+    throw new Error("A server secret is required for CSRF protection.");
   }
 
   return "fallback-csrf-secret-key-for-development-only";
@@ -153,9 +149,20 @@ export async function validateCsrfToken(
 ): Promise<boolean> {
   try {
     const tokenData = atob(token);
-    const [storedSessionId, timestampStr, signatureHex] = tokenData.split(":");
+    // Session ids may contain colons (guest:<uuid>); the final two fields
+    // are always the timestamp and signature. Existing signed tokens still work.
+    const parts = tokenData.split(":");
+    const signatureHex = parts.pop();
+    const timestampStr = parts.pop();
+    const storedSessionId = parts.join(":");
 
-    if (!storedSessionId || !timestampStr || !signatureHex) {
+    if (
+      !storedSessionId ||
+      !timestampStr ||
+      !signatureHex ||
+      !/^\d+$/.test(timestampStr) ||
+      !/^[a-f0-9]{64}$/i.test(signatureHex)
+    ) {
       return false;
     }
 
@@ -163,8 +170,8 @@ export async function validateCsrfToken(
       return false;
     }
 
-    const timestamp = parseInt(timestampStr, 10);
-    if (isNaN(timestamp) || timestamp < Date.now()) {
+    const timestamp = Number(timestampStr);
+    if (!Number.isSafeInteger(timestamp) || timestamp <= Date.now()) {
       return false;
     }
 

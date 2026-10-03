@@ -1,5 +1,11 @@
 # Current tasks
 
+- [ ] 2026-10-04 — Require a shipping-cost card authorization for every COD
+      order, including low-value orders, returning customers and lockers, as
+      explicitly requested by the owner. Trace and fix the guest checkout CSRF
+      failure observed in the owner test; preserve signed-token validation.
+      Estimate: 1–2 hours. Verify denial paths and publish a reviewable preview.
+      Real card authorization/order submission remains an owner acceptance step.
 - [x] 2026-10-03, 21:58 EEST — Connect consent-gated Meta product/cart/checkout
       events to the real storefront, verify authoritative paid-purchase signals,
       correct IDs/RON values and duplicate prevention, and publish a preview.

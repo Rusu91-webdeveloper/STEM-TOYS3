@@ -1920,7 +1920,7 @@ export const en = {
     "If you refuse the parcel at delivery or do not collect it in time, it may be returned to the sender (RTO).",
   codKeyPointRoundTripTitle: "Only outbound transport may be retained",
   codKeyPointRoundTripBody:
-    "Checkout may require a temporary card authorization limited to outbound shipping. If you refuse or do not collect the parcel, we may capture no more than the authorized amount; TechTots covers the return-to-sender leg.",
+    "Every COD order requires a temporary card authorization limited to outbound shipping. If you refuse or do not collect the parcel, we may capture no more than the authorized amount; TechTots covers the return-to-sender leg.",
   codKeyPointAckTitle: "Acknowledgement before checkout",
   codKeyPointAckBody:
     "Continuing with cash on delivery requires explicit acceptance of these terms.",
@@ -1928,15 +1928,15 @@ export const en = {
     "Delivery refusal or parcel non-collection are treated as RTO. The temporary authorization covers outbound shipping only; we may capture no more than the authorized amount, and TechTots covers the return-to-sender leg.",
   codLockerInfoTitle: "FANbox payment information",
   codLockerInfoBody:
-    "For FANbox delivery, payment is made at pickup with your card at the locker terminal. We do not request the temporary outbound-shipping authorization for FANbox; TechTots covers return to sender if the parcel is not collected.",
+    "For FANbox delivery, payment is made online by card. Cash on delivery is unavailable.",
   codReviewNotice:
     "Pay for the products when the courier delivers your parcel. The temporary authorization covers outbound shipping only; if you refuse or do not collect it, we may capture no more than the authorized amount.",
   codLockerReviewNotice:
-    "Pay at pickup with your card at the FANbox terminal. We do not request the temporary outbound-shipping authorization for FANbox; TechTots covers return to sender if the parcel is not collected.",
+    "For FANbox delivery, payment is made online by card. Cash on delivery is unavailable.",
   codLockerFee: "FANbox payment fee",
   totalWithLockerCOD: "Total with FANbox payment",
   codLockerNotice:
-    "For FANbox, payment is made at pickup with your card at the locker terminal.",
+    "For FANbox, payment is made online by card.",
   codUnavailableBadge: "Card payment only",
   codUnavailableLocker:
     "Cash on delivery is not available for FANbox deliveries.",

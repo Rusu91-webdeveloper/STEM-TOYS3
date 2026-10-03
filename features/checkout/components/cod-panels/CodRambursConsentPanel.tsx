@@ -50,7 +50,7 @@ export function CodRambursConsentPanel({
       title: t("codKeyPointRoundTripTitle", "Reținem doar transportul tur"),
       body: t(
         "codKeyPointRoundTripBody",
-        "La checkout poate fi solicitată o autorizare temporară pe card, limitată la transportul tur. La refuz sau nepreluare putem încasa cel mult suma autorizată; TechTots suportă returul la expeditor."
+        "Fiecare comandă ramburs necesită o autorizare temporară pe card, limitată la transportul tur. La refuz sau nepreluare putem încasa cel mult suma autorizată; TechTots suportă returul la expeditor."
       ),
       accent: "text-amber-900 bg-amber-50/90 border-amber-100",
     },

@@ -330,8 +330,8 @@ export function OrderReview({
                               "Garanția logistică COD este autorizată pe card."
                             )
                           : t(
-                              "codGuaranteeNotRequiredReview",
-                              "Pentru această comandă nu este necesară garanția logistică COD."
+                              "codGuaranteeRequiredReview",
+                              "Garanția pentru transportul tur este obligatorie. Revino la plată pentru autorizarea cardului."
                             )}
                       </p>
                     </div>

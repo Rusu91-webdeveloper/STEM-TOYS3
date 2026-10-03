@@ -3,7 +3,7 @@
  * Integrates with the existing CSRF token functions from lib/security.ts
  */
 
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 import { generateCsrfToken, validateCsrfToken } from "@/lib/security";
@@ -73,16 +73,12 @@ async function getSessionId(
       });
 
       if (token?.id) {
-        console.log(
-          `[CSRF DEBUG] Found session ID from getToken (id): ${token.id}`
-        );
+        console.log(`[CSRF DEBUG] Found session ID from getToken (id)`);
         return token.id as string;
       }
 
       if (token?.sub) {
-        console.log(
-          `[CSRF DEBUG] Found session ID from getToken (sub): ${token.sub}`
-        );
+        console.log(`[CSRF DEBUG] Found session ID from getToken (sub)`);
         return token.sub;
       }
 
@@ -94,7 +90,7 @@ async function getSessionId(
       if (sessionCookie) {
         const id = await sha256(sessionCookie);
         console.log(
-          `[CSRF DEBUG] Found session ID from hashed cookie fallback: ${id}`
+          `[CSRF DEBUG] Found session ID from hashed cookie fallback`
         );
         return id;
       }
@@ -103,7 +99,7 @@ async function getSessionId(
       const guestId = request.cookies.get("guest_id")?.value;
       if (guestId) {
         const id = `guest:${guestId}`;
-        console.log(`[CSRF DEBUG] Found session ID from guest cookie: ${id}`);
+        console.log(`[CSRF DEBUG] Found session ID from guest cookie`);
         return id;
       }
     } else {
@@ -111,9 +107,7 @@ async function getSessionId(
       const authHeader = request.headers.get("authorization");
       if (authHeader) {
         const id = await sha256(authHeader.replace("Bearer ", ""));
-        console.log(
-          `[CSRF DEBUG] Found session ID from hashed auth header: ${id}`
-        );
+        console.log(`[CSRF DEBUG] Found session ID from hashed auth header`);
         return id;
       }
 
@@ -126,7 +120,7 @@ async function getSessionId(
         if (sessionMatch) {
           const id = await sha256(sessionMatch[1]);
           console.log(
-            `[CSRF DEBUG] Found session ID from hashed manual cookie parse: ${id}`
+            `[CSRF DEBUG] Found session ID from hashed manual cookie parse`
           );
           return id;
         }
@@ -135,7 +129,7 @@ async function getSessionId(
         if (guestMatch) {
           const id = `guest:${guestMatch[1]}`;
           console.log(
-            `[CSRF DEBUG] Found session ID from manual guest cookie parse: ${id}`
+            `[CSRF DEBUG] Found session ID from manual guest cookie parse`
           );
           return id;
         }
@@ -249,17 +243,7 @@ export async function validateCsrfForRequest(
   // Validate token
   const isValid = await validateCsrfToken(csrfToken, sessionId);
 
-  if (!isValid) {
-    const tokenData = Buffer.from(csrfToken, "base64").toString();
-    const [storedSessionId] = tokenData.split(":");
-    console.log(
-      `[CSRF DEBUG] Validation FAILED. Token Session ID: '${storedSessionId}', Request Session ID: '${sessionId}'`
-    );
-  } else {
-    console.log(
-      `[CSRF DEBUG] Validation SUCCEEDED. Session ID: '${sessionId}'`
-    );
-  }
+  console.log(`[CSRF] Validation ${isValid ? "succeeded" : "failed"}.`);
 
   return {
     valid: isValid,
@@ -366,36 +350,40 @@ export async function withCsrfProtection<T>(
 export async function createCsrfTokenResponse(
   request: NextRequest
 ): Promise<Response> {
-  const { token, sessionId } = await generateCsrfForSession(request);
-
-  if (!token || !sessionId) {
-    return new Response(
-      JSON.stringify({
-        error: "Unable to generate CSRF token",
-        message: "No valid session found",
-      }),
-      {
-        status: 401,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+  let { token, sessionId } = await generateCsrfForSession(request);
+  let guestId: string | null = null;
+  if (!sessionId) {
+    // Establish an anonymous session only on token issuance. POST validation
+    // still requires both this cookie and a correctly signed matching token.
+    guestId = crypto.randomUUID();
+    sessionId = `guest:${guestId}`;
+    token = await generateCsrfToken(sessionId);
   }
 
-  return new Response(
-    JSON.stringify({
+  const response = NextResponse.json(
+    {
       csrfToken: token,
       sessionId,
-    }),
+    },
     {
       status: 200,
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-store, no-cache, must-revalidate",
+        Vary: "Cookie",
       },
     }
   );
+  if (guestId) {
+    response.cookies.set("guest_id", guestId, {
+      httpOnly: true,
+      secure: request.nextUrl.protocol === "https:",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60,
+    });
+  }
+  return response;
 }
 
 /**
