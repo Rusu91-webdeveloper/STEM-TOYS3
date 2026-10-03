@@ -160,3 +160,13 @@ facts, dates, payment behavior or database/schema files changed.
 Changed source files pass ESLint; privacy/config formatting and diff checks pass.
 Required regression hooks and the exact final deployment/rendered value are
 reported in draft PR #59 after publication. Other operational findings remain open.
+
+## Saved-card follow-up — 3 October 2026
+
+The follow-up investigation confirms reachable account-page callers for the
+legacy card POST. Checkout explicitly excludes these records because they are
+not chargeable provider tokens. The containment patch disables POST/PUT without
+parsing card input, removes collection forms, and preserves owner-only masked
+viewing/removal. See [the saved-card audit](2026-10-03-saved-card-safety.md) for
+verified evidence, tests and deployment status. Existing stored records have not
+been inventoried or purged; the original finding is not fully closed.

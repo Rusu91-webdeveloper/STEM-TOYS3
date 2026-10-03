@@ -643,11 +643,16 @@ This audit analyzed **85+ database tables** from the Prisma schema to determine:
 
 #### **PaymentCard**
 
-- **Purpose:** Encrypted payment card storage
-- **Status:** ✅ **100% Implemented**
-- **Usage:** Secure card storage for repeat purchases
+- **Purpose:** Legacy account card records (not chargeable provider tokens)
+- **Status:** Retired collection/editing; owner-only metadata/removal retained
+- **Usage:** Checkout explicitly excludes these records and uses payment
+  providers
 - **Relations:** User
-- **Notes:** Cards are encrypted at rest
+- **Notes:** The schema still has encrypted PAN/CVV columns. Existing data
+  inventory and authorized sensitive-data cleanup remain separate work;
+  encryption does not make CVV retention acceptable. No schema migration or
+  automatic purge is included. See
+  `docs/audits/2026-10-03-saved-card-safety.md`.
 
 ---
 
