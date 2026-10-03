@@ -67,6 +67,20 @@ database/schema/migration/dependency changes or real paid test order.
 - Guest COD: prepare the cart/checkout for the owner to finish with real contact
   and delivery details. No invented customer data or order submission.
 
+## Browser investigation on 2026-10-04
+
+Preview `dpl_CfBuLwWy8aD94xiFDkA6JqPiRYYC` at commit `d9f51a71`
+is READY with the branch-specific Pixel configuration. Chrome Network shows no
+Facebook requests before a choice, after refusal/product navigation, or with
+analytics-only consent. Advertising-only consent loads fbevents.js and the
+configuration for Pixel `787839287564208` (HTTP 200), but no event requests
+arrive: Chrome Console reports that Meta's iframe/form transport to
+`https://www.facebook.com/tr/` violates `frame-src` and `form-action`.
+
+Allow that specific tracking path in both directives; keep the existing
+destinations and all other restrictions. Consent gating remains mandatory.
+The rebuilt preview must prove actual event delivery before release.
+
 Official references consulted:
 [Meta Pixel reference](https://developers.facebook.com/documentation/meta-pixel/reference)
 and

@@ -6,6 +6,9 @@
       Estimate: 1–2 hours. Owner confirmed COD Purchase only after payment
       collection. Prepare the guest COD test for owner completion; do not invent
       customer details or submit a chargeable order without a concrete order.
+      2026-10-04 browser investigation: analytics-only/refusal correctly block
+      Meta; its consented iframe/form event transport is blocked by CSP.
+      Allow only the Facebook tracking path and repeat preview verification.
 - [x] 2026-10-03, 21:39 EEST — Merge the owner-approved saved-card fix, verify
       the resulting production deployment and record authenticated acceptance.
       Estimate: 10–20 minutes. Existing-record inventory remains a separate

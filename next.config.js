@@ -159,11 +159,12 @@ const nextConfig = {
               "font-src 'self' data: https://fonts.gstatic.com",
               "img-src 'self' data: blob: https: http:",
               "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://vitals.vercel-insights.com https://api.stripe.com https://m.stripe.com https://r.stripe.com https://checkout.stripe.com wss:",
-              "frame-src 'self' https://www.googletagmanager.com https://td.doubleclick.net https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
+              // Meta also transports consented events through a form in an iframe.
+              "frame-src 'self' https://www.googletagmanager.com https://td.doubleclick.net https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://www.facebook.com/tr/",
               "media-src 'self'",
               "object-src 'none'",
               "base-uri 'self'",
-              "form-action 'self'",
+              "form-action 'self' https://www.facebook.com/tr/",
             ].join("; "),
           },
           {
