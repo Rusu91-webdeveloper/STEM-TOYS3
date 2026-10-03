@@ -3,10 +3,10 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 
 import { LazyProductReviews } from "@/components/lazy/client";
-import { trackProductView } from "@/lib/analytics/ga4";
+import { useProductViewTracking } from "@/lib/analytics/use-storefront-tracking";
 import { useTranslation } from "@/lib/i18n";
 import { getProductBuyingGuide } from "@/lib/products/product-buying-guides";
 import { productPublicPath } from "@/lib/products/public-slug";
@@ -70,19 +70,7 @@ export default function ProductDetailClient({
   >(null);
   const [isFreeShippingActive, setIsFreeShippingActive] = useState(false);
   const buyingGuide = getProductBuyingGuide(product.slug);
-  const viewedProduct = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (viewedProduct.current === product.id) return;
-    viewedProduct.current = product.id;
-    trackProductView({
-      item_id: product.id,
-      item_name: product.name,
-      category: product.category?.name ?? "",
-      price: product.price,
-      currency: "RON",
-    });
-  }, [product.id, product.name, product.price, product.category?.name]);
+  useProductViewTracking(product);
 
   // Use the custom hook for product actions
   const {

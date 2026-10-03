@@ -10,6 +10,7 @@ import React, {
 } from "react";
 
 import { trackAddToCart } from "@/lib/analytics/ga4";
+import { trackMetaAddToCart } from "@/lib/analytics/meta-events";
 
 import { fetchCart, saveCart } from "../lib/cartApi";
 import {
@@ -436,6 +437,12 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       price: itemToAdd.price,
       quantity: addedQuantity,
       currency: "RON",
+    });
+    trackMetaAddToCart({
+      item_id: itemToAdd.productId,
+      item_name: itemToAdd.name,
+      price: itemToAdd.price,
+      quantity: addedQuantity,
     });
 
     pendingUpdatesRef.current.add(cartItemId);

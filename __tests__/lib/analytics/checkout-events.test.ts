@@ -3,13 +3,18 @@ import {
   trackAcceptedOrder,
   trackConfirmedNetopiaPurchase,
 } from "@/lib/analytics/checkout-events";
+import { saveCookieConsent } from "@/lib/analytics/consent";
 import { trackEvent } from "@/lib/analytics/ga4";
+import { trackMetaPurchase } from "@/lib/analytics/meta-events";
 import {
   buildOrderAnalytics,
   type OrderAnalytics,
 } from "@/lib/analytics/order-payload";
 
 jest.mock("@/lib/analytics/ga4", () => ({ trackEvent: jest.fn(() => true) }));
+jest.mock("@/lib/analytics/meta-events", () => ({
+  trackMetaPurchase: jest.fn(() => true),
+}));
 let sequence = 0;
 function payload(
   method: OrderAnalytics["payment_method"] = "netopia",
@@ -31,13 +36,17 @@ function payload(
 
 beforeEach(() => {
   sessionStorage.clear();
+  localStorage.clear();
+  saveCookieConsent({ analytics: true, marketing: true });
   jest.mocked(trackEvent).mockClear();
+  jest.mocked(trackMetaPurchase).mockClear();
 });
 
 it("excludes sandbox orders and test card payments", () => {
   trackAcceptedOrder({ ...payload("stripe", "PAID"), test_mode: true });
   trackAcceptedOrder({ ...payload(), test_mode: true });
   expect(trackEvent).not.toHaveBeenCalled();
+  expect(trackMetaPurchase).not.toHaveBeenCalled();
 });
 
 it("uses authoritative merchandise revenue without tax, delivery, fees or personal data", () => {
@@ -57,6 +66,7 @@ it.each(["PENDING", "FAILED", "REFUNDED"])(
     trackAcceptedOrder(payload("stripe", status));
     expect(trackEvent).toHaveBeenCalledTimes(1);
     expect(trackEvent).toHaveBeenCalledWith("order_placed", expect.any(Object));
+    expect(trackMetaPurchase).not.toHaveBeenCalled();
   }
 );
 
@@ -67,6 +77,7 @@ it("keeps accepted COD orders separate from paid purchases", () => {
     "order_placed",
     expect.objectContaining({ payment_method: "cod" })
   );
+  expect(trackMetaPurchase).not.toHaveBeenCalled();
 });
 
 it("counts a verified Stripe payment once", () => {
@@ -109,6 +120,7 @@ it("requires matching, database-confirmed Netopia payment and suppresses repeat 
       transaction_id: data.transaction_id,
     })
   );
+  expect(trackMetaPurchase).toHaveBeenCalledTimes(1);
 });
 
 it("does not treat an arbitrary confirmation-page visit as a purchase", () => {
@@ -119,4 +131,49 @@ it("does not treat an arbitrary confirmation-page visit as a purchase", () => {
     currency: "RON",
   });
   expect(trackEvent).not.toHaveBeenCalled();
+  expect(trackMetaPurchase).not.toHaveBeenCalled();
+});
+
+it("never replays a Netopia payment when advertising was not accepted at order creation", () => {
+  saveCookieConsent({ analytics: true, marketing: false });
+  const data = payload();
+  trackAcceptedOrder(data);
+  saveCookieConsent({ analytics: true, marketing: true });
+  trackConfirmedNetopiaPurchase(data.transaction_id, {
+    status: "paid",
+    source: "database",
+    amount: data.order_total,
+    currency: "RON",
+  });
+  expect(trackMetaPurchase).not.toHaveBeenCalled();
+  expect(trackEvent).toHaveBeenCalledTimes(1);
+});
+
+it("tracks a confirmed Netopia purchase with advertising-only consent", () => {
+  saveCookieConsent({ analytics: false, marketing: true });
+  const data = payload();
+  trackAcceptedOrder(data);
+  trackConfirmedNetopiaPurchase(data.transaction_id, {
+    status: "paid",
+    source: "database",
+    amount: data.order_total,
+    currency: "RON",
+  });
+  expect(trackMetaPurchase).toHaveBeenCalledWith(
+    expect.objectContaining({ payment_status: "PAID" })
+  );
+});
+
+it("drops delayed payment tracking after consent withdrawal", () => {
+  const data = payload();
+  trackAcceptedOrder(data);
+  saveCookieConsent({ analytics: false, marketing: false });
+  trackConfirmedNetopiaPurchase(data.transaction_id, {
+    status: "paid",
+    source: "database",
+    amount: data.order_total,
+    currency: "RON",
+  });
+  expect(trackMetaPurchase).not.toHaveBeenCalled();
+  expect(trackEvent).toHaveBeenCalledTimes(1);
 });

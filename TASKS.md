@@ -1,15 +1,20 @@
 # Current tasks
 
-- [x] 2026-10-03, 21:39 EEST — Merge the owner-approved saved-card fix,
-      verify the resulting production deployment and record authenticated
-      acceptance. Estimate: 10–20 minutes. Existing-record inventory remains
-      a separate operation. Completed 21:44 EEST; merge and production checks
-      took about 5 minutes, excluding release-record publication checks.
-      [PR #60](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/60)
-      merged as `9bc2ef3c`. Production deployment
-      `dpl_72wNAcBJnoDSTpyMruMnyCx3Gmx8` is READY on both shop domains;
-      homepage, anonymous API denial, account login and auth-provider checks
-      pass. No release errors encountered.
+- [ ] 2026-10-03, 21:58 EEST — Connect consent-gated Meta product/cart/checkout
+      events to the real storefront, verify authoritative paid-purchase signals,
+      correct IDs/RON values and duplicate prevention, and publish a preview.
+      Estimate: 1–2 hours. Owner confirmed COD Purchase only after payment
+      collection. Prepare the guest COD test for owner completion; do not invent
+      customer details or submit a chargeable order without a concrete order.
+- [x] 2026-10-03, 21:39 EEST — Merge the owner-approved saved-card fix, verify
+      the resulting production deployment and record authenticated acceptance.
+      Estimate: 10–20 minutes. Existing-record inventory remains a separate
+      operation. Completed 21:44 EEST; merge and production checks took about 5
+      minutes, excluding release-record publication checks.
+      [PR #60](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/60) merged
+      as `9bc2ef3c`. Production deployment `dpl_72wNAcBJnoDSTpyMruMnyCx3Gmx8` is
+      READY on both shop domains; homepage, anonymous API denial, account login
+      and auth-provider checks pass. No release errors encountered.
 - [ ] 2026-10-03 — Work through the remaining audit items one at a time at the
       owner's request. Start with saved-card safety: trace account/checkout
       callers, stop application collection/storage of full card details, verify
@@ -19,15 +24,15 @@
       data purge.
 - [x] 2026-10-03 — Implement and publish saved-card collection containment.
       Completed 2026-10-03, 20:54 EEST; elapsed time was not recorded.
-      [PR #60](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/60),
-      final source `6aa13dc8`. Fifty-six focused tests pass; required full Jest and
+      [PR #60](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/60), final
+      source `6aa13dc8`. Fifty-six focused tests pass; required full Jest and
       TypeScript comparisons report zero regressions. Disk exhaustion initially
       blocked the test snapshot; clearing generated Jest cache resolved it. No
-      schema/migration changes or database cleanup. The owner deployed the
-      final source to production and confirmed authenticated account-page,
-      redirect and checkout-option checks. PR #60 merged as `9bc2ef3c`.
-      Existing-record inventory remains pending.
-      See [saved-card audit](docs/audits/2026-10-03-saved-card-safety.md).
+      schema/migration changes or database cleanup. The owner deployed the final
+      source to production and confirmed authenticated account-page, redirect
+      and checkout-option checks. PR #60 merged as `9bc2ef3c`. Existing-record
+      inventory remains pending. See
+      [saved-card audit](docs/audits/2026-10-03-saved-card-safety.md).
 - [ ] Subsequent steps: checkout and Meta conversion verification; deletion and
       retention handling; terms/warranty and consumer links; evidence-based
       verification and fixes for remaining COD/FANbox, claims, catalog and SEO
@@ -39,9 +44,9 @@
       release. Estimate: 20–40 minutes. No schema/migration changes. Existing
       card-storage, erasure and operational retention follow-ups remain open.
       Completed: 2026-10-03, 19:03 EEST; actual elapsed time was not recorded.
-      PR #59 merged as
-      `33d8c2dc`; production deployment `dpl_9Hikj4uunou8WhjYBxKJ2k1e74go` is
-      READY on techtots.ro and www.techtots.ro. See
+      PR #59 merged as `33d8c2dc`; production deployment
+      `dpl_9Hikj4uunou8WhjYBxKJ2k1e74go` is READY on techtots.ro and
+      www.techtots.ro. See
       [production release record](docs/audits/2026-10-03-production-release.md).
 
 - [x] 2026-10-03 — Apply the owner's confirmed trade-register number
