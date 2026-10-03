@@ -1,5 +1,17 @@
 # Current tasks
 
+- [x] 2026-10-04 — Release owner-approved PR #61 to production and verify the
+      live COD policy, guest token issuance, storefront and consented tracking.
+      Estimate: 15–30 minutes. Owner confirmed the payment form works but has
+      insufficient funds; successful card authorization/order placement remain
+      pending. Preserve that limitation and record the production deployment.
+      Completed 02:37 EEST; merge/build/live verification took about 8 minutes,
+      excluding release-record publication. PR #61 merged as `9ce31e48`;
+      production `dpl_2GkKsmuuepNP7wEg3F51oACiJhzu` is READY on both shop
+      domains. Live mandatory COD policy, guest cookie/token continuity, admin
+      denial, storefront and consent withdrawal checks pass. No error/fatal rows
+      appeared in the deployment-scoped observation window. See
+      [production record](docs/audits/2026-10-04-cod-production-release.md).
 - [x] 2026-10-04 — Require a shipping-cost card authorization for every COD
       order, including low-value orders and returning customers, as
       explicitly requested by the owner. Trace and fix the guest checkout CSRF
@@ -38,6 +50,8 @@
       and verify receipt in Meta Events Manager. Live paid-card Purchase proof
       remains open. Actual COD Purchase requires a verified cash-collection
       signal and consent-aware server integration; delivery alone is insufficient.
+      Owner confirmed the card form works but has insufficient funds. Successful
+      shipping authorization and completed order remain pending after release.
 - [ ] 2026-10-04 — Discovered during tracking verification: cart drawer shows
       Gratuit shipping for a 168 lei cart; checkout correctly shows 19,99 lei.
       Trace and correct the drawer shipping display in the shipping follow-up.
