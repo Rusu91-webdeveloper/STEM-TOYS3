@@ -83,8 +83,9 @@ browser generated those receipts, prove the Test events UI, or verify purchases.
 - [Meta transfer safeguards](https://www.facebook.com/privacy/policy/?subpage=9.subpage.3-HowDoWeSafeguard):
   official policy dialog and its “appropriate mechanisms” explanation checked
   in Chrome. DPF applies to certified services; other transfers may use SCCs.
-- TikTok's conditional privacy-policy link is official, but automated retrieval
-  was robots-blocked. No active TikTok configuration was assumed or changed.
+- [TikTok's Romanian EEA privacy policy](https://www.tiktok.com/legal/page/eea/privacy-policy/ro)
+  rendered in Chrome (updated 30 November 2025); automated retrieval was
+  robots-blocked. No active TikTok configuration was assumed or changed.
 
 ## Material findings remaining before production approval
 
@@ -110,7 +111,12 @@ browser generated those receipts, prove the Test events UI, or verify purchases.
    backup/log retention and transfer safeguards remain unverified. An owner
    question is pending. General category-specific criteria avoid fabricated
    durations but still need an operational schedule and owner review.
-4. **Operator review:** confirm company registry/address, receipt and handling
+4. **Operator review:** preview verification exposed a registration-number
+   conflict: the shared config uses `J20/352/2025`, while the About page and
+   Romanian/English footer translations use `J2025035239005`. The privacy
+   draft omits this optional identifier until the owner confirms the certificate;
+   no other company pages or shared legal config were changed. Confirm company
+   registry/address, receipt and handling
    of privacy requests, financial-record exceptions, lawful-basis positions,
    provider agreements and new tracking uses before treating the draft as final.
    Advanced Matching, CAPI and purchase tracking are not enabled by this change.
@@ -121,7 +127,22 @@ visibility or secret/history changes are part of this policy update.
 ## Validation
 
 - Five focused analytics/consent suites pass: 31 tests.
-- Changed privacy files: Prettier and ESLint; repository-required full Jest and
-  TypeScript comparisons run in Git hooks. Preview rendering, section anchors,
-  mobile layout, server-rendered prose and the settings-button interaction are
-  verified separately after deployment; results will be recorded here.
+- Changed privacy files pass Prettier and ESLint. The one-file identifier
+  omission was formatted and linted again.
+- Required full Jest comparison for `c1d50d3c`: 65 failing suites / 179 failed
+  tests in both baseline and candidate; zero new failures. Required TypeScript:
+  1208 baseline errors / 1207 candidate errors; zero added. Existing debt remains.
+- Vercel preview `dpl_2bhdhzfYmUaerkzikHJpriNzUQLd`, source `c1d50d3c`, READY:
+  https://stem-toys-3-43hgxch6o-rusujobs-3774s-projects.vercel.app/privacy
+- Read-only HTTP GET returned 200; the initial HTML contains the policy article,
+  correct operator, retention, rights and Meta disclosures without executing JS.
+  The old operator is absent.
+- CUA browser checks at 1440×900 and 390×844: document width matches viewport,
+  all 11 contents links resolve to section IDs, and mobile anchor navigation
+  settles below the header. The three-column basis table remains within 309 px.
+- After refusing optional cookies, the article's settings button opens the
+  consent panel on both viewports with analysis/advertising unchecked and
+  necessary storage checked/disabled. Mobile controls remain visible/reachable.
+- These layout/interaction checks also exposed the registration conflict above.
+  The follow-up changes only omit that number and record this audit; its final
+  deployment/text verification is recorded in PR #59. No production promotion.

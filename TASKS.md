@@ -1,10 +1,19 @@
 # Current tasks
 
-- [ ] 2026-10-03 — Review and correct the privacy policy against verified
+- [x] 2026-10-03 — Review and correct the privacy policy against verified
       operator, processing flows, consent behavior and official legal/provider
       sources. Record Meta account receipt and publish a reviewable preview.
       Estimate: 1–2 hours. Do not invent operational retention or transfer facts.
-      Draft implementation complete; verification and owner-controlled retention details pending.
+      Draft review completed: 2026-10-03, 16:47 EEST. Estimate: 1–2 hours;
+      actual elapsed time was not recorded. PR #59 remains a draft.
+      Initial preview c1d50d3c is READY; server HTML, desktop/mobile layout,
+      anchors and cookie-settings controls verified. Register-number conflict
+      found in preview; optional identifier omitted pending certificate confirmation.
+      Full comparisons add no Jest failures or TypeScript errors.
+      See [privacy audit](docs/audits/2026-10-03-privacy-policy.md).
+- [ ] Owner follow-up: confirm the company registration certificate/address,
+      GA4 retention setting, operational deletion schedule and provider agreements
+      before final privacy approval. Production Meta activation remains separate.
 - [ ] Follow-up from 2026-10-03 privacy review: investigate the authenticated saved-card
       POST that persists encrypted PAN/CVV; replace direct card storage with provider
       tokenization and plan authorized cleanup. Estimate: after scope/data inventory.
@@ -21,7 +30,7 @@
       no Meta requests before consent/refusal/analytics-only or after withdrawal.
       Default headless UA suppresses transmission; standard Chrome UA passes.
       See [Pixel audit](docs/audits/2026-10-03-meta-pixel-preview.md).
-      Production activation and the full privacy-policy review remain separate.
+      Production activation remains separate; the privacy draft review is recorded above.
 
 - [x] 2026-10-03 — Protect admin analytics GET/POST and publish a draft PR.
       Completed: 2026-10-03. Estimate: 1–2 hours; actual elapsed work time was

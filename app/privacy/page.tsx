@@ -50,10 +50,9 @@ export default function PrivacyPage() {
             <h2>1. Operatorul și contactul</h2>
             <p>
               Magazinul TechTots, disponibil la techtots.ro, este operat de{" "}
-              <strong>{COMPANY_LEGAL.name}</strong>, CUI {COMPANY_LEGAL.cui},
-              înregistrată la Registrul Comerțului sub nr.{" "}
-              {COMPANY_LEGAL.regCom}, cu adresa {COMPANY_LEGAL.address}.
-              Societatea este operatorul datelor personale descrise aici.
+              <strong>{COMPANY_LEGAL.name}</strong>, CUI {COMPANY_LEGAL.cui}, cu
+              adresa {COMPANY_LEGAL.address}. Societatea este operatorul datelor
+              personale descrise aici.
             </p>
             <p id="contact" className="scroll-mt-28">
               Pentru întrebări sau cereri privind datele personale:{" "}
