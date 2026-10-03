@@ -1,23 +1,11 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
+import {
+  privateCardHeaders,
+  rejectLegacyCardWrite,
+} from "@/lib/account/legacy-card-writes";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-
-// Schema for updating a payment card
-const updateCardSchema = z.object({
-  cardholderName: z.string().min(1, "Cardholder name is required").optional(),
-  expiryMonth: z
-    .string()
-    .regex(/^(0[1-9]|1[0-2])$/, "Invalid expiry month")
-    .optional(),
-  expiryYear: z
-    .string()
-    .regex(/^\d{2}$/, "Invalid expiry year")
-    .optional(),
-  isDefault: z.boolean().optional(),
-  billingAddressId: z.string().optional().nullable(),
-});
 
 // GET - Get a specific payment card
 export async function GET(
@@ -27,10 +15,10 @@ export async function GET(
   try {
     const session = await auth();
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 }
+        { status: 401, headers: privateCardHeaders }
       );
     }
 
@@ -58,112 +46,28 @@ export async function GET(
     });
 
     if (!card) {
-      return NextResponse.json({ error: "Card not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Card not found" },
+        { status: 404, headers: privateCardHeaders }
+      );
     }
 
-    return NextResponse.json(card);
-  } catch (error) {
-    console.error("Error fetching payment card:", error);
+    return NextResponse.json(card, { headers: privateCardHeaders });
+  } catch {
+    console.error("Unable to fetch legacy payment-card metadata");
     return NextResponse.json(
       { error: "Failed to fetch payment card" },
-      { status: 500 }
+      { status: 500, headers: privateCardHeaders }
     );
   }
 }
 
-// PUT - Update a payment card
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
+// Retired legacy cards cannot be edited or selected as a payment method.
+export function PUT(
+  _req: Request,
+  _context: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
-    const { id: cardId } = await params;
-    const body = await req.json();
-
-    // Handle "none" value for billingAddressId
-    if (body.billingAddressId === "none") {
-      body.billingAddressId = null;
-    }
-
-    // Validate request body
-    const result = updateCardSchema.safeParse(body);
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error.errors[0].message },
-        { status: 400 }
-      );
-    }
-
-    // Check if the card exists and belongs to the user
-    const existingCard = await db.paymentCard.findFirst({
-      where: {
-        id: cardId,
-        userId: session.user.id,
-      },
-    });
-
-    if (!existingCard) {
-      return NextResponse.json({ error: "Card not found" }, { status: 404 });
-    }
-
-    const { isDefault, ...cardData } = result.data;
-
-    // Use transaction to ensure all operations are atomic
-    const updatedCard = await db.$transaction(async tx => {
-      // If this is being set as the default card, unset any existing default cards
-      if (isDefault && !existingCard.isDefault) {
-        await tx.paymentCard.updateMany({
-          where: {
-            userId: session.user.id,
-            isDefault: true,
-          },
-          data: {
-            isDefault: false,
-          },
-        });
-      }
-
-      // Update the card
-      return tx.paymentCard.update({
-        where: {
-          id: cardId,
-        },
-        data: {
-          ...cardData,
-          isDefault: isDefault ?? existingCard.isDefault,
-        },
-        select: {
-          id: true,
-          lastFourDigits: true,
-          expiryMonth: true,
-          expiryYear: true,
-          cardholderName: true,
-          cardType: true,
-          isDefault: true,
-          billingAddressId: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
-    });
-
-    return NextResponse.json(updatedCard);
-  } catch (error) {
-    console.error("Error updating payment card:", error);
-    return NextResponse.json(
-      { error: "Failed to update payment card" },
-      { status: 500 }
-    );
-  }
+  return rejectLegacyCardWrite();
 }
 
 // DELETE - Delete a payment card
@@ -174,10 +78,10 @@ export async function DELETE(
   try {
     const session = await auth();
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 }
+        { status: 401, headers: privateCardHeaders }
       );
     }
 
@@ -189,16 +93,21 @@ export async function DELETE(
         id: cardId,
         userId: session.user.id,
       },
+      select: { id: true, isDefault: true },
     });
 
     if (!existingCard) {
-      return NextResponse.json({ error: "Card not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Card not found" },
+        { status: 404, headers: privateCardHeaders }
+      );
     }
 
     // Delete the card
     await db.paymentCard.delete({
       where: {
         id: cardId,
+        userId: session.user.id,
       },
     });
 
@@ -208,6 +117,7 @@ export async function DELETE(
         where: {
           userId: session.user.id,
         },
+        select: { id: true },
       });
 
       if (anotherCard) {
@@ -224,13 +134,13 @@ export async function DELETE(
 
     return NextResponse.json(
       { message: "Payment card deleted successfully" },
-      { status: 200 }
+      { status: 200, headers: privateCardHeaders }
     );
-  } catch (error) {
-    console.error("Error deleting payment card:", error);
+  } catch {
+    console.error("Unable to remove legacy payment card");
     return NextResponse.json(
       { error: "Failed to delete payment card" },
-      { status: 500 }
+      { status: 500, headers: privateCardHeaders }
     );
   }
 }

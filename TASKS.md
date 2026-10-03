@@ -1,5 +1,17 @@
 # Current tasks
 
+- [ ] 2026-10-03 — Work through the remaining audit items one at a time at the
+      owner's request. Start with saved-card safety: trace account/checkout
+      callers, stop application collection/storage of full card details, verify
+      authorization and checkout regressions, and publish a reviewable fix.
+      Estimate for step 1: 1–2 hours. Inventory/cleanup of any existing
+      sensitive records requires a separate verified operation; no speculative
+      data purge.
+- [ ] Subsequent steps: checkout and Meta conversion verification; deletion and
+      retention handling; terms/warranty and consumer links; evidence-based
+      verification and fixes for remaining COD/FANbox, claims, catalog and SEO
+      findings. Resolve missing business facts before dependent changes.
+
 - [x] 2026-10-03 — At the owner's request, release all pending PR #59 changes to
       production, configure the confirmed public Meta Pixel ID for production,
       verify consent/withdrawal and privacy on techtots.ro, and record the
