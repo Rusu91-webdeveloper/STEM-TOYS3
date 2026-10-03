@@ -87,8 +87,13 @@ describe("PaymentForm mandatory COD authorization", () => {
       required: false,
       mode: "risk_based",
       reasons: [],
-      thresholds: {},
-    } as Awaited<ReturnType<typeof fetchCodGuaranteePolicy>>);
+      thresholds: {
+        highOrderValue: 500,
+        newCustomerMinTotal: 200,
+        b2bMinTotal: 700,
+        codRtoCount: 1,
+      },
+    });
     jest.mocked(fetch).mockResolvedValue({
       ok: true,
       json: () =>
