@@ -9,13 +9,17 @@
       migration failures are documented in the
       [audit](docs/audits/2026-10-03-admin-analytics-auth.md).
 
-- [ ] 2026-10-03 — Add explicit cookie consent with separate analytics and
+- [x] 2026-10-03 — Add explicit cookie consent with separate analytics and
       advertising choices, withdrawal and tracking gates; verify a preview PR.
-      Estimate: 1–2 hours. Implementation and 44 focused tests complete;
+      Completed: 2026-10-03. Estimate: 1–2 hours; actual elapsed time
+      was not recorded. Implementation and 44 focused tests complete;
       desktop, mobile and cross-tab local browser checks pass.
       [Draft PR #59](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/59)
-      is published; deployed checks found and corrected an ungated homepage
-      impression. Updated-preview verification is pending. Repository visibility/history stay unchanged. See
+      is published. Corrected preview `892e9de5`, deployment
+      `dpl_2xiGMQ7UjHiutxQaHWRiifLDGdF7`, is READY. Real storefront
+      desktop/mobile, category separation, cross-tab withdrawal and guest-cart
+      persistence checks pass. Commit/push hooks report zero new failures.
+      Production remains on `eeadaab6`; Meta activation remains separate. Repository visibility/history stay unchanged. See
       [consent audit](docs/audits/2026-10-03-cookie-consent.md).
 
 ## Discovered during work

@@ -17,8 +17,8 @@ mirroring its hero impression to `/api/analytics/conversions` before consent.
 The helper now requires analytics permission before either GA or first-party
 collection, and withdrawal also removes its homepage session identifier. Three
 regression cases cover no choice, advertising-only choice and withdrawal.
-The local fixture did not include the real homepage hero; deployed checks are
-therefore required before marking this task complete.
+The local fixture did not include the real homepage hero; the corrected
+deployment was therefore checked against the real storefront before completion.
 
 Live public Instagram and TikTok config endpoints both returned `data: null`.
 This does not certify Vercel's environment-variable settings or the owner's Meta
@@ -97,8 +97,28 @@ failures remain visible. Production remains on `eeadaab6` until owner review.
 Repository visibility/history remain unchanged.
 
 Draft [PR #59](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/59).
-Initial preview `dpl_CSjx9vCzx5UakTXL3CXwDzCcFdip` is READY; the homepage
-collection correction awaits a new preview and repeated deployed checks.
+Corrected code `892e9de510aa61d9424e7e4f57b61db41d062db1` is deployed to
+[the tested preview](https://stem-toys-3-pf7uyn39u-rusujobs-3774s-projects.vercel.app/),
+deployment `dpl_2xiGMQ7UjHiutxQaHWRiifLDGdF7`, READY. This immutable preview
+contains all application changes; a subsequent documentation-only commit records
+these results.
+
+Deployed desktop/mobile checks both pass: zero optional requests before a choice
+and after refusal; refusal persists; analytics-only loads GA4 and Vercel with no
+advertising requests; withdrawal reloads, clears tracking cookies and produces no
+further optional requests. A real product was added as a guest, and its cart item
+survived withdrawal. No JavaScript page errors or horizontal overflow occurred.
+Advertising-only permission produces no Google/Vercel or first-party analytics
+requests. Cross-tab withdrawal reloads the other tab and stops further collection.
+Anonymous admin analytics still returns 403. These are browser/network checks,
+not verification of reporting inside the owner's GA/Meta accounts. Routine guest
+cart and consented analytics requests exercised existing preview endpoints; no
+orders, payments, schema changes or data cleanup were performed.
+
+[Deployed results](../qa/cookie-consent/deployed-results.json),
+[desktop preview](../qa/cookie-consent/preview-desktop.png),
+[mobile preview](../qa/cookie-consent/preview-mobile.png). Temporary preview access
+is kept outside Git; no protection token is published in this audit.
 
 ## Preview review
 
