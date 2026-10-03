@@ -55,9 +55,15 @@ database/schema/migration/dependency changes or real paid test order.
 - React review: tracking runs in effects/event handlers, subscriptions are
   cleaned by the existing consent hook, refs prevent rerender duplication; no
   render-time network calls or new fetch waterfalls.
-- Full Git-hook comparisons and preview browser evidence will be recorded after
-  publication. The preview needs a branch-scoped public Pixel ID and a new
-  build; production settings are not changed for this verification.
+- Required Git hooks completed: full Jest baseline and candidate each have 65
+  failing suites / 179 failed tests, with zero regressions; TypeScript has 1207
+  errors in both snapshots, with zero added diagnostics. Existing debt remains;
+  these are comparison checks, not fully clean suites.
+- [Draft PR #61](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/61)
+  published from source `c1147f0d`. Public Pixel configuration was saved for
+  Preview branch `codex/meta-checkout-events` only after publishing the branch
+  (Vercel rejected the nonexistent branch before publication). Production
+  settings are unchanged. Preview browser evidence remains pending.
 - Guest COD: prepare the cart/checkout for the owner to finish with real contact
   and delivery details. No invented customer data or order submission.
 
