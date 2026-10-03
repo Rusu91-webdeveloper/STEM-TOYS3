@@ -1,3 +1,4 @@
+import { hasAnalyticsConsent } from "@/lib/analytics/consent";
 import { trackEvent } from "@/lib/analytics/ga4";
 
 export const HOMEPAGE_CONVERSION_EVENTS = {
@@ -88,6 +89,8 @@ export function trackHomepageConversionEvent(
   eventName: HomepageConversionEvent,
   params: Record<string, unknown> = {}
 ) {
+  if (!hasAnalyticsConsent()) return;
+
   trackEvent(eventName, {
     page_type: "homepage",
     funnel_stage: "consideration",

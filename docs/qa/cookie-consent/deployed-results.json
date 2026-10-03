@@ -1,0 +1,67 @@
+{
+  "testedCommit": "892e9de510aa61d9424e7e4f57b61db41d062db1",
+  "deployment": "dpl_2xiGMQ7UjHiutxQaHWRiifLDGdF7",
+  "desktopMobile": [
+    {
+      "viewport": 1440,
+      "initialOptionalRequests": 0,
+      "refusalPersists": true,
+      "analyticsOnlyRequests": [
+        {
+          "host": "stem-toys-3-pf7uyn39u-rusujobs-3774s-projects.vercel.app",
+          "path": "/_vercel/speed-insights/script.js"
+        },
+        {
+          "host": "stem-toys-3-pf7uyn39u-rusujobs-3774s-projects.vercel.app",
+          "path": "/_vercel/insights/script.js"
+        },
+        {
+          "host": "www.googletagmanager.com",
+          "path": "/gtag/js"
+        },
+        {
+          "host": "region1.google-analytics.com",
+          "path": "/g/collect"
+        }
+      ],
+      "withdrawalReload": true,
+      "postWithdrawalOptionalRequests": 0,
+      "trackingCookiesRemoved": true,
+      "cartSurvivesWithdrawal": true,
+      "pageErrors": []
+    },
+    {
+      "viewport": 390,
+      "initialOptionalRequests": 0,
+      "refusalPersists": true,
+      "analyticsOnlyRequests": [
+        {
+          "host": "stem-toys-3-pf7uyn39u-rusujobs-3774s-projects.vercel.app",
+          "path": "/_vercel/speed-insights/script.js"
+        },
+        {
+          "host": "stem-toys-3-pf7uyn39u-rusujobs-3774s-projects.vercel.app",
+          "path": "/_vercel/insights/script.js"
+        },
+        {
+          "host": "www.googletagmanager.com",
+          "path": "/gtag/js"
+        },
+        {
+          "host": "region1.google-analytics.com",
+          "path": "/g/collect"
+        }
+      ],
+      "withdrawalReload": true,
+      "postWithdrawalOptionalRequests": 0,
+      "trackingCookiesRemoved": true,
+      "pageErrors": []
+    }
+  ],
+  "categoriesAndCrossTab": {
+    "advertisingOnlyAnalyticsRequests": 0,
+    "crossTabWithdrawalReload": true,
+    "postCrossTabWithdrawalAnalyticsRequests": 0
+  },
+  "anonymousAdminAnalyticsStatus": 403
+}

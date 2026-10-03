@@ -5,8 +5,11 @@ import {
   trackProductView,
 } from "@/lib/analytics/ga4";
 
+import { saveCookieConsent } from "@/lib/analytics/consent";
+
 beforeEach(() => {
   localStorage.clear();
+  saveCookieConsent({ analytics: true, marketing: false });
   window.gtag = jest.fn();
   flushGA4Events();
   jest.mocked(window.gtag).mockClear();
@@ -41,11 +44,11 @@ it("delivers initial product views after the deferred tag initializes", () => {
 it("does not send or replay events after analytics is declined", () => {
   delete (window as Partial<Window>).gtag;
   trackEvent("begin_checkout");
-  localStorage.setItem("analytics_consent", "denied");
+  saveCookieConsent({ analytics: false, marketing: false });
   window.gtag = jest.fn();
   flushGA4Events();
   expect(trackEvent("purchase")).toBe(false);
-  localStorage.setItem("analytics_consent", "granted");
+  saveCookieConsent({ analytics: true, marketing: false });
   flushGA4Events();
   expect(window.gtag).not.toHaveBeenCalled();
 });
@@ -66,4 +69,14 @@ it("does not interrupt the page when flushing into a broken tag", () => {
   expect(() => flushGA4Events()).not.toThrow();
   flushGA4Events();
   expect(window.gtag).toHaveBeenCalledTimes(1);
+});
+
+it("never replays activity collected before consent", () => {
+  localStorage.clear();
+  delete (window as Partial<Window>).gtag;
+  expect(trackEvent("view_item")).toBe(false);
+  saveCookieConsent({ analytics: true, marketing: false });
+  window.gtag = jest.fn();
+  flushGA4Events();
+  expect(window.gtag).not.toHaveBeenCalled();
 });

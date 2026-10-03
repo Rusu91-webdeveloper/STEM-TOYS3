@@ -1,0 +1,134 @@
+[
+  {
+    "width": 1440,
+    "preConsentMetaRequests": 0,
+    "refusedMetaRequests": 0,
+    "analyticsOnlyMetaRequests": 0,
+    "advertisingOnlyRequests": [
+      {
+        "host": "connect.facebook.net",
+        "path": "/en_US/fbevents.js",
+        "id": null,
+        "event": null
+      },
+      {
+        "host": "connect.facebook.net",
+        "path": "/signals/config/787839287564208",
+        "id": null,
+        "event": null
+      },
+      {
+        "host": "www.facebook.com",
+        "path": "/tr/",
+        "id": "787839287564208",
+        "event": "PageView"
+      },
+      {
+        "host": "www.facebook.com",
+        "path": "/tr/",
+        "id": "787839287564208",
+        "event": "RomanianSTEMView"
+      }
+    ],
+    "advertisingOnlyResponses": [
+      {
+        "host": "connect.facebook.net",
+        "path": "/en_US/fbevents.js",
+        "status": 200,
+        "id": null,
+        "event": null
+      },
+      {
+        "host": "connect.facebook.net",
+        "path": "/signals/config/787839287564208",
+        "status": 200,
+        "id": null,
+        "event": null
+      },
+      {
+        "host": "www.facebook.com",
+        "path": "/tr/",
+        "status": 200,
+        "id": "787839287564208",
+        "event": "PageView"
+      },
+      {
+        "host": "www.facebook.com",
+        "path": "/tr/",
+        "status": 200,
+        "id": "787839287564208",
+        "event": "RomanianSTEMView"
+      }
+    ],
+    "postWithdrawalMetaRequests": 0,
+    "metaCookiesRemoved": true,
+    "cspErrors": [],
+    "pageErrors": []
+  },
+  {
+    "width": 390,
+    "preConsentMetaRequests": 0,
+    "refusedMetaRequests": 0,
+    "analyticsOnlyMetaRequests": 0,
+    "advertisingOnlyRequests": [
+      {
+        "host": "connect.facebook.net",
+        "path": "/en_US/fbevents.js",
+        "id": null,
+        "event": null
+      },
+      {
+        "host": "connect.facebook.net",
+        "path": "/signals/config/787839287564208",
+        "id": null,
+        "event": null
+      },
+      {
+        "host": "www.facebook.com",
+        "path": "/tr/",
+        "id": "787839287564208",
+        "event": "PageView"
+      },
+      {
+        "host": "www.facebook.com",
+        "path": "/tr/",
+        "id": "787839287564208",
+        "event": "RomanianSTEMView"
+      }
+    ],
+    "advertisingOnlyResponses": [
+      {
+        "host": "connect.facebook.net",
+        "path": "/en_US/fbevents.js",
+        "status": 200,
+        "id": null,
+        "event": null
+      },
+      {
+        "host": "connect.facebook.net",
+        "path": "/signals/config/787839287564208",
+        "status": 200,
+        "id": null,
+        "event": null
+      },
+      {
+        "host": "www.facebook.com",
+        "path": "/tr/",
+        "status": 200,
+        "id": "787839287564208",
+        "event": "RomanianSTEMView"
+      },
+      {
+        "host": "www.facebook.com",
+        "path": "/tr/",
+        "status": 200,
+        "id": "787839287564208",
+        "event": "PageView"
+      }
+    ],
+    "postWithdrawalMetaRequests": 0,
+    "metaCookiesRemoved": true,
+    "cspErrors": [],
+    "pageErrors": []
+  }
+]
