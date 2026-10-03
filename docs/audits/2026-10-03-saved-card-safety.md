@@ -71,12 +71,38 @@ included in this patch.
   exhaustion; clearing generated Jest cache allowed the unchanged hook to pass.
   Pre-push confirms no schema/migration changes and repeats the passing
   TypeScript comparison. Published
-  [draft PR #60](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/60),
-  source `c5fd218f`. No local production build was run because its script
+  [PR #60](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/60), final
+  source `6aa13dc8`. No local production build was run because its script
   invokes database migrations.
-- Authenticated browser acceptance and actual database cleanup remain separate
-  checks. The preview domain lacks the owner's Google OAuth configuration; no
-  authentication bypass or production test identity is introduced.
+- The preview domain lacks the owner's Google OAuth configuration; no
+  authentication bypass or production test identity was introduced. The owner
+  completed authenticated acceptance on production, as recorded below.
+
+## Production acceptance and source integration
+
+The owner deployed final source `6aa13dc8` to production as
+`dpl_9irmWyDBovM8yk1rwRwhDWfyGj3d`, READY on techtots.ro and www.techtots.ro.
+The screenshot supplied at 21:29 EEST shows the signed-in account page with the
+payment-processor notice, no stored entries and no card-entry/add/edit controls.
+The owner subsequently confirmed that the account page, new-card redirect and
+configured card-payment checkout options work as expected. This confirms those
+manual acceptance checks; no completed order or payment is claimed.
+
+Independent anonymous production checks confirmed HTTP 401 and private/no-store
+for `/api/account/payment-cards`, account login redirects and HTTP 200 for the
+authentication providers endpoint. These checks do not establish global card
+record counts.
+
+At the owner's explicit request, PR #60 was merged on 3 October 2026 at 21:38
+EEST as `9bc2ef3c0b5f5d99ea1be1ce90d6257fb2722f77`. Its Git tree matches the
+owner-tested `6aa13dc8` exactly. Production deployment
+`dpl_72wNAcBJnoDSTpyMruMnyCx3Gmx8` is READY from that merge commit and serves
+both shop domains. Post-release checks on www.techtots.ro pass: homepage HTTP
+200; saved-card API HTTP 401 with private/no-store; account/payment-methods and
+new-card URL redirect to login for anonymous visitors; authentication providers
+HTTP 200 with Google and credentials available. Release-record publication
+changes documentation only. Existing sensitive-record inventory and any
+authorized cleanup remain open.
 
 ## Owner acceptance on the approved deployment
 

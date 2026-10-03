@@ -1,5 +1,15 @@
 # Current tasks
 
+- [x] 2026-10-03, 21:39 EEST — Merge the owner-approved saved-card fix,
+      verify the resulting production deployment and record authenticated
+      acceptance. Estimate: 10–20 minutes. Existing-record inventory remains
+      a separate operation. Completed 21:44 EEST; merge and production checks
+      took about 5 minutes, excluding release-record publication checks.
+      [PR #60](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/60)
+      merged as `9bc2ef3c`. Production deployment
+      `dpl_72wNAcBJnoDSTpyMruMnyCx3Gmx8` is READY on both shop domains;
+      homepage, anonymous API denial, account login and auth-provider checks
+      pass. No release errors encountered.
 - [ ] 2026-10-03 — Work through the remaining audit items one at a time at the
       owner's request. Start with saved-card safety: trace account/checkout
       callers, stop application collection/storage of full card details, verify
@@ -9,12 +19,14 @@
       data purge.
 - [x] 2026-10-03 — Implement and publish saved-card collection containment.
       Completed 2026-10-03, 20:54 EEST; elapsed time was not recorded.
-      [Draft PR #60](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/60),
-      source `c5fd218f`. Fifty-six focused tests pass; required full Jest and
+      [PR #60](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/60),
+      final source `6aa13dc8`. Fifty-six focused tests pass; required full Jest and
       TypeScript comparisons report zero regressions. Disk exhaustion initially
       blocked the test snapshot; clearing generated Jest cache resolved it. No
-      schema/migration changes or database cleanup. Production deployment,
-      authenticated acceptance and existing-record inventory remain pending.
+      schema/migration changes or database cleanup. The owner deployed the
+      final source to production and confirmed authenticated account-page,
+      redirect and checkout-option checks. PR #60 merged as `9bc2ef3c`.
+      Existing-record inventory remains pending.
       See [saved-card audit](docs/audits/2026-10-03-saved-card-safety.md).
 - [ ] Subsequent steps: checkout and Meta conversion verification; deletion and
       retention handling; terms/warranty and consumer links; evidence-based
@@ -55,10 +67,10 @@
       operational deletion schedule and provider agreements before final
       operational privacy review. Production Meta was activated at the owner's
       explicit request; these follow-ups remain open.
-- [ ] Follow-up from 2026-10-03 privacy review: investigate the authenticated
-      saved-card POST that persists encrypted PAN/CVV; replace direct card
-      storage with provider tokenization and plan authorized cleanup. Estimate:
-      after scope/data inventory.
+- [ ] Follow-up from 2026-10-03 privacy review: inventory and plan authorized
+      cleanup of any historical encrypted PAN/CVV records. Account POST/PUT
+      collection is disabled by PR #60; checkout continues to use its payment
+      providers. Estimate: after verified access and aggregate data inventory.
 - [ ] Follow-up from 2026-10-03 privacy review: reconcile the GDPR deletion
       endpoint with actual scheduled cleanup, guest/order retention and
       one-month response rules. Estimate: after scope/data inventory.
