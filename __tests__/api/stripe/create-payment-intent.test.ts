@@ -334,7 +334,7 @@ describe("POST /api/stripe/create-payment-intent", () => {
     expect(payload.message).not.toMatch(/comenzi fără cont/);
   });
 
-  it("refuses a guest guarantee when policy does not require one", async () => {
+  it("creates a server-priced manual-capture guarantee for a low-value guest order", async () => {
     const { auth } = require("@/lib/auth");
     auth.mockResolvedValue(null);
     process.env.COD_GUARANTEE_MODE = "risk_based";
@@ -368,9 +368,12 @@ describe("POST /api/stripe/create-payment-intent", () => {
     const response = await handler(request);
     const payload = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(payload.error).toBe("COD_GUARANTEE_NOT_REQUIRED");
-    expect(mockCreate).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(payload.amount).toBe(1800);
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: 1800, capture_method: "manual" }),
+      expect.anything()
+    );
   });
 
   it("refuses a guest guarantee for locker delivery even in always mode", async () => {
@@ -403,7 +406,7 @@ describe("POST /api/stripe/create-payment-intent", () => {
     const payload = await response.json();
 
     expect(response.status).toBe(400);
-    expect(payload.error).toBe("COD_GUARANTEE_NOT_REQUIRED");
+    expect(payload.error).toBe("COD_NOT_ALLOWED_FOR_LOCKER");
     expect(mockCreate).not.toHaveBeenCalled();
   });
 

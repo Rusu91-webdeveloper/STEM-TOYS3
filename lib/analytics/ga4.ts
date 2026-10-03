@@ -111,7 +111,7 @@ export const trackProductView = (product: {
   language?: string;
   age_group?: string;
   stem_focus?: string;
-}) => {
+}) =>
   trackEvent(GA4_CONFIG.EVENTS.PRODUCT_VIEW, {
     currency: product.currency || GA4_CONFIG.ECOMMERCE.CURRENCY,
     value: product.price,
@@ -130,7 +130,6 @@ export const trackProductView = (product: {
       },
     ],
   });
-};
 
 export const trackAddToCart = (product: {
   item_id: string;

@@ -75,13 +75,13 @@ export function CodRambursGuaranteePanel({
           <Loader2 className="h-5 w-5 shrink-0 animate-spin text-slate-500" />
           {t(
             "codGuaranteePolicyResolving",
-            "Verificăm dacă pentru această comandă este necesară garanția COD..."
+            "Pregătim garanția pentru plata ramburs..."
           )}
         </div>
         <p className="mt-2 text-sm leading-relaxed text-slate-600">
           {t(
             "codGuaranteePolicyResolvingBody",
-            "Analizăm ruta de livrare și costul transportului tur pentru a decide dacă este necesară o pre-autorizare temporară."
+            "Pentru fiecare comandă ramburs este necesară o autorizare temporară pe card pentru transportul tur."
           )}
         </p>
       </div>
@@ -147,7 +147,7 @@ export function CodRambursGuaranteePanel({
                 <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
                   {t(
                     "codGuaranteeDescription",
-                    "Pentru această comandă este necesară o pre-autorizare pe card. Suma nu este încasată acum și servește doar ca garanție operațională pentru costul estimat al transportului tur."
+                    "Pentru fiecare comandă ramburs este necesară o pre-autorizare pe card. Suma nu este încasată acum și acoperă numai transportul tur."
                   )}
                 </p>
               </div>
@@ -165,7 +165,7 @@ export function CodRambursGuaranteePanel({
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500" />
                 {t(
                   "codGuaranteePointTwo",
-                  "O cerem doar când comanda are un cost estimat de transport tur care trebuie acoperit în caz de refuz sau nepreluare."
+                  "Garanția este obligatorie indiferent de valoarea comenzii sau de comenzile anterioare."
                 )}
               </li>
               <li className="flex gap-2.5">

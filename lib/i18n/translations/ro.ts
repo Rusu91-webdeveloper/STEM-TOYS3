@@ -2110,7 +2110,7 @@ export const ro = {
     "Dacă refuzi coletul la livrare sau nu îl ridici în termen, acesta poate fi returnat expeditorului (RTO).",
   codKeyPointRoundTripTitle: "Reținem doar transportul tur",
   codKeyPointRoundTripBody:
-    "La checkout poate fi solicitată o autorizare temporară pe card, limitată la transportul tur. La refuz sau nepreluare putem încasa cel mult suma autorizată; TechTots suportă returul la expeditor.",
+    "Fiecare comandă ramburs necesită o autorizare temporară pe card, limitată la transportul tur. La refuz sau nepreluare putem încasa cel mult suma autorizată; TechTots suportă returul la expeditor.",
   codKeyPointAckTitle: "Confirmare înainte de plată",
   codKeyPointAckBody:
     "Continuarea comenzii cu ramburs necesită acceptarea explicită a acestor condiții.",
@@ -2118,15 +2118,15 @@ export const ro = {
     "Refuzul sau nepreluarea sunt tratate ca retur la expeditor (RTO). Autorizarea temporară acoperă numai transportul tur; putem încasa cel mult suma autorizată, iar TechTots suportă returul la expeditor.",
   codLockerInfoTitle: "Informare plată la FANbox",
   codLockerInfoBody:
-    "Pentru livrarea la FANbox, plata se face la ridicare, cu cardul la terminalul locker-ului. Nu solicităm autorizarea temporară pentru transportul tur; TechTots suportă returul la expeditor dacă nu ridici coletul.",
+    "Pentru livrarea la FANbox, plata se face online cu cardul. Plata ramburs nu este disponibilă.",
   codReviewNotice:
     "Plătești produsele la primirea coletului. Autorizarea temporară acoperă numai transportul tur; la refuz sau nepreluare putem încasa cel mult suma autorizată.",
   codLockerReviewNotice:
-    "Plătești la ridicare, cu cardul la terminalul FANbox. Pentru FANbox nu solicităm autorizarea temporară pentru transportul tur; TechTots suportă returul la expeditor dacă nu ridici coletul.",
+    "Pentru livrarea la FANbox, plata se face online cu cardul. Plata ramburs nu este disponibilă.",
   codLockerFee: "Taxă plată la FANbox",
   totalWithLockerCOD: "Total cu plată la FANbox",
   codLockerNotice:
-    "Pentru FANbox, plata se face la ridicare, cu cardul la terminalul locker-ului.",
+    "Pentru FANbox, plata se face online cu cardul.",
   codUnavailableBadge: "Doar card online",
   codUnavailableLocker:
     "Pentru livrarea la FANbox, plata ramburs nu este disponibilă.",

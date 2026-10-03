@@ -19,10 +19,14 @@ describe("COD outbound guarantee copy", () => {
     );
 
     expect(COD_CONSENT_TEXT).toContain(
-      "acopera numai costul transportului tur"
+      "acoperă numai costul transportului tur"
     );
     expect(COD_CONSENT_TEXT).toContain(
-      "poate fi incasata cel mult suma autorizata"
+      "poate fi încasată cel mult suma autorizată"
+    );
+    expect(COD_CONSENT_TEXT).toContain("Fiecare comandă ramburs necesită");
+    expect(RETURN_POLICY_COD_RTO_RO).toContain(
+      "Fiecare comandă cu plata ramburs necesită"
     );
   });
 

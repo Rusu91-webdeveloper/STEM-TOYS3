@@ -229,7 +229,7 @@ const PaymentSummaryComponent = ({
             <p className="mt-3 text-xs leading-relaxed text-slate-500">
               {t(
                 "codSummaryFinePrint",
-                "După acest rezumat, confirmi condițiile COD și doar dacă este necesar autorizezi o garanție logistică temporară pe card."
+                "După acest rezumat, confirmi condițiile COD și autorizezi pe card garanția temporară pentru transportul tur, obligatorie pentru fiecare comandă ramburs."
               )}
             </p>
           </div>

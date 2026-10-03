@@ -1,4 +1,6 @@
+import { readCookieConsent } from "./consent";
 import { trackEvent } from "./ga4";
+import { trackMetaPurchase } from "./meta-events";
 import type { OrderAnalytics } from "./order-payload";
 
 const PENDING_KEY = "techtots:pending-purchase:v1";
@@ -27,12 +29,22 @@ export function trackAcceptedOrder(payload?: OrderAnalytics) {
   emitOnce("order_placed", payload);
   if (payload.payment_method !== "cod" && payload.payment_status === "PAID") {
     emitOnce("purchase", payload);
+    trackMetaPurchase(payload);
   } else if (
     payload.payment_method === "netopia" &&
     payload.payment_status === "PENDING"
   ) {
+    const consent = readCookieConsent();
+    if (!consent?.analytics && !consent?.marketing) return;
     try {
-      sessionStorage.setItem(PENDING_KEY, JSON.stringify(payload));
+      sessionStorage.setItem(
+        PENDING_KEY,
+        JSON.stringify({
+          payload,
+          analyticsRevision: consent.analytics ? consent.revision : undefined,
+          marketingRevision: consent.marketing ? consent.revision : undefined,
+        })
+      );
     } catch {
       /* Best effort only. */
     }
@@ -58,8 +70,14 @@ export function trackConfirmedNetopiaPurchase(
   try {
     const stored = sessionStorage.getItem(PENDING_KEY);
     if (!stored) return;
-    const payload = JSON.parse(stored) as OrderAnalytics;
+    const pending = JSON.parse(stored) as {
+      payload: OrderAnalytics;
+      analyticsRevision?: string;
+      marketingRevision?: string;
+    };
+    const payload = pending.payload;
     if (
+      !payload ||
       payload.transaction_id !== orderId ||
       payload.test_mode ||
       payload.payment_method !== "netopia" ||
@@ -67,7 +85,14 @@ export function trackConfirmedNetopiaPurchase(
       payload.currency !== result.currency
     )
       return;
-    emitOnce("purchase", { ...payload, payment_status: "PAID" });
+    const consent = readCookieConsent();
+    const paid = { ...payload, payment_status: "PAID" };
+    if (consent?.analytics && pending.analyticsRevision === consent.revision) {
+      emitOnce("purchase", paid);
+    }
+    if (consent?.marketing && pending.marketingRevision === consent.revision) {
+      trackMetaPurchase(paid);
+    }
     sessionStorage.removeItem(PENDING_KEY);
   } catch {
     /* Missing/restricted storage must never affect payment confirmation. */

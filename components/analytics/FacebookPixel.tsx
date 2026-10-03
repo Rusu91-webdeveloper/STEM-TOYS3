@@ -11,6 +11,7 @@ import Script from "next/script";
 import { useEffect } from "react";
 
 import { hasMarketingConsent } from "@/lib/analytics/consent";
+import { markMetaPixelReady } from "@/lib/analytics/meta-events";
 
 interface FacebookPixelProps {
   children?: React.ReactNode;
@@ -47,7 +48,7 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
         if (hasMarketingConsent() && window.fbq) {
           window.fbq("trackCustom", "ViralShare", {
             blog_id: blogId,
-            platform: platform,
+            platform,
             market: "romania",
             viral_content: true,
             timestamp: Date.now(),
@@ -110,7 +111,7 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
           window.fbq("track", "Purchase", {
             content_ids: productIds,
             content_type: "product",
-            value: value,
+            value,
             currency: "RON",
             custom_data: {
               order_id: orderId,
@@ -133,7 +134,11 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
     process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || "123456789012345";
 
   // Only render pixel if configured
-  if (!hasMarketingConsent() || !/^\d+$/.test(FACEBOOK_PIXEL_ID) || FACEBOOK_PIXEL_ID === "123456789012345") {
+  if (
+    !hasMarketingConsent() ||
+    !/^\d+$/.test(FACEBOOK_PIXEL_ID) ||
+    FACEBOOK_PIXEL_ID === "123456789012345"
+  ) {
     return <>{children}</>;
   }
 
@@ -143,6 +148,7 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
       <Script
         id="facebook-pixel"
         strategy="afterInteractive"
+        onReady={() => queueMicrotask(markMetaPixelReady)}
         dangerouslySetInnerHTML={{
           __html: `
             !function(f,b,e,v,n,t,s)
@@ -171,6 +177,8 @@ export default function FacebookPixel({ children }: FacebookPixelProps) {
 
       {/* NoScript fallback */}
       <noscript>
+        {/* Keep the tracking image direct; image optimization would proxy it. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           height="1"
           width="1"

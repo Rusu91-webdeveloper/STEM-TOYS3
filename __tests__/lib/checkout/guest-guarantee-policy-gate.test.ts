@@ -24,7 +24,7 @@ describe("guestGuaranteePolicyRejection", () => {
     }
   });
 
-  it("returns 400 when the shared risk policy does not require a guarantee", async () => {
+  it("allows a guarantee for a low-value guest order even with a legacy risk setting", async () => {
     process.env.COD_GUARANTEE_MODE = "risk_based";
     const {
       resolveCodGuaranteeCustomerStats,
@@ -36,10 +36,7 @@ describe("guestGuaranteePolicyRejection", () => {
       shippingMethodId: "fancourier:standard",
       recipientType: "B2C",
     });
-    const body = await response?.json();
-
-    expect(response?.status).toBe(400);
-    expect(body.error).toBe("COD_GUARANTEE_NOT_REQUIRED");
+    expect(response).toBeNull();
     expect(resolveCodGuaranteeCustomerStats).toHaveBeenCalledWith({
       guestEmail: "guest@example.com",
       phone: undefined,
@@ -70,5 +67,6 @@ describe("guestGuaranteePolicyRejection", () => {
     });
 
     expect(response?.status).toBe(400);
+    expect((await response?.json()).error).toBe("COD_NOT_ALLOWED_FOR_LOCKER");
   });
 });

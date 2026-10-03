@@ -3,8 +3,12 @@ import userEvent from "@testing-library/user-event";
 
 import { CartProvider, useCart } from "@/features/cart/context/CartContext";
 import { trackAddToCart } from "@/lib/analytics/ga4";
+import { trackMetaAddToCart } from "@/lib/analytics/meta-events";
 
 jest.mock("@/lib/analytics/ga4", () => ({ trackAddToCart: jest.fn() }));
+jest.mock("@/lib/analytics/meta-events", () => ({
+  trackMetaAddToCart: jest.fn(),
+}));
 jest.mock("@/features/cart/lib/cartApi", () => ({
   fetchCart: jest.fn().mockResolvedValue([]),
   saveCart: jest.fn().mockResolvedValue(true),
@@ -44,6 +48,7 @@ it("tracks only the quantity actually added and ignores rejected additions", asy
   );
   await user.click(screen.getByRole("button", { name: "out of stock" }));
   expect(trackAddToCart).not.toHaveBeenCalled();
+  expect(trackMetaAddToCart).not.toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "add three" }));
   expect(screen.getByTestId("quantity")).toHaveTextContent("2");
   expect(trackAddToCart).toHaveBeenCalledWith(
@@ -51,5 +56,12 @@ it("tracks only the quantity actually added and ignores rejected additions", asy
   );
   await user.click(screen.getByRole("button", { name: "add three" }));
   expect(trackAddToCart).toHaveBeenCalledTimes(1);
+  expect(trackMetaAddToCart).toHaveBeenCalledTimes(1);
+  expect(trackMetaAddToCart).toHaveBeenCalledWith({
+    item_id: "kit",
+    item_name: "Kit",
+    quantity: 2,
+    price: 50,
+  });
   view.unmount();
 });

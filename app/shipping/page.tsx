@@ -284,8 +284,8 @@ export default async function ShippingPage() {
                 la expeditor.
               </li>
               <li>
-                • <strong>Garanția logistică:</strong> la checkout poate fi
-                solicitată o autorizare temporară pe card, limitată la costul
+                • <strong>Garanția logistică:</strong> fiecare comandă ramburs
+                necesită o autorizare temporară pe card, limitată la costul
                 transportului tur. Suma nu se încasează la plasarea comenzii.
               </li>
               <li>

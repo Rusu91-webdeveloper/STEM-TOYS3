@@ -66,7 +66,7 @@ describe("GET /api/checkout/cod-guarantee-policy guests", () => {
     const payload = await response.json();
 
     expect(response.status).toBe(200);
-    expect(payload.required).toBe(false);
+    expect(payload.required).toBe(true);
     expect(payload.amount).toBe(120);
     expect(payload.userStats).toBeUndefined();
     expect(payload.reasons).toBeUndefined();
@@ -92,7 +92,7 @@ describe("GET /api/checkout/cod-guarantee-policy guests", () => {
     expect(payload.reasons).toBeUndefined();
   });
 
-  it("uses COD history for a known guest email without echoing that account", async () => {
+  it("requires a guarantee for a known guest without echoing that account", async () => {
     db.user.findUnique.mockResolvedValue({
       id: "user_secret",
       role: "CUSTOMER",
@@ -139,7 +139,7 @@ describe("GET /api/checkout/cod-guarantee-policy guests", () => {
     );
     const payload = await response.json();
 
-    expect(payload.required).toBe(false);
+    expect(payload.required).toBe(true);
     expect(JSON.stringify(payload)).not.toContain("admin_1");
     expect(db.order.count).not.toHaveBeenCalled();
   });
@@ -159,16 +159,16 @@ describe("GET /api/checkout/cod-guarantee-policy guests", () => {
     );
     const payload = await response.json();
 
-    expect(payload.required).toBe(false);
+    expect(payload.required).toBe(true);
     expect(payload.userStats).toEqual({
       priorOrderCount: 0,
       priorCodRtoCount: 0,
     });
-    expect(payload.reasons).toEqual([]);
+    expect(payload.reasons).toEqual(["all_cod_orders"]);
     expect(db.user.findUnique).not.toHaveBeenCalled();
   });
 
-  it("does not require a guarantee for a new guest under 200 lei", async () => {
+  it("requires a guarantee for a new guest under 200 lei", async () => {
     const response = await GET(
       policyRequest({
         orderTotal: "199",
@@ -180,7 +180,7 @@ describe("GET /api/checkout/cod-guarantee-policy guests", () => {
     );
     const payload = await response.json();
 
-    expect(payload.required).toBe(false);
+    expect(payload.required).toBe(true);
     expect(payload.thresholds.newCustomerMinTotal).toBe(200);
     expect(payload.reasons).toBeUndefined();
     expect(payload.userStats).toBeUndefined();
@@ -223,7 +223,7 @@ describe("GET /api/checkout/cod-guarantee-policy guests", () => {
 
     expect(payload.required).toBe(true);
     expect(payload.amount).toBe(50);
-    expect(payload.mode).toBe("risk_based");
+    expect(payload.mode).toBe("always");
     expect(Object.keys(payload).sort()).toEqual([
       "amount",
       "mode",
@@ -267,7 +267,7 @@ describe("GET /api/checkout/cod-guarantee-policy guests", () => {
     const payload = await response.json();
 
     expect(payload.required).toBe(true);
-    expect(payload.reasons).toEqual(["repeat_cod_rto"]);
+    expect(payload.reasons).toEqual(["all_cod_orders"]);
     expect(payload.userStats).toEqual({
       priorOrderCount: 4,
       priorCodRtoCount: 1,
@@ -292,6 +292,6 @@ describe("GET /api/checkout/cod-guarantee-policy guests", () => {
     const payload = await response.json();
 
     expect(payload.required).toBe(true);
-    expect(payload.reasons).toContain("new_customer_high_value");
+    expect(payload.reasons).toContain("all_cod_orders");
   });
 });

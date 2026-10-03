@@ -275,12 +275,6 @@ export function PaymentForm({
         return;
       }
 
-      if (isLockerShippingMethod) {
-        setCodGuaranteeRequired(false);
-        setIsResolvingCodGuaranteePolicy(false);
-        return;
-      }
-
       if (isCalculatingTotal || codOrderTotalForPolicy <= 0) {
         setIsResolvingCodGuaranteePolicy(true);
         return;
@@ -300,7 +294,11 @@ export function PaymentForm({
         if (!isActive) return;
 
         // Fail-safe: if policy cannot be resolved, keep guarantee required.
-        setCodGuaranteeRequired(policy?.required ?? true);
+        // Every COD order requires a guarantee, including during a mixed-version rollout.
+        setCodGuaranteeRequired(true);
+        if (policy?.required === false) {
+          console.warn("COD policy response is stale; card authorization remains required.");
+        }
       } catch (error) {
         if (!isActive) return;
         console.error("Error resolving COD guarantee policy:", error);
@@ -927,11 +925,6 @@ export function PaymentForm({
         );
         return;
       }
-      if (!codGuaranteeRequired) {
-        submitCODOrder(undefined);
-        return;
-      }
-
       if (codGuaranteeAmount <= 0) {
         setPaymentError(
           "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu."
