@@ -93,10 +93,17 @@ manufacturer durability promise is invented.
   files were checked separately; existing unrelated warnings are not treated as
   a clean repository lint result. Migration validation confirms no schema or
   migration changes. Required full Jest/TypeScript comparisons run through the
-  normal Git hooks; their results are recorded in the PR.
+  normal Git hooks. The first source commit passed: Jest baseline/current both
+  have 64 failed suites and 175 failed tests, with zero added failures; TypeScript
+  baseline 1,204/current 1,196 diagnostics, with zero added diagnostics. Existing
+  debt remains; neither check represents a clean full repository run.
 - Local browser checks confirm the native notice, full-size/QR links, permanent
   withdrawal entry point, guest review step and no horizontal overflow at a
-  measured 391 CSS-pixel mobile width.
+  measured 391 CSS-pixel mobile width. A focused hit-test found that an open
+  notice initially covered the mobile withdrawal link. The link is now above the
+  disclosure on mobile, while the notice remains left and the link right on
+  desktop. Repeated browser hit-testing at 391 CSS pixels confirms the link
+  itself is the clickable target with the notice open, with no horizontal overflow.
 - Local guest token issuance works. A real local submission correctly showed
   an unconfirmed-registration error when PostgreSQL was unreachable, rather than
   claiming receipt. Docker's socket and CLI were also unresponsive. No production
