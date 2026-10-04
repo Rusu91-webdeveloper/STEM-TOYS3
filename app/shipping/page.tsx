@@ -12,10 +12,7 @@ import {
 import { Metadata } from "next";
 import Link from "next/link";
 
-import {
-  COD_HOLD_EXPLANATION_RO,
-  codFeeExplanation,
-} from "@/lib/pricing/cod-settings";
+import { codFeeExplanation } from "@/lib/pricing/cod-settings";
 import {
   RETURN_POLICY_COD_RTO_RO,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
@@ -121,8 +118,8 @@ export default async function ShippingPage() {
             </li>
             <li className="flex items-center gap-2 md:col-span-2">
               <span className="text-green-600">✓</span>
-              Refuzul/nepreluarea coletului nu declanșează automat
-              încasarea garanției COD
+              Refuzul/nepreluarea coletului nu declanșează automat încasarea
+              garanției COD
             </li>
           </ul>
         </div>
@@ -246,7 +243,7 @@ export default async function ShippingPage() {
             <p className="text-slate-700 mb-4">
               {codFeeExplanation(codSettings)}
             </p>
-            <p className="text-slate-700 mb-4">{COD_HOLD_EXPLANATION_RO}</p>
+            <p className="text-slate-700 mb-4">{RETURN_POLICY_COD_RTO_RO}</p>
             <div className="bg-white rounded-lg p-4 border border-orange-200">
               <p className="font-semibold text-orange-800 flex items-center gap-2">
                 <Shield className="w-5 h-5" />
@@ -270,12 +267,7 @@ export default async function ShippingPage() {
                   • Refuzul la livrare sau nepreluarea coletului este tratat ca
                   retur la expeditor (RTO).
                 </li>
-                <li>• {RETURN_POLICY_COD_RTO_RO}</li>
-                <li>
-                  • Dacă există sume achitate în avans pentru transport/avans
-                  logistic, acestea pot fi reținute în limita costurilor
-                  logistice reale.
-                </li>
+                <li>• {RETURN_POLICY_REFUND_RO}</li>
               </ul>
             </div>
           </div>
@@ -303,7 +295,8 @@ export default async function ShippingPage() {
                 transportului tur. Suma nu se încasează la plasarea comenzii.
               </li>
               <li>
-                • <strong>La refuz sau nepreluare:</strong> {RETURN_POLICY_COD_RTO_RO}
+                • <strong>La refuz sau nepreluare:</strong>{" "}
+                {RETURN_POLICY_COD_RTO_RO}
               </li>
               <li>
                 • <strong>Conformitate:</strong> pentru produse
@@ -364,8 +357,7 @@ export default async function ShippingPage() {
                   Retur în perioada de retragere
                 </p>
                 <p className="text-slate-600 text-sm">
-                  {RETURN_POLICY_CUSTOMER_PAYS_RO}
-                  {" "}{RETURN_POLICY_REFUND_RO}
+                  {RETURN_POLICY_CUSTOMER_PAYS_RO} {RETURN_POLICY_REFUND_RO}
                 </p>
               </div>
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
@@ -501,9 +493,7 @@ export default async function ShippingPage() {
             consumatorului prevăzute de OUG nr. 34/2014, OUG nr. 140/2021 și
             Legea nr. 193/2000.
           </p>
-          <p className="mt-2">
-            {RETURN_POLICY_COD_RTO_RO}
-          </p>
+          <p className="mt-2">{RETURN_POLICY_COD_RTO_RO}</p>
           <p className="mt-4">Ultima actualizare: 4 octombrie 2026</p>
         </section>
       </div>
