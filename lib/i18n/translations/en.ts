@@ -122,7 +122,7 @@ export const en = {
   expressShipping: "Express Shipping",
   priorityShipping: "Priority Shipping",
   deliveryIn35Days: "Delivery in 3-5 business days",
-  deliveryIn12Days: "Delivery in 1-2 business days",
+  deliveryIn12Days: "Delivery in 1–4 business days",
   deliveryIn24Hours: "Delivery in 24 hours",
   businessDays35: "3-5 business days",
   businessDays12: "1-2 business days",
@@ -444,7 +444,7 @@ export const en = {
   heroPrimaryCta: "EXPLORE COLLECTION",
   heroSecondaryCta: "View Categories",
   heroTrust1: "Premium European brands",
-  heroTrust2: "Delivery in 1–3 days across Romania",
+  heroTrust2: "Delivery in 1–4 business days",
   heroTrust3: "Age-curated selection",
 
   // Age Categories Section
@@ -534,7 +534,7 @@ export const en = {
   guarantee: "Easy returns and Romanian support you can rely on",
   limitedSpots: "Limited Spots",
   consultationThisMonth: "for personalized STEM consultation this month",
-  fastDelivery: "Fast delivery in 1-3 business days",
+  fastDelivery: "Fast delivery in 1–4 business days",
 
   b2bSolutions: "B2B Programs",
   b2bSolutionsDesc:

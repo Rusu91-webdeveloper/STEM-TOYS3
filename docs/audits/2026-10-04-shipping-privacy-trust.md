@@ -198,7 +198,18 @@ promise.
   fetcher on a miss, isolates the shared quota/timers, and asserts the route's
   existing summary default. The affected translation, COD explanation and
   analytics suites pass (25 tests). Failed checks were corrected in source;
-  hooks were not bypassed.
+  hooks were not bypassed. Combined commit 0736b125 passed: full Jest baseline
+  65 failing suites/179 tests versus candidate 64/175, zero added regressions;
+  full TypeScript baseline 1207 errors versus candidate 1196, zero added errors.
+- Exact preview 0736b125 reached READY at
+  `stem-toys-3-bepowsf6u-rusujobs-3774s-projects.vercel.app`. Browser confirmed
+  approved 30/60-day application and 2-month/reset-off GA4 wording, drawer
+  206 + 19.99 = 225.99, current COD rate, statutory warranty and EN conditional
+  product/14-day return/newsletter wording. The preview basket was cleared.
+  Final review caught an omitted Romanian free-delivery key and an older
+  English 1–3-day footer promise; translations now match Romanian delivery
+  labels and the 1–4-business-day shipping estimate. This final copy correction
+  requires its own passing hooks and exact-preview check.
 - Production source release remains pending. GA4 and application policy
   configuration have been applied with the owner's explicit choices; no
   production customer erasure, card purge or manual retention cleanup occurred.

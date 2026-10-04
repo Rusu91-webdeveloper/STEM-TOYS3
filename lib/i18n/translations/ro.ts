@@ -139,6 +139,7 @@ export const ro = {
   notAvailable: "Indisponibil",
   easyReturns: "Retur simplu",
   dayPolicy: "Retur în 14 zile calendaristice",
+  freeShippingLabel: "Livrare gratuită",
   freeShippingFrom: "De la",
   shippingCalculatedAtCheckout: "Cost calculat la finalizarea comenzii",
   learnMore: "Află mai multe",
