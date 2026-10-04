@@ -22,13 +22,18 @@ test("configured live COD rate controls both labels and the calculated fee", () 
   ).toBe(5.02);
 });
 
-test("default COD settings show flat fee with percentage 0", () => {
-  expect(DEFAULT_COD_SETTINGS.percentage).toBe("0");
-  expect(DEFAULT_COD_SETTINGS.fixedFee).toBe("9.90");
-  expect(formatCodFeeLabel(DEFAULT_COD_SETTINGS)).toBe("9,90 lei");
+test("COD fallback matches the verified live fee when settings cannot load", () => {
+  expect(DEFAULT_COD_SETTINGS.percentage).toBe("0.01");
+  expect(DEFAULT_COD_SETTINGS.fixedFee).toBe("5.00");
+  expect(formatCodFeeLabel(DEFAULT_COD_SETTINGS)).toBe("0,01% + 5,00 lei");
   const explanation = codFeeExplanation(DEFAULT_COD_SETTINGS);
-  expect(explanation).toContain("9,90 lei");
-  expect(explanation).not.toContain("%");
+  expect(explanation).toContain("5,00 lei + 0,01%");
+  expect(
+    calculateCODFee(187.99, {
+      percentage: Number(DEFAULT_COD_SETTINGS.percentage) / 100,
+      fixedFee: Number(DEFAULT_COD_SETTINGS.fixedFee),
+    }).fee
+  ).toBe(5.02);
   const items = buildFAQItems(DEFAULT_COD_SETTINGS);
   const answer = items.at(-1)!.answer;
   expect(answer).toContain("Fiecare comandă ramburs");

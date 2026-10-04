@@ -32,10 +32,13 @@ agree.
 Fetched GitHub again before publication and incorporated Cursor commit
 `cfea8830`, which replaces the remaining hardcoded payment-selector fee label
 with fetched admin settings and formats zero-percentage fees correctly. Its
-9.90 lei fallback was preserved; it is not evidence of the live configured
-rate. A fresh production endpoint read still returned 5.00 lei / 0.01 percent.
-A focused assertion verifies that this configuration displays 0.01% + 5 lei
-and calculates 5.02 lei for the reported 187.99 lei pre-fee amount.
+new 9.90 lei fallback contradicted the live endpoint. A scoped, read-only query
+of `StoreSettings.paymentSettings->'codSettings'` confirmed exactly one row with
+5.00 lei / 0.01 percent (last updated 2026-10-02T17:14:25.882Z). The fallback
+therefore retains the verified 5.00 / 0.01 rate; the dynamic formatter and
+admin-setting lookup are preserved. Focused assertions cover configured and
+fallback labels and the 5.02 lei fee for the reported 187.99 lei pre-fee amount.
+No live fee settings were changed.
 
 Final browser review also found an exclusive “over 500” label in the shared
 product badge and “unavailable” before settings loaded. The badge now says

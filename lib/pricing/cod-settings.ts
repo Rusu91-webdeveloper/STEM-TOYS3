@@ -1,8 +1,8 @@
 // Store settings express the percentage in percent; calculators use a fraction.
-// Fallback defaults when settings cannot be loaded.
+// Fallback matches the live StoreSettings verified on 2026-10-04.
 export const DEFAULT_COD_SETTINGS = {
-  percentage: "0",
-  fixedFee: "9.90",
+  percentage: "0.01",
+  fixedFee: "5.00",
   active: true,
 } as const;
 
