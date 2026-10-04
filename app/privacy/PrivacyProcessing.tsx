@@ -52,8 +52,10 @@ export function PrivacyProcessing() {
           </li>
           <li>
             <strong>Plăți:</strong> metoda, suma, starea și identificatorii
-            tranzacției; datele de card pe care le furnizezi pentru funcția de
-            plată sau de salvare a cardului utilizată.
+            tranzacției. Introduci datele cardului în formularul procesatorului
+            de plată. Adăugarea și modificarea cardurilor în cont sunt
+            dezactivate. Eventualele înregistrări vechi sunt afișate numai prin
+            informații mascate și pot fi eliminate de titular.
           </li>
           <li>
             <strong>De la servicii:</strong> confirmări de plată de la

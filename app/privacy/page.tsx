@@ -24,7 +24,7 @@ export default function PrivacyPage() {
     <LegalPageShell
       title="Politica de confidențialitate"
       description="Cine prelucrează datele tale la TechTots, în ce scopuri, cui le transmite și ce opțiuni ai."
-      lastUpdated="3 octombrie 2026"
+      lastUpdated="4 octombrie 2026"
     >
       <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
         <nav

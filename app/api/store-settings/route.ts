@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { DEFAULT_FREE_SHIPPING_THRESHOLD } from "@/lib/shipping/settings";
 import { getStoreSettings } from "@/lib/utils/store-settings";
 
 // GET - Retrieve store settings for frontend use
@@ -9,7 +10,8 @@ export async function GET(_req: NextRequest) {
 
     // Get return threshold from shipping settings
     const shippingSettings = storeSettings.shippingSettings as any;
-    const returnThreshold = shippingSettings?.freeThreshold?.price || "199.00";
+    const returnThreshold =
+      shippingSettings?.freeThreshold?.price || DEFAULT_FREE_SHIPPING_THRESHOLD;
 
     // Return only the fields needed for frontend display
     const frontendSettings = {
@@ -29,7 +31,10 @@ export async function GET(_req: NextRequest) {
     // ETag is based on content hash so browsers can use 304 Not Modified responses.
     const etag = `"store-settings-${Buffer.from(JSON.stringify(frontendSettings)).toString("base64").slice(0, 16)}"`;
     const response = NextResponse.json(frontendSettings);
-    response.headers.set("Cache-Control", "public, max-age=300, s-maxage=300, stale-while-revalidate=600");
+    response.headers.set(
+      "Cache-Control",
+      "public, max-age=300, s-maxage=300, stale-while-revalidate=600"
+    );
     response.headers.set("ETag", etag);
 
     return response;

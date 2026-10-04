@@ -1,4 +1,9 @@
 import {
+  COD_HOLD_EXPLANATION_RO,
+  codFeeExplanation,
+  type PublicCODSettings,
+} from "@/lib/pricing/cod-settings";
+import {
   RETURN_POLICY_COD_RTO_RO,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
@@ -42,15 +47,31 @@ export const FAQ_ITEMS = [
   },
 ] as const;
 
-export const FAQ_STRUCTURED_DATA = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: FAQ_ITEMS.map(({ question, answer }) => ({
-    "@type": "Question",
-    name: question,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: answer,
+export function buildFAQItems(codSettings: PublicCODSettings) {
+  return [
+    ...FAQ_ITEMS,
+    {
+      question: "Ce taxă și ce garanție se aplică la plata ramburs?",
+      answer: `${codFeeExplanation(codSettings)} ${COD_HOLD_EXPLANATION_RO}`,
     },
-  })),
-};
+  ];
+}
+
+export function faqStructuredData(
+  items: ReadonlyArray<{ question: string; answer: string }>
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map(({ question, answer }) => ({
+      "@type": "Question",
+      name: question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: answer,
+      },
+    })),
+  };
+}
+
+export const FAQ_STRUCTURED_DATA = faqStructuredData(FAQ_ITEMS);

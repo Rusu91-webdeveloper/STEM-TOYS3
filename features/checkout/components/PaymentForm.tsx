@@ -1,5 +1,6 @@
 "use client";
 
+
 import { CircleAlert, Loader2, ShieldCheck } from "lucide-react";
 import React, {
   useCallback,
@@ -24,6 +25,7 @@ import {
 import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { useTranslation } from "@/lib/i18n";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
+import { DEFAULT_COD_SETTINGS } from "@/lib/pricing/cod-settings";
 import {
   getCodThreshold,
   getRecipientType,
@@ -251,7 +253,7 @@ export function PaymentForm({
     if (selectedPaymentMethod !== "cash_on_delivery") {
       return 0;
     }
-    
+
     if (!shippingMethod?.codGuaranteeHoldPrice) {
       return 0;
     }
@@ -297,7 +299,9 @@ export function PaymentForm({
         // Every COD order requires a guarantee, including during a mixed-version rollout.
         setCodGuaranteeRequired(true);
         if (policy?.required === false) {
-          console.warn("COD policy response is stale; card authorization remains required.");
+          console.warn(
+            "COD policy response is stale; card authorization remains required."
+          );
         }
       } catch (error) {
         if (!isActive) return;
@@ -385,14 +389,17 @@ export function PaymentForm({
         const codSettings = await fetchCODSettings();
         if (!isActive) return;
         setCodConfig({
-          percentage: parseFloat(codSettings.percentage || "3") / 100,
+          percentage:
+            parseFloat(
+              codSettings.percentage || DEFAULT_COD_SETTINGS.percentage
+            ) / 100,
           fixedFee: parseFloat(codSettings.fixedFee || "5.00"),
         });
       } catch (error) {
         console.error("Error loading COD settings:", error);
         if (!isActive) return;
         setCodConfig({
-          percentage: 0.03,
+          percentage: Number(DEFAULT_COD_SETTINGS.percentage) / 100,
           fixedFee: 5.0,
         });
       }
@@ -651,9 +658,11 @@ export function PaymentForm({
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           const errorCode = errorData.error || "";
-          const errorMessage = errorCode === "COD_GUARANTEE_PRICE_NOT_CONFIGURED"
-            ? errorData.message || "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu."
-            : errorData.error || "Failed to create COD guarantee";
+          const errorMessage =
+            errorCode === "COD_GUARANTEE_PRICE_NOT_CONFIGURED"
+              ? errorData.message ||
+                "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu."
+              : errorData.error || "Failed to create COD guarantee";
           throw new Error(errorMessage);
         }
 
@@ -676,10 +685,13 @@ export function PaymentForm({
         }
         console.error("Error creating COD guarantee intent:", error);
         clearCodGuaranteeIntent();
-        const errorMessage = error instanceof Error ? error.message : t(
-          "codGuaranteeIntentError",
-          "Nu am reușit să autorizăm garanția COD. Reîncearcă."
-        );
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : t(
+                "codGuaranteeIntentError",
+                "Nu am reușit să autorizăm garanția COD. Reîncearcă."
+              );
         setCodGuaranteeIntentError(errorMessage);
       } finally {
         if (isActive) {

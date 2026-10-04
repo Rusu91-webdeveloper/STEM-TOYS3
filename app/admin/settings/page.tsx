@@ -1,50 +1,5 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-
-import { publicConfig } from "@/lib/config/app-config";
-
-import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
-import BusinessHoursSettings from "@/components/admin/BusinessHoursSettings";
-import InventoryManagementSettings from "@/components/admin/InventoryManagementSettings";
-import MarketingSettings from "@/components/admin/MarketingSettings";
-import OrderProcessingSettings from "@/components/admin/OrderProcessingSettings";
-import UserManagementSettings from "@/components/admin/UserManagementSettings";
-import ConversionDashboard from "@/components/conversion-tracking/ConversionDashboard";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
-import { HelpTooltip } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Download,
   Upload,
@@ -59,7 +14,53 @@ import {
   Save,
   Truck,
 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+
+import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
+import BusinessHoursSettings from "@/components/admin/BusinessHoursSettings";
+import InventoryManagementSettings from "@/components/admin/InventoryManagementSettings";
+import MarketingSettings from "@/components/admin/MarketingSettings";
+import OrderProcessingSettings from "@/components/admin/OrderProcessingSettings";
+import UserManagementSettings from "@/components/admin/UserManagementSettings";
+import ConversionDashboard from "@/components/conversion-tracking/ConversionDashboard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { HelpTooltip } from "@/components/ui/tooltip";
+import { toast } from "@/components/ui/use-toast";
+import { publicConfig } from "@/lib/config/app-config";
+import { DEFAULT_COD_SETTINGS } from "@/lib/pricing/cod-settings";
 import { DEFAULT_COURIERS } from "@/lib/shipping/couriers";
+import { DEFAULT_DELIVERY_PRICE, DEFAULT_FREE_SHIPPING_THRESHOLD } from "@/lib/shipping/settings";
 
 interface StoreSettings {
   id?: string;
@@ -421,11 +422,11 @@ const defaultSettings: StoreSettings = {
     "jucării STEM, jucării educaționale, jucării știință, jucării tehnologie, jucării inginerie, jucării matematică",
   shippingSettings: {
     deliveryPrice: {
-      price: "15.00",
+      price: DEFAULT_DELIVERY_PRICE,
       active: true,
     },
     freeThreshold: {
-      price: "199.00",
+      price: DEFAULT_FREE_SHIPPING_THRESHOLD,
       active: true,
     },
     insuranceThreshold: "500",
@@ -439,7 +440,7 @@ const defaultSettings: StoreSettings = {
     couriers: DEFAULT_COURIERS,
   },
   codSettings: {
-    percentage: "3",
+    percentage: DEFAULT_COD_SETTINGS.percentage,
     fixedFee: "5.00",
     active: true,
   },
@@ -760,8 +761,8 @@ export default function SettingsPage() {
   const [originalSettings, setOriginalSettings] =
     useState<StoreSettings>(defaultSettings);
   const defaultShippingSettings = defaultSettings.shippingSettings ?? {
-    deliveryPrice: { price: "15.00", active: true },
-    freeThreshold: { price: "199.00", active: true },
+    deliveryPrice: { price: DEFAULT_DELIVERY_PRICE, active: true },
+    freeThreshold: { price: DEFAULT_FREE_SHIPPING_THRESHOLD, active: true },
     insuranceThreshold: "500",
     fanCourierPickup: {
       enabled: false,
@@ -802,7 +803,7 @@ export default function SettingsPage() {
           // Migrate from old structure (standard/express) to new structure (deliveryPrice)
           if (existing.standard || existing.express) {
             // Use standard price if available, otherwise express, otherwise default
-            const migratedPrice = existing.standard?.price || existing.express?.price || "15.00";
+            const migratedPrice = existing.standard?.price || existing.express?.price || DEFAULT_DELIVERY_PRICE;
             return {
               deliveryPrice: {
                 price: migratedPrice,
@@ -1147,8 +1148,8 @@ export default function SettingsPage() {
             ...(currentSettings[id] || {
               price:
                 id === "deliveryPrice"
-                  ? "15.00"
-                  : "199.00",
+                  ? DEFAULT_DELIVERY_PRICE
+                  : DEFAULT_FREE_SHIPPING_THRESHOLD,
             }),
             active: checked,
           },
@@ -1367,7 +1368,7 @@ export default function SettingsPage() {
   const handleCODPercentageChange = (value: string) => {
     setSettings(prev => {
       const currentSettings = prev.codSettings || {
-        percentage: "3",
+        percentage: DEFAULT_COD_SETTINGS.percentage,
         fixedFee: "5.00",
         active: true,
       };
@@ -1386,7 +1387,7 @@ export default function SettingsPage() {
   const handleCODFixedFeeChange = (value: string) => {
     setSettings(prev => {
       const currentSettings = prev.codSettings || {
-        percentage: "3",
+        percentage: DEFAULT_COD_SETTINGS.percentage,
         fixedFee: "5.00",
         active: true,
       };
@@ -1405,7 +1406,7 @@ export default function SettingsPage() {
   const handleCODActiveChange = (checked: boolean) => {
     setSettings(prev => {
       const currentSettings = prev.codSettings || {
-        percentage: "3",
+        percentage: DEFAULT_COD_SETTINGS.percentage,
         fixedFee: "5.00",
         active: true,
       };
@@ -2142,9 +2143,9 @@ export default function SettingsPage() {
                               "FanCourier FANbox" options.
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              <strong>Example:</strong> Set to 15.00 lei.
+                              <strong>Example:</strong> Set to 19.99 lei.
                               Customers whose orders are below your free
-                              shipping threshold will pay 15.00 lei for
+                              shipping threshold will pay 19.99 lei for
                               delivery, regardless of whether they choose home
                               delivery or FANbox.
                             </p>
@@ -2161,7 +2162,7 @@ export default function SettingsPage() {
                       <Input
                         id="delivery-price"
                         value={
-                          settings.shippingSettings?.deliveryPrice?.price || "15.00"
+                          settings.shippingSettings?.deliveryPrice?.price || DEFAULT_DELIVERY_PRICE
                         }
                         onChange={e =>
                           handleShippingPriceChange("deliveryPrice", e.target.value)

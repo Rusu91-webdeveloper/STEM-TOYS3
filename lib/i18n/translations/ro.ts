@@ -962,22 +962,22 @@ export const ro = {
 
   // About page paragraphs
   ourStoryParagraph1:
-    'Înființat în 2025, TechTots a fost fondat pe o viziune inspirată de două cărți pivot: "Jocuri STEM pentru minți neurodivergente" de Casey Wrenly și "Născut pentru viitor" de un educator și părinte dedicat. Aceste lucrări au evidențiat impactul profund al jocului STEM asupra dezvoltării copilului și importanța abilităților pregătite pentru viitor, modelând misiunea noastră principală.',
+    "TechTots reunește jucării și kituri pentru explorarea științei, tehnologiei, ingineriei și matematicii prin joacă. Pe fiecare pagină de produs găsești informațiile disponibile despre conținut, vârsta recomandată și utilizare.",
   ourStoryParagraph2:
-    'La TechTots, credem că jucăriile STEM sunt catalizatori esențiali pentru creșterea cognitivă la toți copiii, aprind curiozitatea naturală și construiesc fundamente în gândirea computațională și raționamentul științific. Susținem o abordare în care învățarea se aliniază cu interesele naturale și neurologia copilului. Suntem deosebit de dedicați copiilor neurodiversi, inclusiv cei cu ADHD și autism. Inspirați de "Jocuri STEM pentru minți neurodivergente", oferim instrumente concepute pentru experiențe bogate senzorial care îmbunătățesc concentrarea și abilitățile cognitive, transformând punctele lor forte unice în căi pentru învățare și încredere.',
+    "Alege activitățile în funcție de interesele, vârsta și nevoile copilului și respectă instrucțiunile producătorului. Jucăriile din magazin sunt produse pentru joacă și explorare; nu promitem rezultate medicale sau beneficii terapeutice.",
   ourStoryParagraph3:
-    'Modelat în continuare de "Născut pentru viitor", care pune accentul pe pregătirea copiilor cu abilități umane critice pentru o lume dominată de AI, înțelegem că integrarea STEM construiește abilități tehnice și de rezolvare creativă a problemelor cruciale. Misiunea noastră la TechTots este să fim partenerul tău de încredere, oferind jucării educaționale îmbogățitoare și îndrumare părintească. Ne propunem să arătăm cum aceste instrumente atent selectate încurajează dezvoltarea, hrănesc curiozitatea și echipează toți copiii cu abilități esențiale pentru ziua de mâine - toate prin puterea jocului bucuros.',
+    "Poți compara produsele, verifica condițiile de livrare și retur și ne poți contacta înainte de comandă dacă ai nevoie de informații suplimentare.",
 
   // Values section
   qualitySafety: "Calitate și Siguranță",
   qualitySafetyDesc:
-    "Testăm riguros toate produsele noastre pentru a ne asigura că îndeplinesc cele mai înalte standarde de calitate, durabilitate și siguranță pentru copii.",
+    "Consultă vârsta recomandată, avertismentele și instrucțiunile producătorului pentru fiecare produs. Folosește jucăria în condițiile indicate și cu supravegherea unui adult atunci când este necesar.",
   educationalImpact: "Impact Educațional",
   educationalImpactDesc:
-    "Fiecare produs din colecția noastră este conceput cu rezultate specifice de învățare în minte, sprijinind dezvoltarea abilităților adecvate vârstei.",
+    "Colecția include activități de construcție, experimente și jocuri logice. Experiența depinde de produs, de utilizare și de interesele copilului.",
   sustainability: "Sustenabilitate",
   sustainabilityDesc:
-    "Suntem dedicați reducerii amprentei noastre de mediu prin materiale sustenabile, ambalaje responsabile și practici de afaceri conștiente.",
+    "Păstrează ambalajele utile și sortează materialele pentru reciclare potrivit regulilor locale. Informațiile despre materialele produsului se verifică în descriere și la producător.",
 
   // CTA section
   joinStemJourneyDesc:
@@ -1475,11 +1475,11 @@ export const ro = {
   faqWhatAreStem:
     "O să ajute jucăriile STEM cu adevărat copilul meu care urăște matematica și știința?",
   faqWhatAreStemAnswer:
-    "DA! Jucăriile noastre STEM transformă învățarea în joc captivant, nu muncă plictisitoare. Jucăriile noastre sunt concepute special pentru a transforma elevii cu dificultăți în învățători încrezători prin explorare practică. Alătură-te părinților care au văzut deja progres la copiii lor prin jocul educațional.",
+    "Jucăriile STEM oferă ocazii de explorare practică a matematicii, științei și construcției prin joc. Alege activități potrivite intereselor și vârstei copilului; experiența și progresul diferă de la un copil la altul.",
   faqAgeAppropriate:
     "Îmi fac griji că voi cumpăra jucăria greșită - cum aleg cea potrivită?",
   faqAgeAppropriateAnswer:
-    "Nu-ți face griji - te ajutăm noi! Fiecare jucărie vine cu recomandări detaliate de vârstă și indicatori de nivel de abilitate. În plus, oferim returnări fără probleme și suntem mereu aici să te ajutăm să găsești jucăria perfectă pentru copilul tău.",
+    "Verifică recomandarea de vârstă și avertismentele producătorului din descriere și de pe ambalaj, precum și interesele copilului. Dacă informațiile unui produs sunt incomplete, contactează-ne înainte de a-l cumpăra.",
   faqReturnPolicy:
     "Ce se întâmplă dacă nu sunt mulțumit? Care este garanția voastră?",
   faqReturnPolicyAnswer:
@@ -1487,7 +1487,7 @@ export const ro = {
   faqSafety:
     "Sunt aceste jucării sigure? Nu vreau să risc siguranța copilului meu.",
   faqSafetyAnswer:
-    "Absolut! Fiecare jucărie din colecția noastră îndeplinește sau depășește standardele internaționale de siguranță (CE, ASTM, EN71). Testăm personal fiecare produs pentru siguranță și calitate. Siguranța copilului tău este prioritatea noastră #1. Toate materialele sunt non-toxice și certificate pentru utilizare de către copii. Poți cumpăra cu încredere completă.",
+    "Respectă recomandările de vârstă, instrucțiunile și avertismentele producătorului. Unele kituri conțin piese mici sau necesită supravegherea unui adult. Contactează-ne pentru informațiile de siguranță ale unui produs înainte de cumpărare.",
 
   // FAQ CTAs
   faqGetPersonalizedRecommendations:
@@ -2071,13 +2071,13 @@ export const ro = {
   // COD (Cash on Delivery) translations
   codProviderTitle: "Ramburs · Plătești la livrare",
   codProviderSubtitle:
-    "Plătești cash la primirea coletului - fără card, fără complicații",
-  codChipPopular: "60%+ din clienții din România preferă",
-  codChipSimple: "Fără card, fără complicații",
+    "Plătești produsele la curier; fiecare comandă ramburs necesită o autorizare temporară pe card pentru transportul tur.",
+  codChipPopular: "Plată la curier",
+  codChipSimple: "Autorizare temporară pentru transport",
   codChipSecure: "Plătești doar când primești coletul",
   codPopular: "Popular în România",
   codFee: "Taxă ramburs",
-  codFeeBreakdown: "Taxă: {percentage} RON (1%) + {fixed} RON fix",
+  codFeeBreakdown: "Taxă procentuală: {percentage} RON + {fixed} RON fix",
   codTotalWithFee: "Total cu ramburs: {total} RON",
   codNotice:
     "💡 Plătești cash la primirea coletului. Curierul va colecta suma totală.",
@@ -2085,18 +2085,18 @@ export const ro = {
   codOrderSuccessMessage:
     "Comanda ta a fost plasată. Vei plăti cash la primirea coletului. Vei primi un email de confirmare în curând.",
   codPaymentMethod: "Plată la livrare (Ramburs)",
-  codLockerPaymentMethod: "Plată la FANbox (card la locker)",
+  codLockerPaymentMethod: "FANbox · doar plată online",
   codHomeMethodDescription:
     "Plătești la primirea coletului (RTO la refuz/nepreluare).",
   codLockerMethodDescription:
-    "Plătești la ridicare, cu cardul la terminalul FANbox (RTO la refuz/nepreluare).",
-  codLockerBadge: "Card la FANbox",
-  codLockerProviderChip: "Card la locker",
-  codLockerFeePreview: "Fără taxă fixă de 5 RON",
+    "Pentru FANbox, plata se face online cu cardul; rambursul nu este disponibil.",
+  codLockerBadge: "Card online",
+  codLockerProviderChip: "Card online",
+  codLockerFeePreview: "Ramburs indisponibil",
   codInfoTitle: "Informare COD (ramburs)",
   codSelectorPreviewTitle: "Ramburs la livrare",
   codSelectorPreviewBody:
-    "Plătești produsele la curier. Pentru unele comenzi solicităm o autorizare temporară pe card, limitată la transportul tur; TechTots suportă returul la expeditor.",
+    "Plătești produsele la curier. Fiecare comandă ramburs necesită o autorizare temporară pe card, limitată la transportul tur; TechTots suportă returul la expeditor.",
   codSelectorPreviewLinksLead: "Documente:",
   codRambursHeroTitle: "Ramburs — plătești la livrare",
   codRambursHeroBadge: "Informare obligatorie",

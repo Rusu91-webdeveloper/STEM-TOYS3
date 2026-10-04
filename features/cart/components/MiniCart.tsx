@@ -5,7 +5,6 @@ import {
   ShoppingBag,
   Trash2,
   ChevronDown,
-  ChevronUp,
   Check,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -18,16 +17,12 @@ import { useCart } from "@/features/cart/context/CartContext";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
-import {
-  gradientButtonClass,
-} from "@/features/home/components/homeTheme";
-import { cn } from "@/lib/utils";
 
-import { fetchShippingSettings } from "@/features/checkout/lib/checkoutApi";
 
-import { CartProductImage } from "./CartProductImage";
+import { useCartShippingEstimate } from "../hooks/useCartShippingEstimate";
 
 import { BulkCartOperations } from "./BulkCartOperations";
+import { CartProductImage } from "./CartProductImage";
 
 interface MiniCartProps {
   isOpen: boolean;
@@ -35,7 +30,7 @@ interface MiniCartProps {
 }
 
 export function MiniCart({ isOpen, onClose }: MiniCartProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const router = useRouter();
   const { formatPrice } = useCurrency();
   const { status } = useOptimizedSession();
@@ -43,7 +38,6 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
     items,
     isLoading,
     isEmpty,
-    getTotal,
     getCartTotal,
     removeItem,
     updateItemQuantity,
@@ -58,47 +52,17 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
   const itemsContainerRef = useRef<HTMLDivElement>(null);
   const [isClient, setIsClient] = useState(false);
 
-  // Dynamic shipping: delivery price and free threshold from admin settings
-  const [deliveryPrice, setDeliveryPrice] = useState<number>(0);
-  const [freeThreshold, setFreeThreshold] = useState<number | null>(null);
+  const cartSubtotal = getCartTotal();
+  const hasPhysicalItems = items.some(item => item.isBook !== true);
+  const { shippingCost: shipping, freeThreshold } = useCartShippingEstimate(
+    cartSubtotal,
+    hasPhysicalItems,
+    isOpen
+  );
 
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    let isActive = true;
-
-    async function loadShippingSettings() {
-      try {
-        const settings = await fetchShippingSettings();
-        if (!isActive) return;
-        const delivery = settings?.deliveryPrice;
-        const free = settings?.freeThreshold;
-        setDeliveryPrice(
-          delivery?.active && delivery?.price
-            ? parseFloat(String(delivery.price)) || 0
-            : 0
-        );
-        setFreeThreshold(
-          free?.active && free?.price
-            ? parseFloat(String(free.price)) || null
-            : null
-        );
-      } catch (e) {
-        if (isActive) {
-          setDeliveryPrice(0);
-          setFreeThreshold(null);
-        }
-      }
-    }
-
-    loadShippingSettings();
-    return () => {
-      isActive = false;
-    };
-  }, [isOpen]);
 
   // Prevent body scroll when mini cart is open
   useEffect(() => {
@@ -129,7 +93,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
   useEffect(() => {
     if (isOpen && typeof window !== "undefined") {
       import("../lib/cartStorage")
-        .then(({ getCartAgeInfo }) => {
+        .then(() => {
           // setCartAge(ageInfo); // Removed as per edit hint
         })
         .catch(console.error);
@@ -170,7 +134,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
   // Handle scroll indicator
   useEffect(() => {
     const container = itemsContainerRef.current;
-    if (!container) return;
+    if (!container) return undefined;
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
@@ -246,19 +210,18 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
           />
 
           {/* Cart Panel - Professional Light Theme */}
-          <div
-            className="pointer-events-auto fixed right-0 top-0 z-[10001] flex h-full w-full sm:w-[400px] md:w-[450px] max-w-full flex-col border-l border-slate-200 bg-white text-slate-900 shadow-2xl transition-transform"
-          >
+          <div className="pointer-events-auto fixed right-0 top-0 z-[10001] flex h-full w-full sm:w-[400px] md:w-[450px] max-w-full flex-col border-l border-slate-200 bg-white text-slate-900 shadow-2xl transition-transform">
             {/* Header - Fixed at top */}
-            <div
-              className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 bg-white/80 px-5 py-4 backdrop-blur-md"
-            >
+            <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 bg-white/80 px-5 py-4 backdrop-blur-md">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600">
                   <ShoppingBag className="h-5 w-5" />
                 </span>
                 <h2 className="text-lg font-bold tracking-tight text-slate-900">
-                  {t("cart")} <span className="text-slate-500 font-medium">({items.length})</span>
+                  {t("cart")}{" "}
+                  <span className="text-slate-500 font-medium">
+                    ({items.length})
+                  </span>
                 </h2>
               </div>
 
@@ -295,7 +258,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                     <p className="mt-1 text-sm text-slate-500">
                       Start adding items to your cart
                     </p>
-                    <Button 
+                    <Button
                       onClick={onClose}
                       className="mt-6 rounded-full bg-slate-900 px-6 text-white hover:bg-slate-800"
                     >
@@ -357,7 +320,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                                   {formatPrice(item.price)}
                                 </p>
                               </div>
-                              
+
                               <div className="mt-1 flex flex-wrap gap-1">
                                 {item.selectedLanguage && (
                                   <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
@@ -431,20 +394,11 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                   </div>
 
                   {/* Footer - Fixed at bottom with professional styling */}
-                  <div
-                    className="flex-shrink-0 border-t border-slate-200 bg-white p-5 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]"
-                  >
+                  <div className="flex-shrink-0 border-t border-slate-200 bg-white p-5 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">
                     {/* Shipping breakdown */}
                     {(() => {
-                      const cartSubtotal = getCartTotal();
-                      const hasPhysicalItems = items.some(item => !item.isBook);
                       const threshold = freeThreshold ?? 0;
-                      const shipping = hasPhysicalItems
-                        ? threshold > 0 && cartSubtotal >= threshold
-                          ? 0
-                          : deliveryPrice
-                        : 0;
-                      const total = cartSubtotal + shipping;
+                      const total = cartSubtotal + (shipping ?? 0);
                       const freeShippingRemaining =
                         hasPhysicalItems &&
                         threshold > 0 &&
@@ -472,10 +426,21 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                               {t("shipping", "Livrare")}
                             </span>
                             <span className="font-medium">
-                              {shipping === 0 ? (
-                                <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md text-xs font-bold">Gratuit</span>
+                              {shipping === null ? (
+                                <span className="text-slate-500">
+                                  {t(
+                                    "shippingCalculatedAtCheckout",
+                                    "Se calculează la finalizare"
+                                  )}
+                                </span>
+                              ) : shipping === 0 ? (
+                                <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md text-xs font-bold">
+                                  Gratuit
+                                </span>
                               ) : (
-                                <span className="text-slate-900">{formatPrice(shipping)}</span>
+                                <span className="text-slate-900">
+                                  {formatPrice(shipping)}
+                                </span>
                               )}
                             </span>
                           </div>
@@ -487,12 +452,21 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                                 {freeShippingRemaining > 0 ? (
                                   <div className="flex flex-col gap-2">
                                     <div className="flex justify-between text-sky-800">
-                                      <span>Adaugă {formatPrice(freeShippingRemaining)} {t("moreForFreeShipping", "pentru transport gratuit")}</span>
+                                      <span>
+                                        Adaugă{" "}
+                                        {formatPrice(freeShippingRemaining)}{" "}
+                                        {t(
+                                          "moreForFreeShipping",
+                                          "pentru transport gratuit"
+                                        )}
+                                      </span>
                                     </div>
                                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-sky-200/50">
-                                      <div 
+                                      <div
                                         className="h-full rounded-full bg-sky-500 transition-all duration-500"
-                                        style={{ width: `${Math.min(100, (cartSubtotal / threshold) * 100)}%` }}
+                                        style={{
+                                          width: `${Math.min(100, (cartSubtotal / threshold) * 100)}%`,
+                                        }}
                                       />
                                     </div>
                                   </div>
@@ -511,12 +485,16 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                           {/* Total */}
                           <div className="flex items-center justify-between border-t border-slate-100 pt-3 mt-3">
                             <span className="text-base font-bold text-slate-900">
-                              {t("total", "Total")}
+                              {t("estimatedTotal", "Total estimat")}
                             </span>
                             <span className="text-xl font-black text-slate-900">
                               {formatPrice(total)}
+                              {shipping === null ? " + livrare" : ""}
                             </span>
                           </div>
+                          <p className="mt-2 text-xs text-slate-500">
+                            {language === "ro" ? "Livrarea finală și eventualele expedieri separate se confirmă la finalizare. Taxa ramburs se adaugă dacă alegi această metodă de plată." : "Final delivery costs and any separate shipments are confirmed at checkout. A COD fee is added if you choose cash on delivery."}
+                          </p>
                         </div>
                       );
                     })()}

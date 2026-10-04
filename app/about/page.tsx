@@ -260,7 +260,7 @@ export default function AboutPage() {
                           <p className="leading-relaxed text-slate-800">
                             {t(
                               "ourStoryParagraph1",
-                              'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.'
+                              "TechTots brings together toys and kits for exploring science, technology, engineering and mathematics through play. Product pages provide available information about contents, recommended age and use."
                             )}
                           </p>
                           {storyExpanded && (
@@ -268,13 +268,13 @@ export default function AboutPage() {
                               <p className="mt-3 leading-relaxed text-slate-700">
                                 {t(
                                   "ourStoryParagraph2",
-                                  'At TechTots, we believe STEM toys are essential catalysts for cognitive growth in all children, igniting natural curiosity and building foundations in computational thinking and scientific reasoning. We champion an approach where learning aligns with a child\'s natural interests and neurology. We are especially committed to neurodiverse children, including those with ADHD and autism. Drawing inspiration from "STEM Play for Neurodiverse Minds," we offer tools designed for sensory-rich experiences that enhance focus and cognitive skills, transforming their unique strengths into pathways for learning and confidence.'
+                                  "Choose activities around the child’s interests, age and needs, and follow the manufacturer’s instructions. These products support play and exploration; we do not promise medical outcomes or therapeutic benefits."
                                 )}
                               </p>
                               <p className="mt-3 border-l-4 border-sky-300/60 pl-4 text-sm italic text-slate-700">
                                 {t(
                                   "ourStoryParagraph3",
-                                  'Further shaped by "Born for the Future," which emphasizes preparing children with critical human skills for an AI-driven world, we understand that STEM integration builds crucial technical and creative problem-solving abilities. Our mission at TechTots is to be your trusted partner, providing enriching educational toys and parental guidance. We aim to show how these carefully selected tools foster development, nurture curiosity, and equip all children with essential skills for tomorrow—all through the power of joyful play.'
+                                  "Compare products, check delivery and return conditions, and contact us before ordering if you need more information."
                                 )}
                               </p>
                             </>
@@ -298,19 +298,19 @@ export default function AboutPage() {
                         <p className="text-sm font-medium text-slate-800 sm:text-base">
                           {t(
                             "ourStoryParagraph1",
-                            'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.'
+                            "TechTots brings together toys and kits for exploring science, technology, engineering and mathematics through play. Product pages provide available information about contents, recommended age and use."
                           )}
                         </p>
                         <p className="text-sm leading-relaxed text-slate-700 sm:text-base">
                           {t(
                             "ourStoryParagraph2",
-                            'At TechTots, we believe STEM toys are essential catalysts for cognitive growth in all children, igniting natural curiosity and building foundations in computational thinking and scientific reasoning. We champion an approach where learning aligns with a child\'s natural interests and neurology. We are especially committed to neurodiverse children, including those with ADHD and autism. Drawing inspiration from "STEM Play for Neurodiverse Minds," we offer tools designed for sensory-rich experiences that enhance focus and cognitive skills, transforming their unique strengths into pathways for learning and confidence.'
+                            "Choose activities around the child’s interests, age and needs, and follow the manufacturer’s instructions. These products support play and exploration; we do not promise medical outcomes or therapeutic benefits."
                           )}
                         </p>
                         <p className="border-l-4 border-sky-300/60 pl-4 text-sm italic text-slate-700 sm:text-base">
                           {t(
                             "ourStoryParagraph3",
-                            'Further shaped by "Born for the Future," which emphasizes preparing children with critical human skills for an AI-driven world, we understand that STEM integration builds crucial technical and creative problem-solving abilities. Our mission at TechTots is to be your trusted partner, providing enriching educational toys and parental guidance. We aim to show how these carefully selected tools foster development, nurture curiosity, and equip all children with essential skills for tomorrow—all through the power of joyful play.'
+                            "Compare products, check delivery and return conditions, and contact us before ordering if you need more information."
                           )}
                         </p>
                       </div>

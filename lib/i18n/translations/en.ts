@@ -873,22 +873,22 @@ export const en = {
 
   // About page paragraphs
   ourStoryParagraph1:
-    'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.',
+    "TechTots brings together toys and kits for exploring science, technology, engineering and mathematics through play. Product pages provide available information about contents, recommended age and use.",
   ourStoryParagraph2:
-    'At TechTots, we believe STEM toys are essential catalysts for cognitive growth in all children, igniting natural curiosity and building foundations in computational thinking and scientific reasoning. We champion an approach where learning aligns with a child\'s natural interests and neurology. We are especially committed to neurodiverse children, including those with ADHD and autism. Drawing inspiration from "STEM Play for Neurodiverse Minds," we offer tools designed for sensory-rich experiences that enhance focus and cognitive skills, transforming their unique strengths into pathways for learning and confidence.',
+    "Choose activities around the child’s interests, age and needs, and follow the manufacturer’s instructions. These products support play and exploration; we do not promise medical outcomes or therapeutic benefits.",
   ourStoryParagraph3:
-    'Further shaped by "Born for the Future," which emphasizes preparing children with critical human skills for an AI-driven world, we understand that STEM integration builds crucial technical and creative problem-solving abilities. Our mission at TechTots is to be your trusted partner, providing enriching educational toys and parental guidance. We aim to show how these carefully selected tools foster development, nurture curiosity, and equip all children with essential skills for tomorrow—all through the power of joyful play.',
+    "Compare products, check delivery and return conditions, and contact us before ordering if you need more information.",
 
   // Values section
   qualitySafety: "Quality & Safety",
   qualitySafetyDesc:
-    "We rigorously test all our products to ensure they meet the highest standards of quality, durability, and child safety.",
+    "Check the recommended age, warnings and manufacturer’s instructions for each product. Follow the stated conditions of use and provide adult supervision when required.",
   educationalImpact: "Educational Impact",
   educationalImpactDesc:
-    "Every product in our collection is designed with specific learning outcomes in mind, supporting the development of age-appropriate skills.",
+    "The collection includes building activities, experiments and logic games. The experience depends on the product, its use and the child’s interests.",
   sustainability: "Sustainability",
   sustainabilityDesc:
-    "We are committed to reducing our environmental footprint through sustainable materials, responsible packaging, and mindful business practices.",
+    "Keep useful packaging and sort materials for recycling under local rules. Check product material information in its description and with the manufacturer.",
 
   // CTA section
   joinStemJourneyDesc:
@@ -1317,17 +1317,17 @@ export const en = {
   faqWhatAreStem:
     "Will STEM toys actually help my child who hates math and science?",
   faqWhatAreStemAnswer:
-    "YES! Our STEM toys transform learning into captivating play, not tedious work. Our toys are specifically designed to turn struggling students into confident learners through hands-on exploration. Join parents who have already seen progress in their children through educational play.",
+    "STEM toys offer opportunities to explore mathematics, science and construction through practical play. Choose activities that fit your child's interests and age; experiences and progress vary from child to child.",
   faqAgeAppropriate:
     "I'm worried I'll buy the wrong toy - how do I choose the right one?",
   faqAgeAppropriateAnswer:
-    "Don't worry - we've got you covered! Every toy comes with detailed age recommendations and skill level indicators. Plus, we offer hassle-free returns and we're always here to help you find the perfect toy for your child.",
+    "Check the manufacturer's age recommendation and warnings in the description and on the packaging, along with your child's interests. If product information is incomplete, contact us before buying.",
   faqReturnPolicy: "What if I'm not satisfied? What's your return policy?",
   faqReturnPolicyAnswer:
     "You have a 14 calendar day withdrawal period from delivery. The direct return shipping cost is paid by the customer for standard returns, while defective, non-conforming, or incorrectly shipped products are returned at the seller's expense.",
   faqSafety: "Are these toys safe? I don't want to risk my child's safety.",
   faqSafetyAnswer:
-    "Absolutely! Every toy in our collection meets or exceeds international safety standards (CE, ASTM, EN71). We personally test every product for safety and quality. Your child's safety is our #1 priority. All materials are non-toxic and certified for use by children. You can shop with complete confidence.",
+    "Follow the manufacturer's age recommendations, instructions and safety warnings. Some kits contain small parts or require adult supervision. Contact us for a product's safety information before buying.",
 
   // FAQ CTAs
   faqGetPersonalizedRecommendations: "Get Personalized Recommendations (Free)",
@@ -1882,31 +1882,31 @@ export const en = {
 
   // COD (Cash on Delivery) translations
   codProviderTitle: "Cash on delivery",
-  codProviderSubtitle: "Pay in cash when the courier delivers your package",
-  codChipPopular: "Popular with Romanian customers",
-  codChipSimple: "No card required",
+  codProviderSubtitle: "Pay for the products on delivery; every COD order requires a temporary card authorization for outbound shipping.",
+  codChipPopular: "Pay the courier",
+  codChipSimple: "Temporary shipping authorization",
   codChipSecure: "Pay only when you receive the parcel",
   codPopular: "Popular in Romania",
   codFee: "Cash on delivery fee",
-  codFeeBreakdown: "Fee: {percentage} RON (1%) + {fixed} RON fixed",
+  codFeeBreakdown: "Percentage fee: {percentage} RON + {fixed} RON fixed",
   codTotalWithFee: "Total with COD: {total} RON",
   codNotice: "Pay cash on delivery. The courier will collect the total amount.",
   codOrderSuccess: "Order placed successfully!",
   codOrderSuccessMessage:
     "Your order has been placed. You'll pay cash on delivery. You'll receive a confirmation email soon.",
   codPaymentMethod: "Cash on delivery",
-  codLockerPaymentMethod: "Pay at FANbox (card at locker)",
+  codLockerPaymentMethod: "FANbox · online payment only",
   codHomeMethodDescription:
     "Pay when the courier delivers your parcel. If you refuse or do not collect it, the parcel is returned to sender (RTO).",
   codLockerMethodDescription:
-    "Pay at pickup with your card at the FANbox terminal. If you do not collect it, the parcel is returned to sender (RTO).",
-  codLockerBadge: "Card at FANbox",
-  codLockerProviderChip: "Card at locker",
-  codLockerFeePreview: "No fixed 5 RON fee",
+    "For FANbox, payment is made online by card; cash on delivery is unavailable.",
+  codLockerBadge: "Online card payment",
+  codLockerProviderChip: "Online card payment",
+  codLockerFeePreview: "COD unavailable",
   codInfoTitle: "COD information",
   codSelectorPreviewTitle: "Cash on delivery",
   codSelectorPreviewBody:
-    "Pay for the products when the courier arrives. For some orders we request a temporary card authorization limited to outbound shipping; TechTots covers the return-to-sender leg.",
+    "Pay for the products when the courier arrives. Every COD order requires a temporary card authorization limited to outbound shipping; TechTots covers the return-to-sender leg.",
   codSelectorPreviewLinksLead: "Policies:",
   codRambursHeroTitle: "Cash on delivery",
   codRambursHeroBadge: "Required information",

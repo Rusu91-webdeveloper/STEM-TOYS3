@@ -1,7 +1,8 @@
 import { getCached, invalidateCache, CacheKeys } from "@/lib/cache";
 import { appConfig } from "@/lib/config/app-config";
+import { DEFAULT_COD_SETTINGS } from "@/lib/pricing/cod-settings";
 import { prisma } from "@/lib/prisma";
-import { DEFAULT_COURIERS } from "@/lib/shipping/couriers";
+import { defaultShippingSettings } from "@/lib/shipping/settings";
 
 // **PERFORMANCE**: Cache store settings at module level to avoid repeated database calls
 // Shortened duration ensures admin shipping price changes reach checkout pricing promptly
@@ -71,30 +72,14 @@ export async function getStoreSettings() {
           "Descoperă cele mai bune jucării STEM la TechTots. Jucării educaționale care fac învățarea distractivă pentru copii de toate vârstele.",
         metaKeywords:
           "jucării STEM, jucării educaționale, jucării știință, jucării tehnologie, jucării inginerie, jucării matematică",
-        businessAddress: process.env.STORE_STREET_ADDRESS || "Strada Mehedinți 54-56",
+        businessAddress:
+          process.env.STORE_STREET_ADDRESS || "Strada Mehedinți 54-56",
         businessCity: process.env.STORE_CITY || "Cluj-Napoca",
         businessState: "Cluj",
         businessCountry: "România",
         businessPostalCode: "400000",
-      shippingSettings: {
-        deliveryPrice: { price: "15.00", active: true },
-        freeThreshold: { price: "199.00", active: true },
-        insuranceThreshold: "500",
-        fanCourierPickup: {
-          enabled: false,
-          windowStart: "09:00",
-          windowEnd: "16:00",
-          offsetDays: 0,
-          observations: "",
-        },
-        couriers: DEFAULT_COURIERS,
-        __source: "default" as const,
-      },
-        codSettings: {
-          percentage: "3",
-          fixedFee: "5.00",
-          active: true,
-        },
+        shippingSettings: defaultShippingSettings(),
+        codSettings: { ...DEFAULT_COD_SETTINGS },
         taxSettings: {
           rate: "21",
           active: false,
@@ -117,11 +102,7 @@ export async function getStoreSettings() {
     // Transform the database result to include codSettings as a top-level field
     const transformedSettings = {
       ...settings,
-      codSettings: codSettings || {
-        percentage: "3",
-        fixedFee: "5.00",
-        active: true,
-      },
+      codSettings: codSettings || { ...DEFAULT_COD_SETTINGS },
     };
 
     // Cache successful database result
@@ -154,30 +135,14 @@ export async function getStoreSettings() {
         "Descoperă cele mai bune jucării STEM la TechTots. Jucării educaționale care fac învățarea distractivă pentru copii de toate vârstele.",
       metaKeywords:
         "jucării STEM, jucării educaționale, jucării știință, jucării tehnologie, jucării inginerie, jucării matematică",
-      businessAddress: process.env.STORE_STREET_ADDRESS || "Strada Mehedinți 54-56",
+      businessAddress:
+        process.env.STORE_STREET_ADDRESS || "Strada Mehedinți 54-56",
       businessCity: process.env.STORE_CITY || "Cluj-Napoca",
       businessState: "Cluj",
       businessCountry: "România",
       businessPostalCode: "400000",
-      shippingSettings: {
-        deliveryPrice: { price: "15.00", active: true },
-        freeThreshold: { price: "199.00", active: true },
-        insuranceThreshold: "500",
-        fanCourierPickup: {
-          enabled: false,
-          windowStart: "09:00",
-          windowEnd: "16:00",
-          offsetDays: 0,
-          observations: "",
-        },
-        couriers: DEFAULT_COURIERS,
-        __source: "default" as const,
-      },
-      codSettings: {
-        percentage: "3",
-        fixedFee: "5.00",
-        active: true,
-      },
+      shippingSettings: defaultShippingSettings(),
+      codSettings: { ...DEFAULT_COD_SETTINGS },
       taxSettings: {
         rate: "21",
         active: false,
@@ -204,22 +169,7 @@ export async function getBusinessAddress() {
  */
 export async function getShippingSettings() {
   const settings = await getStoreSettings();
-  return (
-    settings.shippingSettings || {
-      deliveryPrice: { price: "15.00", active: true },
-      freeThreshold: { price: "199.00", active: true },
-      insuranceThreshold: "500",
-      fanCourierPickup: {
-        enabled: false,
-        windowStart: "09:00",
-        windowEnd: "16:00",
-        offsetDays: 0,
-        observations: "",
-      },
-      couriers: DEFAULT_COURIERS,
-      __source: "default" as const,
-    }
-  );
+  return settings.shippingSettings || defaultShippingSettings();
 }
 
 /**
@@ -228,13 +178,7 @@ export async function getShippingSettings() {
  */
 export async function getCODSettings() {
   const settings = await getStoreSettings();
-  return (
-    settings.codSettings || {
-      percentage: "3",
-      fixedFee: "5.00",
-      active: true,
-    }
-  );
+  return settings.codSettings || { ...DEFAULT_COD_SETTINGS };
 }
 
 /**

@@ -7,8 +7,8 @@
  */
 
 export interface ResolvedShippingPrice {
-    price: number | null;
-    source: "admin" | "missing";
+  price: number | null;
+  source: "admin" | "missing";
 }
 
 /**
@@ -17,60 +17,71 @@ export interface ResolvedShippingPrice {
  * When null, the server charges the courier quote - client must not invent a number.
  */
 export function resolveShippingPrice(
-    shippingSettings: unknown
+  shippingSettings: unknown
 ): ResolvedShippingPrice {
-    const settings = shippingSettings as Record<string, unknown> | null | undefined;
+  const settings = shippingSettings as
+    | Record<string, unknown>
+    | null
+    | undefined;
 
-    if (!settings) {
-        return {
-            price: null,
-            source: "missing",
-        };
-    }
-
-    const deliveryPrice = settings.deliveryPrice as
-        | { price?: string; active?: boolean }
-        | undefined;
-
-    // Return null if deliveryPrice is not configured or inactive
-    if (!deliveryPrice?.active || !deliveryPrice.price) {
-        return {
-            price: null,
-            source: "missing",
-        };
-    }
-
-    const price = Number(deliveryPrice.price);
-    
-    // Return null if price is invalid
-    if (!Number.isFinite(price) || price < 0) {
-        return {
-            price: null,
-            source: "missing",
-        };
-    }
-
+  if (!settings) {
     return {
-        price,
-        source: "admin",
+      price: null,
+      source: "missing",
     };
+  }
+
+  const deliveryPrice = settings.deliveryPrice as
+    | { price?: string; active?: boolean }
+    | undefined;
+
+  // Return null if deliveryPrice is not configured or inactive
+  if (!deliveryPrice?.active || !deliveryPrice.price) {
+    return {
+      price: null,
+      source: "missing",
+    };
+  }
+
+  const price = Number(deliveryPrice.price);
+
+  // Return null if price is invalid
+  if (!Number.isFinite(price) || price < 0) {
+    return {
+      price: null,
+      source: "missing",
+    };
+  }
+
+  return {
+    price,
+    source: "admin",
+  };
 }
 
 /**
  * Check if order qualifies for free shipping
  */
 export function checkFreeShipping(
-    cartTotal: number,
-    shippingSettings: unknown
+  cartTotal: number,
+  shippingSettings: unknown
 ): boolean {
-    const settings = shippingSettings as Record<string, unknown> | null | undefined;
-    if (!settings) return false;
+  const settings = shippingSettings as
+    | Record<string, unknown>
+    | null
+    | undefined;
+  if (!settings) return false;
 
-    const freeThreshold = settings.freeThreshold as
-        | { price?: string; active?: boolean }
-        | undefined;
-    if (!freeThreshold?.active) return false;
+  const freeThreshold = settings.freeThreshold as
+    | { price?: string; active?: boolean }
+    | undefined;
+  if (!freeThreshold?.active) return false;
 
-    const threshold = parseFloat(freeThreshold.price || "0");
-    return threshold > 0 && cartTotal >= threshold;
+  const threshold = Number(freeThreshold.price);
+  return (
+    Number.isFinite(threshold) &&
+    threshold > 0 &&
+    Number.isFinite(cartTotal) &&
+    cartTotal >= threshold
+  );
 }

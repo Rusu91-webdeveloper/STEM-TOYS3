@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
 
-import { publicConfig } from "@/lib/config/app-config";
-
-import { Button } from "@/components/ui/button";
 import { LegalPageShell } from "@/components/legal/LegalPageShell";
+import { Button } from "@/components/ui/button";
 import { Icon, StatusIcons } from "@/components/ui/icon-system";
 import { Separator } from "@/components/ui/separator";
+import { COMPANY_LEGAL } from "@/lib/config/company-legal";
 import { useTranslation } from "@/lib/i18n";
 import {
   RETURN_POLICY_COD_RTO_RO,
@@ -25,7 +23,7 @@ const toc = [
   { id: "produse", label: "5. Produse și Comenzi" },
   { id: "livrare", label: "6. Livrare" },
   { id: "retur", label: "7. Retururi și Rambursări" },
-  { id: "garantii", label: "8. Declarație de Garanție" },
+  { id: "garantii", label: "8. Garanția legală de conformitate" },
   { id: "raspundere", label: "9. Limitarea Răspunderii" },
   { id: "modificari", label: "10. Modificări ale Termenilor" },
   { id: "lege", label: "11. Lege Aplicabilă" },
@@ -34,26 +32,8 @@ const toc = [
 
 export default function TermsPage() {
   const { t } = useTranslation();
-  const [contactEmail, setContactEmail] = useState(publicConfig.contactEmail);
-  const lastUpdated = t("termsLastUpdated", "9 august 2024");
-
-  // Fetch store settings for contact info
-  useEffect(() => {
-    async function loadContactInfo() {
-      try {
-        const response = await fetch("/api/store-settings");
-        if (response.ok) {
-          const settings = await response.json();
-          if (settings?.contactEmail) {
-            setContactEmail(settings.contactEmail);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading contact info:", error);
-      }
-    }
-    loadContactInfo();
-  }, []);
+  const contactEmail = COMPANY_LEGAL.email;
+  const lastUpdated = "4 octombrie 2026";
 
   return (
     <LegalPageShell
@@ -93,14 +73,19 @@ export default function TermsPage() {
             <section id="intro">
               <h2>1. Introducere</h2>
               <p>
-                Bine ați venit pe platforma TechTots ("noi", "al nostru").
-                Acești termeni reglementează accesul și utilizarea site-ului,
-                produselor și serviciilor noastre.
+                Magazinul TechTots este operat de{" "}
+                <strong>{COMPANY_LEGAL.name}</strong>, CUI {COMPANY_LEGAL.cui},
+                nr. registrul comerțului {COMPANY_LEGAL.regCom}, sediu:{" "}
+                {COMPANY_LEGAL.address}. Email: {COMPANY_LEGAL.email}; telefon:{" "}
+                {COMPANY_LEGAL.phone}. Acești termeni descriu utilizarea
+                site-ului și condițiile aplicabile comenzilor.
               </p>
               <p>
-                Prin accesarea sau utilizarea serviciilor, sunteți de acord cu
-                acești termeni și cu Politica de Confidențialitate. Dacă nu
-                sunteți de acord, vă rugăm să nu utilizați serviciile noastre.
+                Înainte de plasarea comenzii poți consulta acești termeni,
+                informațiile produsului și costurile din checkout.{" "}
+                <Link href="/privacy">Politica de confidențialitate</Link>{" "}
+                explică prelucrarea datelor; acordul pentru cookie-uri de
+                analiză și publicitate se exprimă separat și poate fi retras.
               </p>
             </section>
             <Separator className="my-6 border-white/10" />
@@ -151,16 +136,22 @@ export default function TermsPage() {
                 notificare.
               </p>
               <p>
-                Prețurile pot fi modificate oricând. Putem refuza comenzi la
-                discreția noastră.
+                Prețurile sunt exprimate în lei. Totalul comenzii, costul
+                livrării și orice taxă ramburs sunt prezentate înainte de
+                confirmare. Modificările ulterioare ale prețurilor nu modifică
+                un contract deja încheiat. Dacă există o indisponibilitate sau o
+                eroare de preț, te contactăm pentru clarificare; nu aplicăm
+                automat un preț mai mare.
               </p>
             </section>
             <Separator className="my-6 border-white/10" />
             <section id="livrare">
               <h2>6. Livrare</h2>
               <p>
-                Termenele de livrare sunt estimative. TechTots nu răspunde
-                pentru întârzieri cauzate de factori externi.
+                Termenul estimat și metoda de livrare sunt prezentate în
+                checkout. Dacă apare o întârziere, contactează-ne pentru
+                verificare. Aceste estimări nu limitează drepturile legale
+                privind livrarea și executarea contractului.
               </p>
               <ul>
                 <li>
@@ -169,9 +160,10 @@ export default function TermsPage() {
                   finalizarea comenzii.
                 </li>
                 <li>
-                  Refuzul coletului la livrare sau nepreluarea comenzii din
-                  punctul de ridicare reprezintă retur la expeditor (RTO) și nu
-                  drept de retragere după livrare.
+                  Refuzul sau nepreluarea coletului este un retur la expeditor
+                  (RTO). Pentru exercitarea retragerii, comunică-ne decizia prin
+                  email sau altă declarație neechivocă; simpla nepreluare nu
+                  înlocuiește această comunicare.
                 </li>
                 <li>{RETURN_POLICY_COD_RTO_RO}</li>
                 <li>
@@ -193,12 +185,8 @@ export default function TermsPage() {
                   în <strong>{RETURN_WINDOW_LABEL_RO}</strong>, conform
                   legislației aplicabile.
                 </li>
-                <li>
-                  {RETURN_POLICY_CUSTOMER_PAYS_RO}
-                </li>
-                <li>
-                  {RETURN_POLICY_SELLER_PAYS_RO}
-                </li>
+                <li>{RETURN_POLICY_CUSTOMER_PAYS_RO}</li>
+                <li>{RETURN_POLICY_SELLER_PAYS_RO}</li>
                 <li>
                   Detalii complete:{" "}
                   <Link href="/returns">Politica de Returnare</Link>.
@@ -207,7 +195,7 @@ export default function TermsPage() {
             </section>
             <Separator className="my-6 border-white/10" />
             <section id="garantii">
-              <h2>8. Declarație de Garanție</h2>
+              <h2>8. Garanția legală de conformitate</h2>
               <p>
                 <Icon
                   icon={StatusIcons.Info}
@@ -216,8 +204,15 @@ export default function TermsPage() {
                   decorative
                   className="inline align-text-bottom mr-1 text-sky-200"
                 />
-                Produsele și serviciile sunt oferite "ca atare" fără garanții
-                explicite sau implicite.
+                Pentru bunurile vândute consumatorilor, vânzătorul răspunde
+                pentru neconformitățile existente la livrare și constatate în
+                termen de <strong>2 ani de la livrare</strong>, potrivit OUG nr.
+                140/2021. În condițiile legii, poți solicita repararea sau
+                înlocuirea fără costuri; reducerea prețului ori încetarea
+                contractului sunt disponibile în situațiile prevăzute de lege.
+                Orice garanție comercială suplimentară nu reduce aceste
+                drepturi. Contactează-ne cu numărul comenzii și descrierea
+                problemei.
               </p>
             </section>
             <Separator className="my-6 border-white/10" />
@@ -231,24 +226,32 @@ export default function TermsPage() {
                   decorative
                   className="inline align-text-bottom mr-1 text-amber-200"
                 />
-                TechTots nu răspunde pentru daune indirecte sau pierderi
-                rezultate din utilizarea serviciilor sau produselor.
+                Răspunderea se stabilește potrivit legii aplicabile. Nicio
+                prevedere din acești termeni nu exclude garanția legală, dreptul
+                de retragere, răspunderea obligatorie pentru produse sau alte
+                drepturi ale consumatorului care nu pot fi limitate prin
+                contract.
               </p>
             </section>
             <Separator className="my-6 border-white/10" />
             <section id="modificari">
               <h2>10. Modificări ale Termenilor</h2>
               <p>
-                Putem actualiza acești termeni oricând. Continuarea utilizării
-                serviciilor reprezintă acceptul dvs. pentru modificări.
+                Actualizările sunt publicate cu data reviziei. Pentru o comandă
+                se aplică termenii acceptați la încheierea contractului;
+                reviziile ulterioare nu îi modifică retroactiv condițiile.
               </p>
             </section>
             <Separator className="my-6 border-white/10" />
             <section id="lege">
               <h2>11. Lege Aplicabilă</h2>
               <p>
-                Acești termeni sunt guvernați de legea română. Orice litigiu va
-                fi soluționat de instanțele competente din România.
+                Se aplică legea română, cu respectarea protecțiilor obligatorii
+                ale consumatorilor. Poți contacta asistența,{" "}
+                <a href="https://eservicii.anpc.ro/">ANPC pentru reclamații</a>{" "}
+                sau <a href="https://reclamatiisal.anpc.ro/">platforma SAL</a>{" "}
+                pentru soluționarea alternativă a litigiilor. Accesul la
+                instanțele competente rămâne disponibil.
               </p>
             </section>
             <Separator className="my-6 border-white/10" />
@@ -276,7 +279,7 @@ export default function TermsPage() {
               <p className="mt-2 text-xs text-slate-200 sm:text-sm">
                 {t(
                   "termsSupportDescription",
-                  "Echipa noastră juridică este disponibilă pentru clarificări rapide și transparente."
+                  "Contactează asistența TechTots pentru clarificări despre comenzi, termeni și drepturile tale."
                 )}
               </p>
             </div>

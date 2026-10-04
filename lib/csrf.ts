@@ -28,6 +28,7 @@ const csrfConfig = {
   protectedRoutes: [
     "/api/admin/",
     "/api/account/",
+    "/api/gdpr/",
     "/api/cart/",
     "/api/checkout/",
     "/api/supplier/",

@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { Metadata } from "next";
+import Link from "next/link";
 
 import { appConfig } from "@/lib/config/app-config";
+import { COMPANY_LEGAL } from "@/lib/config/company-legal";
 import {
   RETURN_POLICY_COD_RTO_RO,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
@@ -12,20 +13,16 @@ import {
 import { auth } from "@/lib/server/auth";
 import { getStoreSettings } from "@/lib/utils/store-settings";
 
-const lastUpdated = new Intl.DateTimeFormat("ro-RO", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-}).format(new Date());
+const lastUpdated = "4 octombrie 2026";
 
 const quickSummaryLeft = [
   `${RETURN_WINDOW_LABEL_RO} pentru returnare fără justificare`,
-  "2 ani garanție legală pentru produse defecte",
+  "2 ani garanție legală de conformitate pentru bunurile vândute consumatorilor",
   "Returul din dreptul de retragere are costul de transport suportat de client",
 ];
 
 const quickSummaryRight = [
-  "Rambursare completă în 14 zile",
+  "Rambursare conform termenelor legale",
   "Produsele defecte sau expediate greșit au retur suportat de vânzător",
   "Fotografiile de retur se păstrează împreună cu cererea",
 ];
@@ -49,7 +46,8 @@ const getProcessSteps = (ordersHref: string) => [
   {
     icon: "💰",
     title: "4. Primește Rambursarea",
-    description: "Rambursare completă în 14 zile de la primirea produsului",
+    description:
+      "Rambursare în cel mult 14 zile de la comunicarea retragerii; poate fi amânată până la primirea produsului sau dovezii expedierii",
   },
 ];
 
@@ -64,11 +62,13 @@ const exceptionsList = [
   },
   {
     title: "Software desigilat",
-    description: "Aplicații sau jocuri educaționale activate",
+    description:
+      "Înregistrări audio/video sau software sigilat, desigilat după livrare",
   },
   {
-    title: "Conținut digital descarcat",
-    description: "Cărți digitale sau resurse educaționale accesate",
+    title: "Conținut digital fără suport material",
+    description:
+      "Doar dacă furnizarea a început cu acordul expres prealabil și confirmarea pierderii dreptului de retragere",
   },
   {
     title: "Produse igienice desigilate",
@@ -81,19 +81,19 @@ const sustainabilityCards = [
     icon: "♻️",
     title: "Reparare și Recondiționare",
     description:
-      "Produsele returnate sunt evaluate pentru reparare și recondiționare înainte de a fi considerate pentru reciclare.",
+      "Pentru neconformitate, contactează-ne pentru reparare, înlocuire sau celelalte remedii disponibile potrivit legii.",
   },
   {
     icon: "📦",
     title: "Ambalaje Reutilizabile",
     description:
-      "Folosim ambalaje care pot fi reutilizate pentru returnări și încurajăm clienții să returneze ambalajele pentru reutilizare.",
+      "Folosește un ambalaj protector pentru transport. Ambalajul original este util dacă îl mai ai; lipsa lui nu anulează automat dreptul de retragere.",
   },
   {
     icon: "🚚",
     title: "Transport Consolidat",
     description:
-      "Colectăm returnările regional pentru a reduce amprenta de carbon prin transport consolidat și optimizat.",
+      "Urmează instrucțiunile de expediere primite pentru retur; metoda și costurile depind de situația comenzii.",
   },
 ];
 
@@ -101,12 +101,11 @@ const legalItems = [
   "OUG nr. 34/2014 privind drepturile consumatorilor în contractele cu profesioniștii",
   "OUG nr. 140/2021 privind anumite aspecte referitoare la contractele de vânzare de bunuri",
   "Legea nr. 193/2000 privind clauzele abuzive în contractele încheiate cu consumatorii",
-  "Planul de Acțiune pentru Economia Circulară al UE (2020)",
   "GDPR și legislația română de protecție a datelor",
 ];
 
 export const metadata: Metadata = {
-  title: "Politica de Returnare | TechTots Educational Solutions",
+  title: "Politica de Returnare | TechTots",
   description:
     "Politica de returnare pentru produsele STEM educaționale. Informații clare despre retragere în 14 zile calendaristice, costul returului suportat de client și excepțiile pentru produse defecte.",
   keywords:
@@ -301,7 +300,7 @@ export default async function ReturnsPage() {
                       îl returnezi
                     </li>
                     <li>
-                      Apasă pe butonul "Returnează Produs" de lângă articolul
+                      Apasă pe butonul „Returnează Produs” de lângă articolul
                       dorit
                     </li>
                     <li>
@@ -309,8 +308,10 @@ export default async function ReturnsPage() {
                       pentru perioada de răgândire)
                     </li>
                     <li>
-                      <strong>Pentru produse defecte:</strong> Încarcă
-                      fotografiile/videoclipurile solicitate (obligatoriu)
+                      <strong>Pentru produse defecte:</strong> Fotografii sau
+                      videoclipuri pot ajuta la evaluare. Dacă nu le poți
+                      furniza, contactează-ne pentru verificarea produsului;
+                      lipsa lor nu anulează drepturile legale.
                     </li>
                     <li>
                       Vei primi prin email confirmarea cererii și instrucțiunile
@@ -322,7 +323,7 @@ export default async function ReturnsPage() {
                       caz, vei primi un număr de autorizare în email după
                       procesarea cererii.
                     </li>
-                    <li>Printează eticheta și atașează-o pe pachet</li>
+                    <li>Urmează instrucțiunile de expediere primite</li>
                     <li>
                       Împachetează produsul în ambalajul original (dacă este
                       posibil)
@@ -402,7 +403,8 @@ export default async function ReturnsPage() {
                 </h3>
                 <ul className="mt-3 space-y-2 text-amber-900/90">
                   <li>
-                    • <strong>Drept de retragere:</strong> {RETURN_POLICY_CUSTOMER_PAYS_RO}
+                    • <strong>Drept de retragere:</strong>{" "}
+                    {RETURN_POLICY_CUSTOMER_PAYS_RO}
                   </li>
                   <li>
                     • <strong>Produse defecte sau neconforme:</strong>{" "}
@@ -452,8 +454,11 @@ export default async function ReturnsPage() {
               </div>
               <div className="mt-5 rounded-2xl border border-sky-300/40 bg-sky-500/10 p-4 text-xs text-slate-900 shadow-inner shadow-sky-500/20 sm:mt-6 sm:text-sm">
                 <strong>Notă:</strong> Aceste excepții se aplică doar dreptului
-                de retragere (14 zile). Garanția legală de 2 ani pentru produse
-                defecte rămâne valabilă pentru toate produsele.
+                de retragere (14 zile). Drepturile privind conformitatea rămân
+                valabile: pentru bunurile cumpărate de consumatori, vânzătorul
+                răspunde pentru neconformitățile constatate în termen de doi
+                ani de la livrare. Drepturile legale pentru conținut digital
+                nu sunt înlăturate de aceste excepții.
               </div>
             </section>
 
@@ -488,17 +493,6 @@ export default async function ReturnsPage() {
                   </div>
                 ))}
               </div>
-              <div className="mt-5 rounded-2xl border border-emerald-300/40 bg-emerald-500/10 p-4 text-xs text-emerald-900 shadow-inner shadow-emerald-500/20 sm:mt-6 sm:text-sm md:text-base">
-                <h3 className="text-sm font-semibold text-emerald-900 sm:text-base md:text-lg">
-                  🌍 Programul Nostru "Jucării pentru Viitor"
-                </h3>
-                <p className="mt-2">
-                  Pentru produse în stare foarte bună care nu pot fi revândute,
-                  oferim opțiunea de donare către școli și organizații
-                  educaționale din România. Contactează-ne dacă dorești să
-                  participi la acest program.
-                </p>
-              </div>
             </section>
 
             <section className="overflow-hidden rounded-3xl border border-sky-500/40 bg-gradient-to-br from-sky-500/20 via-indigo-900/40 to-slate-950/80 p-5 text-slate-100 shadow-xl shadow-sky-500/30 sm:p-7 md:p-9">
@@ -515,7 +509,7 @@ export default async function ReturnsPage() {
                   Comenzile Mele
                 </Link>{" "}
                 - unde poți iniția returnarea în câteva clickuri și vei primi
-                automat emailul cu eticheta!
+                instrucțiunile pentru expediere după verificarea cererii.
               </div>
               <div className="mt-6 grid gap-5 sm:grid-cols-2 md:gap-6">
                 <div>
@@ -541,10 +535,6 @@ export default async function ReturnsPage() {
                         {contactPhone}
                       </a>
                     </p>
-                    <p>🕒 Program: Luni - Duminică, 9:00 - 18:00</p>
-                    <p>
-                      💬 Chat Live: Disponibil pe site în timpul programului
-                    </p>
                   </div>
                 </div>
                 <div>
@@ -552,10 +542,9 @@ export default async function ReturnsPage() {
                     📍 Adresa pentru Returnări
                   </h3>
                   <div className="mt-3 rounded-2xl border border-white/10 bg-white/10 p-4 text-xs text-slate-100 sm:text-sm">
-                    <p>TechTots Educational Solutions</p>
-                    <p>Centrul de Returnări</p>
-                    <p>Str. Mehedinți 54-56</p>
-                    <p>400000 Cluj-Napoca, România</p>
+                    <p>TechTots</p>
+                    <p>{COMPANY_LEGAL.name}</p>
+                    <p>{COMPANY_LEGAL.address}</p>
                     <p className="mt-3 text-xs text-slate-200">
                       <strong className="text-white">
                         Nu trimite produse la această adresă fără să ne
@@ -572,7 +561,9 @@ export default async function ReturnsPage() {
                 📋 Legislație și Conformitate
               </h2>
               <div className="mt-4 space-y-2 text-xs text-slate-700 sm:text-sm">
-                <p>Această politică de returnare este în conformitate cu:</p>
+                <p>
+                  Informațiile despre drepturile consumatorilor au în vedere:
+                </p>
                 <ul className="ml-3 list-disc space-y-1 text-slate-700 sm:ml-4">
                   {legalItems.map(item => (
                     <li key={item}>{item}</li>
@@ -580,7 +571,7 @@ export default async function ReturnsPage() {
                 </ul>
                 <p className="mt-4 text-slate-500">
                   <strong>Ultimă actualizare:</strong> {lastUpdated} | Versiunea
-                  2.2
+                  2.3
                 </p>
               </div>
             </section>

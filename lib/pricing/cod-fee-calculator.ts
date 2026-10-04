@@ -1,9 +1,11 @@
 /**
  * COD (Cash on Delivery) Fee Calculator
- * 
+ *
  * Calculates COD fees based on order total and configured rates.
- * Romanian market standard: 3% + fixed fee
+ * Uses the configured store rate and fixed fee.
  */
+
+import { DEFAULT_COD_SETTINGS } from "./cod-settings";
 
 export interface CODFeeConfig {
   /** Percentage fee (e.g., 0.01 for 1%) */
@@ -32,28 +34,28 @@ export interface CODFeeResult {
 }
 
 /**
- * Default COD fee configuration for Romanian market
- * 1% percentage + 5 RON fixed fee
+ * Default COD fee configuration for this store
+ * Settings percentages are converted to calculator fractions.
  */
 export const DEFAULT_COD_CONFIG: CODFeeConfig = {
-  percentage: 0.01, // 1%
-  fixedFee: 5.0, // 5 RON
+  percentage: Number(DEFAULT_COD_SETTINGS.percentage) / 100,
+  fixedFee: Number(DEFAULT_COD_SETTINGS.fixedFee),
   minimumOrderValue: 0, // No minimum
   maximumCODAmount: undefined, // No maximum
 };
 
 /**
  * Calculate COD fee for an order
- * 
+ *
  * @param orderTotal - Order total before COD fee (in RON)
  * @param config - COD fee configuration (uses default if not provided)
  * @returns COD fee calculation result
- * 
+ *
  * @example
  * ```typescript
  * const result = calculateCODFee(100, { percentage: 0.01, fixedFee: 5 });
  * // result.fee = 6 RON (1% of 100 = 1, + 5 = 6)
- * // result.orderTotalWithFee = 108 RON
+ * // result.orderTotalWithFee = 106 RON
  * ```
  */
 export function calculateCODFee(
@@ -104,7 +106,7 @@ export function calculateCODFee(
 
 /**
  * Check if COD is available for an order
- * 
+ *
  * @param orderTotal - Order total
  * @param config - COD fee configuration
  * @returns true if COD is available
@@ -145,10 +147,13 @@ export async function getCODFeeConfig(): Promise<CODFeeConfig> {
   try {
     const { getCODSettings } = await import("@/lib/utils/store-settings");
     const codSettings = await getCODSettings();
-    
+
     if (codSettings?.active) {
       return {
-        percentage: parseFloat(codSettings.percentage || "1") / 100, // Convert percentage to decimal
+        percentage:
+          parseFloat(
+            codSettings.percentage || DEFAULT_COD_SETTINGS.percentage
+          ) / 100, // Convert percentage to decimal
         fixedFee: parseFloat(codSettings.fixedFee || "5.00"),
         minimumOrderValue: undefined,
         maximumCODAmount: undefined,
@@ -160,7 +165,7 @@ export async function getCODFeeConfig(): Promise<CODFeeConfig> {
 
   // Fallback to environment variables or defaults
   const percentage = parseFloat(
-    process.env.COD_FEE_PERCENTAGE || "0.01"
+    process.env.COD_FEE_PERCENTAGE || String(DEFAULT_COD_CONFIG.percentage)
   );
   const fixedFee = parseFloat(process.env.COD_FIXED_FEE || "5.0");
   const minimumOrderValue = process.env.COD_MINIMUM_ORDER_VALUE
@@ -177,4 +182,3 @@ export async function getCODFeeConfig(): Promise<CODFeeConfig> {
     maximumCODAmount,
   };
 }
-

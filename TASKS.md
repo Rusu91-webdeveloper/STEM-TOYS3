@@ -1,5 +1,19 @@
 # Current tasks
 
+- [ ] 2026-10-04 — At the owner's request, fix shipping consistency first:
+      trace the cart drawer, authoritative checkout settings, stale shipping
+      defaults and COD fee explanations. Estimate: 1–2 hours. Verify the exact
+      configured rates and threshold before editing or changing payment totals.
+- [ ] 2026-10-04 — Then finish privacy operations: verify retention settings,
+      correct account-erasure behavior and inventory historical sensitive card
+      records using aggregate read-only evidence. Estimate: 2–4 hours. Resolve
+      business choices and recovery requirements before dependent data changes.
+- [ ] 2026-10-04 — Then fix legal/trust content: terms, warranty wording and
+      revision, consumer links and unsupported claims. Estimate: 1–2 hours.
+      Use current official sources and verified business facts; remove claims
+      without evidence. Complete and verify these three scopes in that order.
+      Implementation and local verification: docs/audits/2026-10-04-shipping-privacy-trust.md.
+      Live card inventory, external retention choices and release remain open.
 - [x] 2026-10-04 — Release owner-approved PR #61 to production and verify the
       live COD policy, guest token issuance, storefront and consented tracking.
       Estimate: 15–30 minutes. Owner confirmed the payment form works but has

@@ -1,57 +1,31 @@
 "use client";
 
+
 import {
   User,
   Bell,
   Shield,
   Palette,
-  Download,
-  Trash2,
   Key,
-  CreditCard,
-  MapPin,
-  Globe,
   Moon,
   Sun,
   Monitor,
-  Eye,
-  EyeOff,
   Mail,
   Phone,
   Lock,
   Camera,
   Save,
-  AlertTriangle,
   Check,
   X,
-  Settings,
   Database,
-  FileText,
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -68,6 +42,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+
+import { AccountPrivacyPanel } from "./AccountPrivacyPanel";
 
 interface UserProfile {
   id: string;
@@ -342,66 +318,6 @@ export function UserPreferencesSettings({
       toast({
         title: "Error",
         description: t("failedToUploadAvatar", "Failed to upload avatar"),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleExportData = async () => {
-    try {
-      const response = await fetch("/api/account/export-data", {
-        method: "POST",
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "my-data-export.json";
-        a.click();
-        window.URL.revokeObjectURL(url);
-
-        toast({
-          title: t("dataExported", "Data Exported"),
-          description: t(
-            "dataExportStarted",
-            "Your data export has started downloading"
-          ),
-        });
-      }
-    } catch (error) {
-      console.error("Failed to export data:", error);
-      toast({
-        title: "Error",
-        description: t("failedToExportData", "Failed to export data"),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    try {
-      const response = await fetch("/api/account/delete", {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        toast({
-          title: t("accountDeleted", "Account Deleted"),
-          description: t(
-            "accountDeletedSuccessfully",
-            "Your account has been deleted successfully"
-          ),
-        });
-        // Redirect to home page or logout
-        window.location.href = "/";
-      }
-    } catch (error) {
-      console.error("Failed to delete account:", error);
-      toast({
-        title: "Error",
-        description: t("failedToDeleteAccount", "Failed to delete account"),
         variant: "destructive",
       });
     }
@@ -961,86 +877,8 @@ export function UserPreferencesSettings({
     </div>
   );
 
-  // Data Management Tab
-  const DataManagement = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            {t("dataManagement", "Data Management")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">
-                {t("exportData", "Export Your Data")}
-              </h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                {t(
-                  "exportDataDescription",
-                  "Download a copy of all your data including orders, wishlist, and preferences"
-                )}
-              </p>
-              <Button onClick={handleExportData} variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                {t("exportData", "Export Data")}
-              </Button>
-            </div>
-
-            <Separator />
-
-            <div>
-              <h4 className="font-medium mb-2 text-red-600">
-                {t("dangerZone", "Danger Zone")}
-              </h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                {t(
-                  "deleteAccountDescription",
-                  "Permanently delete your account and all associated data"
-                )}
-              </p>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    {t("deleteAccount", "Delete Account")}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-red-500" />
-                      {t("confirmAccountDeletion", "Confirm Account Deletion")}
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t(
-                        "deleteAccountWarning",
-                        "This action cannot be undone. This will permanently delete your account and remove all your data from our servers."
-                      )}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>
-                      {t("cancel", "Cancel")}
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteAccount}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      {t("deleteAccount", "Delete Account")}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  // Shared, authenticated export/erasure flow.
+  const DataManagement = () => <AccountPrivacyPanel />;
 
   if (isLoading) {
     return (

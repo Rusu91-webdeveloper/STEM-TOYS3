@@ -9,6 +9,8 @@ import { useCart } from "@/features/cart/context/CartContext";
 import { useCheckoutTracking } from "@/lib/analytics/use-storefront-tracking";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation } from "@/lib/i18n";
+import { DEFAULT_COD_SETTINGS } from "@/lib/pricing/cod-settings";
+import { DEFAULT_DELIVERY_PRICE } from "@/lib/shipping/settings";
 import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 
 import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
@@ -86,8 +88,11 @@ export function CheckoutFlow() {
     }
 
     const deliveryPrice = settings?.shippingSettings?.deliveryPrice?.active
-      ? parseFloat(settings.shippingSettings.deliveryPrice.price || "15.00")
-      : 15.0;
+      ? parseFloat(
+          settings.shippingSettings.deliveryPrice.price ||
+            DEFAULT_DELIVERY_PRICE
+        )
+      : Number(DEFAULT_DELIVERY_PRICE);
 
     return checkoutData.shippingMethod?.price ?? deliveryPrice;
   };
@@ -543,7 +548,10 @@ export function CheckoutFlow() {
           const codData = await codResponse.json();
           if (codData?.active) {
             codConfig = {
-              percentage: parseFloat(codData.percentage || "3") / 100,
+              percentage:
+                parseFloat(
+                  codData.percentage || DEFAULT_COD_SETTINGS.percentage
+                ) / 100,
               fixedFee: parseFloat(codData.fixedFee || "5.00"),
             };
           }

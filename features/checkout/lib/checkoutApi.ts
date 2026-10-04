@@ -3,6 +3,7 @@
  */
 
 import { trackAcceptedOrder } from "@/lib/analytics/checkout-events";
+import { DEFAULT_COD_SETTINGS } from "@/lib/pricing/cod-settings";
 
 import { CheckoutError, ERROR_CODES } from "./errorHandling";
 
@@ -238,11 +239,7 @@ export async function fetchShippingSettings() {
     return await response.json();
   } catch (error) {
     console.error("Failed to fetch shipping settings:", error);
-    // Return default settings if fetch fails
-    return {
-      deliveryPrice: { price: "15.00", active: true },
-      freeThreshold: { price: "199.00", active: true },
-    };
+    throw error;
   }
 }
 
@@ -362,9 +359,7 @@ export async function fetchCODSettings() {
     console.error("Failed to fetch COD settings:", error);
     // Return default settings if fetch fails
     return {
-      percentage: "3",
-      fixedFee: "5.00",
-      active: true,
+      ...DEFAULT_COD_SETTINGS,
     };
   }
 }
