@@ -121,3 +121,35 @@ FAQ explains that withdrawal can be declared before delivery, although the
 14-day goods window runs from receipt. Executed FAQ/JSON-LD and source-boundary
 regression checks cover these omissions. The protected fee helper, selector and
 fee tests remain unchanged; the fee continues to come from admin settings.
+
+### Preview acceptance, 5 October 2026
+
+- Verified deployment `dpl_2t6UFz5YoRMJb9TH7hKCNKDzqMYd`, source
+  `67e2e4d914b7c608eac5edc6dd868c6882753668`, READY, preview target:
+  https://stem-toys-3-f9puubzyl-rusujobs-3774s-projects.vercel.app
+- Browser checks confirm shipping and FAQ/JSON-LD no longer display the old
+  capture/advance-retention promises. Admin-configured COD fee renders 9.90 lei.
+  Terms retain standard-delivery refunds and free conformity remedies.
+- With the owner's explicit authorization for the test recipients, submitted one
+  clearly labelled fictitious guest declaration with no real order/contract.
+  Reference: `withdrawal_bcb2c7a7-49f6-401a-badc-49e2db825caa`. Server receipt
+  time: `2026-10-04T22:40:27.415Z` (05 October, 01:40:27 Bucharest). The
+  deployed app confirmed registration and customer email sending. The downloaded
+  UTF-8 receipt contains the same reference/time, declaration and current
+  cost/refund/dispatch policy. No customer email address or private receipt file
+  is committed. Actual inbox delivery awaits owner confirmation; provider
+  acceptance alone is not proof of inbox delivery.
+- Unauthenticated preview admin page redirects to login and its API returns
+  `Admin access required`. Authenticated admin processing was not performed. No
+  order cancellation, real withdrawal, refund or card capture was performed.
+- Required publication checks: complete Jest baseline/current both 64 failing
+  suites / 175 failing tests, zero regressions; complete TypeScript baseline
+  1,200 / current 1,195 diagnostics, zero added. Existing repository debt
+  remains. Follow-up copy lint has zero errors and two warnings in unchanged
+  expressions.
+
+The earlier local-database/mail limitation above describes the local session.
+This later authorized preview test verifies deployed registration and receipt
+export; actual inbox delivery was confirmed separately by the owner.
+Authenticated review and processor acceptance remain distinct release checks. PR
+#64 stays draft.
