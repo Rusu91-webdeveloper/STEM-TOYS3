@@ -153,3 +153,33 @@ This later authorized preview test verifies deployed registration and receipt
 export; actual inbox delivery was confirmed separately by the owner.
 Authenticated review and processor acceptance remain distinct release checks. PR
 #64 stays draft.
+
+### Withdrawal email presentation, 5 October 2026
+
+The owner confirmed both first-test emails arrived, then supplied screenshots
+showing the same monospace text block in the customer and merchant inboxes. The
+root cause was the withdrawal service's inline `<pre>` wrapper. Delivery was
+functional, but the message lacked hierarchy and recipient-specific copy.
+
+Both audiences now receive branded table-based HTML using the existing TechTots
+email colors and public logo. The customer sees a clear acknowledgement,
+submitted details, the unchanged declaration, dispatch/cost/refund/conformity
+sections and a contact action. The merchant sees the same original evidence and
+operational next steps. A shorter merchant subject uses a reference suffix for
+recognition; the complete durable reference remains in the message. Romanian
+local time is prominent; the original UTC timestamp and complete reference are
+retained below the main content. The plain-text receipt/export, stored evidence,
+delivery claims and atomic retry logic remain unchanged.
+
+- 22 focused template/service/API tests pass, including full customer policy,
+  exact declaration/time/reference, recipient routing, HTML injection escaping,
+  duplicate/retry recovery and unchanged text fallback.
+- Browser previews with fictitious data were visually inspected on desktop and
+  at 390 CSS pixels for both audiences. A separate maximum-length name/email/
+  unbroken contract fixture has document width equal to scroll width (390). Logo
+  loads; content is readable without it. Preview files remain private, outside
+  the repository; no customer inbox screenshots or email addresses are
+  committed.
+- This is browser HTML verification, not a claim of exhaustive email-client
+  coverage. Acceptance of the revised template in the actual inbox is pending.
+  Old delivered messages do not change retroactively. Keep PR #64 draft.

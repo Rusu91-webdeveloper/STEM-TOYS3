@@ -1,5 +1,16 @@
 # Current tasks
 
+- [x] 2026-10-05 — Redesign customer and merchant withdrawal emails after inbox
+      acceptance exposed an unformatted monospace text block. Estimate: 45–90
+      minutes. Preserve the exact declaration, durable reference/time,
+      plain-text fallback and delivery/retry behavior; verify desktop/mobile
+      rendering and publish only to draft PR #64. Implemented branded HTML with
+      distinct customer/merchant content, readable Romanian local time, complete
+      receipt evidence and customer policy. 22 focused tests pass;
+      desktop/mobile previews checked, including maximum-length fields at 390
+      CSS pixels without overflow. Inbox rendering of the revised email remains
+      to be accepted; keep the PR draft. Elapsed time not recorded.
+
 - [ ] 2026-10-04 — Apply the owner-approved consumer return-cost policy before
       purchase and throughout returns. Customer pays direct withdrawal return
       carriage; full withdrawal includes refund of initial standard delivery;

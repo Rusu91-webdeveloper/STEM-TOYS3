@@ -68,6 +68,15 @@ test("records a guest declaration before mailing, with exact content and server 
   expect(receiptText(receipt)).toContain(receipt.receivedAt);
   expect(mail).toHaveBeenCalledTimes(2);
   expect(mail.mock.calls[1][0].to).toBe("configured-shop@example.invalid");
+  expect(mail.mock.calls[1][0].subject).toBe(
+    "TechTots — retragere nouă · 00000001"
+  );
+  expect(mail.mock.calls[0][0].html).toContain(
+    "Am primit declarația ta de retragere"
+  );
+  expect(mail.mock.calls[1][0].html).toContain("Pașii pentru echipa TechTots");
+  expect(mail.mock.calls[0][0].text).toBe(receiptText(receipt));
+  expect(mail.mock.calls[1][0].text).toBe(receiptText(receipt));
 });
 
 test("confirmation is required; reason, login, photos and delivery status are not", () => {

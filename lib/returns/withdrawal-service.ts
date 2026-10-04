@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { appConfig, getAppConfig } from "@/lib/config/app-config";
 import { db } from "@/lib/db";
+import { withdrawalEmailHtml } from "@/lib/email/withdrawal-email";
 import { sendEmailViaUnifiedSystem } from "@/lib/nodemailer";
 import {
   createWithdrawalReceipt,
@@ -11,18 +12,6 @@ import {
 } from "@/lib/returns/withdrawal";
 
 const json = (value: object) => value as Prisma.InputJsonValue;
-const escapeHtml = (text: string) =>
-  text.replace(
-    /[&<>"']/g,
-    character =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      })[character]!
-  );
 
 /** EmailLog is the existing durable email outbox. These legal receipts are NOT
  * EmailEvent analytics and are excluded from the 30-day analytics cleanup. */
@@ -63,7 +52,12 @@ export async function registerWithdrawal(
   return deliverWithdrawal(receipt.reference);
 }
 
-async function sendReceipt(to: string, subject: string, text: string) {
+async function sendReceipt(
+  to: string,
+  subject: string,
+  text: string,
+  html: string
+) {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     const result = await Promise.race([
@@ -71,7 +65,7 @@ async function sendReceipt(to: string, subject: string, text: string) {
         to,
         subject,
         text,
-        html: `<pre style="white-space:pre-wrap">${escapeHtml(text)}</pre>`,
+        html,
       }),
       new Promise<never>((_, reject) => {
         timer = setTimeout(() => reject(new Error("EMAIL_TIMEOUT")), 10000);
@@ -116,13 +110,15 @@ export async function deliverWithdrawal(reference: string) {
       sendReceipt(
         receipt.email,
         "TechTots — confirmare de primire a retragerii",
-        text
+        text,
+        withdrawalEmailHtml(receipt, "customer")
       ),
     receipt.merchantNotified ||
       sendReceipt(
         config.contactEmail,
-        `Retragere din contract — ${reference}`,
-        text
+        `TechTots — retragere nouă · ${reference.slice(-8).toUpperCase()}`,
+        text,
+        withdrawalEmailHtml(receipt, "merchant")
       ),
   ]);
   const updated = { ...claimed, customerNotified, merchantNotified };
