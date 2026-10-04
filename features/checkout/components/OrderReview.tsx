@@ -3,7 +3,9 @@
 import { Banknote, Edit, ShieldCheck } from "lucide-react";
 import React, { useMemo } from "react";
 
+import { LegalGuaranteeNotice } from "@/components/legal/LegalGuaranteeNotice";
 import { Button } from "@/components/ui/button";
+import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { useCurrency } from "@/lib/currency";
 import { formatDeliveryWindow } from "@/lib/format/delivery-window";
 import { useTranslation } from "@/lib/i18n";
@@ -13,7 +15,6 @@ import { CheckoutData, CheckoutStep } from "../types";
 import { OrderActions } from "./OrderActions";
 import { OrderSummarySection } from "./OrderSummarySection";
 import { usePricingBreakdown } from "./PricingBreakdown";
-import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 
 interface OrderReviewProps {
   checkoutData: CheckoutData;
@@ -424,6 +425,7 @@ export function OrderReview({
         appliedCoupon={pricingData.appliedCoupon}
       />
 
+      <LegalGuaranteeNotice />
       <OrderActions
         onBack={onBack}
         onPlaceOrder={onPlaceOrder}

@@ -105,7 +105,7 @@ export const RETURN_POLICY_COURIER_PAYS_RO =
   "Pentru colete deteriorate în timpul livrării, cazul este încadrat către firma de curierat, iar dovezile foto sunt necesare pentru reclamația de transport.";
 
 export const RETURN_POLICY_COD_RTO_RO =
-  "Fiecare comandă cu plata ramburs necesită la checkout o autorizare temporară pe card, care acoperă numai costul transportului tur și nu se încasează la plasarea comenzii. Dacă refuzi coletul sau nu îl ridici, putem încasa cel mult suma autorizată; costul returului la expeditor rămâne suportat de TechTots.";
+  "Fiecare comandă cu plata ramburs necesită la checkout o autorizare temporară pe card, care acoperă numai costul transportului tur și nu se încasează la plasarea comenzii. Dacă refuzi coletul sau nu îl ridici, putem încasa cel mult suma autorizată; costul returului la expeditor rămâne suportat de TechTots. Această regulă nu penalizează o retragere legală comunicată valabil; rambursarea se face conform drepturilor legale aplicabile, inclusiv pentru livrarea standard.";
 
 export const RETURN_POLICY_EVIDENCE_RO =
   "Fotografiile încărcate se salvează împreună cu cererea de retur și pot fi folosite ca dovadă pentru analiza internă și pentru relația cu furnizorul.";

@@ -1,6 +1,17 @@
 # Current tasks
 
-- [ ] 2026-10-04 — Owner's later instruction: preserve the Cursor dynamic COD
+- [ ] 2026-10-04 — Implement the official Romanian harmonised legal-guarantee
+      notice and the online contract-withdrawal function under OUG 18/2026.
+      Estimate: 2–4 hours. Verify official design/dates, guest access, two-stage
+      confirmation, durable receipt, persistence and merchant processing.
+      Preserve concurrent Cursor work; no production release without review.
+      Notice, guest two-stage form, durable receipt/outbox and ADMIN review
+      implemented. 21 focused tests pass; local browser checks pass for the
+      notice/review/security failure path. Real local persistence is blocked
+      by unavailable Docker/Postgres. Prepare draft preview for owner-approved
+      inbox/persistence/admin acceptance. Evidence: docs/audits/2026-10-04-legal-guarantee-withdrawal.md.
+
+- [x] 2026-10-04 — Owner's later instruction: preserve the Cursor dynamic COD
       lookup/formatter and flat 9.90 lei / 0% fallback; correct PR #62's
       description and keep further changes draft without force-pushing. PR #62
       had already merged at 15:18 EEST before this instruction arrived and its
@@ -9,8 +20,10 @@
       draft follow-up for the fallback/tests and release evidence.
       [Draft PR #63](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/63)
       is published for review; required Jest/TypeScript comparisons add zero
-      failures. No further merge or production deployment. Production rollback
-      requires the owner's choice.
+      failures. Owner subsequently authorized merging on 4 October after checking concurrent
+      Cursor work. PR #63 merged as 26adeac4; production is READY on both
+      domains, with shipping/COD/policy/access checks passed. Cursor preserved;
+      no force-push. Release evidence is recorded in PR #63.
 - [ ] 2026-10-04 — Discovered in production log review: product-review fetch
       uses NEXT_PUBLIC_BASE_URL or localhost:3000 and currently hits
       ECONNREFUSED 127.0.0.1:3000, returning empty reviews on sampled HTTP-200

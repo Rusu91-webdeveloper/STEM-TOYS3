@@ -191,6 +191,12 @@ export default function TermsPage() {
                   Detalii complete:{" "}
                   <Link href="/returns">Politica de Returnare</Link>.
                 </li>
+                <li>
+                  Poți transmite declarația online, fără autentificare, la{" "}
+                  <Link href="/withdrawal">Retrageți-vă din contract aici</Link>.
+                  După „Confirmați retragerea”, primești o confirmare de primire
+                  cu declarația, data și ora transmiterii, pe suport durabil.
+                </li>
               </ul>
             </section>
             <Separator className="my-6 border-white/10" />

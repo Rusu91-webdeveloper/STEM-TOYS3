@@ -35,6 +35,14 @@ export function PrivacyRetentionRights() {
       <section id="retentie" className="scroll-mt-28">
         <h2>7. Cât păstrăm datele</h2>
         <p>
+          Declarațiile de retragere conțin numele, emailul, identificarea
+          contractului și data/ora transmiterii. Le folosim pentru îndeplinirea
+          obligațiilor legale și soluționarea retragerii. Confirmările sunt
+          păstrate separat de evenimentele email de analiză șterse după 30 de
+          zile, pe durata necesară procesării și apărării drepturilor legate de
+          tranzacție. Accesul operațional este limitat la administratori.
+        </p>
+        <p>
           Durata depinde de scop și de obligațiile aplicabile fiecărei
           categorii; în lipsa unui termen fix, criteriile sunt:
         </p>
