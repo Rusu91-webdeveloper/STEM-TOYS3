@@ -6,7 +6,7 @@
       confirmation, durable receipt, persistence and merchant processing.
       Preserve concurrent Cursor work; no production release without review.
       Notice, guest two-stage form, durable receipt/outbox and ADMIN review
-      implemented. 34 focused tests pass; local browser checks pass for the
+      implemented. 35 focused tests pass; local browser checks pass for the
       notice/review/security failure path. Real local persistence is blocked
       by unavailable Docker/Postgres. Prepare draft preview for owner-approved
       inbox/persistence/admin acceptance. [Draft PR #64](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/64).

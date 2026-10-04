@@ -53,7 +53,9 @@ manufacturer durability promise is invented.
 - `/api/returns/withdrawal` validates the existing signed guest CSRF mechanism,
   limits request size and submission rate, and normalises strict schema input.
 - An existing EmailLog row stores the complete declaration and server UTC
-  timestamp before email is attempted. A random submission reference prevents
+  timestamp before email is attempted. Arrival time is captured at handler entry,
+  before asynchronous security/rate-limit checks, so validation latency cannot
+  shift the acknowledged time across a withdrawal deadline. A random submission reference prevents
   duplicate retries changing the original receipt time. Changed identity or
   content with a reused reference is rejected.
 - Tracking privacy: AnalyticsWrapper omits the withdrawal route even with full
@@ -90,7 +92,7 @@ manufacturer durability promise is invented.
 
 ## Verification and limits
 
-- 34 focused tests pass across service, public/admin routes and the two-stage
+- 35 focused tests pass across service, public/admin routes and the two-stage
   React form: save-before-mail, guest access, timestamp/content, retry identity,
   interrupted delivery, failed storage/email, CSRF, rate/size limits, admin denial,
   review races, escaped HTML, no submission during review, honest UI failures, consented-route exclusions and isolation from loaded SDKs.

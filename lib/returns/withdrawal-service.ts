@@ -26,8 +26,11 @@ const escapeHtml = (text: string) =>
 
 /** EmailLog is the existing durable email outbox. These legal receipts are NOT
  * EmailEvent analytics and are excluded from the 30-day analytics cleanup. */
-export async function registerWithdrawal(input: WithdrawalInput) {
-  const receipt = createWithdrawalReceipt(input);
+export async function registerWithdrawal(
+  input: WithdrawalInput,
+  receivedAt = new Date()
+) {
+  const receipt = createWithdrawalReceipt(input, receivedAt);
   try {
     await db.emailLog.create({
       data: {

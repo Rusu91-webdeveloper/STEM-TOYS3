@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store" };
 
 export async function POST(request: NextRequest) {
+  // Preserve the server receipt time even if validation/rate-limit I/O is slow.
+  const receivedAt = new Date();
   const security = await validateCsrfForRequest(request);
   if (!security.valid)
     return NextResponse.json(
@@ -50,7 +52,7 @@ export async function POST(request: NextRequest) {
       );
     // Receipt records the declaration only. No unauthenticated order lookup,
     // deadline guess, refund, cancellation or delivery-status prerequisite.
-    const receipt = await registerWithdrawal(parsed.data);
+    const receipt = await registerWithdrawal(parsed.data, receivedAt);
     return NextResponse.json(
       {
         receipt,

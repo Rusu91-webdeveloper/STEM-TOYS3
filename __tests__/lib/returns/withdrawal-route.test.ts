@@ -144,3 +144,24 @@ test("admin mutations require CSRF and refuse an in-flight delivery review", asy
   (db.emailLog.updateMany as jest.Mock).mockResolvedValue({ count: 0 });
   expect((await adminPost(req())).status).toBe(409);
 });
+
+test("slow validation does not shift the original request-receipt timestamp", async () => {
+  jest.useFakeTimers();
+  const arrival = "2026-10-04T20:59:59.000Z";
+  jest.setSystemTime(new Date(arrival));
+  (validateCsrfForRequest as jest.Mock).mockImplementation(() => {
+    jest.advanceTimersByTime(60000);
+    return Promise.resolve({ valid: true });
+  });
+  (registerWithdrawal as jest.Mock).mockImplementation((data, receivedAt) =>
+    Promise.resolve(createWithdrawalReceipt(data, receivedAt))
+  );
+  try {
+    const response = await POST(request());
+    expect(response.status).toBe(201);
+    expect((await response.json()).receipt.receivedAt).toBe(arrival);
+    expect(registerWithdrawal).toHaveBeenCalledWith(input, new Date(arrival));
+  } finally {
+    jest.useRealTimers();
+  }
+});
