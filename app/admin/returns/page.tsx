@@ -1,5 +1,8 @@
 "use client";
 
+import { ReturnRefundReviewDialog } from "@/features/returns/components/ReturnRefundReviewDialog";
+
+import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { formatDistance, format } from "date-fns";
 import {
   Loader2,
@@ -195,6 +198,10 @@ interface ReturnItem {
     id: string;
     orderNumber: string;
     createdAt: string;
+    total: number;
+    shippingCost: number;
+    discountAmount: number;
+    paymentMethod: string;
   };
   orderItem: {
     id: string;
@@ -330,6 +337,8 @@ function canMoveReturnTo(currentStatus: ReturnStatus, nextStatus: ReturnStatus) 
 }
 
 export default function AdminReturnsPage() {
+  const csrf = useCsrfToken();
+  const [refundTarget, setRefundTarget] = useState<ReturnItem | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -569,12 +578,17 @@ export default function AdminReturnsPage() {
     returnId: string,
     newStatus: ReturnStatus
   ) => {
+    if (newStatus === "REFUNDED") {
+      const target = returns.find(record => record.id === returnId);
+      if (target) setRefundTarget(target);
+      return;
+    }
     try {
       const response = await fetch(`/api/returns/${returnId}/status`, {
         method: "PATCH",
-        headers: {
+        headers: csrf.addToHeaders({
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify({ status: newStatus }),
       });
 
@@ -626,9 +640,9 @@ export default function AdminReturnsPage() {
 
       const response = await fetch("/api/returns/bulk-approve", {
         method: "POST",
-        headers: {
+        headers: csrf.addToHeaders({
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify({ returnIds: selectedReturns }),
       });
 
@@ -794,9 +808,9 @@ export default function AdminReturnsPage() {
         `/api/returns/${selectedReturnForDetails.id}/status`,
         {
           method: "PATCH",
-          headers: {
+          headers: csrf.addToHeaders({
             "Content-Type": "application/json",
-          },
+          }),
           body: JSON.stringify({
             supplierAuthorizationStatus: supplierAuthDraft.status,
             supplierAuthorizationNumber: supplierAuthDraft.number,
@@ -855,9 +869,9 @@ export default function AdminReturnsPage() {
         `/api/returns/${selectedReturnForDetails.id}/status`,
         {
           method: "PATCH",
-          headers: {
+          headers: csrf.addToHeaders({
             "Content-Type": "application/json",
-          },
+          }),
           body: JSON.stringify({
             liability: caseTrackingDraft.liability,
             resolutionStatus: caseTrackingDraft.resolutionStatus,
@@ -916,9 +930,9 @@ export default function AdminReturnsPage() {
         `/api/returns/${selectedReturnForDetails.id}/send-report`,
         {
           method: "POST",
-          headers: {
+          headers: csrf.addToHeaders({
             "Content-Type": "application/json",
-          },
+          }),
           body: JSON.stringify({ recipientType }),
         }
       );
@@ -1743,6 +1757,8 @@ export default function AdminReturnsPage() {
       </Tabs>
 
       {/* Return Details Modal */}
+      {refundTarget && <ReturnRefundReviewDialog key={refundTarget.id} target={refundTarget} onClose={() => setRefundTarget(null)} onUpdated={record => { applyUpdatedReturn(record as ReturnItem); fetchReturns(pagination.page, filterStatus, filterReason, filterLiability, filterCustomerSegment, dateRange); }} />}
+
       <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1993,7 +2009,7 @@ export default function AdminReturnsPage() {
                   </CardTitle>
                   <CardDescription>
                     Decide who owns the loss and track the next step needed to
-                    recover the money before refunding.
+                    recover the loss separately from the customer’s legal refund deadline. Supplier authorization and reimbursement must not delay consumer rights.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

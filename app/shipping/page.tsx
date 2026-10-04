@@ -19,6 +19,7 @@ import {
 import {
   RETURN_POLICY_COD_RTO_RO,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_REFUND_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
   RETURN_WINDOW_LABEL_RO,
 } from "@/lib/returns/policy";
@@ -120,8 +121,8 @@ export default async function ShippingPage() {
             </li>
             <li className="flex items-center gap-2 md:col-span-2">
               <span className="text-green-600">✓</span>
-              Refuz/nepreluare colet (RTO): putem încasa cel mult garanția
-              autorizată pentru transportul tur
+              Refuzul/nepreluarea coletului nu declanșează automat
+              încasarea garanției COD
             </li>
           </ul>
         </div>
@@ -302,9 +303,7 @@ export default async function ShippingPage() {
                 transportului tur. Suma nu se încasează la plasarea comenzii.
               </li>
               <li>
-                • <strong>La refuz sau nepreluare:</strong> putem încasa cel
-                mult suma autorizată pentru transportul tur. TechTots suportă
-                costul returului la expeditor.
+                • <strong>La refuz sau nepreluare:</strong> {RETURN_POLICY_COD_RTO_RO}
               </li>
               <li>
                 • <strong>Conformitate:</strong> pentru produse
@@ -366,6 +365,7 @@ export default async function ShippingPage() {
                 </p>
                 <p className="text-slate-600 text-sm">
                   {RETURN_POLICY_CUSTOMER_PAYS_RO}
+                  {" "}{RETURN_POLICY_REFUND_RO}
                 </p>
               </div>
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
@@ -502,10 +502,7 @@ export default async function ShippingPage() {
             Legea nr. 193/2000.
           </p>
           <p className="mt-2">
-            Prevederile privind refuzul la livrare/nepreluarea coletului se
-            aplică exclusiv sumei autorizate pentru transportul tur, comunicată
-            înainte de finalizarea comenzii. TechTots suportă costul returului
-            la expeditor.
+            {RETURN_POLICY_COD_RTO_RO}
           </p>
           <p className="mt-4">Ultima actualizare: 4 octombrie 2026</p>
         </section>

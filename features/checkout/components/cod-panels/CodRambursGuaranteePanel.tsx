@@ -1,5 +1,6 @@
 "use client";
 
+import { RETURN_POLICY_COD_RTO_RO } from "@/lib/returns/policy";
 import { CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 import React from "react";
 
@@ -170,10 +171,7 @@ export function CodRambursGuaranteePanel({
               </li>
               <li className="flex gap-2.5">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500" />
-                {t(
-                  "codGuaranteePostRefusalNotice",
-                  "Dacă refuzi coletul sau nu îl ridici, putem încasa cel mult suma autorizată pentru transportul tur. TechTots suportă returul la expeditor."
-                )}
+                {t("codGuaranteePostRefusalNotice", RETURN_POLICY_COD_RTO_RO)}
               </li>
             </ul>
           </div>

@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+import {
+  RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_DISPATCH_RO,
+  RETURN_POLICY_REFUND_RO,
+  RETURN_POLICY_SELLER_PAYS_RO,
+} from "@/lib/returns/policy";
+
 import { COMPANY_LEGAL } from "@/lib/config/company-legal";
 
 export const WITHDRAWAL_TYPE = "contract_withdrawal_v1";
@@ -60,6 +67,10 @@ export function receiptText(receipt: WithdrawalReceipt): string {
     `Contract / comandă / produse: ${receipt.contract}`,
     "Declarație: Vă informez că mă retrag din contractul identificat mai sus.",
     "Această confirmare dovedește primirea declarației. Termenul de retragere și pașii pentru retur/rambursare se verifică separat; nu este necesară motivarea retragerii.",
+    RETURN_POLICY_CUSTOMER_PAYS_RO,
+    RETURN_POLICY_REFUND_RO,
+    RETURN_POLICY_SELLER_PAYS_RO,
+    RETURN_POLICY_DISPATCH_RO,
     `Contact: ${COMPANY_LEGAL.email}`,
   ].join("\n");
 }

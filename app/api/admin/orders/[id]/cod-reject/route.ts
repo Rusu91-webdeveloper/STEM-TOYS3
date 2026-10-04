@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { auth } from "@/lib/auth";
-import {
-  formatCodGuaranteeCaptureNote,
-  parseCodGuaranteeEvidence,
-} from "@/lib/checkout/cod-guarantee";
-import { db } from "@/lib/db";
-import { getStripeServerClient } from "@/lib/stripe-server";
 import { markCODOrderAsRejected } from "@/lib/analytics/cod-analytics";
+import { auth } from "@/lib/auth";
+import { validateCsrfForRequest } from "@/lib/csrf";
+import { db } from "@/lib/db";
 
 /**
  * POST /api/admin/orders/[id]/cod-reject
@@ -27,11 +23,23 @@ export async function POST(
       );
     }
 
+    if (!(await validateCsrfForRequest(request)).valid) {
+      return NextResponse.json(
+        { error: "Security validation failed" },
+        { status: 403 }
+      );
+    }
+
     const params = await context.params;
     const orderIdOrNumber = params.id;
     const { reason, notes, captureGuarantee } = await request.json();
 
-    if (!reason) {
+    if (
+      typeof reason !== "string" ||
+      !reason.trim() ||
+      reason.length > 1000 ||
+      (notes !== null && notes !== undefined && (typeof notes !== "string" || notes.length > 4000))
+    ) {
       return NextResponse.json(
         { error: "Rejection reason is required" },
         { status: 400 }
@@ -63,93 +71,32 @@ export async function POST(
       );
     }
 
-    const shouldCaptureGuarantee = captureGuarantee !== false;
-    const codGuaranteeEvidence = parseCodGuaranteeEvidence(order.notes);
-    let guaranteeCaptured = false;
-    let guaranteeCaptureAmount: number | null = null;
-    const processingNotes: string[] = [];
-
-    if (
-      shouldCaptureGuarantee &&
-      codGuaranteeEvidence.authorizedPaymentIntentId
-    ) {
-      try {
-        const stripe = getStripeServerClient();
-        const paymentIntentId = codGuaranteeEvidence.authorizedPaymentIntentId;
-        const paymentIntent =
-          await stripe.paymentIntents.retrieve(paymentIntentId);
-        const authorizedAmountMinor = Math.round(
-          Math.max(0, codGuaranteeEvidence.authorizedAmount || 0) * 100
-        );
-
-        if (
-          paymentIntent.status === "requires_capture" &&
-          paymentIntent.amount_capturable > 0 &&
-          authorizedAmountMinor > 0
-        ) {
-          const captureAmountMinor = Math.min(
-            authorizedAmountMinor,
-            paymentIntent.amount_capturable
-          );
-          const captureResult = await stripe.paymentIntents.capture(
-            paymentIntentId,
-            {
-              amount_to_capture: captureAmountMinor,
-            }
-          );
-
-          if (captureResult.status === "succeeded") {
-            guaranteeCaptured = true;
-            guaranteeCaptureAmount = captureAmountMinor / 100;
-            processingNotes.push(
-              formatCodGuaranteeCaptureNote({
-                capturedAt: new Date().toISOString(),
-                paymentIntentId,
-                amount: guaranteeCaptureAmount,
-              })
-            );
-          } else {
-            processingNotes.push(
-              `COD Guarantee capture attempted but returned status: ${captureResult.status}`
-            );
-          }
-        } else if (paymentIntent.status === "succeeded") {
-          guaranteeCaptured = true;
-          guaranteeCaptureAmount =
-            codGuaranteeEvidence.authorizedAmount ??
-            Math.round(paymentIntent.amount / 100);
-          processingNotes.push(
-            `COD Guarantee already captured (PI: ${paymentIntentId})`
-          );
-        } else {
-          processingNotes.push(
-            `COD Guarantee not capturable (status: ${paymentIntent.status}, capturable: ${paymentIntent.amount_capturable})`
-          );
-        }
-      } catch (captureError) {
-        processingNotes.push(
-          `COD Guarantee capture failed: ${
-            captureError instanceof Error
-              ? captureError.message
-              : "Unknown capture error"
-          }`
-        );
-      }
-    } else if (shouldCaptureGuarantee) {
-      processingNotes.push("COD Guarantee evidence not found on order notes.");
+    // Recording RTO is not a legal determination of liability. No payment
+    // provider is called here, including for legacy clients requesting capture.
+    if (captureGuarantee === true) {
+      return NextResponse.json(
+        {
+          error:
+            "Refuzul/nepreluarea nu autorizează automat încasarea garanției. Înregistrează RTO fără încasare; orice prejudiciu necesită analiză juridică și dovezi separate.",
+        },
+        { status: 400 }
+      );
     }
+    const processingNotes = [
+      "RTO recorded without guarantee capture. Check withdrawal declarations and seller/courier fault before assessing any loss.",
+    ];
 
     await markCODOrderAsRejected(
       order.id,
-      reason,
+      reason.trim(),
       [notes, ...processingNotes].filter(Boolean).join(" | ") || undefined
     );
 
     return NextResponse.json({
       success: true,
       message: "COD order marked as rejected",
-      guaranteeCaptured,
-      guaranteeCaptureAmount,
+      guaranteeCaptured: false,
+      guaranteeCaptureAmount: null,
       details: processingNotes,
     });
   } catch (error) {

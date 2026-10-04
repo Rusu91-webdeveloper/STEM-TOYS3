@@ -7,27 +7,18 @@ import { RETURN_POLICY_COD_RTO_RO } from "@/lib/returns/policy";
 const projectRoot = process.cwd();
 
 describe("COD outbound guarantee copy", () => {
-  it("states the authorization cap and who pays return to sender", () => {
+  it("preserves withdrawal rights and does not promise automatic RTO capture", () => {
     expect(RETURN_POLICY_COD_RTO_RO).toContain(
-      "acoperă numai costul transportului tur"
-    );
-    expect(RETURN_POLICY_COD_RTO_RO).toContain(
-      "putem încasa cel mult suma autorizată"
+      "nu declanșează automat încasarea"
     );
     expect(RETURN_POLICY_COD_RTO_RO).toContain(
-      "returului la expeditor rămâne suportat de TechTots"
+      "O retragere legală comunicată valabil nu este penalizată"
     );
-
-    expect(COD_CONSENT_TEXT).toContain(
-      "acoperă numai costul transportului tur"
-    );
-    expect(COD_CONSENT_TEXT).toContain(
-      "poate fi încasată cel mult suma autorizată"
-    );
-    expect(COD_CONSENT_TEXT).toContain("Fiecare comandă ramburs necesită");
     expect(RETURN_POLICY_COD_RTO_RO).toContain(
-      "Fiecare comandă cu plata ramburs necesită"
+      "TechTots suportă returul la expeditor"
     );
+    expect(COD_CONSENT_TEXT).toContain(RETURN_POLICY_COD_RTO_RO);
+    expect(COD_CONSENT_TEXT).toContain("nu limitează drepturile legale");
   });
 
   it("does not promise recovery beyond the authorized outbound amount", () => {

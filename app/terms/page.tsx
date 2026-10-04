@@ -11,6 +11,7 @@ import { useTranslation } from "@/lib/i18n";
 import {
   RETURN_POLICY_COD_RTO_RO,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_REFUND_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
   RETURN_WINDOW_LABEL_RO,
 } from "@/lib/returns/policy";
@@ -186,6 +187,7 @@ export default function TermsPage() {
                   legislației aplicabile.
                 </li>
                 <li>{RETURN_POLICY_CUSTOMER_PAYS_RO}</li>
+                <li>{RETURN_POLICY_REFUND_RO}</li>
                 <li>{RETURN_POLICY_SELLER_PAYS_RO}</li>
                 <li>
                   Detalii complete:{" "}

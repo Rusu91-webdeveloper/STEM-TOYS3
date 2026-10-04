@@ -1,5 +1,17 @@
 # Current tasks
 
+- [ ] 2026-10-04 — Apply the owner-approved consumer return-cost policy before
+      purchase and throughout returns. Customer pays direct withdrawal return
+      carriage; full withdrawal includes refund of initial standard delivery;
+      nonconformity is remedied without customer transport costs. Remove
+      implicit COD guarantee capture, require reviewed refund amounts and
+      correct dispatch deadlines in customer instructions. Estimate: 2–4 hours.
+      Continue draft PR #64; preserve configured COD fees and supplier changes.
+      Implementation complete: precontract copy, no automatic COD capture,
+      reviewed Stripe amount/retry checks and manual repayment proof. 84 focused
+      tests and local mobile/PDF checks pass. Real-DB/mail/financial acceptance
+      remains pending; keep draft. Evidence: docs/audits/2026-10-04-return-cost-policy.md.
+
 - [ ] 2026-10-04 — Implement the official Romanian harmonised legal-guarantee
       notice and the online contract-withdrawal function under OUG 18/2026.
       Estimate: 2–4 hours. Verify official design/dates, guest access, two-stage
@@ -81,7 +93,7 @@
       Completed 2026-10-04; elapsed time was not recorded. Every eligible COD
       order now requires a server-priced shipping hold; lockers remain prepaid
       only. Guest token issuance/parsing and original-request validation are
-      repaired. 81 focused tests pass and required full Jest/TypeScript
+      repaired. 84 focused tests pass and required full Jest/TypeScript
       comparisons have zero added failures/diagnostics. Source `3c6412e8` is
       READY; deployed policy/token/cookie flags and shipping copy are verified.
       Fresh checkout prepared with blank customer fields; production unchanged.

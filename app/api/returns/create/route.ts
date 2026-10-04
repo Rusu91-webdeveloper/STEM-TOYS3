@@ -9,6 +9,7 @@ import {
   RETURN_WINDOW_DAYS,
   getLiabilityForReturnReason,
   isReturnReason,
+  isConformityComplaint,
   isWithinReturnWindowForOrder,
   normalizeReturnDetails,
 } from "@/lib/returns/policy";
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!isWithinReturnWindowForOrder(orderItem.order as any)) {
+    if (!isConformityComplaint(returnReason) && !isWithinReturnWindowForOrder(orderItem.order as any)) {
       return NextResponse.json(
         {
           error: `Returul poate fi solicitat doar în primele ${RETURN_WINDOW_DAYS} zile calendaristice de la livrare.`,

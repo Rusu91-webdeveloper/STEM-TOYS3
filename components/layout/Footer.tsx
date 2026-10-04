@@ -71,7 +71,7 @@ export default function Footer({
   const resolvedEmail = storeSettings?.contactEmail ?? "info@techtots.ro";
 
   const getReturnPolicyText = () =>
-    t("freeReturnsOver50", "14 calendar days for returns. Return shipping is paid by the customer.");
+    t("freeReturnsOver50", "Withdraw within 14 calendar days. Customers pay return carriage for change of mind; non-conformity transport is free for the customer.");
 
   const socialIcons: Record<
     (typeof TECHTOTS_SOCIAL_LINKS)[number]["name"],
@@ -307,7 +307,7 @@ export default function Footer({
           </Link>
           {" · "}
           <span>
-            Comenzi COD: la refuz/nepreluare (RTO) suportăm returul și putem reține doar transportul tur ·{" "}
+            Comenzi COD: refuzul/nepreluarea nu declanșează automat încasarea garanției; verificăm fiecare caz și respectăm dreptul de retragere ·{" "}
           </span>
           <Link href="/shipping" className="font-medium text-[#2563EB] hover:underline">
             Detalii livrare

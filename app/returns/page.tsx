@@ -6,6 +6,7 @@ import { COMPANY_LEGAL } from "@/lib/config/company-legal";
 import {
   RETURN_POLICY_COD_RTO_RO,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_REFUND_RO,
   RETURN_POLICY_EVIDENCE_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
   RETURN_WINDOW_LABEL_RO,
@@ -330,9 +331,8 @@ export default async function ReturnsPage() {
                     </li>
                     <li>
                       <strong>Notă:</strong> Pentru anumiți furnizori,
-                      returnările pot necesita autorizare (ARP/RMA). În acest
-                      caz, vei primi un număr de autorizare în email după
-                      procesarea cererii.
+                      folosim intern autorizări (ARP/RMA). Acestea nu condiționează
+                      drepturile tale și nu suspendă termenele legale.
                     </li>
                     <li>Urmează instrucțiunile de expediere primite</li>
                     <li>
@@ -425,8 +425,7 @@ export default async function ReturnsPage() {
                     • <strong>Dovezi foto:</strong> {RETURN_POLICY_EVIDENCE_RO}
                   </li>
                   <li>
-                    • <strong>Rambursare:</strong> După recepția și verificarea
-                    returului, rambursarea se procesează conform legii.
+                    • <strong>Rambursare:</strong> {RETURN_POLICY_REFUND_RO}
                   </li>
                 </ul>
               </div>

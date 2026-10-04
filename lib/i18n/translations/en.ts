@@ -1,3 +1,5 @@
+import { RETURN_POLICY_COD_RTO_EN } from "@/lib/returns/policy";
+
 // English translations
 export const en = {
   // General UI translations
@@ -1390,7 +1392,7 @@ export const en = {
   // thirtyDayReturns: "30-day hassle-free returns", // Removed - risky advertisement
   hassleFreeReturns: "Hassle-free returns",
   freeReturnsOver50:
-    "14 calendar days for returns. Return shipping is paid by the customer.",
+    "Withdraw within 14 calendar days. Customers pay return carriage for change of mind; non-conformity transport is free for the customer.",
   bankLevelSecurity: "Bank-level security & encryption",
   trustedEducators: "For parents and educators choosing learning through play",
 
@@ -1926,19 +1928,20 @@ export const en = {
   codKeyPointRtoTitle: "Refusal or non-collection",
   codKeyPointRtoBody:
     "If you refuse the parcel at delivery or do not collect it in time, it may be returned to the sender (RTO).",
-  codKeyPointRoundTripTitle: "Only outbound transport may be retained",
-  codKeyPointRoundTripBody:
-    "Every COD order requires a temporary card authorization limited to outbound shipping. If you refuse or do not collect the parcel, we may capture no more than the authorized amount; TechTots covers the return-to-sender leg.",
+  codKeyPointRoundTripTitle: "Outbound shipping guarantee",
+  codKeyPointRoundTripBody: RETURN_POLICY_COD_RTO_EN,
+  codConsentLabel:
+    "I confirm that I have read the COD terms. The guarantee is not captured automatically and statutory withdrawal is not penalized.",
+  codConsentShortNote:
+    "The authorization is not captured when placing the order. Statutory withdrawal does not trigger a penalty.",
   codKeyPointAckTitle: "Acknowledgement before checkout",
   codKeyPointAckBody:
     "Continuing with cash on delivery requires explicit acceptance of these terms.",
-  codInfoBody:
-    "Delivery refusal or parcel non-collection are treated as RTO. The temporary authorization covers outbound shipping only; we may capture no more than the authorized amount, and TechTots covers the return-to-sender leg.",
+  codInfoBody: RETURN_POLICY_COD_RTO_EN,
   codLockerInfoTitle: "FANbox payment information",
   codLockerInfoBody:
     "For FANbox delivery, payment is made online by card. Cash on delivery is unavailable.",
-  codReviewNotice:
-    "Pay for the products when the courier delivers your parcel. The temporary authorization covers outbound shipping only; if you refuse or do not collect it, we may capture no more than the authorized amount.",
+  codReviewNotice: RETURN_POLICY_COD_RTO_EN,
   codLockerReviewNotice:
     "For FANbox delivery, payment is made online by card. Cash on delivery is unavailable.",
   codLockerFee: "FANbox payment fee",

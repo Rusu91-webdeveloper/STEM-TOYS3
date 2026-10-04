@@ -171,7 +171,7 @@ describe("PaymentForm mandatory COD authorization", () => {
           paymentMethod: "cash_on_delivery",
           codGuaranteePaymentIntentId: "pi_hold",
           codGuaranteeAmount: 19.99,
-          codConsentVersion: "2026-10-04",
+          codConsentVersion: "2026-10-04-returns-v2",
         })
       );
       const payload = JSON.parse(

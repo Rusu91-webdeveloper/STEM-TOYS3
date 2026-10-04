@@ -328,7 +328,7 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
             order.items.some(item => !item.isDigital) && (
               <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
                 <p>
-                  Returul este disponibil în primele <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la livrare.
+                  Poți comunica retragerea în primele <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la primire. Garanția legală pentru neconformitate rămâne disponibilă separat.
                 </p>
                 <p className="mt-1">{RETURN_POLICY_CUSTOMER_PAYS_RO}</p>
                 <p className="mt-1">{RETURN_POLICY_SELLER_PAYS_RO}</p>
@@ -401,9 +401,8 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                               </div>
                             )}
 
-                            {/* Return Item Button - Only show for non-digital items that haven't been returned and within 14-day window */}
-                            {isWithinReturnWindow() &&
-                             !item.isDigital &&
+                            {/* Physical-item requests include conformity review beyond the withdrawal window */}
+                            {!item.isDigital &&
                              (!item.returnStatus || item.returnStatus === "NONE") && (
                               <Button
                                 variant="outline"
@@ -424,7 +423,7 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                             {!isWithinReturnWindow() && !item.isDigital && (!item.returnStatus || item.returnStatus === "NONE") && (
                               <div className="flex items-center text-sm text-muted-foreground mt-2">
                                 <Package className="h-4 w-4 mr-1" />
-                                Fereastra de retur a expirat ({RETURN_WINDOW_LABEL_RO})
+                                Perioada de retragere a expirat ({RETURN_WINDOW_LABEL_RO}); poți solicita verificarea unei neconformități în baza garanției legale.
                               </div>
                             )}
                             {/* Info message for digital items */}

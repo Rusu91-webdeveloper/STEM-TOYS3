@@ -3,12 +3,14 @@
  * Includes return approved, rejected, and pending confirmation emails
  */
 
-import { getEmailService } from "./index";
 import {
-  getStoreSettings,
-  getBaseUrl,
-  generateEmailHTML,
-} from "./base";
+  getCustomerReturnInstructions,
+  RETURN_POLICY_REFUND_RO,
+  RETURN_POLICY_DISPATCH_RO,
+} from "@/lib/returns/policy";
+
+import { getEmailService } from "./index";
+import { getStoreSettings, getBaseUrl, generateEmailHTML } from "./base";
 
 // Romanian reason labels
 const reasonLabelsRo: Record<string, string> = {
@@ -101,19 +103,19 @@ export async function sendReturnApprovedEmail({
           <!-- Instructions -->
           <h3 style="color: #1f2937; margin: 24px 0 16px 0;">📦 Instrucțiuni pentru Returnare:</h3>
           <ol style="line-height: 1.8; color: #374151; padding-left: 20px;">
-            <li><strong>Printați eticheta de returnare</strong> atașată acestui email.</li>
+            <li>Documentul PDF atașat identifică returul; nu este un AWB preplătit.</li>
             <li>Împachetați produsul în ambalajul original (dacă este posibil).</li>
             <li>Atașați eticheta de returnare pe pachet.</li>
-            <li>Duceți pachetul la orice oficiu poștal sau punct de curierat.</li>
+            <li>Verificați cu TechTots adresa de retur și modalitatea de expediere; pentru neconformitate organizăm transportul fără costuri pentru dumneavoastră.</li>
             <li>Păstrați dovada de expediere până la procesarea returnării.</li>
           </ol>
           
           <!-- Warning -->
           <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 24px 0;">
-            <p style="margin: 0; color: #92400e; font-weight: 600;">⚠️ Aveți la dispoziție 14 zile de la aprobarea acestei returnări pentru a expedia pachetul.</p>
+            <p style="margin: 0; color: #92400e; font-weight: 600;">${getCustomerReturnInstructions(reason)}</p>
           </div>
           
-          <p style="font-size: 16px; color: #374151; line-height: 1.6;">Veți primi o confirmare email când vom procesa returnarea și rambursarea dumneavoastră.</p>
+          <p style="font-size: 16px; color: #374151; line-height: 1.6;">${RETURN_POLICY_REFUND_RO}</p>
           
           <!-- CTA Button -->
           <div style="text-align: center; margin: 32px 0;">
@@ -140,15 +142,17 @@ export async function sendReturnApprovedEmail({
   `;
 
   const emailService = getEmailService();
-  
+
   // Build attachments array if PDF is provided
-  const attachments = pdfBase64 ? [
-    {
-      filename: `TechTots_Eticheta_Returnare_${orderNumber}.pdf`,
-      content: pdfBase64,
-      contentType: "application/pdf",
-    },
-  ] : undefined;
+  const attachments = pdfBase64
+    ? [
+        {
+          filename: `TechTots_Eticheta_Returnare_${orderNumber}.pdf`,
+          content: pdfBase64,
+          contentType: "application/pdf",
+        },
+      ]
+    : undefined;
 
   return emailService.sendEmail({
     to,
@@ -352,20 +356,21 @@ export async function sendBulkReturnApprovedEmail({
           <!-- Instructions -->
           <h3 style="color: #1f2937; margin: 24px 0 16px 0;">📝 Instrucțiuni pentru Returnare:</h3>
           <ol style="line-height: 1.8; color: #374151; padding-left: 20px;">
-            <li><strong>Printați eticheta de returnare</strong> atașată acestui email.</li>
-            <li><strong>Împachetați TOATE produsele în același pachet</strong> (folosiți ambalajul original dacă este posibil).</li>
+            <li>Documentul PDF atașat identifică returul; nu este un AWB preplătit.</li>
+            <li>Ambalați produsele în siguranță. Confirmați cu TechTots destinația fiecărui articol înainte de a le grupa într-un colet.</li>
             <li>Atașați eticheta de returnare pe pachet.</li>
-            <li>Duceți pachetul la orice oficiu poștal sau punct de curierat.</li>
+            <li>Verificați cu TechTots adresa de retur și modalitatea de expediere; pentru neconformitate organizăm transportul fără costuri pentru dumneavoastră.</li>
             <li>Păstrați dovada de expediere.</li>
           </ol>
           
           <!-- Important Notice -->
           <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 24px 0;">
             <p style="margin: 0 0 8px 0; color: #92400e; font-weight: 600;">⚠️ Important:</p>
-            <p style="margin: 0; color: #92400e;">Toate articolele trebuie returnate într-un singur pachet folosind eticheta atașată. Nu folosiți etichete separate pentru fiecare articol.</p>
+            <p style="margin: 0; color: #92400e;">${[...new Set(items.map(item => getCustomerReturnInstructions(item.reason)))].join(" ")}</p>
           </div>
           
-          <p style="font-size: 16px; color: #dc2626; font-weight: 600;">Aveți la dispoziție 14 zile de la aprobarea acestei returnări pentru a expedia pachetul.</p>
+          <p style="font-size: 16px; color: #dc2626; font-weight: 600;">${RETURN_POLICY_DISPATCH_RO}</p>
+          <p style="font-size: 16px; color: #374151; line-height: 1.6;">${RETURN_POLICY_REFUND_RO}</p>
           
           <!-- CTA Button -->
           <div style="text-align: center; margin: 32px 0;">
@@ -390,14 +395,16 @@ export async function sendBulkReturnApprovedEmail({
   `;
 
   const emailService = getEmailService();
-  
-  const attachments = pdfBase64 ? [
-    {
-      filename: `TechTots_Eticheta_Returnare_Bulk_${orderNumber}.pdf`,
-      content: pdfBase64,
-      contentType: "application/pdf",
-    },
-  ] : undefined;
+
+  const attachments = pdfBase64
+    ? [
+        {
+          filename: `TechTots_Eticheta_Returnare_Bulk_${orderNumber}.pdf`,
+          content: pdfBase64,
+          contentType: "application/pdf",
+        },
+      ]
+    : undefined;
 
   return emailService.sendEmail({
     to,

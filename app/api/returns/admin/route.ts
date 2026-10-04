@@ -102,6 +102,10 @@ export async function GET(request: Request) {
             id: true,
             orderNumber: true,
             createdAt: true,
+            total: true,
+            shippingCost: true,
+            discountAmount: true,
+            paymentMethod: true,
           },
         },
         orderItem: {
@@ -196,6 +200,10 @@ export async function GET(request: Request) {
               id: true,
               orderNumber: true,
               createdAt: true,
+              total: true,
+              shippingCost: true,
+              discountAmount: true,
+              paymentMethod: true,
             },
           },
           orderItem: {

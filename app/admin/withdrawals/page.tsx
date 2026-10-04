@@ -56,10 +56,10 @@ export default function WithdrawalsPage() {
         Verifică prompt declarațiile primite, inclusiv cele cu email netrimis.
         Confirmarea înregistrează notificarea clientului; verifică separat
         identitatea/comanda, termenul legal, expedierea și rambursarea. Marcarea
-        ca verificată nu modifică o comandă sau o plată. Înainte de încasarea
-        unei garanții COD pentru refuz/nepreluare, verifică dacă a fost
-        comunicată o retragere valabilă; dreptul legal de retragere nu este
-        supus unei penalități de refuz.
+        ca verificată nu modifică o comandă sau o plată. Înregistrarea
+        refuzului/nepreluării COD nu încasează garanția. Verifică declarațiile
+        de retragere, termenul rambursării și eliberarea autorizării; dreptul
+        legal de retragere nu este supus unei penalități de refuz.
       </p>
       <button
         className="underline"

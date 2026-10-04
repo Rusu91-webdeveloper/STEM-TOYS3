@@ -1,3 +1,5 @@
+import { RETURN_POLICY_COD_RTO_RO } from "@/lib/returns/policy";
+
 // Romanian translations
 export const ro = {
   // General UI translations
@@ -1552,7 +1554,7 @@ export const ro = {
   freeShippingOver50: "Transport GRATUIT la comenzi peste {threshold}",
   thirtyDayReturns: "Returnări fără probleme în 14 zile",
   freeReturnsOver50:
-    "Retur în 14 zile calendaristice. Costul transportului de retur este suportat de client.",
+    "Retragere în 14 zile calendaristice. Clientul plătește transportul de retur dacă se răzgândește; pentru neconformitate, transportul este fără costuri pentru client.",
   bankLevelSecurity: "Securitate și criptare la nivel bancar",
   trustedEducators: "Pentru părinți și educatori care aleg învățarea prin joacă",
 
@@ -2116,19 +2118,20 @@ export const ro = {
   codKeyPointRtoTitle: "Refuz sau nepreluare",
   codKeyPointRtoBody:
     "Dacă refuzi coletul la livrare sau nu îl ridici în termen, acesta poate fi returnat expeditorului (RTO).",
-  codKeyPointRoundTripTitle: "Reținem doar transportul tur",
-  codKeyPointRoundTripBody:
-    "Fiecare comandă ramburs necesită o autorizare temporară pe card, limitată la transportul tur. La refuz sau nepreluare putem încasa cel mult suma autorizată; TechTots suportă returul la expeditor.",
+  codKeyPointRoundTripTitle: "Garanție pentru transportul tur",
+  codKeyPointRoundTripBody: RETURN_POLICY_COD_RTO_RO,
+  codConsentLabel:
+    "Confirm că am citit condițiile COD. Înțeleg că garanția nu este încasată automat, iar dreptul legal de retragere nu este penalizat.",
+  codConsentShortNote:
+    "Autorizarea nu se încasează la plasarea comenzii. O retragere legală nu declanșează o penalizare.",
   codKeyPointAckTitle: "Confirmare înainte de plată",
   codKeyPointAckBody:
     "Continuarea comenzii cu ramburs necesită acceptarea explicită a acestor condiții.",
-  codInfoBody:
-    "Refuzul sau nepreluarea sunt tratate ca retur la expeditor (RTO). Autorizarea temporară acoperă numai transportul tur; putem încasa cel mult suma autorizată, iar TechTots suportă returul la expeditor.",
+  codInfoBody: RETURN_POLICY_COD_RTO_RO,
   codLockerInfoTitle: "Informare plată la FANbox",
   codLockerInfoBody:
     "Pentru livrarea la FANbox, plata se face online cu cardul. Plata ramburs nu este disponibilă.",
-  codReviewNotice:
-    "Plătești produsele la primirea coletului. Autorizarea temporară acoperă numai transportul tur; la refuz sau nepreluare putem încasa cel mult suma autorizată.",
+  codReviewNotice: RETURN_POLICY_COD_RTO_RO,
   codLockerReviewNotice:
     "Pentru livrarea la FANbox, plata se face online cu cardul. Plata ramburs nu este disponibilă.",
   codLockerFee: "Taxă plată la FANbox",

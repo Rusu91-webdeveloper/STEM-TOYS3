@@ -11,6 +11,7 @@ import {
   getReturnReferenceDate,
   getLiabilityForReturnReason,
   isReturnReason,
+  isConformityComplaint,
   isWithinReturnWindowForOrder,
   normalizeReturnDetails,
   normalizeReturnPhotos,
@@ -55,16 +56,6 @@ export async function POST(request: Request) {
     }
     const returnReason = reason;
     const defaultLiability = getLiabilityForReturnReason(returnReason);
-
-    if (normalizedPhotos.length === 0) {
-      return NextResponse.json(
-        {
-          error:
-            "Te rugăm să încarci cel puțin o fotografie. Pozele se salvează împreună cu cererea de retur pentru analiză și pentru relația cu furnizorul.",
-        },
-        { status: 400 }
-      );
-    }
 
     // Find all order items that belong to the user
     const orderItems = await db.orderItem.findMany({
@@ -133,10 +124,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Use deliveredAt if available, otherwise fall back to order creation date
+    // Eligibility uses delivery evidence; creation date is only a legacy audit reference.
     // This matches the frontend logic for return eligibility
     const referenceDate = getReturnReferenceDate(order as any);
-    if (!isWithinReturnWindowForOrder(order as any)) {
+    if (!isConformityComplaint(returnReason) && !isWithinReturnWindowForOrder(order as any)) {
       const dateType = (order as any).deliveredAt
         ? "livrare"
         : "plasarea comenzii";

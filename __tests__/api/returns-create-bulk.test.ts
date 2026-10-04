@@ -307,4 +307,86 @@ describe("POST /api/returns/create-bulk", () => {
       })
     );
   });
+  it.each([
+    "DAMAGED_OR_DEFECTIVE",
+    "MISSING_PARTS",
+    "WRONG_ITEM_SHIPPED",
+    "DAMAGED_IN_TRANSIT",
+  ])(
+    "admits %s after 14 days without mandatory photos for warranty review",
+    async reason => {
+      mockOrderItemFindMany.mockResolvedValue([
+        buildOrderItem({
+          order: {
+            id: "order_1",
+            orderNumber: "O1",
+            userId: "user_1",
+            status: "DELIVERED",
+            createdAt: new Date(Date.now() - 50 * 86400000),
+            deliveredAt: new Date(Date.now() - 40 * 86400000),
+          },
+        }),
+      ]);
+      const { POST } = await import("@/app/api/returns/create-bulk/route");
+      const response = await POST(
+        new Request("http://localhost/api/returns/create-bulk", {
+          method: "POST",
+          body: JSON.stringify({
+            orderItemIds: ["item_1"],
+            reason,
+            photos: [],
+          }),
+        })
+      );
+      expect(response.status).toBe(200);
+      expect(mockCreateMany).toHaveBeenCalled();
+    }
+  );
+  it("does not extend ordinary withdrawal to 40 days", async () => {
+    mockOrderItemFindMany.mockResolvedValue([
+      buildOrderItem({
+        order: {
+          id: "order_1",
+          orderNumber: "O1",
+          userId: "user_1",
+          status: "DELIVERED",
+          createdAt: new Date(Date.now() - 50 * 86400000),
+          deliveredAt: new Date(Date.now() - 40 * 86400000),
+        },
+      }),
+    ]);
+    const { POST } = await import("@/app/api/returns/create-bulk/route");
+    const response = await POST(
+      new Request("http://localhost/api/returns/create-bulk", {
+        method: "POST",
+        body: JSON.stringify({
+          orderItemIds: ["item_1"],
+          reason: "CHANGED_MIND",
+          photos: [],
+        }),
+      })
+    );
+    expect(response.status).toBe(400);
+    expect(mockCreateMany).not.toHaveBeenCalled();
+  });
+  it("accepts an ordinary withdrawal without demanding photo evidence", async () => {
+    mockOrderItemFindMany.mockResolvedValue([buildOrderItem()]);
+    const { POST } = await import("@/app/api/returns/create-bulk/route");
+    const response = await POST(
+      new Request("http://localhost/api/returns/create-bulk", {
+        method: "POST",
+        body: JSON.stringify({
+          orderItemIds: ["item_1"],
+          reason: "CHANGED_MIND",
+          photos: [],
+        }),
+      })
+    );
+    expect(response.status).toBe(200);
+    expect(mockCreateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: [expect.objectContaining({ liability: "CUSTOMER", photos: [] })],
+      })
+    );
+  });
 });

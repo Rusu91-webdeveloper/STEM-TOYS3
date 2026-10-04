@@ -22,7 +22,7 @@ interface ReturnLabelProps {
 // Translations for the return label
 const translations = {
   en: {
-    title: "RETURN SHIPPING LABEL",
+    title: "RETURN IDENTIFICATION",
     rma: "RMA",
     returnDetails: "Return Details",
     orderNumber: "Order Number",
@@ -31,13 +31,13 @@ const translations = {
     sku: "SKU",
     reason: "Reason",
     shippingInstructions: "Shipping Instructions",
-    step1:
-      "1. Cut along the dotted line and attach this label to your package.",
+    step1: "1. This document identifies the return; it is not prepaid postage.",
     step2: "2. Pack the product in its original packaging if possible.",
-    step3: "3. Drop off the package at any post office.",
+    step3:
+      "3. Confirm the destination and shipping arrangements with TechTots.",
     step4: "4. Keep your receipt until the return is processed.",
     legalNote:
-      "According to the legislation, you have 14 days to return your product.",
+      "Withdrawal: dispatch within 14 days of notifying us; customer pays return carriage. Nonconformity: TechTots arranges transport at no cost to you.",
     returnAddress: "Return Address",
     from: "From",
     reference: "Reference",
@@ -49,7 +49,7 @@ const translations = {
     fromSender: "SENDER INFORMATION",
   },
   ro: {
-    title: "ETICHETĂ DE RETURNARE",
+    title: "DOCUMENT DE RETUR",
     rma: "RMA",
     returnDetails: "Detalii Returnare",
     orderNumber: "Număr Comandă",
@@ -58,13 +58,12 @@ const translations = {
     sku: "Cod Produs",
     reason: "Motiv",
     shippingInstructions: "Instrucțiuni de Expediere",
-    step1:
-      "1. Tăiați de-a lungul liniei punctate și atașați această etichetă pe pachet.",
+    step1: "1. Documentul identifică returul; nu este un AWB preplătit.",
     step2: "2. Ambalați produsul în ambalajul original, dacă este posibil.",
-    step3: "3. Predați pachetul la orice oficiu poștal sau punct de curierat.",
+    step3: "3. Confirmați destinația și expedierea cu TechTots.",
     step4: "4. Păstrați dovada de expediere până la procesarea returului.",
     legalNote:
-      "Conform legislației din România, aveți la dispoziție 14 zile pentru a returna produsul.",
+      "Retragere: expediați în 14 zile de la notificare; clientul plătește returul. Neconformitate: TechTots organizează transportul fără costuri pentru client.",
     returnAddress: "Adresa de Returnare",
     from: "De la",
     reference: "Referință",
