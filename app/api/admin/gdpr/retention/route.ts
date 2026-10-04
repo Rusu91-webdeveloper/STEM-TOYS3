@@ -1,306 +1,120 @@
 import { NextRequest, NextResponse } from "next/server";
-
-import { Prisma } from "@prisma/client";
-import { db } from "@/lib/db";
-import { withAdminAuth } from "@/lib/authorization";
 import { z } from "zod";
 
-// Validation schemas
-const retentionPolicySchema = z.object({
+import { auth } from "@/lib/auth";
+import { withCsrfProtection } from "@/lib/csrf";
+import { db } from "@/lib/db";
+import {
+  runRetentionCleanup,
+  supportsAutomaticRetention,
+} from "@/lib/privacy/retention";
+
+export const dynamic = "force-dynamic";
+const headers = { "Cache-Control": "private, no-store" };
+const schema = z.object({
   category: z.enum([
     "personal_data",
     "marketing_data",
     "analytics_data",
     "logs",
   ]),
-  retentionPeriod: z.number().min(1).max(3650), // 1 day to 10 years
-  autoDelete: z.boolean().default(true),
-  description: z.string().optional(),
+  retentionPeriod: z.number().int().min(1).max(3650),
+  autoDelete: z.boolean().default(false),
+  description: z.string().max(1000).optional(),
 });
+const updateSchema = schema
+  .omit({ category: true })
+  .partial()
+  .extend({ id: z.string().min(1) });
+const reply = (data: unknown, status = 200) =>
+  NextResponse.json(data, { status, headers });
 
-const updateRetentionPolicySchema = z.object({
-  id: z.string(),
-  retentionPeriod: z.number().min(1).max(3650).optional(),
-  autoDelete: z.boolean().optional(),
-  description: z.string().optional(),
-});
-
-/**
- * GET /api/admin/gdpr/retention - Get data retention policies
- */
-export const GET = withAdminAuth(async (request: NextRequest, session) => {
+async function handle(request: NextRequest) {
   try {
-    // Get all retention policies
-    const policies = await db.dataRetentionPolicy.findMany({
-      orderBy: { category: "asc" },
-    });
-
-    // Get retention statistics
-    const stats = await getRetentionStatistics();
-
-    return NextResponse.json({
-      policies,
-      statistics: stats,
-    });
-  } catch (error) {
-    console.error("Error fetching retention policies:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-});
-
-/**
- * POST /api/admin/gdpr/retention - Create or update retention policy
- */
-export const POST = withAdminAuth(async (request: NextRequest, session) => {
-  try {
-    const body = await request.json();
-    const validation = retentionPolicySchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Invalid request data", details: validation.error.issues },
-        { status: 400 }
-      );
-    }
-
-    const { category, retentionPeriod, autoDelete, description } =
-      validation.data;
-
-    // Upsert retention policy
-    const policy = await db.dataRetentionPolicy.upsert({
-      where: { category },
-      update: {
-        retentionPeriod,
-        autoDelete,
-        description,
-        updatedAt: new Date(),
-      },
-      create: {
-        category,
-        retentionPeriod,
-        autoDelete,
-        description,
-      },
-    });
-
-    return NextResponse.json({
-      message: "Retention policy updated successfully",
-      policy,
-    });
-  } catch (error) {
-    console.error("Error updating retention policy:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-});
-
-/**
- * PATCH /api/admin/gdpr/retention/[id] - Update specific retention policy
- */
-export const PATCH = withAdminAuth(async (request: NextRequest, session) => {
-  try {
-    const url = new URL(request.url);
-    const id = url.pathname.split("/").pop();
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "Policy ID required" },
-        { status: 400 }
-      );
-    }
-
-    const body = await request.json();
-    const validation = updateRetentionPolicySchema.safeParse({ ...body, id });
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Invalid request data", details: validation.error.issues },
-        { status: 400 }
-      );
-    }
-
-    const { retentionPeriod, autoDelete, description } = validation.data;
-
-    const policy = await db.dataRetentionPolicy.update({
-      where: { id },
-      data: {
-        ...(retentionPeriod !== undefined && { retentionPeriod }),
-        ...(autoDelete !== undefined && { autoDelete }),
-        ...(description !== undefined && { description }),
-        updatedAt: new Date(),
-      },
-    });
-
-    return NextResponse.json({
-      message: "Retention policy updated successfully",
-      policy,
-    });
-  } catch (error) {
-    console.error("Error updating retention policy:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-});
-
-/**
- * POST /api/admin/gdpr/retention/cleanup - Run data cleanup based on retention policies
- */
-export const PUT = withAdminAuth(async (request: NextRequest, session) => {
-  try {
-    const result = await runDataCleanup();
-
-    return NextResponse.json({
-      message: "Data cleanup completed",
-      result,
-    });
-  } catch (error) {
-    console.error("Error running data cleanup:", error);
-    return NextResponse.json(
-      { error: "Internal server error during cleanup" },
-      { status: 500 }
-    );
-  }
-});
-
-/**
- * Get retention statistics
- */
-async function getRetentionStatistics() {
-  const [
-    totalUsers,
-    usersWithRetentionPolicy,
-    recentCleanups,
-  ] = await Promise.all([
-    db.user.count(),
-    db.user.count({
-      where: {
-        dataRetention: { not: Prisma.DbNull },
-      },
-    }),
-    db.consentLog.count({
-      where: {
-        consentType: "data_cleanup",
-        createdAt: {
-          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
-        },
-      },
-    }),
-  ]);
-
-  return {
-    totalUsers,
-    usersWithRetentionPolicy,
-    expiredDataCount: 0, // Simplified - would require raw SQL for JSON path comparison
-    recentCleanups,
-    complianceRate:
-      totalUsers > 0 ? (usersWithRetentionPolicy / totalUsers) * 100 : 0,
-  };
-}
-
-/**
- * Run automated data cleanup based on retention policies
- */
-async function runDataCleanup() {
-  const policies = await db.dataRetentionPolicy.findMany({
-    where: { autoDelete: true },
-  });
-
-  const results = {
-    processedPolicies: 0,
-    deletedRecords: 0,
-    errors: [] as Array<{ category: string; error: string }>,
-  };
-
-  for (const policy of policies) {
-    try {
-      const cutoffDate = new Date(
-        Date.now() - policy.retentionPeriod * 24 * 60 * 60 * 1000
-      );
-
-      switch (policy.category) {
-        case "logs":
-          // Clean old email events
-          const deletedEmailEvents = await db.emailEvent.deleteMany({
-            where: {
-              createdAt: { lt: cutoffDate },
-            },
-          });
-          results.deletedRecords += deletedEmailEvents.count;
-
-          // Clean old consent logs (keep last 100 per user)
-          await db.$executeRaw`
-            DELETE FROM "ConsentLog"
-            WHERE "id" IN (
-              SELECT "id" FROM "ConsentLog"
-              WHERE "userId" IN (
-                SELECT "userId" FROM "ConsentLog"
-                GROUP BY "userId"
-                HAVING COUNT(*) > 100
-              )
-              AND "createdAt" < ${cutoffDate}
-              ORDER BY "createdAt" ASC
-              LIMIT (
-                SELECT COUNT(*) - 100 FROM "ConsentLog" c2
-                WHERE c2."userId" = "ConsentLog"."userId"
-              )
-            )
-          `;
-          break;
-
-        case "analytics_data":
-          // Clean old performance metrics
-          const deletedMetrics = await db.performanceMetric.deleteMany({
-            where: {
-              timestamp: { lt: cutoffDate },
-            },
-          });
-          results.deletedRecords += deletedMetrics.count;
-          break;
-
-        case "marketing_data":
-          // Anonymize old marketing campaign data (keep structure but remove PII)
-          await db.campaignApplication.updateMany({
-            where: {
-              appliedAt: { lt: cutoffDate },
-            },
-            data: {
-              metadata: {}, // Clear metadata that might contain PII
-            },
-          });
-          break;
-      }
-
-      results.processedPolicies++;
-
-      // Log cleanup action
-      await db.consentLog.create({
-        data: {
-          userId: "system", // Automated cleanup
-          action: "GRANTED",
-          consentType: "data_cleanup",
-          consentGiven: true,
-          consentDetails: {
-            policyCategory: policy.category,
-            retentionPeriod: policy.retentionPeriod,
-            cutoffDate: cutoffDate.toISOString(),
+    const session = await auth();
+    if (!session?.user?.id || session.user.role !== "ADMIN")
+      return reply({ error: "Admin access required" }, 403);
+    if (request.method === "GET") {
+      const [policies, pendingDeletionRequests] = await Promise.all([
+        db.dataRetentionPolicy.findMany({ orderBy: { category: "asc" } }),
+        db.consentLog.count({
+          where: {
+            consentType: "account_deletion_request",
+            consentDetails: { path: ["status"], equals: "pending_review" },
           },
-        },
-      });
-    } catch (error) {
-      console.error(`Error cleaning up ${policy.category}:`, error);
-      results.errors.push({
-        category: policy.category,
-        error: error instanceof Error ? error.message : "Unknown error",
+        }),
+      ]);
+      return reply({
+        policies,
+        pendingDeletionRequests,
+        automatedCategories: ["logs", "analytics_data"],
+        note: "These policies cover application data only. Orders, invoices, consent evidence and external providers require separate review.",
       });
     }
+    const response = await withCsrfProtection(
+      request.clone() as NextRequest,
+      async () => {
+        if (request.method === "PUT")
+          return reply({ result: await runRetentionCleanup(db) });
+        const body = await request.json().catch(() => null);
+        if (request.method === "POST") {
+          const input = schema.safeParse(body);
+          if (!input.success)
+            return reply(
+              { error: "Invalid policy", details: input.error.issues },
+              400
+            );
+          if (
+            input.data.autoDelete &&
+            !supportsAutomaticRetention(input.data.category)
+          )
+            return reply(
+              {
+                error:
+                  "This category requires manual legal review; automatic deletion is unsupported.",
+              },
+              400
+            );
+          const policy = await db.dataRetentionPolicy.upsert({
+            where: { category: input.data.category },
+            create: input.data,
+            update: input.data,
+          });
+          return reply({ policy });
+        }
+        const input = updateSchema.safeParse(body);
+        if (!input.success)
+          return reply({ error: "Policy ID and valid settings required" }, 400);
+        const { id, ...data } = input.data;
+        const current = await db.dataRetentionPolicy.findUnique({
+          where: { id },
+        });
+        if (!current) return reply({ error: "Policy not found" }, 404);
+        if (
+          (data.autoDelete ?? current.autoDelete) &&
+          !supportsAutomaticRetention(current.category)
+        )
+          return reply(
+            {
+              error:
+                "This category requires manual legal review; automatic deletion is unsupported.",
+            },
+            400
+          );
+        return reply({
+          policy: await db.dataRetentionPolicy.update({ where: { id }, data }),
+        });
+      }
+    );
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
+  } catch {
+    console.error("Privacy retention operation failed");
+    return reply({ error: "Privacy retention operation unavailable" }, 503);
   }
-
-  return results;
 }
+
+export const GET = handle;
+export const POST = handle;
+export const PATCH = handle;
+export const PUT = handle;

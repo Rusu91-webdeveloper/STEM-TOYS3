@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { runRetentionCleanup } from "@/lib/privacy/retention";
 import {
   shouldAutoFulfillOrder,
   calculateProcessingTime,
   getNotificationSettings,
-  shouldAlertHighValueOrder,
 } from "@/lib/utils/order-processing";
 
 export const dynamic = "force-dynamic";
@@ -218,18 +218,10 @@ export async function GET(req: NextRequest) {
     // 4. CLEANUP & ANALYTICS
     console.log("Phase 4: Cleanup and analytics...");
     try {
-      // Clean up old failed payment attempts (older than 7 days)
-      // Failed payments have status CANCELLED and paymentStatus FAILED
-      const oldFailedPayments = await db.order.deleteMany({
-        where: {
-          status: "CANCELLED",
-          paymentStatus: "FAILED",
-          createdAt: {
-            lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          },
-        },
-      });
-      console.log(`Cleaned up ${oldFailedPayments.count} old failed orders`);
+      // Orders are transaction evidence; a seven-day failed payment is not an
+      // authorization to remove the order or its invoice/return relations.
+      const retention = await runRetentionCleanup(db);
+      console.log("Configured application retention cleanup", retention);
 
       // Clean up expired password reset tokens (older than 24 hours to be safe)
       const expiredTokens = await db.passwordResetToken.deleteMany({

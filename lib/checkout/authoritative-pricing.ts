@@ -5,6 +5,7 @@ import {
 } from "@/lib/checkout/supplier-cart-rules";
 import { db } from "@/lib/db";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
+import { DEFAULT_COD_SETTINGS } from "@/lib/pricing/cod-settings";
 import {
   DEFAULT_COURIERS,
   parseShippingMethodId,
@@ -15,7 +16,11 @@ import {
   resolveShippingService,
 } from "@/lib/shipping/shipping-pricing";
 import { productStoredWeightToKg } from "@/lib/shipping/store-weight-to-kg";
-import { CURATED_SUPPLIER_IDS, curatedStockIsFresh, isCuratedSupplier } from "@/lib/suppliers/curated-stock";
+import {
+  CURATED_SUPPLIER_IDS,
+  curatedStockIsFresh,
+  isCuratedSupplier,
+} from "@/lib/suppliers/curated-stock";
 import {
   getCODSettings,
   getShippingSettings,
@@ -122,7 +127,10 @@ export async function resolveCheckoutPricing(input: {
         supplierId: true,
         metadata: true,
         stockQuantity: true,
-        supplierProducts: { where: { supplierId: { in: CURATED_SUPPLIER_IDS } }, select: { lastSyncAt: true, status: true } },
+        supplierProducts: {
+          where: { supplierId: { in: CURATED_SUPPLIER_IDS } },
+          select: { lastSyncAt: true, status: true },
+        },
         supplier: {
           select: {
             id: true,
@@ -137,7 +145,9 @@ export async function resolveCheckoutPricing(input: {
   for (const product of products) {
     if (
       isCuratedSupplier(product.supplierId, product.metadata) &&
-      !product.supplierProducts.some(p => p.status === "MAPPED" && curatedStockIsFresh(p.lastSyncAt))
+      !product.supplierProducts.some(
+        p => p.status === "MAPPED" && curatedStockIsFresh(p.lastSyncAt)
+      )
     ) {
       throw new CheckoutPricingError(
         "SUPPLIER_STOCK_UNAVAILABLE",
@@ -249,7 +259,7 @@ export async function resolveCheckoutPricing(input: {
     );
 
     const overrideRaw = selectedService?.priceOverride;
-    
+
     if (
       overrideRaw !== undefined &&
       overrideRaw !== null &&
@@ -419,7 +429,10 @@ export async function resolveCheckoutPricing(input: {
     const codSettings = await getCODSettings();
     if (codSettings?.active) {
       codConfig = {
-        percentage: parseFloat(codSettings.percentage || "3") / 100,
+        percentage:
+          parseFloat(
+            codSettings.percentage || DEFAULT_COD_SETTINGS.percentage
+          ) / 100,
         fixedFee: parseFloat(codSettings.fixedFee || "5.00"),
       };
     }
@@ -441,9 +454,12 @@ export async function resolveCheckoutPricing(input: {
   if (isCODPaymentMethod(input.paymentMethod) && !isDigitalOnlyOrder) {
     if (isDefaultSettings) {
       codGuaranteeConfigError = true;
-      console.error("[cod-guarantee] using default shipping settings (no StoreSettings row or DB error)", {
-        shippingMethodId: input.shippingMethodId,
-      });
+      console.error(
+        "[cod-guarantee] using default shipping settings (no StoreSettings row or DB error)",
+        {
+          shippingMethodId: input.shippingMethodId,
+        }
+      );
     } else if (holdAdminPrice !== null) {
       codGuaranteeAmount = roundMoney(holdAdminPrice);
     } else {

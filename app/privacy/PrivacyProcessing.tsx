@@ -52,8 +52,10 @@ export function PrivacyProcessing() {
           </li>
           <li>
             <strong>Plăți:</strong> metoda, suma, starea și identificatorii
-            tranzacției; datele de card pe care le furnizezi pentru funcția de
-            plată sau de salvare a cardului utilizată.
+            tranzacției. Introduci datele cardului în formularul procesatorului
+            de plată. Adăugarea și modificarea cardurilor în cont sunt
+            dezactivate. Eventualele înregistrări vechi sunt afișate numai prin
+            informații mascate și pot fi eliminate de titular.
           </li>
           <li>
             <strong>De la servicii:</strong> confirmări de plată de la
@@ -108,10 +110,11 @@ export function PrivacyProcessing() {
           </table>
         </div>
         <p>
-          Opțiunile de plată ramburs și necesitatea unei garanții pe card sunt
-          evaluate automat pe baza valorii comenzii, metodei de livrare și
-          istoricului relevant al comenzilor. Ne poți contacta pentru explicații
-          sau pentru a contesta rezultatul aplicat comenzii tale.
+          Disponibilitatea plății ramburs este evaluată automat pe baza valorii
+          comenzii și metodei de livrare. Fiecare comandă ramburs eligibilă
+          necesită o autorizare temporară pe card pentru transportul tur.
+          Ne poți contacta pentru explicații sau pentru a contesta rezultatul
+          aplicat comenzii tale.
         </p>
       </section>
       <section id="cookies" className="scroll-mt-28">

@@ -16,6 +16,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { ConsumerLinks } from "@/components/legal/ConsumerLinks";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import {
   Accordion,
@@ -292,6 +293,8 @@ export default function Footer({
             </ul>
           </div>
         </div>
+
+        <ConsumerLinks />
 
         {/* Return policy bar */}
         <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-center text-xs leading-relaxed text-slate-600 sm:mt-8 sm:px-4 sm:py-3">

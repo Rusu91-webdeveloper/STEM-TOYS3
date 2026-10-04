@@ -13,6 +13,10 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import {
+  COD_HOLD_EXPLANATION_RO,
+  codFeeExplanation,
+} from "@/lib/pricing/cod-settings";
+import {
   RETURN_POLICY_COD_RTO_RO,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
@@ -20,7 +24,11 @@ import {
 } from "@/lib/returns/policy";
 import { merchantShippingRate } from "@/lib/seo/merchant-policy";
 import { COD_MAX_B2B, COD_MAX_B2C } from "@/lib/shipping/cod-thresholds";
-import { getShippingSettings } from "@/lib/utils/store-settings";
+import { DEFAULT_FREE_SHIPPING_THRESHOLD } from "@/lib/shipping/settings";
+import {
+  getShippingSettings,
+  getCODSettings,
+} from "@/lib/utils/store-settings";
 
 export const metadata: Metadata = {
   title: "Livrare și Transport | TechTots - Jucării STEM",
@@ -47,13 +55,20 @@ function formatPrice(price: string | number): string {
 
 export default async function ShippingPage() {
   // Fetch shipping settings from database
-  const shippingSettings = await getShippingSettings();
+  const [shippingSettings, codSettings] = await Promise.all([
+    getShippingSettings(),
+    getCODSettings(),
+  ]);
 
   // Extract values - use merchantShippingRate as single source of truth
   const shippingRate = merchantShippingRate(0, shippingSettings);
   const deliveryPrice = shippingRate !== null ? String(shippingRate) : null;
-  const freeThreshold = shippingSettings.freeThreshold?.price || "199";
-  const isFreeShippingActive = shippingSettings.freeThreshold?.active !== false;
+  const freeThreshold =
+    shippingSettings.freeThreshold?.price || DEFAULT_FREE_SHIPPING_THRESHOLD;
+  const isFreeShippingActive =
+    shippingSettings.freeThreshold?.active === true &&
+    Number.isFinite(Number(freeThreshold)) &&
+    Number(freeThreshold) > 0;
 
   const codLimitB2C = COD_MAX_B2C;
   const codLimitB2B = COD_MAX_B2B;
@@ -95,7 +110,7 @@ export default async function ShippingPage() {
             {isFreeShippingActive && (
               <li className="flex items-center gap-2">
                 <span className="text-green-600">✓</span>
-                Livrare GRATUITĂ pentru comenzi peste{" "}
+                Livrare GRATUITĂ pentru comenzi de cel puțin{" "}
                 {formatPrice(freeThreshold)} RON
               </li>
             )}
@@ -171,7 +186,7 @@ export default async function ShippingPage() {
                       <div className="flex items-center gap-3">
                         <Truck className="w-5 h-5 text-green-600" />
                         <span className="font-medium">
-                          Comenzi peste {formatPrice(freeThreshold)} RON
+                          Comenzi de cel puțin {formatPrice(freeThreshold)} RON
                         </span>
                       </div>
                     </td>
@@ -215,9 +230,8 @@ export default async function ShippingPage() {
             </div>
           </div>
           <p className="text-sm text-slate-500 mt-4">
-            * Comenzile plasate până la ora 14:00 în zilele lucrătoare sunt
-            procesate în aceeași zi. Timpul de livrare depinde și de procesarea
-            de către furnizor.
+            Termenul este estimativ și depinde de confirmarea comenzii,
+            disponibilitate, procesarea de către furnizor și transportator.
           </p>
         </section>
 
@@ -229,10 +243,9 @@ export default async function ShippingPage() {
           </h2>
           <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
             <p className="text-slate-700 mb-4">
-              Pentru comenzile cu plată ramburs se aplică un cost suplimentar de
-              procesare care acoperă serviciile de încasare ale curierului și
-              transferul bancar.
+              {codFeeExplanation(codSettings)}
             </p>
+            <p className="text-slate-700 mb-4">{COD_HOLD_EXPLANATION_RO}</p>
             <div className="bg-white rounded-lg p-4 border border-orange-200">
               <p className="font-semibold text-orange-800 flex items-center gap-2">
                 <Shield className="w-5 h-5" />
@@ -306,27 +319,16 @@ export default async function ShippingPage() {
         <section className="mb-10">
           <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
             <Shield className="w-6 h-6 text-blue-600" />
-            Asigurarea Coletului
+            Probleme în timpul transportului
           </h2>
           <div className="bg-white rounded-xl p-6 shadow-md border border-slate-200">
             <p className="text-slate-700 mb-4">
-              Toate coletele cu o valoare de peste 500 RON beneficiază automat
-              de asigurare la valoarea integrală a comenzii. Acoperă:
+              Dacă un colet este pierdut sau produsele ajung deteriorate,
+              contactează-ne cu numărul comenzii și detaliile problemei.
+              Verificăm situația cu transportatorul și gestionăm soluția
+              potrivit legii. Condițiile transportatorului nu limitează
+              drepturile consumatorului față de vânzător.
             </p>
-            <ul className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <li className="flex items-center gap-2 text-slate-700">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Pierderea în tranzit
-              </li>
-              <li className="flex items-center gap-2 text-slate-700">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Deteriorarea produselor
-              </li>
-              <li className="flex items-center gap-2 text-slate-700">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Furt sau dispariție
-              </li>
-            </ul>
           </div>
         </section>
 
@@ -492,12 +494,12 @@ export default async function ShippingPage() {
         {/* Legal */}
         <section className="mt-10 text-sm text-slate-500">
           <h3 className="font-semibold text-slate-700 mb-2">
-            Conformitate Legală
+            Drepturile consumatorului
           </h3>
           <p>
-            Această politică respectă legislația aplicabilă privind protecția
-            consumatorilor și comerțul electronic, inclusiv OUG nr. 34/2014, OUG
-            nr. 140/2021 și Legea nr. 193/2000.
+            Condițiile de livrare nu limitează drepturile obligatorii ale
+            consumatorului prevăzute de OUG nr. 34/2014, OUG nr. 140/2021 și
+            Legea nr. 193/2000.
           </p>
           <p className="mt-2">
             Prevederile privind refuzul la livrare/nepreluarea coletului se
@@ -505,14 +507,7 @@ export default async function ShippingPage() {
             înainte de finalizarea comenzii. TechTots suportă costul returului
             la expeditor.
           </p>
-          <p className="mt-4">
-            Ultima actualizare:{" "}
-            {new Intl.DateTimeFormat("ro-RO", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }).format(new Date())}
-          </p>
+          <p className="mt-4">Ultima actualizare: 4 octombrie 2026</p>
         </section>
       </div>
     </main>

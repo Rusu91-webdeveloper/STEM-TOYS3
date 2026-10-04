@@ -6,7 +6,10 @@ import React, { useMemo } from "react";
 import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { useTranslation } from "@/lib/i18n";
-import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
+import {
+  calculateCODFee,
+  DEFAULT_COD_CONFIG,
+} from "@/lib/pricing/cod-fee-calculator";
 
 interface PaymentSummaryProps {
   appliedCoupon?: any;
@@ -37,9 +40,8 @@ const PaymentSummaryComponent = ({
   const isNetopia = selectedPaymentMethod.startsWith("netopia_");
   const isCOD = selectedPaymentMethod === "cash_on_delivery";
   const isStripeNewCard = !isNetopia && !isCOD && useNewCard;
-  const codPercentageLabel = codConfig?.percentage
-    ? Math.round(codConfig.percentage * 10000) / 100
-    : 3;
+  const codPercentageLabel =
+    (codConfig?.percentage ?? DEFAULT_COD_CONFIG.percentage) * 100;
 
   const codFeeResult = useMemo(() => {
     if (!isCOD) return null;
@@ -209,8 +211,8 @@ const PaymentSummaryComponent = ({
                 </p>
                 <p className="mt-1 text-sm text-slate-600">
                   {codPercentageLabel}% (
-                  {formatStorefrontPrice(codFeeResult.breakdown.percentageFee)}) +{" "}
-                  {formatStorefrontPrice(codFeeResult.breakdown.fixedFee)}{" "}
+                  {formatStorefrontPrice(codFeeResult.breakdown.percentageFee)})
+                  + {formatStorefrontPrice(codFeeResult.breakdown.fixedFee)}{" "}
                   {t("fixed", "fix")}
                 </p>
               </div>

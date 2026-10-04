@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/features/cart";
+import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { useCurrency } from "@/lib/currency";
 import { formatDeliveryWindow } from "@/lib/format/delivery-window";
 import { useTranslation } from "@/lib/i18n";
-import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
+import { DEFAULT_COURIERS } from "@/lib/shipping/couriers";
+import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 import { cn } from "@/lib/utils";
 
 import {
@@ -24,8 +26,8 @@ import {
   ShippingAddress,
   ShippingMethod,
 } from "../types";
-import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
-import { DEFAULT_COURIERS } from "@/lib/shipping/couriers";
+
+
 import { FanboxMapPicker } from "./FanboxMapPicker";
 
 interface ShippingMethodSelectorProps {
@@ -68,9 +70,9 @@ export function ShippingMethodSelector({
   const [fanboxError, setFanboxError] = useState<string | null>(null);
   const [selectedFanboxId, setSelectedFanboxId] = useState<string>("");
   const [selectionError, setSelectionError] = useState<string | null>(null);
-  const [shippingPolicyMessage, setShippingPolicyMessage] = useState<string | null>(
-    null
-  );
+  const [shippingPolicyMessage, setShippingPolicyMessage] = useState<
+    string | null
+  >(null);
   const { formatPrice } = useCurrency();
   const { t, language } = useTranslation();
   const { items: cartItems, getCartTotal } = useCart();
@@ -87,6 +89,7 @@ export function ShippingMethodSelector({
 
   // Fetch shipping settings from the database
   useEffect(() => {
+    let active = true;
     async function loadShippingSettings() {
       if (isDigitalOnlyCart) {
         const digitalMethod: ShippingMethod = {
@@ -109,9 +112,15 @@ export function ShippingMethodSelector({
         return;
       }
 
+      setIsLoading(true);
+      setSelectionError(null);
+      setShippingMethods([]);
       try {
-        const quoteResponse = await fetchShippingQuotes(cartItems);
-        const settings = await fetchShippingSettings();
+        const [quoteResponse, settings] = await Promise.all([
+          fetchShippingQuotes(cartItems),
+          fetchShippingSettings(),
+        ]);
+        if (!active) return;
 
         // Get cart total to check free shipping threshold
         const cartTotal = getCartTotal();
@@ -125,8 +134,6 @@ export function ShippingMethodSelector({
         let methods: ShippingMethod[] = [];
 
         if (quoteResponse?.methods?.length) {
-          const mixedSupplierCart =
-            quoteResponse?.cartRules?.isMixedSupplierCart === true;
           setShippingPolicyMessage(
             quoteResponse?.cartRules?.shippingPolicyMessage || null
           );
@@ -166,55 +173,20 @@ export function ShippingMethodSelector({
               supplierNames: method.supplierNames,
               shippingPolicyMessage: method.shippingPolicyMessage || null,
               codGuaranteeHoldPrice: method.codGuaranteeHoldPrice ?? null,
-              // For mixed-supplier carts, keep the split-shipment surcharge even when
-              // the standard first shipment qualifies for free shipping.
-              price: isFreeShipping
-                ? mixedSupplierCart
-                  ? method.mixedSupplierSurcharge ?? method.price
-                  : 0
-                : method.price,
+              // The server quote already includes threshold discounts and surcharges.
+              price: method.price,
             })
           );
         } else {
-          setShippingPolicyMessage(null);
-          const deliveryPrice = settings.deliveryPrice?.active
-            ? parseFloat(settings.deliveryPrice.price || "15.00")
-            : 15.0;
+          throw new Error("No valid shipping quote is available");
+        }
 
-          const finalPrice = isFreeShipping ? 0 : deliveryPrice;
-
-          const configuredCouriers =
-            settings?.couriers && Array.isArray(settings.couriers)
-              ? settings.couriers
-              : DEFAULT_COURIERS;
-
-          const fallbackMethods: ShippingMethod[] = configuredCouriers
-            .filter((courier: any) => courier.enabled !== false)
-            .flatMap((courier: any) =>
-              (courier.services || [])
-                .filter((service: any) => service.enabled !== false)
-                .map((service: any) => ({
-                  id: `${courier.id}:${service.id}`,
-                  name: service.name,
-                  description: service.description,
-                  courierId: courier.id,
-                  serviceId: service.id,
-                  methodType: service.methodType,
-                  requiresLocker:
-                    courier.id === "fancourier" &&
-                    service.methodType === "easybox",
-                  price:
-                    service.priceOverride !== undefined &&
-                    service.priceOverride !== null &&
-                    service.priceOverride !== ""
-                      ? Number(service.priceOverride)
-                      : finalPrice,
-                  estimatedDelivery: service.estimatedDelivery,
-                  codGuaranteeHoldPrice: null,
-                }))
-            );
-
-          methods.push(...fallbackMethods);
+        if (
+          methods.some(
+            method => !Number.isFinite(method.price) || method.price < 0
+          )
+        ) {
+          throw new Error("Invalid shipping quote");
         }
 
         // Set free shipping state based on threshold check
@@ -222,57 +194,35 @@ export function ShippingMethodSelector({
         setFreeShippingThreshold(thresholdValue);
         setShippingMethods(methods);
 
-        const currentMethodExists = methods.some(
-          method => method.id === selectedMethodId
+        setSelectedMethodId(current =>
+          methods.some(method => method.id === current)
+            ? current
+            : methods[0]?.id || defaultMethodId
         );
-        if (!selectedMethodId || !currentMethodExists) {
-          setSelectedMethodId(methods[0]?.id || defaultMethodId);
-        }
       } catch (error) {
+        if (!active) return;
         console.error("Error loading shipping settings:", error);
         setShippingPolicyMessage(null);
 
-        // Even in fallback, check free shipping based on cart total
-        const cartTotal = getCartTotal();
-        // Can't check threshold without settings, use default threshold of 199
-        const defaultThreshold = 199;
-        const isFreeShipping = cartTotal >= defaultThreshold;
-
-        const fallbackMethods: ShippingMethod[] = DEFAULT_COURIERS.filter(
-          courier => courier.enabled !== false
-        ).flatMap(courier =>
-          courier.services
-            .filter(service => service.enabled !== false)
-            .map(service => ({
-              id: `${courier.id}:${service.id}`,
-              name: service.name,
-              description: service.description,
-              courierId: courier.id,
-              serviceId: service.id,
-              methodType: service.methodType,
-              requiresLocker:
-                courier.id === "fancourier" && service.methodType === "easybox",
-              price: isFreeShipping
-                ? 0
-                : service.methodType === "easybox"
-                  ? 19
-                  : 25,
-              estimatedDelivery: service.estimatedDelivery,
-            }))
+        setShippingMethods([]);
+        setFreeShippingApplied(false);
+        setFreeShippingThreshold(null);
+        setSelectedMethodId("");
+        setSelectionError(
+          t(
+            "shippingQuoteUnavailable",
+            "Nu putem confirma costul livrării. Reîncarcă pagina pentru a încerca din nou."
+          )
         );
-
-        setShippingMethods(fallbackMethods);
-        setFreeShippingApplied(isFreeShipping);
-        setFreeShippingThreshold(isFreeShipping ? defaultThreshold : null);
-        if (!selectedMethodId) {
-          setSelectedMethodId(defaultMethodId);
-        }
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     }
 
     loadShippingSettings();
+    return () => {
+      active = false;
+    };
   }, [t, isDigitalOnlyCart, getCartTotal, cartItems]);
 
   useEffect(() => {
@@ -295,7 +245,7 @@ export function ShippingMethodSelector({
           "Completează județul și localitatea pentru a vedea FANbox-urile disponibile."
         )
       );
-      return;
+      return undefined;
     }
 
     let isActive = true;
@@ -430,7 +380,7 @@ export function ShippingMethodSelector({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Free Shipping Banner */}
-      {freeShippingApplied && (
+      {freeShippingApplied && freeShippingThreshold !== null && (
         <div className="mb-6 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-sky-50 p-4 text-emerald-900 shadow-inner shadow-emerald-100/50">
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
@@ -461,17 +411,16 @@ export function ShippingMethodSelector({
               shippingPolicyMessage ||
               "Produsele vor fi expediate de furnizori diferiți. Plata ramburs nu este disponibilă pentru această comandă."}
           </p>
-          {freeShippingApplied && (
+          {freeShippingApplied && freeShippingThreshold !== null && (
             <p className="mt-1 text-xs text-amber-800/90">
-              Transportul gratuit se aplică primului colet; taxa suplimentară pentru livrare separată rămâne activă.
+              Transportul gratuit se aplică primului colet; taxa suplimentară
+              pentru livrare separată rămâne activă.
             </p>
           )}
         </div>
       )}
 
-      <div
-        className={`${checkoutCardClass} p-6 text-slate-900 shadow-sm`}
-      >
+      <div className={`${checkoutCardClass} p-6 text-slate-900 shadow-sm`}>
         <div className="mb-4 flex items-center gap-2">
           <Truck className="h-5 w-5 text-primary" />
           <h2 className="text-xl font-semibold text-slate-900">
@@ -554,12 +503,14 @@ export function ShippingMethodSelector({
                           {formatPrice(method.mixedSupplierSurcharge || 0)}
                         </p>
                       )}
-                    {method.price === 0 && freeShippingApplied && (
-                      <p className="mt-1 text-xs text-emerald-700">
-                        Transport gratuit pentru comenzi peste{" "}
-                        {formatPrice(freeShippingThreshold || 199)}!
-                      </p>
-                    )}
+                    {method.price === 0 &&
+                      freeShippingApplied &&
+                      freeShippingThreshold !== null && (
+                        <p className="mt-1 text-xs text-emerald-700">
+                          Transport gratuit pentru comenzi de cel puțin{" "}
+                          {formatPrice(freeShippingThreshold!)}!
+                        </p>
+                      )}
                   </div>
                 </div>
               );

@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { db } from "@/lib/db";
 import { withAuth } from "@/lib/authorization";
+import { COMPANY_LEGAL } from "@/lib/config/company-legal";
+import { db } from "@/lib/db";
 
 /**
  * GET /api/gdpr/export - Export user's personal data (GDPR right to data portability)
  */
 export const GET = withAuth(async (request: NextRequest, session) => {
+  if (!session?.user?.id)
+    return NextResponse.json(
+      { error: "Authenticated account required" },
+      { status: 403, headers: { "Cache-Control": "private, no-store" } }
+    );
   try {
     const userId = session.user.id;
 
@@ -16,14 +22,13 @@ export const GET = withAuth(async (request: NextRequest, session) => {
     // Create a comprehensive export object
     const userDataExport = {
       exportDate: new Date().toISOString(),
-      userId: userId,
+      userId,
       personalData: exportData,
       metadata: {
-        gdprCompliant: true,
         exportFormat: "JSON",
-        dataController: "TechTots SRL",
-        dataControllerContact: "info@techtots.ro",
-        retentionPolicy: "7 years from last activity",
+        dataController: COMPANY_LEGAL.name,
+        dataControllerContact: COMPANY_LEGAL.email,
+        retentionPolicy: "https://www.techtots.ro/privacy#retentie",
       },
     };
 
@@ -51,14 +56,14 @@ export const GET = withAuth(async (request: NextRequest, session) => {
       headers: {
         "Content-Disposition": `attachment; filename="gdpr-export-${userId}-${new Date().toISOString().split("T")[0]}.json"`,
         "Content-Type": "application/json",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "private, no-store",
       },
     });
-  } catch (error) {
-    console.error("Error exporting user data:", error);
+  } catch {
+    console.error("GDPR data export failed");
     return NextResponse.json(
       { error: "Internal server error during data export" },
-      { status: 500 }
+      { status: 500, headers: { "Cache-Control": "private, no-store" } }
     );
   }
 });

@@ -53,9 +53,13 @@ export function PrivacyRetentionRights() {
             păstrarea anumitor documente pentru alt termen.
           </li>
           <li>
-            <strong>Cont:</strong> pe durata utilizării lui; la cererea de
-            ștergere evaluăm datele care pot fi eliminate și pe cele necesare
-            unor obligații legale sau litigii.
+            <strong>Cont:</strong> pe durata utilizării lui. Din setările
+            contului poți descărca datele și confirma ștergerea. Eliminăm datele
+            profilului, cardurile salvate și datele contului care nu sunt
+            necesare tranzacțiilor; accesul este închis. Păstrăm numai
+            evidențele necesare obligațiilor legale și apărării drepturilor.
+            Comenzile sau retururile în curs necesită verificare manuală, fără
+            promisiunea unei ștergeri automate după 30 de zile.
           </li>
           <li>
             <strong>Mesaje și reclamații:</strong> pentru soluționarea
@@ -75,8 +79,20 @@ export function PrivacyRetentionRights() {
             browserului.
           </li>
           <li>
-            <strong>Analiză:</strong> durata depinde de setările serviciului și
-            de politica furnizorului.{" "}
+            <strong>Jurnale operaționale în aplicație:</strong> evenimentele
+            email sunt configurate pentru păstrare timp de 30 de zile, iar
+            metricile de performanță pentru 60 de zile. Mentenanța zilnică
+            elimină înregistrările mai vechi, în loturi de maximum 500 pe
+            categorie; un volum restant poate necesita mai multe rulări. Aceste
+            reguli nu șterg comenzile, facturile ori dovezile consimțământului
+            și nu modifică retenția furnizorilor externi.
+          </li>
+          <li>
+            <strong>Analiză GA4:</strong> la 4 octombrie 2026 am configurat
+            retenția datelor de eveniment și a datelor utilizatorului la 2 luni,
+            cu resetarea la o nouă activitate dezactivată. Google aplică
+            modificările setărilor după 24 de ore. Aceste limite nu se aplică
+            rapoartelor agregate standard.{" "}
             <a href="https://support.google.com/analytics/answer/7667196?hl=ro">
               Google explică separat retenția datelor GA4 și a rapoartelor
               agregate
@@ -120,7 +136,9 @@ export function PrivacyRetentionRights() {
           deciziile exclusiv automate cu efect juridic sau similar semnificativ.
         </p>
         <p>
-          Trimite cererea la{" "}
+          Poți folosi <Link href="/account/settings">setările contului</Link>{" "}
+          pentru datele contului sau poți trimite o cerere pentru orice alte
+          date, inclusiv cele transmise furnizorilor, la{" "}
           <a href={`mailto:${COMPANY_LEGAL.email}`}>{COMPANY_LEGAL.email}</a>.
           Dacă avem îndoieli rezonabile privind identitatea, putem cere
           informații necesare verificării. Răspundem fără întârzieri

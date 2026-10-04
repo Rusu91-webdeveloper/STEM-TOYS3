@@ -41,8 +41,8 @@ export const metadata = createMetadata({
       name: "TechTots România",
       url: "https://www.techtots.ro",
       logo: "https://www.techtots.ro/TechTots_LOGO.png",
-      description: "Jucarii STEM si resurse educationale pentru copii din Romania",
-      foundingDate: "2024",
+      description:
+        "Jucarii STEM si resurse educationale pentru copii din Romania",
       address: {
         "@type": "PostalAddress",
         streetAddress: appConfig.streetAddress,

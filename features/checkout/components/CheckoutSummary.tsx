@@ -13,9 +13,13 @@ import {
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
-import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
+import { merchantShippingRate } from "@/lib/seo/merchant-policy";
 
-import { fetchCODSettings, fetchTaxSettings, fetchShippingSettings } from "../lib/checkoutApi";
+import {
+  fetchCODSettings,
+  fetchTaxSettings,
+  fetchShippingSettings,
+} from "../lib/checkoutApi";
 import { ShippingMethod } from "../types";
 
 interface TaxSettings {
@@ -36,7 +40,6 @@ interface CheckoutSummaryProps {
 }
 
 export function CheckoutSummary({
-  shippingCost = 0,
   onCouponApplied,
   appliedCoupon,
   onCouponRemoved,
@@ -48,7 +51,10 @@ export function CheckoutSummary({
   const { cartItems, getCartTotal, isLoading } = useCart();
   const { formatPrice } = useCurrency();
   const { t } = useTranslation();
-  const [codConfig, setCodConfig] = useState<{ percentage: number; fixedFee: number } | null>(null);
+  const [codConfig, setCodConfig] = useState<{
+    percentage: number;
+    fixedFee: number;
+  } | null>(null);
   const [taxSettings, setTaxSettings] = useState<TaxSettings | null>(null);
   const [shippingSettings, setShippingSettings] = useState<any>(null);
 
@@ -124,12 +130,14 @@ export function CheckoutSummary({
   }, [shippingMethod]);
 
   const isStripePayment = selectedPaymentMethod === "stripe_new";
-  const isDiscountDisabled = isStripePayment && Boolean(stripePaymentIntentId) && currentStep !== "shipping-address";
+  const isDiscountDisabled =
+    isStripePayment &&
+    Boolean(stripePaymentIntentId) &&
+    currentStep !== "shipping-address";
 
   const isTaxEnabled = taxSettings?.active === true;
-  const taxRate = isTaxEnabled && taxSettings?.rate
-    ? parseFloat(taxSettings.rate) / 100
-    : 0;
+  const taxRate =
+    isTaxEnabled && taxSettings?.rate ? parseFloat(taxSettings.rate) / 100 : 0;
   const includeInPrice = taxSettings?.includeInPrice !== false;
 
   let subtotal: number;
@@ -146,17 +154,20 @@ export function CheckoutSummary({
     tax = 0;
   }
 
-  const isFreeShippingEligible = checkFreeShipping(cartTotalIncludingVAT, shippingSettings);
+  // A selected server quote includes surcharges; never erase it with the threshold.
+  const finalShippingCost = !hasPhysicalItems
+    ? 0
+    : shippingMethod
+      ? shippingMethod.price
+      : shippingSettings
+        ? merchantShippingRate(cartTotalIncludingVAT, shippingSettings)
+        : null;
+  const isFreeShippingEligible = hasPhysicalItems && finalShippingCost === 0;
 
-  const finalShippingCost = hasPhysicalItems
-    ? (isFreeShippingEligible ? 0 : shippingCost)
-    : 0;
-
-  const originalShippingCost = hasPhysicalItems ? shippingCost : 0;
-
-  const totalBeforeDiscount = isTaxEnabled && !includeInPrice
-    ? cartTotalIncludingVAT + finalShippingCost + tax
-    : cartTotalIncludingVAT + finalShippingCost;
+  const totalBeforeDiscount =
+    isTaxEnabled && !includeInPrice
+      ? cartTotalIncludingVAT + (finalShippingCost ?? 0) + tax
+      : cartTotalIncludingVAT + (finalShippingCost ?? 0);
   const baseTotal = Math.max(0, totalBeforeDiscount - discountAmount);
   const codFee = useMemo(() => {
     if (!isCOD) return 0;
@@ -229,7 +240,12 @@ export function CheckoutSummary({
         <div className="max-h-60 space-y-3 overflow-y-auto sm:max-h-80">
           {cartItems.map(item => (
             <div key={item.id} className="flex gap-3 sm:gap-4">
-              <CartProductImage src={item.image} name={item.name} sizes="(max-width: 640px) 48px, 64px" className="h-12 w-12 rounded-md border border-slate-100 sm:h-16 sm:w-16" />
+              <CartProductImage
+                src={item.image}
+                name={item.name}
+                sizes="(max-width: 640px) 48px, 64px"
+                className="h-12 w-12 rounded-md border border-slate-100 sm:h-16 sm:w-16"
+              />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-slate-900 sm:text-base">
                   {item.name}
@@ -281,18 +297,11 @@ export function CheckoutSummary({
               )}
             </span>
             <span>
-              {isFreeShippingEligible && originalShippingCost > 0 ? (
-                <>
-                  <span className="mr-2 line-through text-slate-400">
-                    {formatPrice(originalShippingCost)}
-                  </span>
-                  <span className="font-medium text-emerald-600">
-                    {t("free", "GRATUIT")}
-                  </span>
-                </>
-              ) : (
-                formatPrice(finalShippingCost)
-              )}
+              {finalShippingCost === null
+                ? t("shippingPending", "Se calculează la finalizare")
+                : finalShippingCost === 0
+                  ? t("free", "GRATUIT")
+                  : formatPrice(finalShippingCost)}
             </span>
           </div>
 
@@ -308,8 +317,15 @@ export function CheckoutSummary({
           )}
 
           <div className="flex justify-between border-t border-slate-200 pt-3 text-base font-bold sm:text-lg">
-            <span className="text-slate-900">{t("totalToPay", "Total de plată")}</span>
-            <span className="text-primary">{formatPrice(total)}</span>
+            <span className="text-slate-900">
+              {finalShippingCost === null
+                ? t("estimatedTotal", "Total estimat")
+                : t("totalToPay", "Total de plată")}
+            </span>
+            <span className="text-primary">
+              {formatPrice(total)}
+              {finalShippingCost === null ? " + livrare" : ""}
+            </span>
           </div>
 
           {discountAmount > 0 && (

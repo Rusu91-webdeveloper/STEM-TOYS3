@@ -5,21 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
-import { CartProductImage } from "@/features/cart/components/CartProductImage";
-
 import { Button } from "@/components/ui/button";
+import { CartProductImage } from "@/features/cart/components/CartProductImage";
 import { useCart } from "@/features/cart/context/CartContext";
-import { useOptimizedSession } from "@/lib/auth/SessionContext";
+import { useCartShippingEstimate } from "@/features/cart/hooks/useCartShippingEstimate";
 import { useCurrency } from "@/lib/currency";
-import { useTranslation } from "@/lib/i18n";
-import { fetchShippingSettings } from "@/features/checkout/lib/checkoutApi";
 import { cn } from "@/lib/utils";
 
 export default function CartPage() {
-  const { t } = useTranslation();
   const router = useRouter();
   const { formatPrice } = useCurrency();
-  const { status } = useOptimizedSession();
   const {
     items,
     isLoading,
@@ -32,33 +27,11 @@ export default function CartPage() {
 
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [stockMap, setStockMap] = useState<Record<string, number>>({});
-  const [deliveryPrice, setDeliveryPrice] = useState<number>(0);
-  const [freeThreshold, setFreeThreshold] = useState<number | null>(null);
-
-  useEffect(() => {
-    async function loadShippingSettings() {
-      try {
-        const settings = await fetchShippingSettings();
-        const delivery = settings?.deliveryPrice;
-        const free = settings?.freeThreshold;
-        setDeliveryPrice(
-          delivery?.active && delivery?.price
-            ? parseFloat(String(delivery.price)) || 0
-            : 0
-        );
-        setFreeThreshold(
-          free?.active && free?.price
-            ? parseFloat(String(free.price)) || null
-            : null
-        );
-      } catch (e) {
-        setDeliveryPrice(0);
-        setFreeThreshold(null);
-      }
-    }
-
-    loadShippingSettings();
-  }, []);
+  const subtotal = getTotal();
+  const { shippingCost, freeThreshold } = useCartShippingEstimate(
+    subtotal,
+    items.some(item => item.isBook !== true)
+  );
 
   useEffect(() => {
     if (items.length > 0) {
@@ -95,10 +68,8 @@ export default function CartPage() {
     router.push("/checkout");
   };
 
-  const subtotal = getTotal();
   const needsMoreForFreeShipping = freeThreshold && subtotal < freeThreshold;
-  const shippingCost = needsMoreForFreeShipping ? deliveryPrice : 0;
-  const total = subtotal + shippingCost;
+  const total = subtotal + (shippingCost ?? 0);
 
   if (isEmpty && !isLoading) {
     return (
@@ -159,7 +130,12 @@ export default function CartPage() {
                     )}
                   >
                     <div className="flex gap-6">
-                      <CartProductImage src={item.image} name={item.name} sizes="96px" className="w-24 h-24 rounded-lg" />
+                      <CartProductImage
+                        src={item.image}
+                        name={item.name}
+                        sizes="96px"
+                        className="w-24 h-24 rounded-lg"
+                      />
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-semibold text-slate-900">
@@ -273,23 +249,35 @@ export default function CartPage() {
                   <div className="flex justify-between text-slate-600">
                     <span>Livrare</span>
                     <span className="font-medium">
-                      {shippingCost > 0
-                        ? formatPrice(shippingCost)
-                        : "GRATUIT"}
+                      {shippingCost === null
+                        ? "Se calculează la finalizare"
+                        : shippingCost > 0
+                          ? formatPrice(shippingCost)
+                          : "GRATUIT"}
                     </span>
                   </div>
 
                   <div className="border-t border-slate-200 pt-3 mt-3">
                     <div className="flex justify-between text-lg font-bold text-slate-900">
-                      <span>Total</span>
-                      <span>{formatPrice(total)}</span>
+                      <span>Total estimat</span>
+                      <span>
+                        {formatPrice(total)}
+                        {shippingCost === null ? " + livrare" : ""}
+                      </span>
                     </div>
+                    <p className="mt-2 text-xs text-slate-500">
+                      Costul final al livrării și eventualele costuri pentru
+                      expedieri separate se confirmă la finalizare. Taxa ramburs
+                      se adaugă dacă alegi această metodă de plată.
+                    </p>
                   </div>
                 </div>
 
                 <Button
                   onClick={handleCheckout}
-                  disabled={isCheckoutLoading || items.length === 0 || isLoading}
+                  disabled={
+                    isCheckoutLoading || items.length === 0 || isLoading
+                  }
                   className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-6 text-lg"
                 >
                   {isCheckoutLoading ? (

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getCached, CacheKeys } from "@/lib/cache";
+import { publicShippingSettings } from "@/lib/shipping/settings";
 import { getShippingSettings } from "@/lib/utils/shipping-settings";
 
 // **PERFORMANCE**: Cache shipping settings for 5 minutes since they rarely change
@@ -14,16 +15,15 @@ export async function GET(_req: NextRequest) {
     // **PERFORMANCE**: Try to get shipping settings from cache first
     const shippingSettings = await getCached(
       CacheKeys.product("shipping-settings"), // Reusing cache key pattern
-      async () => 
-        // Use the utility function to get shipping settings
-         await getShippingSettings()
-      ,
+      () => getShippingSettings(),
       SHIPPING_SETTINGS_CACHE_TTL
     );
 
     // Keep browser cache disabled so admin changes appear immediately.
     // Server-side caching above still protects the database.
-    const response = NextResponse.json(shippingSettings);
+    const response = NextResponse.json(
+      publicShippingSettings(shippingSettings)
+    );
     response.headers.set("Cache-Control", "no-store");
     response.headers.set("X-Settings-Cache", "SERVER");
 

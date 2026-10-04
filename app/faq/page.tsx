@@ -1,13 +1,15 @@
 import Link from "next/link";
 
 import { SeoJsonLd } from "@/components/seo/SeoJsonLd";
+import { getCODSettings } from "@/lib/utils/store-settings";
 
-import { FAQ_ITEMS, FAQ_STRUCTURED_DATA } from "./content";
+import { buildFAQItems, faqStructuredData } from "./content";
 
-export default function FAQPage() {
+export default async function FAQPage() {
+  const items = buildFAQItems(await getCODSettings());
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-sky-50">
-      <SeoJsonLd data={FAQ_STRUCTURED_DATA} />
+      <SeoJsonLd data={faqStructuredData(items)} />
 
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
@@ -24,7 +26,7 @@ export default function FAQPage() {
         </div>
 
         <div className="mt-12 space-y-4">
-          {FAQ_ITEMS.map(({ question, answer }) => (
+          {items.map(({ question, answer }) => (
             <article
               key={question}
               className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"

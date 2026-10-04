@@ -4,9 +4,15 @@ const fs = require("node:fs");
 const ts = require("typescript");
 
 function normalizeMessage(message, roots) {
-  return roots.reduce(
+  const normalized = roots.reduce(
     (text, root) => text.split(root).join("<project>"),
     message
+  );
+  // TypeScript can reorder identical literal unions when new files are added.
+  // Compare the same members canonically, while preserving real type changes.
+  return normalized.replace(
+    /"(?:[^"\\]|\\.)*"(?:\s*\|\s*"(?:[^"\\]|\\.)*")+/g,
+    union => union.match(/"(?:[^"\\]|\\.)*"/g).sort().join(" | ")
   );
 }
 

@@ -244,6 +244,7 @@ export const adminNavItems = [
     href: "/admin/payment-rollout",
     icon: CreditCard,
   },
+  { title: "Confidențialitate", href: "/admin/privacy", icon: FileText },
   {
     title: "Settings",
     href: "/admin/settings",
