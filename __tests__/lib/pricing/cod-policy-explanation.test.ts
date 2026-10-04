@@ -10,7 +10,7 @@ import {
   defaultShippingSettings,
 } from "@/lib/shipping/settings";
 
-test("configured live COD rate controls both labels and the calculated fee", () => {
+test("a configured percentage rate controls both labels and the calculated fee", () => {
   const configured = { active: true, percentage: "0.01", fixedFee: "5.00" };
   expect(formatCodFeeLabel(configured)).toBe("0,01% + 5,00 lei");
   expect(codFeeExplanation(configured)).toContain("5,00 lei + 0,01%");
@@ -22,18 +22,22 @@ test("configured live COD rate controls both labels and the calculated fee", () 
   ).toBe(5.02);
 });
 
-test("COD fallback matches the verified live fee when settings cannot load", () => {
-  expect(DEFAULT_COD_SETTINGS.percentage).toBe("0.01");
-  expect(DEFAULT_COD_SETTINGS.fixedFee).toBe("5.00");
-  expect(formatCodFeeLabel(DEFAULT_COD_SETTINGS)).toBe("0,01% + 5,00 lei");
+test("the owner-selected flat fallback omits the percentage component", () => {
+  expect(DEFAULT_COD_SETTINGS.percentage).toBe("0");
+  expect(DEFAULT_COD_SETTINGS.fixedFee).toBe("9.90");
+  expect(formatCodFeeLabel(DEFAULT_COD_SETTINGS)).toBe("9,90 lei");
+  expect(
+    formatCodFeeLabel({ active: true, percentage: "0.00", fixedFee: "9.90" })
+  ).toBe("9,90 lei");
   const explanation = codFeeExplanation(DEFAULT_COD_SETTINGS);
-  expect(explanation).toContain("5,00 lei + 0,01%");
+  expect(explanation).toContain("9,90 lei");
+  expect(explanation).not.toContain("%");
   expect(
     calculateCODFee(187.99, {
       percentage: Number(DEFAULT_COD_SETTINGS.percentage) / 100,
       fixedFee: Number(DEFAULT_COD_SETTINGS.fixedFee),
     }).fee
-  ).toBe(5.02);
+  ).toBe(9.90);
   const items = buildFAQItems(DEFAULT_COD_SETTINGS);
   const answer = items.at(-1)!.answer;
   expect(answer).toContain("Fiecare comandă ramburs");
