@@ -29,6 +29,11 @@ prices, including supplier surcharges. Shipping/FAQ and checkout explanations
 use the configured COD rate and explain the hold; visible FAQ and FAQPage data
 agree.
 
+Final browser review also found an exclusive “over 500” label in the shared
+product badge and “unavailable” before settings loaded. The badge now says
+“from 500” and shows delivery calculated at checkout while unresolved, in
+Romanian and English. Its untranslated return fallback is corrected to 14 days.
+
 ## Privacy root issues and changes
 
 The prior erasure endpoint trusted a broad authentication wrapper, scheduled a
@@ -61,22 +66,27 @@ Personal/marketing data cannot be blanket-purged by these controls. Orders,
 invoices and consent evidence are preserved. No production retention cleanup was
 triggered.
 
-### External operations still require verification
+### Verified external operations
 
-- The live historical-card count is **not yet verified**. The Neon connector
-  needs the correct project ID and console sign-in account. The admin inventory
-  provides an alternative after release. Any nonzero result requires a
-  separately reviewed purge and backup/branch inventory; zero active rows alone
-  would not establish absence from backups.
-- GA4 property 489085677 was inspected in Admin → Data retention: event data 2
-  months, user data 14 months, reset on new activity enabled. The privacy notice
-  reflects these actual settings. The recommended change to 2 months with reset
-  disabled is awaiting the owner's choice; no setting was silently changed.
-  Standard aggregate reporting is distinct from exploration retention.
-- Existing production application retention policies and provider
-  backup/email/Meta retention must be inspected before asserting operational
-  completion. The UI and worker are functional; a settings screen is not proof
-  that a particular retention period has been approved or applied.
+- Read-only aggregate inventory completed against the Vercel-connected live Neon
+  main branch: zero PaymentCard rows, zero rows with encrypted card data, zero
+  rows with encrypted CVVs. No card content was selected or decrypted and no
+  purge was necessary. Neon reported one active branch, no listed snapshots, no
+  automatic snapshot schedule and a one-day point-in-time recovery window. This
+  establishes the current live inventory, not the absence of data from past
+  recovery points or separately exported backups.
+- The owner explicitly chose GA4 event/user retention of 2 months with reset on
+  new activity disabled. The user setting was saved and verified after reload in
+  property 489085677; event retention was already 2 months. Google states that
+  changes apply after 24 hours. The privacy notice now reflects the saved
+  configuration. Standard aggregate reporting is separate.
+- Live DataRetentionPolicy was empty. After the owner explicitly approved the
+  scope, application email-event retention was set to 30 days and performance
+  metrics to 60 days, both with automatic cleanup enabled. A separate read
+  confirmed both rows. No cleanup was triggered manually. The existing metric
+  backlog will be processed in bounded batches by the new daily worker after
+  release; transaction records and consent evidence are excluded. External
+  email/Meta provider retention is separate from these application policies.
 
 ## Legal and trust changes
 
@@ -101,7 +111,9 @@ Preview review also found that the shared product template asserted safe
 materials and guaranteed learning outcomes for every product. Its generic RO/EN
 copy now uses conditional play guidance and the manufacturer's age/warning
 instructions. Supplier product descriptions were not rewritten without product
-evidence. Shipping uses an inclusive threshold label, a fixed revision date and
+evidence. English newsletter copy now matches the Romanian text without an
+unverified weekly schedule, free resource pack or educator endorsement.
+Shipping uses an inclusive threshold label, a fixed revision date and
 estimated processing guidance instead of an unverified 14:00 same-day processing
 promise.
 
@@ -155,6 +167,16 @@ promise.
   configured 5 lei + 0.01% COD fee and mandatory authorization. Terms showed
   company, fixed revision, two-year conformity remedies, preserved rights and
   ANPC/SAL links.
-- Production release and external operational completion remain pending; no
-  production purge or GA4 change has been performed. The subsequent copy
-  refinement requires its own passing hooks and preview.
+- Copy refinement commit be040b9f also passed mandatory Jest/TypeScript baseline
+  comparison with the same counts and zero added failures/errors. Its exact
+  Vercel deployment `stem-toys-3-oc6o8uym4-rusujobs-3774s-projects.vercel.app`
+  reached READY. Final approved-retention notice and release checks follow.
+- Adding final translation labels exposed a pre-existing unsafe string-map cast:
+  translation dictionaries also contain nested error objects. Client and server
+  translation helpers now accept only string values and preserve English/default
+  fallback behavior; nested objects cannot reach rendered text. A focused test
+  covers valid strings, empty strings, missing locales and object-valued keys.
+  The failed pre-push was corrected in source; checks were not bypassed.
+- Production source release remains pending. GA4 and application policy
+  configuration have been applied with the owner's explicit choices; no
+  production customer erasure, card purge or manual retention cleanup occurred.

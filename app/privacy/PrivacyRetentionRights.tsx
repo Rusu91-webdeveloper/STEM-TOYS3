@@ -79,12 +79,20 @@ export function PrivacyRetentionRights() {
             browserului.
           </li>
           <li>
-            <strong>Analiză GA4:</strong> setările verificate la 4 octombrie
-            2026 păstrează datele de eveniment timp de 2 luni și datele
-            utilizatorului timp de 14 luni. Resetarea la o nouă activitate este
-            activă pentru datele utilizatorului, astfel încât utilizarea poate
-            prelungi această perioadă. Aceste limite nu se aplică rapoartelor
-            agregate standard.{" "}
+            <strong>Jurnale operaționale în aplicație:</strong> evenimentele
+            email sunt configurate pentru păstrare timp de 30 de zile, iar
+            metricile de performanță pentru 60 de zile. Mentenanța zilnică
+            elimină înregistrările mai vechi, în loturi de maximum 500 pe
+            categorie; un volum restant poate necesita mai multe rulări. Aceste
+            reguli nu șterg comenzile, facturile ori dovezile consimțământului
+            și nu modifică retenția furnizorilor externi.
+          </li>
+          <li>
+            <strong>Analiză GA4:</strong> la 4 octombrie 2026 am configurat
+            retenția datelor de eveniment și a datelor utilizatorului la 2 luni,
+            cu resetarea la o nouă activitate dezactivată. Google aplică
+            modificările setărilor după 24 de ore. Aceste limite nu se aplică
+            rapoartelor agregate standard.{" "}
             <a href="https://support.google.com/analytics/answer/7667196?hl=ro">
               Google explică separat retenția datelor GA4 și a rapoartelor
               agregate

@@ -64,12 +64,17 @@ export function ProductFeatures({
             </div>
             <div>
               <div className="text-sm font-semibold text-slate-900">
-                {t("freeShippingLabel", "Livrare gratuită")}
+                {isFreeShippingActive && hasDynamicFreeShippingThreshold
+                  ? t("freeShippingLabel", "Livrare gratuită")
+                  : t("delivery", "Livrare")}
               </div>
               <div className={`${productMutedTextClass} text-xs`}>
                 {isFreeShippingActive && hasDynamicFreeShippingThreshold
-                  ? `${t("over", "Peste")} ${formatPrice(freeShippingThreshold)}`
-                  : t("notAvailable", "Indisponibil")}
+                  ? `${t("freeShippingFrom", "De la")} ${formatPrice(freeShippingThreshold)}`
+                  : t(
+                      "shippingCalculatedAtCheckout",
+                      "Cost calculat la finalizarea comenzii"
+                    )}
               </div>
             </div>
           </div>
@@ -82,7 +87,7 @@ export function ProductFeatures({
                 {t("easyReturns", "Retur simplu")}
               </div>
               <div className={`${productMutedTextClass} text-xs`}>
-                {t("dayPolicy", "Politică 30 zile")}
+                {t("dayPolicy", "Retur în 14 zile calendaristice")}
               </div>
             </div>
           </div>

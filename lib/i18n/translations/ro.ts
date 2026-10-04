@@ -138,6 +138,8 @@ export const ro = {
   notAvailable: "Indisponibil",
   easyReturns: "Retur simplu",
   dayPolicy: "Retur în 14 zile calendaristice",
+  freeShippingFrom: "De la",
+  shippingCalculatedAtCheckout: "Cost calculat la finalizarea comenzii",
   learnMore: "Află mai multe",
   usefulGuides: "Ghiduri utile pentru a alege și folosi jucăriile STEM:",
   guide2025: "Ghid 2026",
@@ -1538,7 +1540,7 @@ export const ro = {
   noSpamGuarantee: "Îți trimitem idei de joacă și noutăți din colecție.",
   unsubscribeAnytime: "Te poți dezabona oricând, din fiecare email.",
   newsletterValueBullet:
-    "Primești săptămânal experimente STEM, ghiduri pentru părinți și oferte dedicate membrilor comunității TechTots.",
+    "Primești idei de joacă și noutăți din comunitatea TechTots.",
 
   // Company description
   companyDescription:

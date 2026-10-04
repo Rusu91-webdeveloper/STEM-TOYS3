@@ -71,11 +71,13 @@ export function I18nProvider({
       translations[language as keyof typeof translations];
 
     if (currentTranslations && key in currentTranslations) {
-      return (currentTranslations as Record<string, string>)[key];
+      const value = (currentTranslations as Record<string, unknown>)[key];
+      if (typeof value === "string") return value;
     }
 
     if (translations.en && key in translations.en) {
-      return (translations.en as Record<string, string>)[key];
+      const value = (translations.en as Record<string, unknown>)[key];
+      if (typeof value === "string") return value;
     }
 
     if (process.env.NODE_ENV === "development") {
@@ -113,11 +115,13 @@ export function getTranslations(language: string = "ro") {
   return {
     t: (key: string, defaultValue?: string): string => {
       if (currentTranslations && key in currentTranslations) {
-        return (currentTranslations as Record<string, string>)[key];
+        const value = (currentTranslations as Record<string, unknown>)[key];
+        if (typeof value === "string") return value;
       }
 
       if (translations.en && key in translations.en) {
-        return (translations.en as Record<string, string>)[key];
+        const value = (translations.en as Record<string, unknown>)[key];
+        if (typeof value === "string") return value;
       }
 
       return defaultValue ?? String(key);

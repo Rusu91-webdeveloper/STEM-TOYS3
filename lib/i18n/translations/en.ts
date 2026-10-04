@@ -1009,6 +1009,10 @@ export const en = {
   off: "OFF",
   freeShipping: "Free Shipping",
   onOrdersOver: "On orders over",
+  freeShippingLabel: "Free delivery",
+  freeShippingFrom: "From",
+  shippingCalculatedAtCheckout: "Cost calculated at checkout",
+  dayPolicy: "Returns within 14 calendar days",
   returnPeriod: "14-Day Returns",
   moneyBackGuarantee: "Money back guarantee",
   freeReturns: "Free Returns",
@@ -1361,20 +1365,20 @@ export const en = {
 
   // Newsletter section
   exclusiveInsights: "Exclusive STEM Insights",
-  joinEducatorsParents: "🚀 Join STEM Educators & Parents",
+  joinEducatorsParents: "Play ideas for curious minds",
   newsletterSubtitle:
-    "Get exclusive access to new products, educational resources, and special discounts. Plus, receive our weekly STEM activity guide!",
+    "Explore activities to try together and toys chosen for the next stage.",
   emailAddressPlaceholder: "Enter your email address",
-  getFreeResources: "Get Free Resources",
+  getFreeResources: "Subscribe",
   subscribing: "Subscribing...",
   subscriptionSuccessMessage:
-    "✓ Welcome aboard! Check your email for your first STEM resource pack.",
+    "✓ Thank you! You have subscribed to TechTots updates.",
   subscriptionErrorMessage:
     "✗ Something went wrong. Please try again or contact support.",
-  noSpamGuarantee: "Zero spam",
-  unsubscribeAnytime: "Unsubscribe anytime",
+  noSpamGuarantee: "We send play ideas and collection updates.",
+  unsubscribeAnytime: "You can unsubscribe anytime from each email.",
   newsletterValueBullet:
-    "Receive weekly STEM experiments, parent guides, and member-only offers from the TechTots community.",
+    "Receive play ideas and updates from the TechTots community.",
 
   // Company description
   companyDescription:
@@ -1387,7 +1391,7 @@ export const en = {
   freeReturnsOver50:
     "14 calendar days for returns. Return shipping is paid by the customer.",
   bankLevelSecurity: "Bank-level security & encryption",
-  trustedEducators: "Trusted by educators worldwide",
+  trustedEducators: "For parents and educators choosing learning through play",
 
   // Navigation sections
   stemCategoriesNav: "STEM Categories",

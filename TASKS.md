@@ -13,7 +13,10 @@
       Use current official sources and verified business facts; remove claims
       without evidence. Complete and verify these three scopes in that order.
       Implementation and local verification: docs/audits/2026-10-04-shipping-privacy-trust.md.
-      Live card inventory, external retention choices and release remain open.
+      Live aggregate card inventory verified empty; GA4 2 months/reset disabled
+      saved and reloaded. Owner-approved application policies saved: email-event
+      logs 30 days, performance metrics 60 days, daily cleanup enabled. Final
+      approved-retention preview verification and production release remain open.
 - [x] 2026-10-04 — Release owner-approved PR #61 to production and verify the
       live COD policy, guest token issuance, storefront and consented tracking.
       Estimate: 15–30 minutes. Owner confirmed the payment form works but has
