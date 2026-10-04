@@ -6,8 +6,19 @@
       had already merged at 15:18 EEST before this instruction arrived and its
       deployment is live. Description corrected; shared branch pulled with
       --ff-only; current production API confirms 9.90 / 0%. Prepare a separate
-      draft follow-up for the fallback/tests and release evidence; no further
-      merge or deployment. Production rollback requires the owner's choice.
+      draft follow-up for the fallback/tests and release evidence.
+      [Draft PR #63](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/63)
+      is published for review; required Jest/TypeScript comparisons add zero
+      failures. No further merge or production deployment. Production rollback
+      requires the owner's choice.
+- [ ] 2026-10-04 — Discovered in production log review: product-review fetch
+      uses NEXT_PUBLIC_BASE_URL or localhost:3000 and currently hits
+      ECONNREFUSED 127.0.0.1:3000, returning empty reviews on sampled HTTP-200
+      product pages. The fetch code dates to July 2025; PR #62 did not change it.
+      Investigate the public review read path separately; do not invent ratings
+      or change production configuration as part of draft-only COD follow-up.
+      Estimate: 30–60 minutes. Redis rate-limit timeout on /api/books also fell
+      back to memory; no evidence of a failed books response (HTTP 200).
 - [x] 2026-10-04 — At the owner's request, fix shipping consistency first:
       trace the cart drawer, authoritative checkout settings, stale shipping
       defaults and COD fee explanations. Estimate: 1–2 hours. Verify the exact
