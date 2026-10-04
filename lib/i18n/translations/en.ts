@@ -1,6 +1,7 @@
 // English translations
 export const en = {
   // General UI translations
+  siteTitle: "TechTots",
   home: "Home",
   products: "Products",
   categories: "Categories",

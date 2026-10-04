@@ -29,6 +29,14 @@ prices, including supplier surcharges. Shipping/FAQ and checkout explanations
 use the configured COD rate and explain the hold; visible FAQ and FAQPage data
 agree.
 
+Fetched GitHub again before publication and incorporated Cursor commit
+`cfea8830`, which replaces the remaining hardcoded payment-selector fee label
+with fetched admin settings and formats zero-percentage fees correctly. Its
+9.90 lei fallback was preserved; it is not evidence of the live configured
+rate. A fresh production endpoint read still returned 5.00 lei / 0.01 percent.
+A focused assertion verifies that this configuration displays 0.01% + 5 lei
+and calculates 5.02 lei for the reported 187.99 lei pre-fee amount.
+
 Final browser review also found an exclusive “over 500” label in the shared
 product badge and “unavailable” before settings loaded. The badge now says
 “from 500” and shows delivery calculated at checkout while unresolved, in
@@ -87,6 +95,11 @@ triggered.
   backlog will be processed in bounded batches by the new daily worker after
   release; transaction records and consent evidence are excluded. External
   email/Meta provider retention is separate from these application policies.
+- Vercel settings show cron jobs enabled, daily maintenance scheduled at 01:00
+  UTC and `CRON_SECRET` configured for all environments (value not revealed).
+  Deployment-scoped logs show its latest previous-source production run
+  returned HTTP 200. The new worker is connected to that existing authenticated
+  schedule; its first scheduled production cleanup has not yet been observed.
 
 ## Legal and trust changes
 
@@ -134,11 +147,14 @@ promise.
 
 ## Verification evidence
 
-- 14 focused Jest suites / 77 tests passed: loading/failure/500-boundary
+- Final combined run: 16 focused Jest suites / 99 tests passed:
+  loading/failure/500-boundary
   shipping estimates, authoritative quote and surcharge preservation, required
   COD hold, configured fee copy/schema, account erasure identity/CSRF/failure
   handling, review queue, inventory access, retention controls and
-  regression-diagnostic normalization.
+  regression-diagnostic normalization, configured COD labels, translation
+  fallback types and the corrected analytics route fixtures. Scoped merged
+  component/helper lint completed with zero errors and warnings.
 - `scripts/verify-account-erasure.ts` passed against the disposable local
   PostgreSQL 16 database `localhost:55432/stemtoys_dev`: actual schema/FKs,
   closed and open transactions, invoice/address preservation, legacy-card
@@ -176,7 +192,13 @@ promise.
   translation helpers now accept only string values and preserve English/default
   fallback behavior; nested objects cannot reach rendered text. A focused test
   covers valid strings, empty strings, missing locales and object-valued keys.
-  The failed pre-push was corrected in source; checks were not bypassed.
+  Two existing order metadata callers also lacked a `siteTitle` dictionary
+  entry; both dictionaries now provide the verified TechTots name. The analytics
+  route test fixture now supplies the actual product shape, executes the cache
+  fetcher on a miss, isolates the shared quota/timers, and asserts the route's
+  existing summary default. The affected translation, COD explanation and
+  analytics suites pass (25 tests). Failed checks were corrected in source;
+  hooks were not bypassed.
 - Production source release remains pending. GA4 and application policy
   configuration have been applied with the owner's explicit choices; no
   production customer erasure, card purge or manual retention cleanup occurred.

@@ -6,6 +6,11 @@ jest.mock("@/lib/auth", () => ({
   auth: jest.fn(),
 }));
 
+// Exercise the route handler independently of the shared request quota/timers.
+jest.mock("@/lib/rate-limit", () => ({
+  withRateLimit: (handler: unknown) => handler,
+}));
+
 jest.mock("@/lib/cache", () => ({
   getCached: jest.fn(),
   invalidateCachePattern: jest.fn(),
@@ -200,7 +205,7 @@ describe("/api/admin/analytics/unit-economics", () => {
 
       const mockProducts = [];
 
-      mockGetCached.mockResolvedValue(null);
+      mockGetCached.mockImplementationOnce(async (_key, fetcher) => fetcher());
       mockGenerateUnitEconomicsSummary.mockResolvedValue(mockSummary);
       mockFetchAllProductsProfitability.mockResolvedValue(mockProducts);
 
@@ -324,7 +329,19 @@ describe("/api/admin/analytics/unit-economics", () => {
         {
           productId: "prod_1",
           name: "Product 1",
+          sellingPrice: 100,
+          totalCostPerSale: 75,
+          netProfitPerSale: 25,
           profitMargin: 25,
+          monthlySales: 10,
+          monthlyRevenue: 1000,
+          monthlyProfit: 250,
+          customerAcquisitionCost: 5,
+          lifetimeValue: 100,
+          ltvToCacRatio: 20,
+          breakEvenPoint: 0,
+          isProfitable: true,
+          riskLevel: "LOW" as const,
         },
       ];
 
@@ -367,10 +384,25 @@ describe("/api/admin/analytics/unit-economics", () => {
       );
     });
 
-    it("should handle missing report type", async () => {
+    it("should default a missing report type to summary", async () => {
       mockAuth.mockResolvedValue({
         user: mockAdminUser,
       });
+      const mockReport = {
+        totalProducts: 10,
+        profitableProducts: 8,
+        unprofitableProducts: 2,
+        totalMonthlyRevenue: 10000,
+        totalMonthlyCosts: 7500,
+        totalMonthlyProfit: 2500,
+        overallProfitMargin: 25,
+        averageOrderValue: 100,
+        averageCustomerAcquisitionCost: 5,
+        averageLifetimeValue: 100,
+        averageLtvToCacRatio: 20,
+        productsToDiscontinue: [],
+      };
+      mockGenerateUnitEconomicsSummary.mockResolvedValueOnce(mockReport);
 
       const request = new NextRequest(
         "http://localhost:3000/api/admin/analytics/unit-economics",
@@ -381,11 +413,13 @@ describe("/api/admin/analytics/unit-economics", () => {
       );
       const response = await POST(request);
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data.error).toBe(
-        "Invalid report type. Must be 'summary' or 'products'"
-      );
+      expect(data.reportType).toBe("summary");
+      expect(data.report).toEqual(mockReport);
+      expect(mockGenerateUnitEconomicsSummary).toHaveBeenCalledWith({
+        timeRange: "30d",
+      });
     });
   });
 });

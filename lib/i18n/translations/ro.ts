@@ -1,6 +1,7 @@
 // Romanian translations
 export const ro = {
   // General UI translations
+  siteTitle: "TechTots",
   home: "Acasă",
   stemToysForEveryAge: "Jucării STEM pentru fiecare vârstă",
   discoverStemCollection: "Descoperă colecția noastră STEM",
