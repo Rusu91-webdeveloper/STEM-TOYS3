@@ -38,12 +38,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from "@/lib/currency";
 import {
-  RETURN_POLICY_COURIER_PAYS_RO,
   RETURN_PHOTO_LIMIT,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
   RETURN_POLICY_EVIDENCE_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
   RETURN_REASON_HELP_TEXT_RO,
+  type ReturnReasonCode,
+  isConformityComplaint,
+  getCustomerReturnInstructions,
   RETURN_REASON_LABELS_RO,
   RETURN_RESPONSIBILITY_LABELS_RO,
   RETURN_REASON_VALUES,
@@ -89,22 +91,8 @@ const returnSchema = z.object({
     }
   ),
   details: z.string().optional(),
-  photos: z.array(z.string()).min(1, "Încarcă cel puțin o fotografie"),
-}).refine(
-  (data) => {
-    // Photos are ALWAYS required for claims (missing parts, defects, damage-in-transit)
-    // This ensures proper documentation for supplier processing
-    if (!data.photos || data.photos.length === 0) {
-      return false;
-    }
-    return true;
-  },
-  {
-    message:
-      "Fotografiile sunt obligatorii pentru această cerere. Încarcă cel puțin o fotografie clară.",
-    path: ["photos"],
-  }
-);
+  photos: z.array(z.string()).max(RETURN_PHOTO_LIMIT),
+});
 
 type ReturnFormValues = z.infer<typeof returnSchema>;
 
@@ -147,8 +135,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
     ? RETURN_REASON_HELP_TEXT_RO[selectedReason]
     : null;
   
-  // Photos are required for every return request to keep supplier evidence together.
-  const photosRequired = true;
+  const showPhotoUpload = true;
 
   const isWithin14Days = (currentOrder: Order) =>
     currentOrder.status === "DELIVERED" &&
@@ -172,16 +159,6 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
         const data = await response.json();
         setOrder(data.order);
 
-        // Check if order is within return window
-        if (data.order && !isWithin14Days(data.order)) {
-          toast({
-            title: "Perioada de retur a expirat",
-            description:
-              `Produsele pot fi returnate doar în primele ${RETURN_WINDOW_LABEL_RO} de la livrare.`,
-            variant: "destructive",
-          });
-          router.push(`/account/orders/${orderId}`);
-        }
       } catch (error) {
         console.error("Error fetching order:", error);
         toast({
@@ -283,8 +260,10 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
             <h2 className="text-2xl font-bold mb-2">Retur înregistrat</h2>
             <p className="text-gray-500 mb-4">
               Cererea ta de retur a fost înregistrată pentru toate produsele
-              selectate. Ai la dispoziție {RETURN_WINDOW_LABEL_RO} de la
-              livrare, iar fotografiile au fost salvate împreună cu cererea.
+              selectate. La retragere, expediază bunurile în 14 zile de la
+              comunicarea retragerii. Pentru neconformitate, TechTots organizează
+              transportul fără costuri pentru tine. Fotografiile trimise sunt
+              păstrate împreună cu cererea.
             </p>
             <div className="mt-6">
               <Link href="/account/returns">
@@ -325,13 +304,13 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
             <CardContent className="space-y-4">
               <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
                 <p>
-                  Returul se poate solicita în primele <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la livrare.
+                  Retragerea fără justificare se comunică în <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la livrare. Neconformitățile se verifică separat, în baza garanției legale.
                 </p>
                 <p className="mt-1">
                   {selectedResponsibility === "SUPPLIER"
                     ? RETURN_POLICY_SELLER_PAYS_RO
                     : selectedResponsibility === "COURIER"
-                      ? RETURN_POLICY_COURIER_PAYS_RO
+                      ? RETURN_POLICY_SELLER_PAYS_RO
                       : RETURN_POLICY_CUSTOMER_PAYS_RO}
                 </p>
                 <p className="mt-1">{RETURN_POLICY_EVIDENCE_RO}</p>
@@ -481,7 +460,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.entries(RETURN_REASON_LABELS_RO).map(([key, label]) => (
+                        {Object.entries(RETURN_REASON_LABELS_RO).filter(([key]) => !order || isWithin14Days(order) || isConformityComplaint(key as ReturnReasonCode)).map(([key, label]) => (
                           <SelectItem key={key} value={key}>
                             {label}
                           </SelectItem>
@@ -497,9 +476,10 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
                   <p>
                     <strong>Încadrare automată:</strong>{" "}
-                    {RETURN_RESPONSIBILITY_LABELS_RO[selectedResponsibility || "UNDECIDED"]}
+                    {selectedResponsibility === "SUPPLIER" || selectedResponsibility === "COURIER" ? "TechTots organizează transportul fără costuri pentru tine" : RETURN_RESPONSIBILITY_LABELS_RO[selectedResponsibility || "UNDECIDED"]}
                   </p>
                   {selectedReasonHelp && <p className="mt-1">{selectedReasonHelp}</p>}
+                  <p className="mt-2">{getCustomerReturnInstructions(selectedReason)}</p>
                 </div>
               )}
 
@@ -530,20 +510,20 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                 )}
               />
 
-              {/* Photo Upload Section - ALWAYS Required for claims */}
-              {photosRequired && (
+              {/* Optional evidence for review */}
+              {showPhotoUpload && (
                 <FormField
                   control={form.control}
                   name="photos"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Fotografii <span className="text-red-500">*</span>
+                        Fotografii (opțional)
                       </FormLabel>
                       <FormControl>
                         <div className="space-y-4">
                           <div className="text-sm text-gray-600">
-                            Încarcă fotografii clare cu produsul, ambalajul și problema semnalată. Cel puțin o fotografie este obligatorie.
+                            Încarcă fotografii clare cu produsul, ambalajul și problema semnalată. Dacă nu poți trimite fotografii, vom stabili cu tine verificarea produsului; lipsa lor nu anulează drepturile legale.
                             Pozele se salvează cu cererea și ne ajută să documentăm cazul în relația cu furnizorul.
                           </div>
                           

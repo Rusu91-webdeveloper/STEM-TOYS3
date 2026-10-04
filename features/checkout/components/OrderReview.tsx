@@ -1,9 +1,13 @@
 "use client";
 
+import { RETURN_POLICY_COD_RTO_RO } from "@/lib/returns/policy";
 import { Banknote, Edit, ShieldCheck } from "lucide-react";
 import React, { useMemo } from "react";
 
+import { LegalGuaranteeNotice } from "@/components/legal/LegalGuaranteeNotice";
+import { ReturnCostNotice } from "@/components/legal/ReturnCostNotice";
 import { Button } from "@/components/ui/button";
+import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { useCurrency } from "@/lib/currency";
 import { formatDeliveryWindow } from "@/lib/format/delivery-window";
 import { useTranslation } from "@/lib/i18n";
@@ -13,7 +17,6 @@ import { CheckoutData, CheckoutStep } from "../types";
 import { OrderActions } from "./OrderActions";
 import { OrderSummarySection } from "./OrderSummarySection";
 import { usePricingBreakdown } from "./PricingBreakdown";
-import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 
 interface OrderReviewProps {
   checkoutData: CheckoutData;
@@ -284,10 +287,7 @@ export function OrderReview({
                             "codLockerReviewNotice",
                             "Plătești la ridicare, cu cardul la terminalul FANbox. Pentru FANbox nu solicităm autorizarea temporară pentru transportul tur; TechTots suportă returul la expeditor dacă nu ridici coletul."
                           )
-                        : t(
-                            "codReviewNotice",
-                            "Plătești produsele la primirea coletului. Autorizarea temporară acoperă numai transportul tur; la refuz sau nepreluare putem încasa cel mult suma autorizată."
-                          )}
+                        : t("codReviewNotice", RETURN_POLICY_COD_RTO_RO)}
                     </p>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-2">
@@ -424,6 +424,8 @@ export function OrderReview({
         appliedCoupon={pricingData.appliedCoupon}
       />
 
+      <LegalGuaranteeNotice />
+      <ReturnCostNotice language={language} />
       <OrderActions
         onBack={onBack}
         onPlaceOrder={onPlaceOrder}

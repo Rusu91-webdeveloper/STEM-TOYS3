@@ -6,6 +6,7 @@ import { COMPANY_LEGAL } from "@/lib/config/company-legal";
 import {
   RETURN_POLICY_COD_RTO_RO,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
+  RETURN_POLICY_REFUND_RO,
   RETURN_POLICY_EVIDENCE_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
   RETURN_WINDOW_LABEL_RO,
@@ -145,6 +146,15 @@ export default async function ReturnsPage() {
               <h1 className="mt-4 text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-4xl">
                 Politica de Returnare
               </h1>
+              <a href="/withdrawal" className="mt-4 inline-block rounded-lg bg-white px-5 py-3 font-semibold text-blue-800 underline">
+                Retrageți-vă din contract aici
+              </a>
+              <p className="mt-3 text-sm text-white">
+                Fără cont și fără justificare. Completezi declarația, o verifici,
+                apoi apeși „Confirmați retragerea” și primești confirmarea de
+                primire cu data și ora transmiterii. Formularul de retur din cont
+                rămâne disponibil separat.
+              </p>
               <p className="mt-4 text-sm text-slate-200 sm:text-lg">
                 Condițiile de retragere, retur și remediere a produselor
                 neconforme, cu pașii de contact și expediere.
@@ -193,7 +203,9 @@ export default async function ReturnsPage() {
                   <strong>Refuzul coletului la livrare</strong> sau{" "}
                   <strong>nepreluarea din punctul de ridicare</strong>{" "}
                   reprezintă retur la expeditor (RTO). Nu este același lucru cu
-                  dreptul de retragere exercitat după recepția produsului.
+                  o declarație neechivocă de retragere. Retragerea poate fi
+                  comunicată și înainte de livrare; simpla nepreluare nu
+                  înlocuiește această comunicare.
                 </p>
                 <p>{RETURN_POLICY_COD_RTO_RO}</p>
                 <p>
@@ -319,9 +331,8 @@ export default async function ReturnsPage() {
                     </li>
                     <li>
                       <strong>Notă:</strong> Pentru anumiți furnizori,
-                      returnările pot necesita autorizare (ARP/RMA). În acest
-                      caz, vei primi un număr de autorizare în email după
-                      procesarea cererii.
+                      folosim intern autorizări (ARP/RMA). Acestea nu condiționează
+                      drepturile tale și nu suspendă termenele legale.
                     </li>
                     <li>Urmează instrucțiunile de expediere primite</li>
                     <li>
@@ -414,8 +425,7 @@ export default async function ReturnsPage() {
                     • <strong>Dovezi foto:</strong> {RETURN_POLICY_EVIDENCE_RO}
                   </li>
                   <li>
-                    • <strong>Rambursare:</strong> După recepția și verificarea
-                    returului, rambursarea se procesează conform legii.
+                    • <strong>Rambursare:</strong> {RETURN_POLICY_REFUND_RO}
                   </li>
                 </ul>
               </div>

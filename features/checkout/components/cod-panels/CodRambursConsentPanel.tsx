@@ -1,5 +1,6 @@
 "use client";
 
+import { RETURN_POLICY_COD_RTO_RO } from "@/lib/returns/policy";
 import { ArrowLeftRight, BadgeCheck, Banknote, PackageX } from "lucide-react";
 import Link from "next/link";
 
@@ -48,10 +49,7 @@ export function CodRambursConsentPanel({
     {
       icon: ArrowLeftRight,
       title: t("codKeyPointRoundTripTitle", "Reținem doar transportul tur"),
-      body: t(
-        "codKeyPointRoundTripBody",
-        "Fiecare comandă ramburs necesită o autorizare temporară pe card, limitată la transportul tur. La refuz sau nepreluare putem încasa cel mult suma autorizată; TechTots suportă returul la expeditor."
-      ),
+      body: t("codKeyPointRoundTripBody", RETURN_POLICY_COD_RTO_RO),
       accent: "text-amber-900 bg-amber-50/90 border-amber-100",
     },
     {
@@ -156,7 +154,7 @@ export function CodRambursConsentPanel({
             <span className="text-sm font-medium leading-relaxed text-slate-900">
               {t(
                 "codConsentLabel",
-                "Confirm că am citit condițiile COD și înțeleg că autorizarea temporară acoperă numai transportul tur. La refuz sau nepreluare poate fi încasată cel mult suma autorizată; TechTots suportă returul la expeditor."
+                "Confirm că am citit condițiile COD. Înțeleg că garanția nu este încasată automat, iar dreptul legal de retragere nu este penalizat."
               )}
             </span>
           </label>
@@ -164,7 +162,7 @@ export function CodRambursConsentPanel({
           <p className="mt-3 text-xs leading-relaxed text-slate-500">
             {t(
               "codConsentShortNote",
-              "Pe scurt: autorizarea nu se încasează la plasarea comenzii. Dacă refuzi coletul sau nu îl ridici, putem încasa cel mult suma autorizată pentru transportul tur."
+              "Autorizarea nu se încasează la plasarea comenzii. O retragere legală nu declanșează o penalizare."
             )}
           </p>
         </div>

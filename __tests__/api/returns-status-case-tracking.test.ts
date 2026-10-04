@@ -17,6 +17,10 @@ const mockSendReturnApprovedEmail = jest.fn();
 const mockSendReturnRejectedEmail = jest.fn();
 const mockGetStripeServerClient = jest.fn();
 const mockStripeRefundCreate = jest.fn();
+const mockStripeIntentRetrieve = jest.fn();
+const mockStripeRefundList = jest.fn();
+const mockCsrf = jest.fn();
+jest.mock("@/lib/csrf", () => ({ validateCsrfForRequest: () => mockCsrf() }));
 
 jest.mock("@/lib/auth", () => ({
   auth: () => mockAuth(),
@@ -114,7 +118,8 @@ function buildReturnRecord(
 
 describe("PATCH /api/returns/[returnId]/status", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    mockCsrf.mockResolvedValue({ valid: true });
 
     mockAuth.mockResolvedValue({
       user: {
@@ -150,11 +155,29 @@ describe("PATCH /api/returns/[returnId]/status", () => {
     mockSendReturnApprovedEmail.mockResolvedValue({ success: true });
     mockSendReturnRejectedEmail.mockResolvedValue({ success: true });
     mockGetStripeServerClient.mockReturnValue({
+      paymentIntents: {
+        retrieve: (...args: unknown[]) => mockStripeIntentRetrieve(...args),
+      },
       refunds: {
+        list: (...args: unknown[]) => mockStripeRefundList(...args),
         create: (...args: unknown[]) => mockStripeRefundCreate(...args),
       },
     });
-    mockStripeRefundCreate.mockResolvedValue({ id: "re_1" });
+    mockStripeRefundCreate.mockResolvedValue({
+      id: "re_1",
+      status: "succeeded",
+    });
+    mockStripeRefundList.mockResolvedValue({ data: [], has_more: false });
+    mockStripeIntentRetrieve.mockResolvedValue({
+      status: "succeeded",
+      currency: "ron",
+      latest_charge: { amount: 12000, amount_refunded: 12000, paid: true },
+    });
+    mockStripeIntentRetrieve.mockResolvedValueOnce({
+      status: "succeeded",
+      currency: "ron",
+      latest_charge: { amount: 12000, amount_refunded: 0, paid: true },
+    });
   });
 
   it("stores liability, resolution status, deadline, and notes", async () => {
@@ -178,9 +201,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
       })
     );
 
-    const { PATCH } = await import(
-      "@/app/api/returns/[returnId]/status/route"
-    );
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
 
     const response = await PATCH(
       new Request("http://localhost/api/returns/ret_1/status", {
@@ -234,9 +255,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
       })
     );
 
-    const { PATCH } = await import(
-      "@/app/api/returns/[returnId]/status/route"
-    );
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
 
     const response = await PATCH(
       new Request("http://localhost/api/returns/ret_1/status", {
@@ -272,9 +291,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
   it("rejects invalid lifecycle jumps", async () => {
     mockFindUnique.mockResolvedValueOnce(buildReturnRecord());
 
-    const { PATCH } = await import(
-      "@/app/api/returns/[returnId]/status/route"
-    );
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
 
     const response = await PATCH(
       new Request("http://localhost/api/returns/ret_1/status", {
@@ -284,6 +301,11 @@ describe("PATCH /api/returns/[returnId]/status", () => {
         },
         body: JSON.stringify({
           status: "REFUNDED",
+          refundReview: {
+            amountRon: 100,
+            notes: "Reviewed product refund; partial withdrawal.",
+            confirmed: true,
+          },
         }),
       }),
       { params: Promise.resolve({ returnId: "ret_1" }) }
@@ -325,9 +347,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
       })
     );
 
-    const { PATCH } = await import(
-      "@/app/api/returns/[returnId]/status/route"
-    );
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
 
     const response = await PATCH(
       new Request("http://localhost/api/returns/ret_1/status", {
@@ -337,6 +357,11 @@ describe("PATCH /api/returns/[returnId]/status", () => {
         },
         body: JSON.stringify({
           status: "REFUNDED",
+          refundReview: {
+            amountRon: 100,
+            notes: "Reviewed product refund; partial withdrawal.",
+            confirmed: true,
+          },
         }),
       }),
       { params: Promise.resolve({ returnId: "ret_1" }) }
@@ -371,7 +396,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
             createdAt: new Date("2026-03-01T10:00:00.000Z"),
             paymentMethod: "stripe_new",
             stripePaymentIntentId: "pi_123",
-            total: 100,
+            total: 120,
             shippingCost: 20,
             paymentStatus: "PAID",
           },
@@ -393,7 +418,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
             createdAt: new Date("2026-03-01T10:00:00.000Z"),
             paymentMethod: "stripe_new",
             stripePaymentIntentId: "pi_123",
-            total: 100,
+            total: 120,
             shippingCost: 20,
             paymentStatus: "REFUNDED",
           },
@@ -413,9 +438,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
       })
     );
 
-    const { PATCH } = await import(
-      "@/app/api/returns/[returnId]/status/route"
-    );
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
 
     const response = await PATCH(
       new Request("http://localhost/api/returns/ret_1/status", {
@@ -425,6 +448,11 @@ describe("PATCH /api/returns/[returnId]/status", () => {
         },
         body: JSON.stringify({
           status: "REFUNDED",
+          refundReview: {
+            amountRon: 120,
+            notes: "Full withdrawal: products 100 plus standard delivery 20.",
+            confirmed: true,
+          },
         }),
       }),
       { params: Promise.resolve({ returnId: "ret_1" }) }
@@ -434,15 +462,21 @@ describe("PATCH /api/returns/[returnId]/status", () => {
 
     expect(response.status).toBe(200);
     expect(payload.success).toBe(true);
-    expect(mockStripeRefundCreate).toHaveBeenCalledWith({
-      payment_intent: "pi_123",
-      amount: 10000,
-      metadata: {
-        returnId: "ret_1",
-        orderNumber: "ORD-1001",
-        orderItemId: "item_1",
+    expect(mockStripeRefundCreate).toHaveBeenCalledWith(
+      {
+        payment_intent: "pi_123",
+        amount: 12000,
+        metadata: {
+          returnId: "ret_1",
+          orderNumber: "ORD-1001",
+          orderItemId: "item_1",
+          reviewedBy: "admin_1",
+          reviewNotes:
+            "Full withdrawal: products 100 plus standard delivery 20.",
+        },
       },
-    });
+      { idempotencyKey: "return-refund-ret_1" }
+    );
     expect(mockDbTransaction).toHaveBeenCalled();
     expect(mockReturnUpdate).toHaveBeenCalledWith({
       where: { id: "ret_1" },
@@ -493,9 +527,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
       })
     );
 
-    const { PATCH } = await import(
-      "@/app/api/returns/[returnId]/status/route"
-    );
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
 
     const response = await PATCH(
       new Request("http://localhost/api/returns/ret_1/status", {
@@ -505,6 +537,11 @@ describe("PATCH /api/returns/[returnId]/status", () => {
         },
         body: JSON.stringify({
           status: "REFUNDED",
+          refundReview: {
+            amountRon: 100,
+            notes: "Reviewed product refund; partial withdrawal.",
+            confirmed: true,
+          },
         }),
       }),
       { params: Promise.resolve({ returnId: "ret_1" }) }
@@ -523,5 +560,93 @@ describe("PATCH /api/returns/[returnId]/status", () => {
       },
     });
     expect(mockOrderItemUpdate).not.toHaveBeenCalled();
+  });
+  it("requires a CSRF token before any refund or status mutation", async () => {
+    mockCsrf.mockResolvedValue({ valid: false });
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
+    const response = await PATCH(
+      new Request("http://localhost/api/returns/ret_1/status", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "REFUNDED" }),
+      }),
+      { params: Promise.resolve({ returnId: "ret_1" }) }
+    );
+    expect(response.status).toBe(403);
+    expect(mockFindUnique).not.toHaveBeenCalled();
+    expect(mockStripeRefundCreate).not.toHaveBeenCalled();
+  });
+  it("records a completed COD reimbursement only with payment proof and no Stripe call", async () => {
+    const record = buildReturnRecord({
+      status: "RECEIVED",
+      order: {
+        id: "order_1",
+        orderNumber: "O1",
+        total: 120,
+        shippingCost: 20,
+        paymentMethod: "cash_on_delivery",
+        paymentStatus: "PAID",
+      },
+    });
+    mockFindUnique.mockResolvedValue(record);
+    mockReturnUpdate.mockResolvedValue(record);
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
+    const response = await PATCH(
+      new Request("http://localhost/api/returns/ret_1/status", {
+        method: "PATCH",
+        body: JSON.stringify({
+          status: "REFUNDED",
+          manualRefundProof: {
+            review: {
+              amountRon: 120,
+              notes: "Retragere integrală: 100 produse + 20 livrare standard.",
+              confirmed: true,
+            },
+            reference: "bank-proof-001",
+            paidAt: "2026-01-01T10:00:00.000Z",
+            agreedMethodAndNoFees: true,
+          },
+        }),
+      }),
+      { params: Promise.resolve({ returnId: "ret_1" }) }
+    );
+    expect(response.status).toBe(200);
+    expect(mockStripeRefundCreate).not.toHaveBeenCalled();
+    expect(mockReturnUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "REFUNDED",
+          resolutionNotes: expect.stringContaining("bank-proof-001"),
+        }),
+      })
+    );
+    expect(mockOrderUpdate).toHaveBeenCalledWith({
+      where: { id: "order_1" },
+      data: { paymentStatus: "REFUNDED" },
+    });
+  });
+  it("blocks the old product-only Stripe refund without an explicit calculation", async () => {
+    const record = buildReturnRecord({
+      status: "RECEIVED",
+      order: {
+        id: "order_1",
+        total: 120,
+        paymentMethod: "stripe_new",
+        stripePaymentIntentId: "pi_1",
+        paymentStatus: "PAID",
+      },
+    });
+    mockFindUnique.mockResolvedValue(record);
+    mockReturnUpdate.mockResolvedValue(record);
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
+    const response = await PATCH(
+      new Request("http://localhost/api/returns/ret_1/status", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "REFUNDED" }),
+      }),
+      { params: Promise.resolve({ returnId: "ret_1" }) }
+    );
+    expect(response.status).toBe(400);
+    expect(mockStripeRefundCreate).not.toHaveBeenCalled();
+    expect(mockDbTransaction).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCsrfToken } from "@/hooks/useCsrfToken";
 import {
   ArrowLeft,
   Package,
@@ -715,6 +716,7 @@ const getPhaseColor = (phase?: string) => {
 };
 
 export default function OrderDetailsPage() {
+  const csrf = useCsrfToken();
   const params = useParams();
   const { toast } = useToast();
   const { formatPrice } = useCurrency();
@@ -1458,13 +1460,13 @@ export default function OrderDetailsPage() {
     try {
       const response = await fetch(`/api/admin/orders/${order.id}/cod-reject`, {
         method: "POST",
-        headers: {
+        headers: csrf.addToHeaders({
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify({
           reason: reason.trim(),
           notes: extraNotes?.trim() || undefined,
-          captureGuarantee: true,
+          captureGuarantee: false,
         }),
       });
 
@@ -1477,7 +1479,7 @@ export default function OrderDetailsPage() {
         title: "COD rejection recorded",
         description: data?.guaranteeCaptured
           ? `Guarantee captured: ${formatPrice(Number(data?.guaranteeCaptureAmount || 0))}`
-          : "Order rejected. Guarantee capture requires manual review.",
+          : "Refuzul a fost înregistrat fără încasarea garanției. Verifică declarațiile de retragere și eventualele erori de livrare; o retragere legală nu se penalizează.",
       });
 
       await fetchOrderDetails();

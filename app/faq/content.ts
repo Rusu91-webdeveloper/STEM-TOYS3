@@ -1,5 +1,4 @@
 import {
-  COD_HOLD_EXPLANATION_RO,
   codFeeExplanation,
   type PublicCODSettings,
 } from "@/lib/pricing/cod-settings";
@@ -38,7 +37,7 @@ export const FAQ_ITEMS = [
   {
     question:
       "Ce se întâmplă dacă refuz sau nu ridic o comandă cu plata ramburs?",
-    answer: `${RETURN_POLICY_COD_RTO_RO} Dreptul de retragere în termen de ${RETURN_WINDOW_LABEL_RO} se aplică după primirea unei comenzi eligibile și este diferit de refuzul sau neridicarea coletului.`,
+    answer: `${RETURN_POLICY_COD_RTO_RO} Pentru o comandă eligibilă, termenul de retragere de ${RETURN_WINDOW_LABEL_RO} se calculează de la primirea bunurilor; poți comunica retragerea și înainte de livrare. Trimite o declarație clară de retragere, inclusiv prin funcția online, nu doar refuza sau lăsa coletul neridicat.`,
   },
   {
     question: "În cât timp se livrează comenzile?",
@@ -52,7 +51,7 @@ export function buildFAQItems(codSettings: PublicCODSettings) {
     ...FAQ_ITEMS,
     {
       question: "Ce taxă și ce garanție se aplică la plata ramburs?",
-      answer: `${codFeeExplanation(codSettings)} ${COD_HOLD_EXPLANATION_RO}`,
+      answer: `${codFeeExplanation(codSettings)} ${RETURN_POLICY_COD_RTO_RO}`,
     },
   ];
 }

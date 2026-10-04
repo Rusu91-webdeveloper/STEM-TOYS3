@@ -1,6 +1,48 @@
 # Current tasks
 
-- [ ] 2026-10-04 — Owner's later instruction: preserve the Cursor dynamic COD
+- [x] 2026-10-05 — Redesign customer and merchant withdrawal emails after inbox
+      acceptance exposed an unformatted monospace text block. Estimate: 45–90
+      minutes. Preserve the exact declaration, durable reference/time,
+      plain-text fallback and delivery/retry behavior; verify desktop/mobile
+      rendering and publish only to draft PR #64. Implemented branded HTML with
+      distinct customer/merchant content, readable Romanian local time, complete
+      receipt evidence and customer policy. 22 focused tests pass;
+      desktop/mobile previews checked, including maximum-length fields at 390
+      CSS pixels without overflow. Inbox rendering of the revised email remains
+      to be accepted; keep the PR draft. Elapsed time not recorded.
+
+- [ ] 2026-10-04 — Apply the owner-approved consumer return-cost policy before
+      purchase and throughout returns. Customer pays direct withdrawal return
+      carriage; full withdrawal includes refund of initial standard delivery;
+      nonconformity is remedied without customer transport costs. Remove
+      implicit COD guarantee capture, require reviewed refund amounts and
+      correct dispatch deadlines in customer instructions. Estimate: 2–4 hours.
+      Continue draft PR #64; preserve configured COD fees and supplier changes.
+      Implementation complete: precontract copy, no automatic COD capture,
+      reviewed Stripe amount/retry checks and manual repayment proof. 86 focused
+      tests and local mobile/PDF checks pass. Authorized preview guest intake
+      and receipt export pass on 5 October; owner confirms both inbox
+      deliveries. Authenticated admin and financial acceptance remain pending;
+      keep draft. Evidence: docs/audits/2026-10-04-return-cost-policy.md.
+
+- [ ] 2026-10-04 — Implement the official Romanian harmonised legal-guarantee
+      notice and the online contract-withdrawal function under OUG 18/2026.
+      Estimate: 2–4 hours. Verify official design/dates, guest access, two-stage
+      confirmation, durable receipt, persistence and merchant processing.
+      Preserve concurrent Cursor work; no production release without review.
+      Notice, guest two-stage form, durable receipt/outbox and ADMIN review
+      implemented. 35 focused tests pass; local browser checks pass for the
+      notice/review/security failure path. Real local persistence is blocked by
+      unavailable Docker/Postgres. Prepare draft preview for owner-approved
+      inbox/persistence/admin acceptance.
+      [Draft PR #64](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/64).
+      Required full Jest/TypeScript comparisons add zero failures/diagnostics.
+      Fix discovered mobile overlap: the withdrawal link must remain usable
+      while the guarantee notice is open. Keep the legal form isolated from
+      optional tracking, including SDKs loaded on previous pages. Evidence:
+      docs/audits/2026-10-04-legal-guarantee-withdrawal.md.
+
+- [x] 2026-10-04 — Owner's later instruction: preserve the Cursor dynamic COD
       lookup/formatter and flat 9.90 lei / 0% fallback; correct PR #62's
       description and keep further changes draft without force-pushing. PR #62
       had already merged at 15:18 EEST before this instruction arrived and its
@@ -9,40 +51,44 @@
       draft follow-up for the fallback/tests and release evidence.
       [Draft PR #63](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/63)
       is published for review; required Jest/TypeScript comparisons add zero
-      failures. No further merge or production deployment. Production rollback
-      requires the owner's choice.
+      failures. Owner subsequently authorized merging on 4 October after
+      checking concurrent Cursor work. PR #63 merged as 26adeac4; production is
+      READY on both domains, with shipping/COD/policy/access checks passed.
+      Cursor preserved; no force-push. Release evidence is recorded in PR #63.
 - [ ] 2026-10-04 — Discovered in production log review: product-review fetch
       uses NEXT_PUBLIC_BASE_URL or localhost:3000 and currently hits
       ECONNREFUSED 127.0.0.1:3000, returning empty reviews on sampled HTTP-200
-      product pages. The fetch code dates to July 2025; PR #62 did not change it.
-      Investigate the public review read path separately; do not invent ratings
-      or change production configuration as part of draft-only COD follow-up.
-      Estimate: 30–60 minutes. Redis rate-limit timeout on /api/books also fell
-      back to memory; no evidence of a failed books response (HTTP 200).
-- [x] 2026-10-04 — At the owner's request, fix shipping consistency first:
-      trace the cart drawer, authoritative checkout settings, stale shipping
-      defaults and COD fee explanations. Estimate: 1–2 hours. Verify the exact
-      configured rates and threshold before editing or changing payment totals.
+      product pages. The fetch code dates to July 2025; PR #62 did not change
+      it. Investigate the public review read path separately; do not invent
+      ratings or change production configuration as part of draft-only COD
+      follow-up. Estimate: 30–60 minutes. Redis rate-limit timeout on /api/books
+      also fell back to memory; no evidence of a failed books response (HTTP
+      200).
+- [x] 2026-10-04 — At the owner's request, fix shipping consistency first: trace
+      the cart drawer, authoritative checkout settings, stale shipping defaults
+      and COD fee explanations. Estimate: 1–2 hours. Verify the exact configured
+      rates and threshold before editing or changing payment totals.
 - [x] 2026-10-04 — Then finish privacy operations: verify retention settings,
       correct account-erasure behavior and inventory historical sensitive card
       records using aggregate read-only evidence. Estimate: 2–4 hours. Resolve
       business choices and recovery requirements before dependent data changes.
 - [x] 2026-10-04 — Then fix legal/trust content: terms, warranty wording and
-      revision, consumer links and unsupported claims. Estimate: 1–2 hours.
-      Use current official sources and verified business facts; remove claims
+      revision, consumer links and unsupported claims. Estimate: 1–2 hours. Use
+      current official sources and verified business facts; remove claims
       without evidence. Complete and verify these three scopes in that order.
-      Implementation and local verification: docs/audits/2026-10-04-shipping-privacy-trust.md.
-      Live aggregate card inventory verified empty; GA4 2 months/reset disabled
-      saved and reloaded. Owner-approved application policies saved: email-event
-      logs 30 days, performance metrics 60 days, daily cleanup enabled. Final
-      approved-retention preview and production checks passed. PR #62 merged
-      at 15:18 EEST as 7a282f63; production dpl_4c9SX2trBtgxuwLi3fsTtTQ9bHxm
-      is READY. Both shop domains return current shipping settings, legal/privacy
+      Implementation and local verification:
+      docs/audits/2026-10-04-shipping-privacy-trust.md. Live aggregate card
+      inventory verified empty; GA4 2 months/reset disabled saved and reloaded.
+      Owner-approved application policies saved: email-event logs 30 days,
+      performance metrics 60 days, daily cleanup enabled. Final
+      approved-retention preview and production checks passed. PR #62 merged at
+      15:18 EEST as 7a282f63; production dpl_4c9SX2trBtgxuwLi3fsTtTQ9bHxm is
+      READY. Both shop domains return current shipping settings, legal/privacy
       wording and guest denial. Authenticated admin UI confirms 30/60-day
       automatic policies and zero total/PAN/CVV card records. Work spanned
       interrupted sessions; elapsed time was not recorded. No manual cleanup or
-      real customer erasure was performed. Later draft-only COD instructions
-      are recorded separately above; the first scheduled cleanup is unobserved.
+      real customer erasure was performed. Later draft-only COD instructions are
+      recorded separately above; the first scheduled cleanup is unobserved.
 - [x] 2026-10-04 — Release owner-approved PR #61 to production and verify the
       live COD policy, guest token issuance, storefront and consented tracking.
       Estimate: 15–30 minutes. Owner confirmed the payment form works but has
@@ -56,18 +102,18 @@
       appeared in the deployment-scoped observation window. See
       [production record](docs/audits/2026-10-04-cod-production-release.md).
 - [x] 2026-10-04 — Require a shipping-cost card authorization for every COD
-      order, including low-value orders and returning customers, as
-      explicitly requested by the owner. Trace and fix the guest checkout CSRF
-      failure observed in the owner test; preserve signed-token validation.
-      Estimate: 1–2 hours. Verify denial paths and publish a reviewable preview.
-      Real card authorization/order submission remains an owner acceptance step.
-      Completed 2026-10-04; elapsed time was not recorded. Every eligible COD
-      order now requires a server-priced shipping hold; lockers remain prepaid
-      only. Guest token issuance/parsing and original-request validation are
-      repaired. 81 focused tests pass and required full Jest/TypeScript
-      comparisons have zero added failures/diagnostics. Source `3c6412e8` is
-      READY; deployed policy/token/cookie flags and shipping copy are verified.
-      Fresh checkout prepared with blank customer fields; production unchanged.
+      order, including low-value orders and returning customers, as explicitly
+      requested by the owner. Trace and fix the guest checkout CSRF failure
+      observed in the owner test; preserve signed-token validation. Estimate:
+      1–2 hours. Verify denial paths and publish a reviewable preview. Real card
+      authorization/order submission remains an owner acceptance step. Completed
+      2026-10-04; elapsed time was not recorded. Every eligible COD order now
+      requires a server-priced shipping hold; lockers remain prepaid only. Guest
+      token issuance/parsing and original-request validation are repaired. 84
+      focused tests pass and required full Jest/TypeScript comparisons have zero
+      added failures/diagnostics. Source `3c6412e8` is READY; deployed
+      policy/token/cookie flags and shipping copy are verified. Fresh checkout
+      prepared with blank customer fields; production unchanged.
       [Draft PR #61](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/61);
       see [COD audit](docs/audits/2026-10-04-mandatory-cod-guarantee.md).
 - [ ] 2026-10-04 — Review Stripe authorization expiry against delivery and
@@ -80,11 +126,11 @@
       collection. Prepare the guest COD test for owner completion; do not invent
       customer details or submit a chargeable order without a concrete order.
       2026-10-04 browser investigation: analytics-only/refusal correctly block
-      Meta; its consented iframe/form event transport is blocked by CSP.
-      Allow only the Facebook tracking path and repeat preview verification.
-      Completed 2026-10-04; active work spanned interrupted sessions (elapsed
-      time includes restart/waits). Browser proves one ViewContent, AddToCart
-      and InitiateCheckout, correct ID/quantity/168 RON and HTTP 200, with no
+      Meta; its consented iframe/form event transport is blocked by CSP. Allow
+      only the Facebook tracking path and repeat preview verification. Completed
+      2026-10-04; active work spanned interrupted sessions (elapsed time
+      includes restart/waits). Browser proves one ViewContent, AddToCart and
+      InitiateCheckout, correct ID/quantity/168 RON and HTTP 200, with no
       advertising traffic before consent/after withdrawal. 55 focused tests
       pass; full baseline comparisons have zero added failures/diagnostics.
       [Draft PR #61](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/61);
@@ -92,9 +138,10 @@
 - [ ] 2026-10-04 — Owner: complete prepared guest COD order with real details
       and verify receipt in Meta Events Manager. Live paid-card Purchase proof
       remains open. Actual COD Purchase requires a verified cash-collection
-      signal and consent-aware server integration; delivery alone is insufficient.
-      Owner confirmed the card form works but has insufficient funds. Successful
-      shipping authorization and completed order remain pending after release.
+      signal and consent-aware server integration; delivery alone is
+      insufficient. Owner confirmed the card form works but has insufficient
+      funds. Successful shipping authorization and completed order remain
+      pending after release.
 - [x] 2026-10-04 — Discovered during tracking verification: cart drawer shows
       Gratuit shipping for a 168 lei cart; checkout correctly shows 19,99 lei.
       Corrected and released in PR #62; verified preview drawer/cart totals at

@@ -2,6 +2,15 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import { validateCsrfForRequest } from "@/lib/csrf";
+import {
+  refundReviewSchema,
+  reviewedStripeRefund,
+} from "@/lib/returns/reviewed-stripe-refund";
+import {
+  manualRefundAudit,
+  manualRefundProofSchema,
+} from "@/lib/returns/manual-refund-proof";
 import { db } from "@/lib/db";
 import { isStripePaymentMethod } from "@/lib/orders/customer-order-display";
 import { generateReturnLabel } from "@/lib/return-label";
@@ -30,6 +39,13 @@ export async function PATCH(
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json(
         { error: "Unauthorized. Admin access required." },
+        { status: 403 }
+      );
+    }
+
+    if (!(await validateCsrfForRequest(request)).valid) {
+      return NextResponse.json(
+        { error: "Security validation failed" },
         { status: 403 }
       );
     }
@@ -187,6 +203,7 @@ export async function PATCH(
             stripePaymentIntentId: true,
             total: true,
             shippingCost: true,
+            discountAmount: true,
             paymentStatus: true,
           },
         },
@@ -223,7 +240,9 @@ export async function PATCH(
       hasStatusUpdate &&
       !canTransitionReturnStatus(returnData.status, status)
     ) {
-      const allowedTransitions = getAllowedNextReturnStatuses(returnData.status);
+      const allowedTransitions = getAllowedNextReturnStatuses(
+        returnData.status
+      );
       return NextResponse.json(
         {
           error: `Invalid status transition from ${returnData.status} to ${status}.`,
@@ -235,8 +254,9 @@ export async function PATCH(
 
     // Update return status
     const updateData: Record<string, unknown> = {};
-    const nextOrderItemStatus =
-      hasStatusUpdate ? mapReturnStatusToOrderItemStatus(status) : null;
+    const nextOrderItemStatus = hasStatusUpdate
+      ? mapReturnStatusToOrderItemStatus(status)
+      : null;
     const isRefundTransition = hasStatusUpdate && status === "REFUNDED";
 
     if (hasStatusUpdate && !isRefundTransition) {
@@ -319,6 +339,7 @@ export async function PATCH(
                   stripePaymentIntentId: true,
                   total: true,
                   shippingCost: true,
+                  discountAmount: true,
                   paymentStatus: true,
                 },
               },
@@ -363,32 +384,19 @@ export async function PATCH(
     if (isRefundTransition) {
       try {
         const order = updatedReturn.order as any;
-        const orderItem = updatedReturn.orderItem as any;
         const paymentMethod = order.paymentMethod || "";
-        const isStripeRefundableOrder =
-          isStripePaymentMethod(paymentMethod) ||
-          Boolean(order.stripePaymentIntentId);
+        const isStripeRefundableOrder = isStripePaymentMethod(paymentMethod);
         const isOrderAlreadyRefunded = order.paymentStatus === "REFUNDED";
         const isReturnAlreadyRefundSuccessful =
           returnData.refundStatus === "SUCCESS";
         const isPaidLikeOrderStatus =
           order.paymentStatus === "PAID" || order.paymentStatus === "COMPLETED";
 
+        let processorFullyRefunded = isOrderAlreadyRefunded;
+        let manualAudit: string | null = null;
         const finalizeRefundState = async () => {
-          const [orderItemCount, refundedReturnCount] = await Promise.all([
-            db.orderItem.count({
-              where: { orderId: order.id },
-            }),
-            db.return.count({
-              where: { orderId: order.id, status: "REFUNDED" },
-            }),
-          ]);
-
           const shouldMarkOrderRefunded =
-            orderItemCount > 0 &&
-            refundedReturnCount + (returnData.status === "REFUNDED" ? 0 : 1) >=
-              orderItemCount &&
-            order.paymentStatus !== "REFUNDED";
+            processorFullyRefunded && order.paymentStatus !== "REFUNDED";
 
           await db.$transaction(async tx => {
             await tx.return.update({
@@ -397,6 +405,13 @@ export async function PATCH(
                 status: "REFUNDED",
                 refundStatus: "SUCCESS",
                 refundError: "",
+                ...(manualAudit
+                  ? {
+                      resolutionNotes: [returnData.resolutionNotes, manualAudit]
+                        .filter(Boolean)
+                        .join("\n"),
+                    }
+                  : {}),
               },
             });
 
@@ -423,104 +438,113 @@ export async function PATCH(
           await finalizeRefundState();
         } else {
           if (!isStripeRefundableOrder) {
-            const refundErrorMessage =
-              "Refundul trebuie confirmat în procesatorul de plăți înainte să marchezi returul ca REFUNDED.";
-
-            await db.return.update({
-              where: { id: returnId },
-              data: {
-                refundStatus: "FAILED",
-                refundError: refundErrorMessage,
-              },
-            });
-            return NextResponse.json(
-              {
-                error: refundErrorMessage,
-                refundStatus: "FAILED",
-                refundError: refundErrorMessage,
-              },
-              { status: 400 }
+            const proof = manualRefundProofSchema.safeParse(
+              body.manualRefundProof
             );
-          }
+            if (
+              !proof.success ||
+              !isPaidLikeOrderStatus ||
+              proof.data.review.amountRon > Number(order.total)
+            ) {
+              const error =
+                "Refundul trebuie confirmat în procesatorul de plăți înainte să marchezi returul ca REFUNDED.";
+              await db.return.update({
+                where: { id: returnId },
+                data: { refundStatus: "FAILED", refundError: error },
+              });
+              return NextResponse.json(
+                { error, manualProofRequired: true, refundStatus: "FAILED" },
+                { status: 400 }
+              );
+            }
+            manualAudit = manualRefundAudit(proof.data, session.user.id);
+            processorFullyRefunded =
+              Math.round(proof.data.review.amountRon * 100) ===
+              Math.round(Number(order.total) * 100);
+            await finalizeRefundState();
+          } else {
+            if (!order.stripePaymentIntentId) {
+              const refundErrorMessage =
+                "Order does not have a Stripe payment intent ID. Cannot process refund.";
 
-          if (!order.stripePaymentIntentId) {
-            const refundErrorMessage =
-              "Order does not have a Stripe payment intent ID. Cannot process refund.";
+              await db.return.update({
+                where: { id: returnId },
+                data: {
+                  refundStatus: "FAILED",
+                  refundError: refundErrorMessage,
+                },
+              });
+              return NextResponse.json(
+                {
+                  error: refundErrorMessage,
+                  refundStatus: "FAILED",
+                  refundError: refundErrorMessage,
+                },
+                { status: 400 }
+              );
+            }
 
-            await db.return.update({
-              where: { id: returnId },
-              data: {
-                refundStatus: "FAILED",
-                refundError: refundErrorMessage,
-              },
-            });
-            return NextResponse.json(
-              {
-                error: refundErrorMessage,
-                refundStatus: "FAILED",
-                refundError: refundErrorMessage,
-              },
-              { status: 400 }
-            );
-          }
+            if (!isPaidLikeOrderStatus) {
+              const refundErrorMessage =
+                "Only paid Stripe orders can be marked as refunded.";
 
-          if (!isPaidLikeOrderStatus) {
-            const refundErrorMessage =
-              "Only paid Stripe orders can be marked as refunded.";
+              await db.return.update({
+                where: { id: returnId },
+                data: {
+                  refundStatus: "FAILED",
+                  refundError: refundErrorMessage,
+                },
+              });
+              return NextResponse.json(
+                {
+                  error: refundErrorMessage,
+                  refundStatus: "FAILED",
+                  refundError: refundErrorMessage,
+                },
+                { status: 400 }
+              );
+            }
 
-            await db.return.update({
-              where: { id: returnId },
-              data: {
-                refundStatus: "FAILED",
-                refundError: refundErrorMessage,
-              },
-            });
-            return NextResponse.json(
-              {
-                error: refundErrorMessage,
-                refundStatus: "FAILED",
-                refundError: refundErrorMessage,
-              },
-              { status: 400 }
-            );
-          }
-
-          const refundAmount = Math.round(
-            Number(orderItem.price || 0) * Number(orderItem.quantity || 0) * 100
-          );
-          if (refundAmount <= 0) {
-            const refundErrorMessage =
-              "Refund amount is zero or negative. Skipping Stripe refund.";
-
-            await db.return.update({
-              where: { id: returnId },
-              data: {
-                refundStatus: "FAILED",
-                refundError: refundErrorMessage,
-              },
-            });
-            return NextResponse.json(
-              {
-                error: refundErrorMessage,
-                refundStatus: "FAILED",
-                refundError: refundErrorMessage,
-              },
-              { status: 400 }
-            );
-          }
-
-          const stripe = getStripeServerClient();
-          await stripe.refunds.create({
-            payment_intent: order.stripePaymentIntentId,
-            amount: refundAmount,
-            metadata: {
+            const review = refundReviewSchema.safeParse(body.refundReview);
+            if (!review.success) {
+              return NextResponse.json(
+                {
+                  error:
+                    "Verifică și confirmă suma rambursării: reduceri, rambursări anterioare și livrarea standard la retragerea din întreaga comandă. Nu deduce transportul de retur ori o penalizare automată.",
+                  refundReviewRequired: true,
+                },
+                { status: 400 }
+              );
+            }
+            const result = await reviewedStripeRefund(getStripeServerClient(), {
+              review: review.data,
               returnId: updatedReturn.id,
               orderNumber: order.orderNumber,
               orderItemId: updatedReturn.orderItemId,
-            },
-          });
+              paymentIntentId: order.stripePaymentIntentId,
+              orderTotal: Number(order.total),
+              reviewerId: session.user.id,
+            });
+            if (!result.succeeded) {
+              await db.return.update({
+                where: { id: returnId },
+                data: {
+                  refundStatus: "PENDING",
+                  refundError: `Stripe: ${result.status}. Verifică procesatorul și reîncearcă sincronizarea; nu iniția o altă rambursare.`,
+                },
+              });
+              return NextResponse.json(
+                {
+                  error: "Rambursarea Stripe nu este încă finalizată.",
+                  refundStatus: "PENDING",
+                },
+                { status: 409 }
+              );
+            }
+            processorFullyRefunded = result.fullyRefunded;
 
-          await finalizeRefundState();
+            await finalizeRefundState();
+          }
         }
       } catch (refundError) {
         await db.return.update({
@@ -594,6 +618,7 @@ export async function PATCH(
             stripePaymentIntentId: true,
             total: true,
             shippingCost: true,
+            discountAmount: true,
             paymentStatus: true,
           },
         },
