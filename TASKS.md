@@ -1,14 +1,33 @@
 # Current tasks
 
-- [ ] 2026-10-04 — At the owner's request, fix shipping consistency first:
+- [ ] 2026-10-04 — Owner's later instruction: preserve the Cursor dynamic COD
+      lookup/formatter and flat 9.90 lei / 0% fallback; correct PR #62's
+      description and keep further changes draft without force-pushing. PR #62
+      had already merged at 15:18 EEST before this instruction arrived and its
+      deployment is live. Description corrected; shared branch pulled with
+      --ff-only; current production API confirms 9.90 / 0%. Prepare a separate
+      draft follow-up for the fallback/tests and release evidence.
+      [Draft PR #63](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/63)
+      is published for review; required Jest/TypeScript comparisons add zero
+      failures. No further merge or production deployment. Production rollback
+      requires the owner's choice.
+- [ ] 2026-10-04 — Discovered in production log review: product-review fetch
+      uses NEXT_PUBLIC_BASE_URL or localhost:3000 and currently hits
+      ECONNREFUSED 127.0.0.1:3000, returning empty reviews on sampled HTTP-200
+      product pages. The fetch code dates to July 2025; PR #62 did not change it.
+      Investigate the public review read path separately; do not invent ratings
+      or change production configuration as part of draft-only COD follow-up.
+      Estimate: 30–60 minutes. Redis rate-limit timeout on /api/books also fell
+      back to memory; no evidence of a failed books response (HTTP 200).
+- [x] 2026-10-04 — At the owner's request, fix shipping consistency first:
       trace the cart drawer, authoritative checkout settings, stale shipping
       defaults and COD fee explanations. Estimate: 1–2 hours. Verify the exact
       configured rates and threshold before editing or changing payment totals.
-- [ ] 2026-10-04 — Then finish privacy operations: verify retention settings,
+- [x] 2026-10-04 — Then finish privacy operations: verify retention settings,
       correct account-erasure behavior and inventory historical sensitive card
       records using aggregate read-only evidence. Estimate: 2–4 hours. Resolve
       business choices and recovery requirements before dependent data changes.
-- [ ] 2026-10-04 — Then fix legal/trust content: terms, warranty wording and
+- [x] 2026-10-04 — Then fix legal/trust content: terms, warranty wording and
       revision, consumer links and unsupported claims. Estimate: 1–2 hours.
       Use current official sources and verified business facts; remove claims
       without evidence. Complete and verify these three scopes in that order.
@@ -16,7 +35,14 @@
       Live aggregate card inventory verified empty; GA4 2 months/reset disabled
       saved and reloaded. Owner-approved application policies saved: email-event
       logs 30 days, performance metrics 60 days, daily cleanup enabled. Final
-      approved-retention preview verification and production release remain open.
+      approved-retention preview and production checks passed. PR #62 merged
+      at 15:18 EEST as 7a282f63; production dpl_4c9SX2trBtgxuwLi3fsTtTQ9bHxm
+      is READY. Both shop domains return current shipping settings, legal/privacy
+      wording and guest denial. Authenticated admin UI confirms 30/60-day
+      automatic policies and zero total/PAN/CVV card records. Work spanned
+      interrupted sessions; elapsed time was not recorded. No manual cleanup or
+      real customer erasure was performed. Later draft-only COD instructions
+      are recorded separately above; the first scheduled cleanup is unobserved.
 - [x] 2026-10-04 — Release owner-approved PR #61 to production and verify the
       live COD policy, guest token issuance, storefront and consented tracking.
       Estimate: 15–30 minutes. Owner confirmed the payment form works but has
@@ -69,9 +95,10 @@
       signal and consent-aware server integration; delivery alone is insufficient.
       Owner confirmed the card form works but has insufficient funds. Successful
       shipping authorization and completed order remain pending after release.
-- [ ] 2026-10-04 — Discovered during tracking verification: cart drawer shows
+- [x] 2026-10-04 — Discovered during tracking verification: cart drawer shows
       Gratuit shipping for a 168 lei cart; checkout correctly shows 19,99 lei.
-      Trace and correct the drawer shipping display in the shipping follow-up.
+      Corrected and released in PR #62; verified preview drawer/cart totals at
+      206/412/618 lei and configured rates on both live domains.
 - [x] 2026-10-03, 21:39 EEST — Merge the owner-approved saved-card fix, verify
       the resulting production deployment and record authenticated acceptance.
       Estimate: 10–20 minutes. Existing-record inventory remains a separate
@@ -97,7 +124,9 @@
       schema/migration changes or database cleanup. The owner deployed the final
       source to production and confirmed authenticated account-page, redirect
       and checkout-option checks. PR #60 merged as `9bc2ef3c`. Existing-record
-      inventory remains pending. See
+      inventory completed read-only on 2026-10-04: zero live card/PAN/CVV rows,
+      also confirmed by the authenticated admin UI. Historical recovery-point
+      contents/offline exports were not inspected. See
       [saved-card audit](docs/audits/2026-10-03-saved-card-safety.md).
 - [ ] Subsequent steps: checkout and Meta conversion verification; deletion and
       retention handling; terms/warranty and consumer links; evidence-based

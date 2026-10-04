@@ -14,7 +14,7 @@ legacy shipping-settings endpoint returned unused Online/Ramburs prices. A
 second client calculation could discard an authoritative separate-shipment
 surcharge above the threshold.
 
-Read-only production settings verified: delivery 19.99 lei; free first-shipment
+Initial read-only production settings verified: delivery 19.99 lei; free first-shipment
 threshold 500 lei inclusive; COD fixed fee 5 lei and percentage setting **0.01
 percent**, not 1 percent. For 168 lei products + 19.99 lei shipping, COD is 5.02
 lei and total 193.01 lei. The configured rate was preserved. FANbox requires
@@ -212,7 +212,46 @@ promise.
   Final review caught an omitted Romanian free-delivery key and an older
   English 1–3-day footer promise; translations now match Romanian delivery
   labels and the 1–4-business-day shipping estimate. This final copy correction
-  requires its own passing hooks and exact-preview check.
-- Production source release remains pending. GA4 and application policy
-  configuration have been applied with the owner's explicit choices; no
-  production customer erasure, card purge or manual retention cleanup occurred.
+  passed its required hooks and exact preview. Romanian badges show
+  “Livrare gratuită / De la 500,00 lei”; English shows the same boundary and
+  1–4 business days. The final fee correction also passed its eight focused
+  tests and both full comparisons with zero added failures/diagnostics.
+
+## Production record and subsequent owner instruction
+
+PR #62 merged at 2026-10-04T12:18:05Z (15:18 EEST) as
+`7a282f6355a5d39b689cb434404e70285e9008fe`. Its tree exactly matches tested
+preview head `5c6327c94eb7838039554ad50be2288bc2445b0b`. Production deployment
+`dpl_4c9SX2trBtgxuwLi3fsTtTQ9bHxm` reached READY and owns both shop aliases.
+
+The owner's later instruction supersedes the earlier release authorization:
+keep further changes draft, never force-push the shared branch, preserve the
+Cursor dynamic lookup/formatter, and use the owner-selected flat 9.90 lei / 0%
+COD policy. A fresh production endpoint read confirms `fixedFee: "9.90"` and
+`percentage: "0.00"`; these are admin settings, not a fee inferred from the
+fallback. Shipping text also displays the current flat fee. The earlier 5 lei /
+0.01% observations are historical evidence, not the current business policy.
+
+The merged PR cannot be returned to draft. Its description was corrected. The
+shared branch was pulled with `--ff-only` and was already current. No force-push
+or history rewrite occurred. A separate branch based on the fetched merged main
+builds on the existing helper, restores only the owner-selected fallback and
+updates its tests; PaymentMethodSelector's dynamic API lookup is untouched.
+Further changes will be published as a draft follow-up and will not be merged
+or deployed. Production rollback is a separate owner choice because it would
+remove all of the shipping, privacy and legal fixes.
+
+Post-release read-only checks passed on both live domains: delivery 19.99 / 500,
+obsolete shipping fields omitted, current COD 9.90 / 0%, operator/revision and
+statutory warranty, approved retention copy, shipping explanations and return
+wording. Anonymous inventory, erasure-review and retention APIs return 403 with
+private/no-store headers; unauthenticated export returns 403. Authenticated live
+`/admin/privacy` shows “Date încărcate”, zero total/PAN/CVV card rows,
+`logs: 30 zile · automat`, `analytics_data: 60 zile · automat`, and no pending
+erasure requests. Screenshot is saved in the task's visualization directory.
+
+GA4 and application policy configuration have been applied with the owner's
+explicit choices. No production customer erasure, card purge, manual retention
+cleanup, payment or order was performed. The first scheduled production cleanup
+has not yet been observed; current empty card inventory does not establish the
+contents of historical recovery points or offline backups.

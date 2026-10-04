@@ -1,8 +1,9 @@
 // Store settings express the percentage in percent; calculators use a fraction.
-// Fallback matches the live StoreSettings verified on 2026-10-04.
+// Fallback only; the normal checkout path reads admin settings.
+// Owner-selected fallback confirmed on 2026-10-04: flat 9.90 lei.
 export const DEFAULT_COD_SETTINGS = {
-  percentage: "0.01",
-  fixedFee: "5.00",
+  percentage: "0",
+  fixedFee: "9.90",
   active: true,
 } as const;
 
