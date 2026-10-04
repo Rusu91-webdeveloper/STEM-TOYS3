@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
     }
 
     // Get returns with pagination - using select to include photos field
-    let returnsQuery = {
+    const returnsQuery = {
       where,
       select: {
         id: true,
@@ -137,7 +138,7 @@ export async function GET(request: Request) {
       },
       skip,
       take: limit,
-    };
+    } satisfies Prisma.ReturnFindManyArgs;
 
     // If customer segment filtering is needed, we need to fetch all and filter
     let returns, total;

@@ -79,6 +79,12 @@ dependency, credential or production setting was changed.
   delivery, duplicate/recovery/pending/partial limits, manual repayment proof,
   ADMIN/CSRF, no COD capture, physical conformity outside 14 days, optional
   photos, delivery-date evidence and Romanian/English precontract copy.
+- The TypeScript comparison initially reported four old UploadThing errors as
+  new: truncated union diagnostics displayed different subsets of the same
+  allowed values. Diagnostic collection now requests the full union before
+  canonical comparison. A real compiler fixture verifies all 50 members are
+  retained; existing tests still reject changed members/messages. Upload limits
+  and the upload router remain unchanged. 18 diagnostic/release-check tests pass.
 - New runtime-file lint passes without errors/warnings. Whole-repository
   TypeScript/Jest debt is assessed by mandatory baseline comparisons, not
   described as a clean repository run.

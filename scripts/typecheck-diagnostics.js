@@ -32,6 +32,8 @@ function collectDiagnostics(root, sharedRoot = root) {
     ...parsed.options,
     incremental: false,
     noEmit: true,
+    // Compare every union member, not an order-dependent truncated preview.
+    noErrorTruncation: true,
   });
   return [...parsed.errors, ...ts.getPreEmitDiagnostics(program)]
     .filter(diagnostic => diagnostic.category === ts.DiagnosticCategory.Error)
