@@ -145,9 +145,9 @@ export default async function ReturnsPage() {
               <h1 className="mt-4 text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-4xl">
                 Politica de Returnare
               </h1>
-              <Link href="/withdrawal" className="mt-4 inline-block rounded-lg bg-white px-5 py-3 font-semibold text-blue-800 underline">
+              <a href="/withdrawal" className="mt-4 inline-block rounded-lg bg-white px-5 py-3 font-semibold text-blue-800 underline">
                 Retrageți-vă din contract aici
-              </Link>
+              </a>
               <p className="mt-3 text-sm text-white">
                 Fără cont și fără justificare. Completezi declarația, o verifici,
                 apoi apeși „Confirmați retragerea” și primești confirmarea de

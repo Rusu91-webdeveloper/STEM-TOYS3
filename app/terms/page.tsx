@@ -193,7 +193,7 @@ export default function TermsPage() {
                 </li>
                 <li>
                   Poți transmite declarația online, fără autentificare, la{" "}
-                  <Link href="/withdrawal">Retrageți-vă din contract aici</Link>.
+                  <a href="/withdrawal">Retrageți-vă din contract aici</a>.
                   După „Confirmați retragerea”, primești o confirmare de primire
                   cu declarația, data și ora transmiterii, pe suport durabil.
                 </li>

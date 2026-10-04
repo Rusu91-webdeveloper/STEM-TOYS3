@@ -6,13 +6,14 @@
       confirmation, durable receipt, persistence and merchant processing.
       Preserve concurrent Cursor work; no production release without review.
       Notice, guest two-stage form, durable receipt/outbox and ADMIN review
-      implemented. 21 focused tests pass; local browser checks pass for the
+      implemented. 34 focused tests pass; local browser checks pass for the
       notice/review/security failure path. Real local persistence is blocked
       by unavailable Docker/Postgres. Prepare draft preview for owner-approved
       inbox/persistence/admin acceptance. [Draft PR #64](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/64).
       Required full Jest/TypeScript comparisons add zero failures/diagnostics.
       Fix discovered mobile overlap: the withdrawal link must remain usable
-      while the guarantee notice is open. Evidence: docs/audits/2026-10-04-legal-guarantee-withdrawal.md.
+      while the guarantee notice is open. Keep the legal form isolated from
+      optional tracking, including SDKs loaded on previous pages. Evidence: docs/audits/2026-10-04-legal-guarantee-withdrawal.md.
 
 - [x] 2026-10-04 — Owner's later instruction: preserve the Cursor dynamic COD
       lookup/formatter and flat 9.90 lei / 0% fallback; correct PR #62's

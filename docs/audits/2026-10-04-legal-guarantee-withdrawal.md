@@ -56,6 +56,11 @@ manufacturer durability promise is invented.
   timestamp before email is attempted. A random submission reference prevents
   duplicate retries changing the original receipt time. Changed identity or
   content with a reused reference is rejected.
+- Tracking privacy: AnalyticsWrapper omits the withdrawal route even with full
+  optional consent. Public entry links use full document navigation, not Next
+  client navigation that leaves SDK listeners attached. Before form fields
+  become available, any already loaded GA4/Meta/TikTok/Vercel tracking script
+  triggers a clean reload. Consent preferences elsewhere are preserved.
 - Plain-text and escaped HTML acknowledgements contain the same declaration,
   reference and timestamp, also displayed/downloadable on success. Initial
   customer and merchant emails are attempted immediately. The merchant address
@@ -85,10 +90,10 @@ manufacturer durability promise is invented.
 
 ## Verification and limits
 
-- 21 focused tests pass across service, public/admin routes and the two-stage
+- 34 focused tests pass across service, public/admin routes and the two-stage
   React form: save-before-mail, guest access, timestamp/content, retry identity,
   interrupted delivery, failed storage/email, CSRF, rate/size limits, admin denial,
-  review races, escaped HTML, no submission during review, and honest UI failures.
+  review races, escaped HTML, no submission during review, honest UI failures, consented-route exclusions and isolation from loaded SDKs.
 - New source/test files have zero lint errors or warnings. Modified existing
   files were checked separately; existing unrelated warnings are not treated as
   a clean repository lint result. Migration validation confirms no schema or

@@ -2,7 +2,11 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { WithdrawalForm } from "@/features/returns/components/WithdrawalForm";
 import { useCsrfToken } from "@/hooks/useCsrfToken";
+import { preparePrivateWithdrawalPage } from "@/lib/analytics/withdrawal-privacy";
 
+jest.mock("@/lib/analytics/withdrawal-privacy", () => ({
+  preparePrivateWithdrawalPage: jest.fn(),
+}));
 jest.mock("@/hooks/useCsrfToken", () => ({ useCsrfToken: jest.fn() }));
 const csrf = {
   token: "local-token",
@@ -31,6 +35,7 @@ function prepare() {
 }
 beforeEach(() => {
   jest.clearAllMocks();
+  (preparePrivateWithdrawalPage as jest.Mock).mockReturnValue(true);
   (useCsrfToken as jest.Mock).mockReturnValue(csrf);
   Object.defineProperty(crypto, "randomUUID", {
     configurable: true,
@@ -117,5 +122,15 @@ test("confirmation remains disabled without the security token", () => {
   expect(
     screen.getByRole("button", { name: "Confirmați retragerea" })
   ).toBeDisabled();
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test("previously loaded trackers must be removed before any declaration fields are available", () => {
+  (preparePrivateWithdrawalPage as jest.Mock).mockReturnValue(false);
+  render(<WithdrawalForm />);
+  expect(screen.queryByLabelText("Numele tău")).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Confirmați retragerea" })
+  ).not.toBeInTheDocument();
   expect(fetchMock).not.toHaveBeenCalled();
 });

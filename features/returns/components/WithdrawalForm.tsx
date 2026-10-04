@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import { useCsrfToken } from "@/hooks/useCsrfToken";
+import { preparePrivateWithdrawalPage } from "@/lib/analytics/withdrawal-privacy";
 
 type Receipt = { reference: string; receivedAt: string };
 export function WithdrawalForm() {
   const csrf = useCsrfToken();
+  const [privatePage, setPrivatePage] = useState(false);
+  useEffect(() => {
+    setPrivatePage(preparePrivateWithdrawalPage());
+  }, []);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [contract, setContract] = useState("");
@@ -68,6 +73,8 @@ export function WithdrawalForm() {
   }
   const button =
     "rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white disabled:opacity-50";
+  if (!privatePage)
+    return <p aria-live="polite">Se pregătește formularul de retragere...</p>;
   if (result)
     return (
       <section

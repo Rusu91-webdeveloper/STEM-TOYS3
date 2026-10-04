@@ -233,9 +233,9 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl">
       <div className="mx-auto grid max-w-7xl gap-2 px-4 py-2 text-sm sm:grid-cols-2 sm:items-start">
-        <Link href="/withdrawal" className="py-3 font-medium text-blue-800 underline underline-offset-4 sm:order-2 sm:text-right">
+        <a href="/withdrawal" className="py-3 font-medium text-blue-800 underline underline-offset-4 sm:order-2 sm:text-right">
           Retrageți-vă din contract aici
-        </Link>
+        </a>
         <div className="min-w-0 sm:order-1">
           <LegalGuaranteeNotice />
         </div>

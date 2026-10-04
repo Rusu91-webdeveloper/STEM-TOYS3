@@ -295,9 +295,9 @@ export default function Footer({
         </div>
 
         <ConsumerLinks />
-        <Link href="/withdrawal" className="mt-4 block font-medium text-blue-700 underline">
+        <a href="/withdrawal" className="mt-4 block font-medium text-blue-700 underline">
           Retrageți-vă din contract aici
-        </Link>
+        </a>
 
         {/* Return policy bar */}
         <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-center text-xs leading-relaxed text-slate-600 sm:mt-8 sm:px-4 sm:py-3">
