@@ -1019,14 +1019,17 @@ export const en = {
     "This STEM toy is designed to inspire young minds and introduce children to the wonderful world of",
   providesHandsOn:
     "It provides hands-on learning experiences that are both educational and fun.",
-  featuresBenefits: "Features & Benefits",
+  featuresBenefits: "Play ideas and guidance",
   developsCriticalThinking:
-    "Develops critical thinking and problem-solving skills",
-  encouragesCreativity: "Encourages creativity and innovation",
-  buildsConfidence: "Builds confidence through accomplishment",
-  teachesFundamentalConcepts: "Teaches fundamental concepts in",
-  inEngagingWay: "in an engaging way",
-  safeMaterials: "Safe materials suitable for children",
+    "Depending on the activity, it may offer opportunities to observe and solve problems",
+  encouragesCreativity:
+    "Adapt play to the child's interests and the product instructions",
+  buildsConfidence:
+    "Explore activities at the child's own pace",
+  teachesFundamentalConcepts: "Check the product description for activities in",
+  inEngagingWay: "and the contents of the set",
+  safeMaterials:
+    "Check the manufacturer's age guidance, warnings and instructions before use",
 
   // Product description translations
   roboticsDescription:

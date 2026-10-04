@@ -94,7 +94,7 @@ export function ProductFeatures({
         <h3 className={productTitleClass}>
           {activities
             ? "Ce poți încerca"
-            : t("featuresBenefits", "Caracteristici și beneficii")}
+            : t("featuresBenefits", "Idei de joacă și recomandări")}
         </h3>
         {activities ? (
           <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed text-slate-700">
@@ -110,20 +110,26 @@ export function ProductFeatures({
                 <span className={productBodyTextClass}>
                   {t(
                     "developsCriticalThinking",
-                    "Dezvoltă gândirea critică și logica"
+                    "În funcție de activitate, poate oferi ocazii de observare și rezolvare a problemelor"
                   )}
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-emerald-400" />
                 <span className={productBodyTextClass}>
-                  {t("encouragesCreativity", "Încurajează creativitatea")}
+                  {t(
+                    "encouragesCreativity",
+                    "Poți adapta joaca la interesele copilului și la instrucțiunile produsului"
+                  )}
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-violet-400" />
                 <span className={productBodyTextClass}>
-                  {t("buildsConfidence", "Construiește încrederea în sine")}
+                  {t(
+                    "buildsConfidence",
+                    "Încercați activitățile în ritmul copilului"
+                  )}
                 </span>
               </li>
             </ul>
@@ -135,15 +141,18 @@ export function ProductFeatures({
                   {categoryName.trim()
                     ? `${t(
                         "teachesFundamentalConcepts",
-                        "Predă concepte fundamentale în"
-                      )} ${categoryName.trim()} ${t("inEngagingWay", "într-un mod captivant")}`
-                    : "Predă concepte fundamentale într-un mod captivant"}
+                        "Consultă descrierea produsului pentru activități din"
+                      )} ${categoryName.trim()} ${t("inEngagingWay", "și conținutul setului")}`
+                    : "Consultă descrierea produsului pentru activități și conținutul setului"}
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-rose-400" />
                 <span className={productBodyTextClass}>
-                  {t("safeMaterials", "Materiale sigure și de calitate")}
+                  {t(
+                    "safeMaterials",
+                    "Verifică vârsta, avertismentele și instrucțiunile producătorului înainte de utilizare"
+                  )}
                 </span>
               </li>
             </ul>

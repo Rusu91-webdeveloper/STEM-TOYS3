@@ -186,7 +186,7 @@ export default async function ShippingPage() {
                       <div className="flex items-center gap-3">
                         <Truck className="w-5 h-5 text-green-600" />
                         <span className="font-medium">
-                          Comenzi peste {formatPrice(freeThreshold)} RON
+                          Comenzi de cel puțin {formatPrice(freeThreshold)} RON
                         </span>
                       </div>
                     </td>
@@ -230,9 +230,8 @@ export default async function ShippingPage() {
             </div>
           </div>
           <p className="text-sm text-slate-500 mt-4">
-            * Comenzile plasate până la ora 14:00 în zilele lucrătoare sunt
-            procesate în aceeași zi. Timpul de livrare depinde și de procesarea
-            de către furnizor.
+            Termenul este estimativ și depinde de confirmarea comenzii,
+            disponibilitate, procesarea de către furnizor și transportator.
           </p>
         </section>
 
@@ -495,12 +494,12 @@ export default async function ShippingPage() {
         {/* Legal */}
         <section className="mt-10 text-sm text-slate-500">
           <h3 className="font-semibold text-slate-700 mb-2">
-            Conformitate Legală
+            Drepturile consumatorului
           </h3>
           <p>
-            Această politică respectă legislația aplicabilă privind protecția
-            consumatorilor și comerțul electronic, inclusiv OUG nr. 34/2014, OUG
-            nr. 140/2021 și Legea nr. 193/2000.
+            Condițiile de livrare nu limitează drepturile obligatorii ale
+            consumatorului prevăzute de OUG nr. 34/2014, OUG nr. 140/2021 și
+            Legea nr. 193/2000.
           </p>
           <p className="mt-2">
             Prevederile privind refuzul la livrare/nepreluarea coletului se
@@ -508,14 +507,7 @@ export default async function ShippingPage() {
             înainte de finalizarea comenzii. TechTots suportă costul returului
             la expeditor.
           </p>
-          <p className="mt-4">
-            Ultima actualizare:{" "}
-            {new Intl.DateTimeFormat("ro-RO", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }).format(new Date())}
-          </p>
+          <p className="mt-4">Ultima actualizare: 4 octombrie 2026</p>
         </section>
       </div>
     </main>

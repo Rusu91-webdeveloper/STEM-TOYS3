@@ -1084,14 +1084,18 @@ export const ro = {
     "Această jucărie STEM este concepută pentru a inspira mințile tinere și a prezenta copiilor minunata lume a",
   providesHandsOn:
     "Oferă experiențe practice de învățare care sunt atât educative, cât și distractive.",
-  featuresBenefits: "Caracteristici și Beneficii",
+  featuresBenefits: "Idei de joacă și recomandări",
   developsCriticalThinking:
-    "Dezvoltă gândirea critică și abilitățile de rezolvare a problemelor",
-  encouragesCreativity: "Încurajează creativitatea și inovația",
-  buildsConfidence: "Construiește încrederea prin realizare",
-  teachesFundamentalConcepts: "Predă concepte fundamentale în",
-  inEngagingWay: "într-un mod captivant",
-  safeMaterials: "Materiale sigure, potrivite pentru copii",
+    "În funcție de activitate, poate oferi ocazii de observare și rezolvare a problemelor",
+  encouragesCreativity:
+    "Poți adapta joaca la interesele copilului și la instrucțiunile produsului",
+  buildsConfidence:
+    "Încercați activitățile în ritmul copilului",
+  teachesFundamentalConcepts:
+    "Consultă descrierea produsului pentru activități din",
+  inEngagingWay: "și conținutul setului",
+  safeMaterials:
+    "Verifică vârsta, avertismentele și instrucțiunile producătorului înainte de utilizare",
 
   // Product description translations
   roboticsDescription:

@@ -76,22 +76,22 @@ const exceptionsList = [
   },
 ];
 
-const sustainabilityCards = [
+const returnGuidanceCards = [
   {
     icon: "♻️",
-    title: "Reparare și Recondiționare",
+    title: "Remedii pentru neconformitate",
     description:
       "Pentru neconformitate, contactează-ne pentru reparare, înlocuire sau celelalte remedii disponibile potrivit legii.",
   },
   {
     icon: "📦",
-    title: "Ambalaje Reutilizabile",
+    title: "Ambalarea returului",
     description:
       "Folosește un ambalaj protector pentru transport. Ambalajul original este util dacă îl mai ai; lipsa lui nu anulează automat dreptul de retragere.",
   },
   {
     icon: "🚚",
-    title: "Transport Consolidat",
+    title: "Expedierea returului",
     description:
       "Urmează instrucțiunile de expediere primite pentru retur; metoda și costurile depind de situația comenzii.",
   },
@@ -146,13 +146,13 @@ export default async function ReturnsPage() {
                 Politica de Returnare
               </h1>
               <p className="mt-4 text-sm text-slate-200 sm:text-lg">
-                Returnări simple și sigure pentru produsele tale educaționale
-                STEM, cu transparență totală și garanție de confort.
+                Condițiile de retragere, retur și remediere a produselor
+                neconforme, cu pașii de contact și expediere.
               </p>
               <div className="mx-auto mt-6 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3 text-xs text-slate-200 backdrop-blur">
                 <span>📅 Ultimă actualizare: {lastUpdated}</span>
                 <span className="h-1 w-1 rounded-full bg-white/30" />
-                <span>Conformă cu legislația UE și România</span>
+                <span>Drepturi și pași pentru returnare</span>
               </div>
             </div>
           </div>
@@ -456,9 +456,9 @@ export default async function ReturnsPage() {
                 <strong>Notă:</strong> Aceste excepții se aplică doar dreptului
                 de retragere (14 zile). Drepturile privind conformitatea rămân
                 valabile: pentru bunurile cumpărate de consumatori, vânzătorul
-                răspunde pentru neconformitățile constatate în termen de doi
-                ani de la livrare. Drepturile legale pentru conținut digital
-                nu sunt înlăturate de aceste excepții.
+                răspunde pentru neconformitățile constatate în termen de doi ani
+                de la livrare. Drepturile legale pentru conținut digital nu sunt
+                înlăturate de aceste excepții.
               </div>
             </section>
 
@@ -467,18 +467,15 @@ export default async function ReturnsPage() {
                 <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700 sm:h-9 sm:w-9 sm:text-sm md:h-10 md:w-10">
                   🌱
                 </span>
-                Returnări Sustenabile și Responsabile
+                Pregătirea și expedierea returului
               </h2>
               <p className="mb-4 text-xs leading-relaxed text-slate-700 sm:mb-5 sm:text-sm md:mb-6 md:text-base">
-                În spiritul{" "}
-                <strong>
-                  Planului de Acțiune pentru Economia Circulară al UE
-                </strong>
-                , ne angajăm să gestionăm returnările într-un mod sustenabil și
-                responsabil pentru mediu.
+                Contactează-ne pentru verificarea cererii și instrucțiunile
+                potrivite comenzii tale. Folosește un ambalaj care protejează
+                produsul în timpul transportului.
               </p>
               <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-6">
-                {sustainabilityCards.map(card => (
+                {returnGuidanceCards.map(card => (
                   <div
                     key={card.title}
                     className="rounded-2xl border border-slate-200 bg-white p-4 shadow-inner shadow-slate-900/5 backdrop-blur"

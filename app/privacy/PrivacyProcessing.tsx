@@ -110,10 +110,11 @@ export function PrivacyProcessing() {
           </table>
         </div>
         <p>
-          Opțiunile de plată ramburs și necesitatea unei garanții pe card sunt
-          evaluate automat pe baza valorii comenzii, metodei de livrare și
-          istoricului relevant al comenzilor. Ne poți contacta pentru explicații
-          sau pentru a contesta rezultatul aplicat comenzii tale.
+          Disponibilitatea plății ramburs este evaluată automat pe baza valorii
+          comenzii și metodei de livrare. Fiecare comandă ramburs eligibilă
+          necesită o autorizare temporară pe card pentru transportul tur.
+          Ne poți contacta pentru explicații sau pentru a contesta rezultatul
+          aplicat comenzii tale.
         </p>
       </section>
       <section id="cookies" className="scroll-mt-28">
