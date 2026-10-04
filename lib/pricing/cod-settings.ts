@@ -1,8 +1,8 @@
 // Store settings express the percentage in percent; calculators use a fraction.
-// These defaults match the verified store policy, rather than a market estimate.
+// Fallback defaults when settings cannot be loaded.
 export const DEFAULT_COD_SETTINGS = {
-  percentage: "0.01",
-  fixedFee: "5.00",
+  percentage: "0",
+  fixedFee: "9.90",
   active: true,
 } as const;
 
@@ -11,6 +11,36 @@ export type PublicCODSettings = {
   percentage?: string;
   fixedFee?: string;
 };
+
+/**
+ * Format COD fee label for display (e.g., "9,90 lei" or "1% + 7,00 lei")
+ */
+export function formatCodFeeLabel(settings: PublicCODSettings): string {
+  const percentage = Number(settings.percentage);
+  const fixedFee = Number(settings.fixedFee);
+  
+  if (
+    !settings.active ||
+    !Number.isFinite(percentage) ||
+    percentage < 0 ||
+    !Number.isFinite(fixedFee) ||
+    fixedFee < 0
+  ) {
+    return "";
+  }
+
+  const formatNumber = (value: number) =>
+    new Intl.NumberFormat("ro-RO", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+
+  if (percentage === 0) {
+    return `${formatNumber(fixedFee)} lei`;
+  }
+
+  return `${formatNumber(percentage)}% + ${formatNumber(fixedFee)} lei`;
+}
 
 export function codFeeExplanation(settings: PublicCODSettings) {
   const percentage = Number(settings.percentage);
@@ -30,6 +60,11 @@ export function codFeeExplanation(settings: PublicCODSettings) {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
+  
+  if (percentage === 0) {
+    return `Pentru livrarea la adresă, taxa ramburs este ${format(fixedFee)} lei. La FANbox plata ramburs nu este disponibilă; alegi plata online cu cardul. Taxa se achită odată cu comanda la primirea coletului și este afișată înainte de confirmare.`;
+  }
+  
   return `Pentru livrarea la adresă, taxa ramburs este ${format(fixedFee)} lei + ${format(percentage)}% din suma de plată înainte de taxa ramburs (produse și livrare, după reduceri). La FANbox plata ramburs nu este disponibilă; alegi plata online cu cardul. Taxa se achită odată cu comanda la primirea coletului și este afișată înainte de confirmare.`;
 }
 

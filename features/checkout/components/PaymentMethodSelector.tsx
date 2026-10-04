@@ -2,13 +2,17 @@
 
 import { Banknote, Info, Loader2, Lock } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/features/cart";
 import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { useTranslation } from "@/lib/i18n";
+import {
+  formatCodFeeLabel,
+  type PublicCODSettings,
+} from "@/lib/pricing/cod-settings";
 import { cn } from "@/lib/utils";
 
 import {
@@ -91,6 +95,28 @@ const PaymentMethodSelectorComponent = ({
     !isCheckoutRestricted && process.env.NEXT_PUBLIC_NETOPIA_ENABLED === "true";
   const codEnabled = !isCheckoutRestricted;
 
+  const [codSettings, setCodSettings] = useState<PublicCODSettings | null>(
+    null
+  );
+  const [isLoadingCodSettings, setIsLoadingCodSettings] = useState(true);
+
+  useEffect(() => {
+    async function fetchCodSettings() {
+      try {
+        const response = await fetch("/api/checkout/cod-settings");
+        if (response.ok) {
+          const data = await response.json();
+          setCodSettings(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch COD settings:", error);
+      } finally {
+        setIsLoadingCodSettings(false);
+      }
+    }
+    fetchCodSettings();
+  }, []);
+
   const codBlockedByFanbox = useMemo(
     () => isLockerDeliveryMethod(shippingMethod),
     [shippingMethod]
@@ -121,6 +147,11 @@ const PaymentMethodSelectorComponent = ({
       shippingCountry === "RO",
     [userLocation, userLocale, billingCountry, shippingCountry]
   );
+
+  const codFeeLabel = useMemo(() => {
+    if (!codSettings || isLoadingCodSettings) return "";
+    return formatCodFeeLabel(codSettings);
+  }, [codSettings, isLoadingCodSettings]);
 
   const paymentMethods = useMemo(() => {
     const methods: PaymentMethodItem[] = [];
@@ -188,7 +219,7 @@ const PaymentMethodSelectorComponent = ({
         name: t("cashOnDelivery", "Ramburs"),
         icon: <Banknote className="h-6 w-6" />,
         provider: "cod",
-        fee: "1% + 5,00 lei",
+        fee: codFeeLabel,
         description: t(
           "codHomeMethodDescription",
           "Plătești la primirea coletului. Vezi condițiile înainte de finalizare."
@@ -209,6 +240,7 @@ const PaymentMethodSelectorComponent = ({
     codBlockedByLimit,
     codBlockedByMixedSupplier,
     codEnabled,
+    codFeeLabel,
     codThreshold,
     isDigitalOnlyCart,
     isRomanianUser,
