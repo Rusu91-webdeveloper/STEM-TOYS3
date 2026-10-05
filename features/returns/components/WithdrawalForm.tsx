@@ -99,7 +99,7 @@ export function WithdrawalForm() {
       </section>
     );
   return (
-    <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
+    <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
       {!review ? (
         <form onSubmit={prepare} className="space-y-4">
           <label className="block">
@@ -126,7 +126,7 @@ export function WithdrawalForm() {
             />
           </label>
           <label className="block">
-            Contractul / comanda și produsele vizate
+            Comanda și produsele vizate
             <textarea
               className="mt-1 block w-full rounded border p-3"
               required
@@ -137,9 +137,9 @@ export function WithdrawalForm() {
             />
           </label>
           <p id="contract-help" className="text-sm text-slate-600">
-            De exemplu: numărul comenzii și toate produsele sau numai produsele
-            pentru care te retragi. Dacă nu ai numărul, descrie comanda
-            suficient pentru identificare. Nu introduce date de card.
+            Scrie numărul comenzii și precizează dacă renunți la toate produsele
+            sau doar la unele dintre ele. Dacă nu ai numărul, descrie comanda
+            astfel încât să o putem identifica. Nu introduce date de card.
           </p>
           <button className={button} type="submit">
             Verifică declarația
@@ -157,11 +157,16 @@ export function WithdrawalForm() {
             <strong>Confirmare prin email:</strong> {email}
           </p>
           <p className="whitespace-pre-wrap break-words">
-            <strong>Contract / produse:</strong> {contract}
+            <strong>Comanda / produsele vizate:</strong> {contract}
           </p>
           <p>
             Prin confirmare, comunici: „Vă informez că mă retrag din contractul
             identificat mai sus.”
+          </p>
+          <p className="text-sm text-slate-600">
+            Declarația se referă la cumpărarea produselor indicate din comanda
+            ta. Vei primi prin email confirmarea de primire, cu data și ora
+            trimiterii.
           </p>
           <button
             className={button}

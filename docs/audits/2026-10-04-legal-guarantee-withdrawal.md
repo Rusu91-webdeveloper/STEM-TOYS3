@@ -136,3 +136,38 @@ manufacturer durability promise is invented.
    The UI records notices; fulfilment and lawful financial processing remain
    operational responsibilities.
 5. Merge/deploy only after those checks and the owner's release instruction.
+
+## Owner-requested presentation follow-up — 5 October 2026
+
+Based on merged main `8185af93`. The owner requested removing the legal band
+from the header and explaining withdrawal in ordinary shopping language. The
+header now begins with the existing store navigation/promotional strip. A
+always-visible footer section, including on mobile (outside the collapsed
+service-link lists), provides the full-document withdrawal link and native
+guarantee disclosure. The notice also remains immediately before final
+checkout actions. The official image, QR destination and full-size link are
+unchanged.
+
+Commission practical guidelines, digital display pages 15–20, allow a first-click
+notice at checkout and do not require a header band. This placement assessment
+uses the existing checkout disclosure plus a prominent footer reminder, rather
+than treating a buried footer link alone as sufficient guarantee information.
+The disclosure now expands in normal document flow so it does not overlay the
+withdrawal link or extend off the bottom of the footer.
+
+The withdrawal page explains that the sales contract is the confirmed purchase,
+uses “Comanda și produsele vizate” for order identification, and preserves the
+statutory declaration and separate “Confirmați retragerea” action. The footer
+keeps “Retrageți-vă din contract aici”. No receipt, email, processor, CSRF,
+tracking isolation or API behavior changed.
+
+Verification: four existing focused suites / 27 tests pass; scoped ESLint has
+zero errors/warnings (the initial default-memory process aborted; rerun with
+4GB completed). Desktop and 390-CSS-pixel mobile browser checks confirm no
+horizontal overflow, successful inline rendering of the official image, and
+an uncovered clickable withdrawal link while the mobile notice is open. The
+footer entry navigates to the public document, and an unsent fictitious fixture
+reaches the separate review screen. The form was cleared afterwards. No emails,
+real orders, refunds or card captures were requested. Local catalog-dependent
+API calls cannot complete without the local Postgres service; this does not
+constitute a full checkout acceptance.

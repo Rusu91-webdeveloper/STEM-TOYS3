@@ -7,7 +7,7 @@ export function LegalGuaranteeNotice() {
       <summary className="cursor-pointer font-medium underline underline-offset-4">
         Drepturile tale privind garanția legală
       </summary>
-      <div className="absolute left-0 top-full z-[60] mt-2 max-h-[65vh] w-[min(36rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-blue-200 bg-white p-3 shadow-xl">
+      <div className="mx-auto mt-4 w-full max-w-xl">
         <Image
           src="/images/legal/eu-legal-guarantee-ro.svg"
           alt="Notificarea UE privind garanția legală de conformitate: minimum 2 ani, remedii fără costuri și pașii pentru solicitarea acestora."

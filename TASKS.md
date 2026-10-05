@@ -1,5 +1,15 @@
 # Current tasks
 
+- [x] 2026-10-05 — Remove the storefront header legal band at the owner's
+      request; put accessible withdrawal/guarantee entries in the footer and
+      explain withdrawal using order terminology. Preserve the official asset,
+      checkout notice, separate confirmation, receipt and tracking isolation.
+      Estimate: 30–60 minutes. Implemented on codex/withdrawal-footer-copy from
+      merged main 8185af93. 27 focused tests pass; scoped lint passes. Desktop
+      and measured 390px mobile verification confirms no overflow, one-click
+      notice rendering, accessible footer link and separate form review. No
+      declaration/email was submitted. Elapsed time not recorded.
+
 - [x] 2026-10-05 — Redesign customer and merchant withdrawal emails after inbox
       acceptance exposed an unformatted monospace text block. Estimate: 45–90
       minutes. Preserve the exact declaration, durable reference/time,

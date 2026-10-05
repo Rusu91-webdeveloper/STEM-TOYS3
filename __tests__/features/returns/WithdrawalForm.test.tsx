@@ -27,10 +27,9 @@ function prepare() {
     screen.getByLabelText("Email pentru confirmarea de primire"),
     { target: { value: "test@example.invalid" } }
   );
-  fireEvent.change(
-    screen.getByLabelText("Contractul / comanda și produsele vizate"),
-    { target: { value: "TEST-LOCAL, toate produsele" } }
-  );
+  fireEvent.change(screen.getByLabelText("Comanda și produsele vizate"), {
+    target: { value: "TEST-LOCAL, toate produsele" },
+  });
   fireEvent.click(screen.getByRole("button", { name: "Verifică declarația" }));
 }
 beforeEach(() => {
