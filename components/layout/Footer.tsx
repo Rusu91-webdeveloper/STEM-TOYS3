@@ -17,6 +17,7 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { ConsumerLinks } from "@/components/legal/ConsumerLinks";
+import { LegalGuaranteeNotice } from "@/components/legal/LegalGuaranteeNotice";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import {
   Accordion,
@@ -294,10 +295,30 @@ export default function Footer({
           </div>
         </div>
 
+        <section
+          aria-label="Retururi și garanție"
+          className="my-6 grid gap-5 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:grid-cols-2 sm:p-6"
+        >
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-slate-900">
+              Vrei să renunți la o cumpărare?
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              Comunică retragerea din comandă prin formularul online, fără cont
+              și fără să justifici decizia.
+            </p>
+            <a
+              href="/withdrawal"
+              className="mt-3 inline-block py-1 font-medium text-blue-700 underline underline-offset-4"
+            >
+              Retrageți-vă din contract aici
+            </a>
+          </div>
+          <div className="min-w-0">
+            <LegalGuaranteeNotice />
+          </div>
+        </section>
         <ConsumerLinks />
-        <a href="/withdrawal" className="mt-4 block font-medium text-blue-700 underline">
-          Retrageți-vă din contract aici
-        </a>
 
         {/* Return policy bar */}
         <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-center text-xs leading-relaxed text-slate-600 sm:mt-8 sm:px-4 sm:py-3">

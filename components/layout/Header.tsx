@@ -27,7 +27,6 @@ import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { LegalGuaranteeNotice } from "@/components/legal/LegalGuaranteeNotice";
 import { MobileLanguageSelector } from "@/components/ui/mobile-language-selector";
 import { CartButton } from "@/features/cart";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
@@ -232,14 +231,6 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl">
-      <div className="mx-auto grid max-w-7xl gap-2 px-4 py-2 text-sm sm:grid-cols-2 sm:items-start">
-        <a href="/withdrawal" className="py-3 font-medium text-blue-800 underline underline-offset-4 sm:order-2 sm:text-right">
-          Retrageți-vă din contract aici
-        </a>
-        <div className="min-w-0 sm:order-1">
-          <LegalGuaranteeNotice />
-        </div>
-      </div>
       <div className="hidden bg-[#0b1220] text-white md:block">
         <div className="mx-auto flex h-8 max-w-7xl items-center justify-between px-4 text-[11px] font-medium tracking-wide sm:px-6 lg:px-8">
           <span className="inline-flex items-center gap-2 text-white/80">
