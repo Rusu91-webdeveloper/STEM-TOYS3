@@ -30,7 +30,7 @@ export function selectKidstoryProducts(
       : NaN;
     const availabilityValid =
       (row?.stock_status === "1" && row.stock_status_string === "instock") ||
-      (row?.stock_status === "0" && row.stock_status_string === "outofstock");
+      (row?.stock_status === "0" && (row.stock_status_string === "outofstock" || row.stock_status_string === "notinstock"));
     const valid =
       identityValid &&
       row?.currency === "RON" &&

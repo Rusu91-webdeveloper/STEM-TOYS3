@@ -12,6 +12,7 @@ export async function syncKidstoryPortfolio(
   const items = await fetchKidstoryProducts(feed.sourceUrl);
   const checkedAt = new Date();
   let updated = 0;
+  let failed = 0;
   await db.$transaction(
     async tx => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(74261025)`;
@@ -54,7 +55,14 @@ export async function syncKidstoryPortfolio(
         // A capacity of one is a conservative store limit, not supplier unit stock.
         // Pending reservations remain deducted until fulfillment reconciles them.
         await tx.$executeRaw`UPDATE "Product" SET "stockQuantity" = GREATEST(0, ${item.available ? 1 : 0} - "reservedQuantity") WHERE id = ${link.productId}`;
-        if (item.valid) updated++;
+        if (item.valid) {
+          updated++;
+        } else {
+          failed++;
+          console.warn(
+            `[Kidstory sync] Product failed validation (stock closed): ${item.entry.sku} (${item.entry.role}) - ${item.error}`
+          );
+        }
         await tx.supplierProduct.update({
           where: { id: link.id },
           data: {
@@ -82,8 +90,8 @@ export async function syncKidstoryPortfolio(
     },
     { timeout: 25000 }
   );
-  // Count failures, but exclude UPSELL entries from critical failures.
-  // UPSELL entries failing validation should not close stock for the entire catalog.
+
+  // Count failures by type for reporting
   const failedCore = items.filter(
     item => !item.valid && item.entry.role !== "UPSELL"
   );
@@ -98,13 +106,11 @@ export async function syncKidstoryPortfolio(
     );
   }
 
-  if (failedCore.length > 0) {
-    throw new Error(
-      `${failedCore.length} core Kidstory products unavailable because supplier data failed validation`
-    );
-  }
+  const partialError = failed > 0 
+    ? `${failed} products failed validation and were closed (stock set to 0)`
+    : null;
 
-  return { imported: 0, updated, failed: failedUpsell.length };
+  return { imported: 0, updated, failed, error: partialError };
 }
 
 export async function closeKidstoryStock(db: PrismaClient) {
