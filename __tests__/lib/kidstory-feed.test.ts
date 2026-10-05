@@ -33,6 +33,14 @@ describe("Kidstory feed boundary", () => {
       )[0]
     ).toMatchObject({ valid: true, available: false });
   });
+  it("accepts notinstock as equivalent to outofstock", () => {
+    expect(
+      selectKidstoryProducts(
+        [{ ...row(), stock_status: "0", stock_status_string: "notinstock" }],
+        selection
+      )[0]
+    ).toMatchObject({ valid: true, available: false });
+  });
   it.each([
     { sku: "KIT" },
     { ean: "12345678901" },
