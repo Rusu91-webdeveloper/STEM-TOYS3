@@ -7,7 +7,13 @@ const base = new URL(process.argv[2] || "http://localhost:3016");
 const userAgent =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 (compatible; meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler))";
 
-async function check(browser, path, persistent, viewport) {
+async function check(
+  browser,
+  path,
+  persistent,
+  viewport,
+  timing = path === "/checkout" ? "early" : "active"
+) {
   const context = await browser.newContext({
     userAgent,
     viewport,
@@ -18,6 +24,10 @@ async function check(browser, path, persistent, viewport) {
   let assetRequests = 0;
   const assetUrls = [];
   let documents = 0;
+  let releaseRuntime;
+  const initialFailure = new Promise(resolve => {
+    releaseRuntime = resolve;
+  });
   const chunk =
     path === "/checkout"
       ? /\/_next\/static\/chunks\/app\/checkout\/page-[^/]+\.js$/
@@ -37,10 +47,33 @@ async function check(browser, path, persistent, viewport) {
         return route.fulfill({ json: { success: true } });
       }
       if (!["GET", "HEAD"].includes(request.method())) return route.abort();
+      if (
+        timing === "early" &&
+        url.origin === base.origin &&
+        /\/_next\/static\/chunks\/webpack-[^/]+\.js$/.test(url.pathname)
+      ) {
+        await initialFailure;
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
       if (chunk.test(url.pathname)) {
         assetRequests++;
         assetUrls.push(url);
-        if (persistent || assetRequests === 1) return route.abort("failed");
+        if (persistent || assetRequests === 1) {
+          if (timing === "active")
+            await page.waitForFunction(
+              source =>
+                Array.from(document.scripts).some(
+                  script =>
+                    script.src &&
+                    new RegExp(source).test(new URL(script.src).pathname) &&
+                    typeof script.onerror === "function"
+                ),
+              chunk.source
+            );
+          await route.abort("failed");
+          releaseRuntime();
+          return;
+        }
       }
       const token = process.env.VERCEL_OIDC_TOKEN;
       return route.continue(
@@ -96,6 +129,9 @@ async function check(browser, path, persistent, viewport) {
       if (path === "/checkout") await page.waitForURL("**/products");
       else
         await page.getByRole("heading", { name: "404", exact: true }).waitFor();
+      await page
+        .getByRole("button", { name: "Refuz opționale", exact: true })
+        .waitFor();
       assert.equal(
         await page.evaluate(() =>
           sessionStorage.getItem("techtots:chunk-recovery")
@@ -106,6 +142,7 @@ async function check(browser, path, persistent, viewport) {
     return {
       path,
       persistent,
+      timing,
       width: viewport.width,
       assetRequests,
       documents,
@@ -122,14 +159,15 @@ async function check(browser, path, persistent, viewport) {
     const desktop = { width: 1280, height: 800 };
     const mobile = { width: 390, height: 844 };
     const results = [];
-    for (const [path, persistent, viewport] of [
+    for (const [path, persistent, viewport, timing] of [
       ["/categories/a-probe-missing-route", false, desktop],
       ["/categories/a-probe-missing-route", false, mobile],
       ["/checkout", false, desktop],
+      ["/checkout", false, mobile],
       ["/checkout", true, desktop],
       ["/categories/a-probe-missing-route", true, desktop],
     ])
-      results.push(await check(browser, path, persistent, viewport));
+      results.push(await check(browser, path, persistent, viewport, timing));
     console.log(JSON.stringify({ origin: base.origin, results }, null, 2));
   } finally {
     await browser.close();
