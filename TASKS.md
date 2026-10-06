@@ -1,15 +1,36 @@
 # Current tasks
 
+- [ ] 2026-10-06 — Finish the Romanian catalog editorial review and resolve
+      storefront runtime defects at the owner's request. Estimate: 4–6 hours.
+      Review every current supplier product against its supplied facts, preserve
+      verified ages/contents/specifications, repair public review reads, correct
+      Redis rate limiting and investigate chunk loading with failure-path and
+      desktop/mobile verification. Preserve production data and payment policy;
+      finish the implementation and its deployment evidence without stopping
+      at a partial diagnosis. Work from codex/romanian-copy-runtime, retaining
+      the previous release record.
+
 - [x] 2026-10-06 — Improve storefront quality after the external C+ review.
       Estimate: 3–5 hours. Implement stock visibility, earlier admin-priced COD
       disclosure, image delivery, compact consent/catalog/checkout, Romanian
       copy/category URLs and SEO fixes; verify desktop/mobile and publish a
-      reviewable draft. Implementation published in
-      [draft PR #67](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/67)
-      on codex/storefront-quality; funded real guest COD acceptance and
-      production publication remain pending. See
+      reviewable draft. Owner subsequently authorized publication. PR #67
+      merged as d4271611; production is READY on both shop domains, with live
+      desktop/mobile catalog, cart, checkout landing and SEO checks passed.
+      Funded real guest COD acceptance remains pending before paid ads. See
+      [production release](docs/audits/2026-10-06-storefront-production-release.md)
+      and
       [quality audit](docs/audits/2026-10-06-storefront-quality.md). Elapsed
       work time not recorded.
+
+- [ ] 2026-10-06 — Investigate the production crawler chunk-load report after
+      the storefront release. Estimate: 30–60 minutes. One Meta crawler error
+      was reported for chunk 34634 at 08:35:58 UTC; the same public asset then
+      returned 200 JavaScript, and the desktop/mobile QA browser had no page
+      errors. Cause is unconfirmed. Preserve the exact deployment evidence;
+      do not classify this as fixed or a proven release regression. Existing
+      review-fetch localhost errors and Redis rate-limit fallbacks remain
+      recorded in the 4 October task and the release audit.
 
 - [x] 2026-10-05 — Remove the storefront header legal band at the owner's
       request; put accessible withdrawal/guarantee entries in the footer and

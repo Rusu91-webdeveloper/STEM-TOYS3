@@ -2,10 +2,11 @@ import { notFound } from "next/navigation";
 import React from "react";
 
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
-import { getCombinedProduct } from "@/lib/api/products";
+import { getCombinedProduct } from "@/lib/products/product-read";
 import { db } from "@/lib/db";
 import { toShopperProduct } from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
+import { getProductReviews } from "@/lib/products/reviews";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
 import { buildDefaultProductFaq } from "@/lib/seo/product-faq";
 import { resolveStorefrontCategoryLink } from "@/lib/utils/category-page-links";
@@ -18,28 +19,17 @@ import type { Product } from "@/types/product";
 import type { BundleContentItem } from "./BundleContents";
 import { getUpsellProducts } from "./CompleteSetUpsell";
 import ProductDetailClient from "./ProductDetailClient";
-import { Review } from "./ProductReviews";
 
 interface ProductDetailServerProps {
   slug: string;
 }
 
-async function fetchReviews(productId: string): Promise<Review[]> {
+async function fetchReviews(productId: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const url = `${baseUrl}/api/reviews?productId=${productId}`;
-
-    const res = await fetch(url, {
-      next: {
-        revalidate: 300, // Cache for 5 minutes
-        tags: [`reviews-${productId}`],
-      },
-    });
-    if (!res.ok) return [];
-    return res.json();
+    return { reviews: await getProductReviews(productId), unavailable: false };
   } catch (error) {
     console.error("Failed to fetch reviews:", error);
-    return [];
+    return { reviews: [], unavailable: true };
   }
 }
 
@@ -131,7 +121,7 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
       : fetchBundleContents(product.id);
 
   const [
-    reviews,
+    reviewResult,
     bundleContents,
     upsellProducts,
     codSettings,
@@ -145,6 +135,8 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
     getCODSettings(),
     getShippingSettings(),
   ]);
+
+  const { reviews, unavailable: reviewsUnavailable } = reviewResult;
 
   const reviewsForSchema = reviews
     .filter(
@@ -257,6 +249,7 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
         product={product}
         isBook={isBook}
         initialReviews={reviews}
+        reviewsUnavailable={reviewsUnavailable}
         userLoggedIn={false}
         bundleContents={bundleContents}
         faq={productFaq}

@@ -84,11 +84,11 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
     attributes: product.attributes,
   });
   const manufacturerAge =
-    ageChip?.source === "explicit"
+    product.ageRange ||
+    (ageChip?.source === "explicit"
       ? ageChip.label
-      : product.ageRange ||
-        product.attributes?.manufacturerRecommendedAge ||
-        product.attributes?.originalAgeText;
+      : product.attributes?.manufacturerRecommendedAge ||
+        product.attributes?.originalAgeText);
   const entries: Array<{ label: string; value?: React.ReactNode }> = [
     // Removed SKU/GTIN/Dimensions/Weight from UI as requested.
     // Hide the coarse gift-guide bucket when it contradicts an explicit age.
@@ -99,7 +99,7 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
         : humanizeAgeGroup(t as any, product.ageGroup),
     },
     {
-      label: "Vârsta recomandată de producător",
+      label: "Vârstă recomandată",
       value: manufacturerAge,
     },
     {
@@ -131,7 +131,13 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
   const manufacturerBrand = product?.attributes?.brand;
   const supplierBrand = product?.supplier?.companyName;
   const brand = manufacturerBrand || supplierBrand;
-  const tags: string[] = Array.isArray(product.tags) ? product.tags : [];
+  const internalTags = new Set(["staged", "upsell"]);
+  const tags: string[] = Array.isArray(product.tags)
+    ? [...new Set<string>(product.tags
+        .filter((tag: unknown): tag is string => typeof tag === "string")
+        .filter((tag: string) => !internalTags.has(tag.toLowerCase()) && tag.toLowerCase() !== String(brand ?? "").toLowerCase())
+        .map(storefrontAttributeLabel))]
+    : [];
 
   const visible = entries.filter(e => !!e.value);
 
@@ -141,7 +147,7 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
 
   return (
     <div className={`${productSubSectionCardClass} space-y-4`}>
-      <h3 className={productTitleClass}>{t("features") || "Specifications"}</h3>
+      <h3 className={productTitleClass}>{t("features") || "Caracteristici"}</h3>
       <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
         {visible.map((e, idx) => (
           <div

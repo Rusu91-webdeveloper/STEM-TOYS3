@@ -4,9 +4,9 @@ import { notFound } from "next/navigation";
 import React from "react";
 
 import ProductDetailServer from "@/features/products/components/ProductDetailServer";
-import { getCombinedProduct } from "@/lib/api/products";
 import { prisma } from "@/lib/prisma";
 import { resolvePdpVisibility } from "@/lib/products/catalog-access";
+import { getCombinedProduct } from "@/lib/products/product-read";
 import { toShopperProduct } from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { generateProductMetadata } from "@/lib/utils/seo";

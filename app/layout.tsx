@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
-import { SafeSessionProvider } from "@/components/auth/SafeSessionProvider";
 import CookieConsent from "@/components/analytics/CookieConsent";
+import { SafeSessionProvider } from "@/components/auth/SafeSessionProvider";
+import ChunkRecoveryGuard from "@/components/ChunkRecoveryGuard";
 import { CriticalCSS } from "@/components/CriticalCSS";
 import DeferredClientFeatures from "@/components/DeferredClientFeatures";
 import ClientLayout from "@/components/layout/ClientLayout";
@@ -55,6 +56,7 @@ export default function RootLayout({
         {/* Structured data is injected from route metadata to keep entity data consistent. */}
       </head>
       <body className="min-h-screen flex flex-col font-sans antialiased">
+        <ChunkRecoveryGuard />
         <StructuredDataInjector />
         <CookieConsent />
         <SafeSessionProvider>

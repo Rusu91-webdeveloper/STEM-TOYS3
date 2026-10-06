@@ -95,7 +95,10 @@ export function generateProductMetadata(
   const categoryLabel = categoryName;
   const shortDescription =
     typeof product.description === "string"
-      ? product.description.replace(/\s+/g, " ").trim()
+      ? product.description
+          .replace(/<[^>]*>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
       : "";
   const derivedDescription = [
     `${product.name} este un produs din categoria ${categoryLabel} pentru copii.`,

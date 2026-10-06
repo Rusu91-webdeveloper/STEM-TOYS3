@@ -11,7 +11,7 @@ describe("ProductDescription", () => {
     jest.restoreAllMocks();
   });
 
-  it("renders title, description body, and category footer", () => {
+  it("renders the authored description without a generic category claim", () => {
     render(
       <ProductDescription
         description="Hello world"
@@ -24,9 +24,9 @@ describe("ProductDescription", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Hello world")).toBeInTheDocument();
     expect(
-      screen.getByText(/Jucărie STEM concepută pentru/i)
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Robotics/)).toBeInTheDocument();
+      screen.queryByText(/Jucărie STEM concepută pentru/i)
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Robotics/)).not.toBeInTheDocument();
   });
 
   it("does not show read more when clamped height is not exceeded", () => {

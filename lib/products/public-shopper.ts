@@ -1,8 +1,8 @@
 import type { Product } from "@/types/product";
 
 import { applyProductContentOverride } from "./catalog-content-overrides";
+import { applyReviewedCatalogCopy } from "./catalog-editorial";
 import { storefrontImage } from "./catalog-image";
-import { getProductBuyingGuide } from "./product-buying-guides";
 import { normalizeStorefrontCopy } from "./storefront-copy";
 
 const SUPPLIER_BUY_HOSTS = ["boribon.ro", "kidstory.ro"];
@@ -91,11 +91,11 @@ export function toShopperProduct<T>(product: T): T {
       typeof source === "string" ? storefrontImage(source) : source
     );
   }
-  const slug = record.slug;
-  if (typeof slug === "string" && getProductBuyingGuide(slug)) {
-    return applyProductContentOverride(sanitized as Product) as T;
-  }
-  return sanitized as T;
+  const corrected =
+    typeof record.slug === "string"
+      ? (applyProductContentOverride(sanitized as Product) as T)
+      : (sanitized as T);
+  return applyReviewedCatalogCopy(corrected);
 }
 
 /** Apply current presentation rules after reading a catalog cache entry. */

@@ -180,7 +180,11 @@ export function generateEducationalProductSchema(
     "@type": "Product",
     "@id": `https://www.techtots.ro/products/${toPublicProductSlug(product.slug)}#product`,
     name: product.name,
-    description: product.description || product.name,
+    description:
+      product.description
+        ?.replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim() || product.name,
     image: product.images || [],
     sku: product.sku || product.id,
     category:
@@ -547,10 +551,7 @@ export function generateCompleteProductSchema(
     };
   }
 
-  const schemas = [
-    productSchema,
-    generateEducationalBreadcrumbSchema(product),
-  ];
+  const schemas = [productSchema, generateEducationalBreadcrumbSchema(product)];
 
   if (publishedReviews.length > 0) {
     schemas.push(...generateReviewSchema(product, publishedReviews));

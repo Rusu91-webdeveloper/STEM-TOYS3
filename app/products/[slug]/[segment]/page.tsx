@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { unstable_noStore as noStore } from "next/cache";
 import { notFound, permanentRedirect } from "next/navigation";
 
-import { getCombinedProduct } from "@/lib/api/products";
+import { getCombinedProduct } from "@/lib/products/product-read";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
 
 type SlashSlugPageProps = {
