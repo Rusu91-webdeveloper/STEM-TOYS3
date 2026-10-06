@@ -31,8 +31,8 @@ const nextConfig = {
     removeConsole:
       process.env.NODE_ENV === "production"
         ? {
-          exclude: ["error", "warn"],
-        }
+            exclude: ["error", "warn"],
+          }
         : false,
   },
 
@@ -234,6 +234,13 @@ const nextConfig = {
   },
   // Fix module resolution and OpenTelemetry warnings
   webpack: (config, { isServer }) => {
+    if (!isServer) {
+      const {
+        ChunkRetryPlugin,
+      } = require("./lib/recovery/chunk-retry-plugin.cjs");
+      config.plugins.push(new ChunkRetryPlugin());
+    }
+
     // Improve module resolution
     config.resolve.extensions = [".tsx", ".ts", ".jsx", ".js", ".json"];
 

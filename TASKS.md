@@ -1,62 +1,85 @@
 # Current tasks
 
+- [x] 2026-10-06 — Owner requested analysis and repair of the remaining Meta
+      crawler chunk failures. Estimate: 1–2 hours. Branch
+      codex/crawler-chunk-recovery from current main ccc6a1cb. Preserve
+      checkout, entered forms and error telemetry. Reproduce the failed shared
+      chunk and add bounded client-loader recovery before React receives a
+      rejected import; verify transient/persistent failures, desktop/mobile,
+      protected paths and the exact deployed build. Implemented retry before
+      rejected imports reach React, recovery for initial script failures missed
+      before handler attachment, and persistent page-error reporting. All six
+      protected-preview fault cases pass, including real checkout and mobile; 29
+      focused tests pass with zero added full-suite/typecheck regressions.
+      Normal storefront, catalog and review checks pass. Exact production
+      release/acceptance is recorded in
+      [PR #70](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/70), after
+      its publication gate. The historical bot network trigger remains unknown;
+      the reproduced application paths are repaired. See
+      [crawler recovery audit](docs/audits/2026-10-06-crawler-chunk-recovery.md).
+
 - [x] 2026-10-06 — Finish the Romanian catalog editorial review and resolve
-      storefront review/Redis defects at the owner's request. Estimate: 4–6 hours.
-      Review every current supplier product against its supplied facts, preserve
-      verified ages/contents/specifications, repair public review reads, correct
-      Redis rate limiting and investigate chunk loading with failure-path and
-      desktop/mobile verification. Preserve production data and payment policy;
-      finish the implementation and its deployment evidence without stopping
-      at a partial diagnosis. Work from codex/romanian-copy-runtime, retaining
-      the previous release record. All 104 current supplier descriptions were
-      reviewed individually; 38 focused tests pass and required complete Jest/
-      TypeScript comparisons add zero failures/diagnostics. PR #68 merged as
-      803b1efd; production is READY on both domains, with full catalog, sampled
-      product/review and desktop/mobile checks passed. Redis acceptance is clear;
-      crawler recovery is fault-tested but new Meta reports remain open below. Existing
-      merchandising and payment/ads policy remain unchanged. See
+      storefront review/Redis defects at the owner's request. Estimate: 4–6
+      hours. Review every current supplier product against its supplied facts,
+      preserve verified ages/contents/specifications, repair public review
+      reads, correct Redis rate limiting and investigate chunk loading with
+      failure-path and desktop/mobile verification. Preserve production data and
+      payment policy; finish the implementation and its deployment evidence
+      without stopping at a partial diagnosis. Work from
+      codex/romanian-copy-runtime, retaining the previous release record. All
+      104 current supplier descriptions were reviewed individually; 38 focused
+      tests pass and required complete Jest/ TypeScript comparisons add zero
+      failures/diagnostics. PR #68 merged as 803b1efd; production is READY on
+      both domains, with full catalog, sampled product/review and desktop/mobile
+      checks passed. Redis acceptance is clear; crawler recovery is fault-tested
+      but new Meta reports remain open below. Existing merchandising and
+      payment/ads policy remain unchanged. See
       [editorial/runtime release](docs/audits/2026-10-06-romanian-copy-runtime.md).
       Elapsed work time not recorded.
 
-- [ ] 2026-10-06 — Resolve the remaining Meta crawler script-loading boundary.
-      New production reports at 14:23:52 UTC reference chunk 82471 on an obsolete
-      PDP that correctly returns 404. Edge queries show the same asset delivered
-      200 JavaScript to Meta's Mac agent; no asset request is recorded for the
-      Windows reporter agent in the failure window. Exact Windows-agent browser
-      reproduction passes. No confirmed missing asset, firewall denial or app
-      render exception. Recovery safeguards are deployed and fault-tested, but
-      crawler recovery and the original cause remain unconfirmed. A reporter
-      network trace or correlated failing edge request is needed before claiming
-      resolution. Preserve reports; do not hide them or alter protections without
-      evidence. See the editorial/runtime audit and sanitized edge evidence.
+- [x] 2026-10-06 — Resolve the remaining Meta crawler script-loading boundary.
+      New production reports at 14:23:52 UTC reference chunk 82471 on an
+      obsolete PDP that correctly returns 404. Edge queries show the same asset
+      delivered 200 JavaScript to Meta's Mac agent; no asset request is recorded
+      for the Windows reporter agent in the failure window. Exact Windows-agent
+      browser reproduction passes. No confirmed missing asset, firewall denial
+      or app render exception. Recovery safeguards are deployed and
+      fault-tested, but crawler recovery and the original cause were then
+      unconfirmed. Follow-up reproduced and repaired the client-loader recovery
+      paths, including an initial script failing before handler attachment.
+      Deployed transient and persistent fault acceptance passes; reports and
+      protections remain enabled. The historical external trigger is still
+      unknown, so this does not claim a complete original crawler network trace.
+      See the crawler recovery audit above, the editorial/runtime audit and
+      sanitized edge evidence.
 
 - [x] 2026-10-06 — Improve storefront quality after the external C+ review.
       Estimate: 3–5 hours. Implement stock visibility, earlier admin-priced COD
       disclosure, image delivery, compact consent/catalog/checkout, Romanian
       copy/category URLs and SEO fixes; verify desktop/mobile and publish a
-      reviewable draft. Owner subsequently authorized publication. PR #67
-      merged as d4271611; production is READY on both shop domains, with live
+      reviewable draft. Owner subsequently authorized publication. PR #67 merged
+      as d4271611; production is READY on both shop domains, with live
       desktop/mobile catalog, cart, checkout landing and SEO checks passed.
       Funded real guest COD acceptance remains pending before paid ads. See
       [production release](docs/audits/2026-10-06-storefront-production-release.md)
-      and
-      [quality audit](docs/audits/2026-10-06-storefront-quality.md). Elapsed
+      and [quality audit](docs/audits/2026-10-06-storefront-quality.md). Elapsed
       work time not recorded.
 
 - [x] 2026-10-06 — Investigate the production crawler chunk-load report after
       the storefront release. Estimate: 30–60 minutes. One Meta crawler error
       was reported for chunk 34634 at 08:35:58 UTC; the same public asset then
       returned 200 JavaScript, and the desktop/mobile QA browser had no page
-      errors. Cause is unconfirmed. Preserve the exact deployment evidence;
-      do not classify this as fixed or a proven release regression. Existing
+      errors. Cause is unconfirmed. Preserve the exact deployment evidence; do
+      not classify this as fixed or a proven release regression. Existing
       review-fetch localhost errors and Redis rate-limit fallbacks remain
       recorded in the 4 October task and the release audit. Investigation found
       a second report for the same asset; original network cause remains
       unconfirmed. Bounded browsing-page recovery and optional-section retry
       were implemented and fault-tested, preserving checkout/edited forms.
-      Published through PR #68; current asset delivery passes ordinary and
-      Meta user-agent checks. Two new crawler reports on PR #68 are separately
-      recorded below; this historical investigation does not certify resolution. See the 6 October editorial/runtime release audit.
+      Published through PR #68; current asset delivery passes ordinary and Meta
+      user-agent checks. Two new crawler reports on PR #68 are separately
+      recorded below; this historical investigation does not certify resolution.
+      See the 6 October editorial/runtime release audit.
 
 - [x] 2026-10-05 — Remove the storefront header legal band at the owner's
       request; put accessible withdrawal/guarantee entries in the footer and
@@ -131,11 +154,11 @@
       ratings or change production configuration as part of draft-only COD
       follow-up. Estimate: 30–60 minutes. Redis rate-limit timeout on /api/books
       also fell back to memory; no evidence of a failed books response (HTTP
-      200). Resolved at the owner's request on 6 October through PR #68:
-      shared direct public review reads remove self-HTTP localhost calls;
-      atomic Redis counters use their own bounded budget and tested fallback/
-      recovery. Live public reads and deployment-scoped acceptance checks pass;
-      no production rows or environment settings were changed. Evidence:
+      200). Resolved at the owner's request on 6 October through PR #68: shared
+      direct public review reads remove self-HTTP localhost calls; atomic Redis
+      counters use their own bounded budget and tested fallback/ recovery. Live
+      public reads and deployment-scoped acceptance checks pass; no production
+      rows or environment settings were changed. Evidence:
       docs/audits/2026-10-06-romanian-copy-runtime.md.
 - [x] 2026-10-04 — At the owner's request, fix shipping consistency first: trace
       the cart drawer, authoritative checkout settings, stale shipping defaults

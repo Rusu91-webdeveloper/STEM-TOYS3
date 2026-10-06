@@ -3,17 +3,38 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
-import { recoverChunkLoad } from "@/lib/recovery/chunk-recovery";
+import {
+  isChunkLoadError,
+  recoverChunkLoad,
+} from "@/lib/recovery/chunk-recovery";
 
 export default function Error({
   error,
   reset,
 }: {
-  error: Error & { digest?: string };
+  error: Error & { digest?: string; chunkRetryCount?: number };
   reset: () => void;
 }) {
   useEffect(() => {
     console.error(error);
+    if (isChunkLoadError(error)) {
+      fetch("/api/errors", {
+        method: "POST",
+        keepalive: true,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: error.message,
+          stack: error.stack,
+          level: "page",
+          timestamp: new Date().toISOString(),
+          userAgent: window.navigator.userAgent,
+          url: window.location.href,
+          errorId: `chunk_error_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+          digest: error.digest,
+          additional: { chunkRetryCount: error.chunkRetryCount ?? 0 },
+        }),
+      }).catch(console.error);
+    }
     recoverChunkLoad(error);
   }, [error]);
 
