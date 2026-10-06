@@ -4,7 +4,6 @@ import { Banknote, Info, Loader2, Lock } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 
-import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/features/cart";
 import { formatStorefrontPrice } from "@/lib/format/storefront-price";
@@ -449,7 +448,10 @@ const PaymentMethodSelectorComponent = ({
       )}
 
       {showCodOverview && (
-        <div className="overflow-hidden rounded-2xl border border-amber-200/90 bg-gradient-to-br from-amber-50/95 via-white to-amber-50/40 shadow-[0_4px_20px_-10px_rgba(180,83,9,0.25)]">
+        <details className="rounded-xl border border-slate-200 bg-slate-50">
+          <summary className="min-h-11 cursor-pointer px-4 py-3 text-sm font-medium text-slate-700">
+            Ramburs: plata la livrare și garanția pe card
+          </summary>
           <div className="h-0.5 bg-gradient-to-r from-amber-400 to-orange-400" />
           <div className="px-4 py-4 sm:px-5 sm:py-4">
             <div className="flex items-start gap-3">
@@ -505,14 +507,14 @@ const PaymentMethodSelectorComponent = ({
               </div>
             </div>
           </div>
-        </div>
+        </details>
       )}
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-3 py-3 sm:px-5 sm:py-3.5">
-          <Label className="block text-base font-semibold text-slate-900 sm:text-[17px]">
+          <h2 className="block text-base font-semibold text-slate-900 sm:text-[17px]">
             {t("paymentOptionsTitle", "Opțiuni de plată")}
-          </Label>
+          </h2>
           <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
             {t(
               "paymentOptionsSubtitle",
@@ -587,7 +589,8 @@ const PaymentMethodSelectorComponent = ({
                     className={cn(
                       "flex shrink-0 items-center justify-center rounded-lg border",
                       methodStyles.iconBox,
-                      method.provider === "stripe" || method.provider === "netopia"
+                      method.provider === "stripe" ||
+                        method.provider === "netopia"
                         ? "h-9 min-h-9 w-[min(100%,6.25rem)] min-w-[5rem] max-w-[6.5rem] sm:h-10 sm:min-h-10"
                         : "h-9 w-9 sm:h-10 sm:w-10"
                     )}
@@ -597,16 +600,15 @@ const PaymentMethodSelectorComponent = ({
                     ) : method.provider === "netopia" ? (
                       <NetopiaPaymentRowLogo />
                     ) : (
-                      <div
-                        className={cn("text-slate-700", methodStyles.meta)}
-                      >
+                      <div className={cn("text-slate-700", methodStyles.meta)}>
                         {React.isValidElement(method.icon)
                           ? React.cloneElement(
                               method.icon as React.ReactElement<{
                                 className?: string;
                               }>,
                               {
-                                className: "h-5 w-5 sm:h-[1.35rem] sm:w-[1.35rem]",
+                                className:
+                                  "h-5 w-5 sm:h-[1.35rem] sm:w-[1.35rem]",
                               }
                             )
                           : method.icon}

@@ -92,8 +92,10 @@ was submitted, stock changed, migration run or card authorization attempted. The
 dummy local cart and address are isolated from the owner's browser session.
 
 HTTP checks confirm `/cart` 200 with `noindex,nofollow`, a missing route and
-missing product 404 with only `noindex`, the old science URL 308 with preserved
-`page=2`, and the Romanian science page 200.
+missing product 404 with only `noindex`, all six legacy category aliases 308
+(including preserved `page=2` on science), and the Romanian science page 200.
+The homepage emits exactly one top-level WebSite, Organization and OnlineStore
+schema.
 
 The full Jest baseline/candidate comparison reports 64 failed suites and 175
 failed tests on both sides, with **zero new failures**. Changed test files pass;

@@ -173,9 +173,10 @@ export default function CartPage({
                           </p>
                         )}
 
-                        <div className="flex items-center justify-between mt-4">
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                           <div className="flex items-center gap-2">
                             <button
+                              aria-label={`Scade cantitatea pentru ${item.name}`}
                               onClick={() =>
                                 updateItemQuantity(
                                   item.productId,
@@ -185,7 +186,7 @@ export default function CartPage({
                                 )
                               }
                               disabled={item.quantity <= 1 || isOutOfStock}
-                              className="px-3 py-1 border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="min-h-11 min-w-11 rounded-lg border border-slate-300 px-3 py-1 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               −
                             </button>
@@ -193,6 +194,7 @@ export default function CartPage({
                               {item.quantity}
                             </span>
                             <button
+                              aria-label={`Crește cantitatea pentru ${item.name}`}
                               onClick={() =>
                                 updateItemQuantity(
                                   item.productId,
@@ -205,12 +207,12 @@ export default function CartPage({
                                 isOutOfStock ||
                                 (stock !== undefined && item.quantity >= stock)
                               }
-                              className="px-3 py-1 border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="min-h-11 min-w-11 rounded-lg border border-slate-300 px-3 py-1 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               +
                             </button>
                           </div>
-                          <div className="text-right">
+                          <div className="ml-auto shrink-0 text-right whitespace-nowrap">
                             <p className="text-lg font-bold text-slate-900">
                               {formatPrice(item.price * item.quantity)}
                             </p>
