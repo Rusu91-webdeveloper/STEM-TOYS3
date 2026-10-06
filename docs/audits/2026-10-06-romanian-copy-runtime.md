@@ -27,6 +27,11 @@ The two owner-authored books are outside the supplier-copy scope.
   A new catalog identity needs a new editorial entry; unknown products are not
   silently given another product's facts.
 
+The product description's repeated generic educational footer was removed.
+Topic tags and fallback FAQs use Romanian with diacritics; internal staging and
+upsell tags and duplicate brand badges are hidden. Full age qualifiers appear in
+the specifications instead of only a minimum-age chip.
+
 Substantive corrections include the garbled Spider Spy title; broken JavaScript
 text in Cleverclixx; copied projector contents and incorrect dimensions in the
 weather station; crystal-terrarium minimum age 10+; T-Rex and hologram-kit minimum
@@ -83,6 +88,13 @@ order details or purchase identifiers. Verified status is derived from the
 stored review/order-item/product/user relationship, not assigned to every row.
 No production review, order or user record was created for acceptance testing.
 
+The production build additionally exposed server product reads requesting their
+own HTTP API on localhost. The existing public product/book transformation is
+now shared by the combined API and server metadata/rendering through a direct,
+request-memoized database reader. Database failures propagate instead of becoming
+false 404s; inactive products remain hidden and zero-stock detail pages remain
+available. The subsequent production build passes without self-request errors.
+
 ## Redis rate limits
 
 The old limiter issued GET, TTL and SET under a production 150 ms timeout. A
@@ -125,3 +137,13 @@ loading state, including clients without IntersectionObserver.
 Implementation validation in progress. Record the exact tested commit,
 full required hook comparisons, desktop/mobile and injected failure checks,
 preview/production deployments and scoped runtime evidence before closing.
+
+Local evidence: all 104 identities pass the public catalog verification script.
+Reviews render the empty state rather than an availability failure. In an
+isolated browser against localhost:3016, blocking the real reviews dependency
+`84945.0d4d1797cc6b2fce.js` shows a retry; restoring the route and clicking
+“Reîncearcă” loads the review section without a document refresh. Blocking
+`58548-591d78c743ee180d.js` during client navigation records one automatic
+document reload. Its recovery timestamp remains unchanged more than 45 seconds
+later while the asset stays blocked. Restoring the route permits normal loading.
+Checkout/edit/storage protection is covered by the focused recovery tests.

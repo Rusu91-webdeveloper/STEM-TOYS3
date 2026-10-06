@@ -25,7 +25,6 @@ interface ProductDescriptionProps {
  */
 export function ProductDescription({
   description,
-  categoryName,
   t,
   className,
 }: ProductDescriptionProps) {
@@ -110,15 +109,6 @@ export function ProductDescription({
           </Button>
         )}
       </div>
-      <p className={`${productBodyTextClass} pt-1`}>
-        {categoryName.trim() ? (
-          <>
-            {t("stemToyDesigned", "Jucărie STEM concepută pentru")}{" "}
-            {categoryName.trim()}.{" "}
-          </>
-        ) : null}
-        {t("providesHandsOn", "Oferă experiențe practice de învățare.")}
-      </p>
     </div>
   );
 }
