@@ -1,0 +1,166 @@
+{
+  "recordedAt": "2026-10-06T19:37:46.126Z",
+  "sourceCommit": "412d130110d18deb53610e9a2fbfc542e4fb4e41",
+  "previewDeploymentId": "dpl_4UTyorPAGGA5718Rmv8RDF1ASydH",
+  "faultChecks": {
+    "origin": "https://stem-toys-3-gzitf0q6z-rusujobs-3774s-projects.vercel.app",
+    "results": [
+      {
+        "path": "/categories/a-probe-missing-route",
+        "persistent": false,
+        "timing": "active",
+        "width": 1280,
+        "assetRequests": 2,
+        "documents": 1,
+        "errorReports": 0
+      },
+      {
+        "path": "/categories/a-probe-missing-route",
+        "persistent": false,
+        "timing": "active",
+        "width": 390,
+        "assetRequests": 2,
+        "documents": 1,
+        "errorReports": 0
+      },
+      {
+        "path": "/checkout",
+        "persistent": false,
+        "timing": "early",
+        "width": 1280,
+        "assetRequests": 2,
+        "documents": 1,
+        "errorReports": 0
+      },
+      {
+        "path": "/checkout",
+        "persistent": false,
+        "timing": "early",
+        "width": 390,
+        "assetRequests": 2,
+        "documents": 1,
+        "errorReports": 0
+      },
+      {
+        "path": "/checkout",
+        "persistent": true,
+        "timing": "early",
+        "width": 1280,
+        "assetRequests": 2,
+        "documents": 1,
+        "errorReports": 1
+      },
+      {
+        "path": "/categories/a-probe-missing-route",
+        "persistent": true,
+        "timing": "active",
+        "width": 1280,
+        "assetRequests": 2,
+        "documents": 1,
+        "errorReports": 1
+      }
+    ]
+  },
+  "normalChecks": {
+    "origin": "https://stem-toys-3-gzitf0q6z-rusujobs-3774s-projects.vercel.app",
+    "results": [
+      {
+        "path": "/",
+        "width": 1280,
+        "status": 200
+      },
+      {
+        "path": "/products",
+        "width": 1280,
+        "status": 200
+      },
+      {
+        "path": "/products/set-constructie-plus-plus-tub-240-piese-basic-culori-standard-pp4185",
+        "width": 1280,
+        "status": 200
+      },
+      {
+        "path": "/cart",
+        "width": 1280,
+        "status": 200
+      },
+      {
+        "path": "/checkout",
+        "width": 1280,
+        "status": 200
+      },
+      {
+        "path": "/products/a-probe-missing-route",
+        "width": 1280,
+        "status": 404
+      },
+      {
+        "path": "/",
+        "width": 390,
+        "status": 200
+      },
+      {
+        "path": "/products",
+        "width": 390,
+        "status": 200
+      },
+      {
+        "path": "/products/set-constructie-plus-plus-tub-240-piese-basic-culori-standard-pp4185",
+        "width": 390,
+        "status": 200
+      },
+      {
+        "path": "/cart",
+        "width": 390,
+        "status": 200
+      },
+      {
+        "path": "/checkout",
+        "width": 390,
+        "status": 200
+      },
+      {
+        "path": "/products/a-probe-missing-route",
+        "width": 390,
+        "status": 404
+      }
+    ],
+    "browserExceptions": 0,
+    "clientErrorReports": 0,
+    "assetFailures": 0
+  },
+  "catalog": {
+    "reviewedAt": "2026-10-06",
+    "verifiedProducts": 104,
+    "total": 104,
+    "allCurrentProductsReviewed": true
+  },
+  "api": {
+    "combinedProducts": 8,
+    "productPages": 8,
+    "reviewReads": 8,
+    "databaseStatus": "healthy",
+    "redis": {
+      "provider": "redis",
+      "redisConfigured": true,
+      "circuitOpen": false,
+      "rollingCalls": 0,
+      "rollingTimeouts": 0,
+      "fallbackRequests": 0,
+      "redisTimeoutMs": 1000
+    }
+  },
+  "requiredChecks": {
+    "focusedTestsPassed": 29,
+    "jestBaselineFailedSuites": 64,
+    "jestCurrentFailedSuites": 64,
+    "jestBaselineFailedTests": 175,
+    "jestCurrentFailedTests": 175,
+    "jestRegressions": 0,
+    "typeScriptBaselineErrors": 1179,
+    "typeScriptCurrentErrors": 1179,
+    "typeScriptAddedErrors": 0
+  },
+  "productionReleaseEvidence": "https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/70",
+  "historicalNetworkTrigger": "Unconfirmed; repaired application recovery paths do not establish the original external trigger."
+}

@@ -78,6 +78,24 @@ Protected previews use origin-scoped, short-lived Vercel development OIDC
 headers. No tokens, browser authentication state, client IPs or raw reports are
 committed.
 
-Deployed fault acceptance and the final production observations are pending;
-record exact deployment IDs and results in this document and the linked PR
-before declaring the repair accepted.
+Protected preview `dpl_4UTyorPAGGA5718Rmv8RDF1ASydH` is READY at source
+`412d130110d18deb53610e9a2fbfc542e4fb4e41`. Acceptance at approximately 19:36
+UTC passed all six fault scenarios: four transient desktop/mobile cases made two
+asset requests, one document request and zero reports; both persistent cases
+made two asset requests, one document request and exactly one report with retry
+count one. Persistent errors remained visible. Transient recovery preserved the
+real 404 or checkout's normal guest navigation, and client consent controls
+rendered after hydration. Each retry retained `dpl` and used `_chunk_retry`.
+
+The same final application build passed all 12 normal desktop/mobile browser
+checks with zero browser exceptions, client reports or static asset failures,
+104 catalog entries, eight product pages and review reads, and DB/Redis health.
+Sanitized machine-readable results are in
+[acceptance evidence](2026-10-06-crawler-recovery-acceptance.json).
+
+The final evidence-only commit must also receive a READY preview and pass the
+fault script before merging. Production release state, aliases and live
+acceptance are recorded in the linked PR after deployment; preview acceptance
+alone is not a production release. Historical Meta network causation remains
+unknown, and a bounded clean log window cannot guarantee future external
+requests.
