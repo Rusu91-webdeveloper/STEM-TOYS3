@@ -62,9 +62,9 @@ export const getCombinedProduct = cache(
         slug: toPublicProductSlug(dbProduct.slug),
         description: dbProduct.description ?? "",
         price: dbProduct.price,
-        priceCurrency: dbProduct.priceCurrency,
+        priceCurrency: "RON",
         compareAtPrice: dbProduct.compareAtPrice ?? undefined,
-        compareAtPriceCurrency: dbProduct.compareAtPriceCurrency,
+        compareAtPriceCurrency: "RON",
         sku: dbProduct.sku ?? undefined,
         barcode: dbProduct.barcode ?? undefined,
         images: (dbProduct.images as string[]) || [],
@@ -102,8 +102,8 @@ export const getCombinedProduct = cache(
         supplier: dbProduct.supplier
           ? {
               id: dbProduct.supplier.id,
-              companyName: dbProduct.supplier.companyName,
-              companySlug: dbProduct.supplier.companySlug,
+              companyName: dbProduct.supplier.companyName ?? "",
+              companySlug: dbProduct.supplier.companySlug ?? "",
             }
           : undefined,
         ageRange:
@@ -112,24 +112,6 @@ export const getCombinedProduct = cache(
           (attributes?.age as string | undefined),
         ageGroup: dbProduct.ageGroup as any,
         stemDiscipline: dbProduct.stemDiscipline as any,
-        learningOutcomes: (dbProduct.learningOutcomes as any) || undefined,
-        productType: dbProduct.productType as any,
-        specialCategories: (dbProduct.specialCategories as any) || undefined,
-        romanianCompetencies:
-          (dbProduct.romanianCompetencies as any) || undefined,
-        romanianCurriculumAlignment:
-          (dbProduct.romanianCurriculumAlignment as any) || undefined,
-        romanianEducationalCertification:
-          dbProduct.romanianEducationalCertification ?? undefined,
-        romanianEducationalLevel: dbProduct.romanianEducationalLevel as any,
-        romanianMinistryApproval:
-          dbProduct.romanianMinistryApproval ?? undefined,
-        romanianParentGuides:
-          (dbProduct.romanianParentGuides as any) || undefined,
-        romanianSubjectAreas:
-          (dbProduct.romanianSubjectAreas as any) || undefined,
-        romanianTeacherResources:
-          (dbProduct.romanianTeacherResources as any) || undefined,
       };
 
       return toShopperProduct(transformed);

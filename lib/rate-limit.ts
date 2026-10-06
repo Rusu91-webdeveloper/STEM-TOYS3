@@ -5,6 +5,7 @@ import {
   isRedisConfigured,
   rateLimitRedis,
   rateLimitRedisTimeoutMs,
+  redis,
 } from "@/lib/redis";
 
 import { RATE_LIMITS } from "./constants";
@@ -96,7 +97,7 @@ async function redisCounter(
       );
     });
     const result = await Promise.race([
-      rateLimitRedis!.eval<[number, number]>(
+      rateLimitRedis!.eval<number[], [number, number]>(
         RATE_LIMIT_SCRIPT,
         [key],
         [windowMs]
@@ -114,7 +115,7 @@ async function redisCounter(
     ) {
       throw new Error("Invalid Redis rate limit counter");
     }
-    return result;
+    return [result[0], result[1]];
   } finally {
     if (timer !== undefined) clearTimeout(timer);
   }

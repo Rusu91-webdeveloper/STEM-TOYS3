@@ -94,6 +94,9 @@ now shared by the combined API and server metadata/rendering through a direct,
 request-memoized database reader. Database failures propagate instead of becoming
 false 404s; inactive products remain hidden and zero-stock detail pages remain
 available. The subsequent production build passes without self-request errors.
+The extracted reader uses only columns in the current generated schema, RON
+currency and nullable-safe supplier names. Legacy references to nonexistent
+education/currency columns were removed; they previously yielded undefined.
 
 ## Redis rate limits
 

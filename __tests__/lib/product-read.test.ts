@@ -47,6 +47,7 @@ it("reads a visible product directly and preserves its commercial facts", async 
   expect(product).toMatchObject({
     id: "product-1",
     price: 89.5,
+    priceCurrency: "RON",
     stockQuantity: 0,
     isBook: false,
   });
