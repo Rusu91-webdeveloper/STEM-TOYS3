@@ -11,7 +11,11 @@ function chunkError(
   });
 }
 
-function install(ensure: jest.Mock, loadScript = jest.fn()) {
+function install(
+  ensure: jest.Mock,
+  loadScript = jest.fn(),
+  extras: Record<string, unknown> = {}
+) {
   const loader = { e: ensure, l: loadScript };
   vm.runInNewContext(runtimeSource, {
     __webpack_require__: loader,
@@ -23,6 +27,7 @@ function install(ensure: jest.Mock, loadScript = jest.fn()) {
     },
     URL,
     setTimeout: (callback: () => void) => callback(),
+    ...extras,
   });
   return loader;
 }
@@ -35,6 +40,98 @@ it("recovers one aborted first-party chunk before its promise rejects", async ()
   await expect(install(ensure).e(42)).resolves.toBeUndefined();
   expect(ensure).toHaveBeenCalledTimes(2);
 });
+
+function initialScriptEnvironment(entry: Record<string, unknown>) {
+  const script = {
+    src: "https://shop.test/_next/static/chunks/42.js?dpl=release",
+    parentNode: { removeChild: jest.fn() },
+  };
+  return {
+    script,
+    extras: {
+      window: {
+        location: {
+          href: "https://shop.test/checkout",
+          origin: "https://shop.test",
+        },
+        performance: { getEntriesByName: () => [entry] },
+      },
+      document: { getElementsByTagName: () => [script] },
+    },
+  };
+}
+
+it.each([0, 404])(
+  "recovers an initial script failure before Webpack attaches onerror (%s)",
+  async status => {
+    const { script, extras } = initialScriptEnvironment({
+      initiatorType: "script",
+      responseStatus: status,
+      encodedBodySize: 0,
+      decodedBodySize: 0,
+    });
+    const loadScript = jest.fn((_url, done) => done({ type: "load" }));
+    const ensure = jest.fn();
+    const loader = install(ensure, loadScript, extras);
+    ensure.mockImplementation(
+      () =>
+        new Promise((resolve, reject) => {
+          loader.l(
+            script.src,
+            (event: { type: string }) =>
+              event.type === "error"
+                ? reject(chunkError())
+                : resolve(undefined),
+            "chunk-42",
+            42
+          );
+        })
+    );
+    await loader.e(42);
+    expect(ensure).toHaveBeenCalledTimes(2);
+    expect(script.parentNode.removeChild).toHaveBeenCalledWith(script);
+    expect(loadScript).toHaveBeenCalledTimes(1);
+    expect(
+      new URL(loadScript.mock.calls[0][0]).searchParams.has("_chunk_retry")
+    ).toBe(true);
+  }
+);
+
+it.each([
+  {
+    initiatorType: "script",
+    responseStatus: 200,
+    encodedBodySize: 100,
+    decodedBodySize: 100,
+  },
+  {
+    initiatorType: "script",
+    responseStatus: 304,
+    encodedBodySize: 0,
+    decodedBodySize: 0,
+  },
+  {
+    initiatorType: "link",
+    responseStatus: 0,
+    encodedBodySize: 0,
+    decodedBodySize: 0,
+  },
+  { initiatorType: "script", encodedBodySize: 0, decodedBodySize: 0 },
+])(
+  "does not discard successful scripts, failed preloads or unknown timing data",
+  entry => {
+    const { script, extras } = initialScriptEnvironment(entry);
+    const loadScript = jest.fn();
+    install(jest.fn(), loadScript, extras).l(
+      script.src,
+      jest.fn(),
+      "chunk-42",
+      42
+    );
+    expect(loadScript).toHaveBeenCalledTimes(1);
+    expect(script.parentNode.removeChild).not.toHaveBeenCalled();
+  }
+);
 
 it("shares a retry between concurrent imports of the same chunk", async () => {
   const ensure = jest

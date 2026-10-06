@@ -18,6 +18,10 @@ async function check(browser, path, persistent, viewport) {
   let assetRequests = 0;
   const assetUrls = [];
   let documents = 0;
+  const chunk =
+    path === "/checkout"
+      ? /\/_next\/static\/chunks\/app\/checkout\/page-[^/]+\.js$/
+      : /\/_next\/static\/chunks\/82471-[^/]+\.js$/;
   try {
     // Isolate the loader's bound from the existing one-document recovery.
     if (persistent) {
@@ -33,7 +37,7 @@ async function check(browser, path, persistent, viewport) {
         return route.fulfill({ json: { success: true } });
       }
       if (!["GET", "HEAD"].includes(request.method())) return route.abort();
-      if (/\/_next\/static\/chunks\/82471-[^/]+\.js$/.test(url.pathname)) {
+      if (chunk.test(url.pathname)) {
         assetRequests++;
         assetUrls.push(url);
         if (persistent || assetRequests === 1) return route.abort("failed");
@@ -62,11 +66,11 @@ async function check(browser, path, persistent, viewport) {
     });
     assert.equal(
       response.status(),
-      404,
-      "fault fixture must remain a real 404"
+      path === "/checkout" ? 200 : 404,
+      "fault fixture must preserve its HTTP status"
     );
     await page.waitForTimeout(4000);
-    assert.equal(assetRequests, 2, "exactly one chunk retry");
+    assert.equal(assetRequests, 2, `${path}: exactly one chunk retry`);
     assert.equal(assetUrls[1].searchParams.has("_chunk_retry"), true);
     assert.equal(
       assetUrls[1].searchParams.get("dpl"),
@@ -89,7 +93,9 @@ async function check(browser, path, persistent, viewport) {
         0,
         "recovered failure must not reach React's error boundary"
       );
-      await page.getByRole("heading", { name: "404", exact: true }).waitFor();
+      if (path === "/checkout") await page.waitForURL("**/products");
+      else
+        await page.getByRole("heading", { name: "404", exact: true }).waitFor();
       assert.equal(
         await page.evaluate(() =>
           sessionStorage.getItem("techtots:chunk-recovery")
@@ -119,8 +125,8 @@ async function check(browser, path, persistent, viewport) {
     for (const [path, persistent, viewport] of [
       ["/categories/a-probe-missing-route", false, desktop],
       ["/categories/a-probe-missing-route", false, mobile],
-      ["/checkout/a-probe-missing-route", false, desktop],
-      ["/checkout/a-probe-missing-route", true, desktop],
+      ["/checkout", false, desktop],
+      ["/checkout", true, desktop],
       ["/categories/a-probe-missing-route", true, desktop],
     ])
       results.push(await check(browser, path, persistent, viewport));
