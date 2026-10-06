@@ -1,0 +1,74 @@
+{
+  "recordedAt": "2026-10-06T14:51:00Z",
+  "deploymentId": "dpl_EQRyBFu7D1kyLtXiMsHDxhVyZPA6",
+  "source": "Vercel read-only vercel.request.count CLI metrics",
+  "asset": "/_next/static/chunks/82471-5dd3d741a3ea29aa.js",
+  "reportedPage": "/products/puzzle-123-start-londji-LJ_PZ303U",
+  "clientReports": [
+    "2026-10-06T14:23:51.611Z",
+    "2026-10-06T14:23:51.935Z"
+  ],
+  "queryWindow": {
+    "startTime": "2026-10-06T14:23:00.000Z",
+    "endTime": "2026-10-06T14:25:00.000Z"
+  },
+  "assetSummary": [
+    {
+      "httpStatus": "200",
+      "edgeNetworkRegion": "sfo1",
+      "wafAction": "allow",
+      "contentType": "application/javascript; charset=utf-8",
+      "cacheResult": "MISS",
+      "vercel_request_count_count": 1,
+      "crawlerAgentVariant": "Meta Mac"
+    }
+  ],
+  "narrowSummary": [
+    {
+      "requestPath": "/products/puzzle-123-start-londji-LJ_PZ303U",
+      "httpStatus": "404",
+      "errorCode": "",
+      "wafAction": "allow",
+      "edgeNetworkRegion": "sfo1",
+      "vercel_request_count_count": 1,
+      "crawlerAgentVariant": "Meta Windows"
+    },
+    {
+      "requestPath": "/_next/static/chunks/82471-5dd3d741a3ea29aa.js",
+      "httpStatus": "200",
+      "errorCode": "",
+      "wafAction": "allow",
+      "edgeNetworkRegion": "sfo1",
+      "vercel_request_count_count": 1,
+      "crawlerAgentVariant": "Meta Mac"
+    },
+    {
+      "requestPath": "/api/errors",
+      "httpStatus": "200",
+      "errorCode": "",
+      "wafAction": "allow",
+      "edgeNetworkRegion": "sfo1",
+      "vercel_request_count_count": 1,
+      "crawlerAgentVariant": "Meta Windows"
+    },
+    {
+      "requestPath": "/api/errors",
+      "httpStatus": "200",
+      "errorCode": "",
+      "wafAction": "allow",
+      "edgeNetworkRegion": "sfo1",
+      "vercel_request_count_count": 1,
+      "crawlerAgentVariant": "Meta Windows"
+    }
+  ],
+  "windowsAgentWindow": {
+    "startTime": "2026-10-06T14:22:00.000Z",
+    "endTime": "2026-10-06T14:25:00.000Z"
+  },
+  "windowsReportedAssetRequestCount": 0,
+  "limitations": [
+    "Mac asset success does not establish delivery to the Windows reporters.",
+    "Absence of a Windows asset request in this time window is not a complete crawler network trace.",
+    "Exact Windows-agent browser reproduction passes; original client/network cause and recovery remain unconfirmed."
+  ]
+}

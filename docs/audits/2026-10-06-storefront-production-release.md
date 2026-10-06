@@ -94,3 +94,16 @@ TypeScript diagnostics. Existing repository debt remains: 64 failing suites,
 175 failing tests and 1196 TypeScript diagnostics. The build and focused checks
 passed as recorded in the quality audit. This release record changes only
 documentation and must use normal Git hooks.
+
+## Follow-up, 6 October 2026
+
+The owner subsequently requested the complete supplier-copy review and runtime
+repairs. [PR #68](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/68) is
+merged and its production build is READY. All 104 current supplier descriptions
+are reviewed; direct product/review reads, atomic Redis limiting and bounded
+chunk recovery are verified. Two further Meta crawler reports occurred on the new deployment at
+14:23:52 UTC. Edge and exact-agent browser checks pass, but the reporting
+crawler's network cause and recovery remain unconfirmed; this item stays open. See the
+[editorial/runtime release evidence](2026-10-06-romanian-copy-runtime.md) for
+exact source, deployment and live acceptance. Funded guest COD acceptance remains
+separate and advertising was not enabled.

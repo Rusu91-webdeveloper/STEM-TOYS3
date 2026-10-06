@@ -137,9 +137,60 @@ loading state, including clients without IntersectionObserver.
 
 ## Verification and release
 
-Implementation validation in progress. Record the exact tested commit,
-full required hook comparisons, desktop/mobile and injected failure checks,
-preview/production deployments and scoped runtime evidence before closing.
+The implementation was tested at
+`af8fd6d8e820681221007c7a16fb927db5d195a0` and squash-merged through
+[PR #68](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/68) at
+14:16:38 UTC as `803b1efd2bd44c0142ff1bade5dbb6b485e1bdb6`.
+The fetched merged tree exactly matches the tested tree.
+
+- 38 focused tests across nine suites pass, including current catalog coverage,
+  public review projection, direct product/book reads, Redis first use/timeouts/
+  fallback/recovery and chunk/form/retry behavior.
+- Scoped ESLint passes. The local production build passes, and the exact Git
+  preview build is READY; shared first-load JavaScript is 103 kB.
+- Required normal pre-commit full Jest comparisons: baseline and candidate each
+  have 64 failing suites / 175 failing tests, with **zero added failures**.
+  Required normal pre-push TypeScript comparisons: baseline 1196 diagnostics,
+  candidate 1179, with **zero added diagnostics**. This does not certify the
+  unrelated existing failures. No hooks were bypassed.
+- Scoped migration validation confirms no schema/migration differences.
+  No dependency, compiler, Vercel configuration or environment changes.
+
+### Exact preview acceptance
+
+Preview `dpl_D8Hx9NcHnvH1a6CmwibZ2eaDZsFn`, source `af8fd6d8`, is READY at
+<https://stem-toys-3-ktkx6pyqq-rusujobs-3774s-projects.vercel.app>.
+Vercel protection was accessed using an authorized share link; deployment
+protection was not disabled. Credential-bearing browser state is temporary and
+excluded from the repository/evidence.
+
+At 14:14 UTC, the complete live catalog and all 104 combined-product responses
+match reviewed identity, name, age and authored description. Eight sampled PDPs
+return 200 with the reviewed sections; eight review API reads return public
+arrays. Database health is connected, and the rate-limit health reports Redis
+configured, provider `redis`, circuit closed and a 1000 ms budget. Three ordinary
+book API reads return 200. Health counters are per process; the separate health
+function is not a distributed aggregate of every book request.
+
+Existing product visibility and merchandising exclusions remain intentional.
+An acceptance sample of Spider Spy returned the expected quality-exclusion 404;
+its corrected copy was verified through the public catalog and combined API.
+The existing name-based exclusions, explicit hidden/ads/homepage flags and
+unavailable inventory were not changed by this editorial review.
+
+An isolated browser verifies desktop 1280×800 and mobile 390×844: complete
+expanded Romanian description, contents, battery preparation, age and safety;
+Romanian topic badge and FAQs; no repeated generic footer or duplicate brand
+badge; correct empty review state; no horizontal overflow or captured page
+errors. Refusing optional consent leaves Meta/GA scripts absent. Anonymous auth
+session reads return 200 with no logged-in user; no authenticated write flow was
+changed or customer/order data submitted.
+
+The deployment-scoped preview error scan over the acceptance window returns no
+errors. Warning inspection shows only existing successful NextAuth startup
+diagnostics; there is no review-read, Redis timeout or chunk-loading failure in
+that window. This is bounded acceptance evidence, not a claim that future
+network failures cannot recur.
 
 Local evidence: all 104 identities pass the public catalog verification script.
 Reviews render the empty state rather than an availability failure. In an
@@ -150,3 +201,78 @@ isolated browser against localhost:3016, blocking the real reviews dependency
 document reload. Its recovery timestamp remains unchanged more than 45 seconds
 later while the asset stays blocked. Restoring the route permits normal loading.
 Checkout/edit/storage protection is covered by the focused recovery tests.
+
+### Production release and acceptance
+
+The standard production Git build is READY on
+<https://www.techtots.ro> and <https://techtots.ro>:
+
+- Deployment: `dpl_EQRyBFu7D1kyLtXiMsHDxhVyZPA6`, source
+  `803b1efd2bd44c0142ff1bade5dbb6b485e1bdb6` (`main`).
+- Immutable URL:
+  <https://stem-toys-3-c1m0ul0o9-rusujobs-3774s-projects.vercel.app>.
+- READY at 14:20:09 UTC; build duration about 3 minutes 27 seconds.
+  Fresh www lookup confirms this source/deployment and both aliases with no
+  alias error. Apex redirects 308 to www.
+- Previous verified production rollback artifact:
+  `dpl_6LyYMRh5EKjxewp1ur16WdzULNaf`, source `920ae5e6`.
+
+At 14:21 UTC, the production catalog verification passes all **104** current
+supplier products. Eight representative combined reads, eight PDPs and eight
+review reads pass; database health is connected; Redis is configured with the
+1000 ms limiter budget and closed circuit; three ordinary rate-limited book
+reads return 200. Anonymous session response is 200 with a null user.
+
+Production desktop 1280×800 and mobile 390×844 browser checks confirm the expanded
+description, Romanian age/content/specification text, translated topic and FAQ,
+working empty review state and zero horizontal overflow. No browser page errors
+were captured. Optional tracking stays absent after refusal. No customer
+information, payment, order, review or email was submitted.
+
+The initial error scan through 14:22 UTC is clear, but the extended scan finds
+**two critical Meta crawler reports at 14:23:52 UTC** on this new deployment.
+Both report `82471-5dd3d741a3ea29aa.js` while visiting the old, unavailable path
+`/products/puzzle-123-start-londji-LJ_PZ303U`. The page correctly returns 404.
+These are new reports, so the crawler issue is **not classified as resolved**.
+Through 14:51 UTC these remain the only deployment-scoped error records; no
+review-fetch localhost error or Redis rate-limit timeout was observed.
+
+Further investigation uses Vercel's read-only `vercel.request.count` metrics
+schema and queries, including static CDN requests (ordinary runtime logs alone
+have no static records for this window). The normalized UTC query interval is
+14:23–14:25, scoped to this exact deployment. The stored
+[sanitized edge evidence](2026-10-06-crawler-edge-evidence.json) contains no IP
+addresses, customer records or authentication material.
+
+- Meta's **Mac** crawler user agent received this exact asset with HTTP 200,
+  `application/javascript; charset=utf-8`, CDN MISS, `sfo1` and WAF `allow` in
+  that interval. This is a different agent from the two reporters.
+- Both error POSTs and the obsolete page request use Meta's **Windows** crawler
+  agent. The error POSTs are 200 and the page is 404, all in `sfo1`, WAF `allow`.
+  No request for the reported asset is recorded for that Windows agent in
+  14:22–14:25; correlating reporter addresses locally also finds no matching
+  asset request. Absence of a recorded request is not a complete browser trace.
+- The active firewall status has no custom configuration; AI bots are allowed,
+  bot protection and attack mode are off, and platform mitigations remain active.
+  Application middleware only matches admin routes. No protections were changed.
+- A fresh headless browser using the **exact Windows reporter user agent** loads
+  the same 404 URL and exact asset successfully, with no captured page errors.
+  Direct HTTP also returns 200 JavaScript (24,727 bytes); normal browser headers
+  succeed. The old reported `34634` asset also returns 200 (27,048 bytes).
+
+The cause of the crawler's script error remains **unconfirmed**. Missing deployed
+assets, a blanket user-agent denial and an always-failing application render do
+not fit these checks. Crawler cache reuse, resource cancellation or another
+client/network condition remain hypotheses, not established causes. The
+reporter's own network trace or a correlated failing CDN request is needed to
+identify that boundary. Bounded recovery is published and fault-tested; it is
+not evidence that these two crawler executions recovered. Do not suppress their
+telemetry, relax the firewall or make speculative platform changes to obtain a
+clean scan. This is the remaining open runtime item.
+
+The QA browser and local production server are closed after acceptance.
+Temporary preview access state and the task-created read-only local environment
+file are removed. The follow-up release record changes documentation only. The separate
+funded real guest COD acceptance remains necessary before paid acquisition;
+the mandatory card guarantee, configured fees, free-shipping threshold and
+advertising settings were not changed by this task.
