@@ -4,9 +4,10 @@
       Estimate: 3–5 hours. Implement stock visibility, earlier admin-priced COD
       disclosure, image delivery, compact consent/catalog/checkout, Romanian
       copy/category URLs and SEO fixes; verify desktop/mobile and publish a
-      reviewable draft. Implementation published in draft PR #67 on
-      codex/storefront-quality; funded real guest COD acceptance and production
-      publication remain pending. See
+      reviewable draft. Implementation published in
+      [draft PR #67](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/67)
+      on codex/storefront-quality; funded real guest COD acceptance and
+      production publication remain pending. See
       [quality audit](docs/audits/2026-10-06-storefront-quality.md). Elapsed
       work time not recorded.
 

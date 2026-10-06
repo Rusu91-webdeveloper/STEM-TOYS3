@@ -107,13 +107,32 @@ direct production build
 running migrations. The first attempt hit Node's default heap limit and was
 rerun with more memory. Missing local email, Redis and third-party credentials
 produce expected warnings; those integrations are not claimed as live
-acceptance. Final lint/type comparison and publish evidence are recorded below
-when completed.
+acceptance. Scoped ESLint reports zero errors; existing warnings remain. The
+TypeScript comparison retains 1196 diagnostics on both sides with zero
+additions. Normal commit hooks pass the final source with 64 failed suites and
+175 failed tests on both sides, zero regressions. The initial push's migration
+and TypeScript hooks also pass. These are regression checks, not clean full
+repository checks.
+
+[Draft PR #67](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/67) is
+published. Its initial preview (`9f921f6c`, deployment
+`dpl_A54fWPGgpThtBomVdVHwWPRmqzrf`) is READY. The PR description records the
+final preview for the payment/cart cleanup.
+
+The final local production build and mobile guest browser check pass. The flow
+reaches COD selection, displays the 9.90 lei fee and 197.89 lei COD total for a
+168 lei product plus 19.99 lei delivery, and shows the mandatory consent and
+card guarantee. Payment has one heading and no stale four-step badge. Mobile
+horizontal overflow is zero and cart prices remain on one line. No final order
+confirmation, payment authorization or card input was attempted. These local
+checks cannot accept the payment/email integrations without their credentials.
 
 [Desktop before](assets/2026-10-06-storefront/products-desktop-before.png) ·
 [Desktop after](assets/2026-10-06-storefront/products-desktop-after.png) ·
 [Mobile before](assets/2026-10-06-storefront/products-mobile-before.png) ·
-[Mobile after](assets/2026-10-06-storefront/products-mobile-after.png)
+[Mobile after](assets/2026-10-06-storefront/products-mobile-after.png) ·
+[Cart mobile](assets/2026-10-06-storefront/cart-mobile-after.png) ·
+[Payment mobile](assets/2026-10-06-storefront/payment-mobile-after.png)
 
 ## Photo refresh
 
