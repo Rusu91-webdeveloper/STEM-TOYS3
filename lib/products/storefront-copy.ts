@@ -66,6 +66,11 @@ export function normalizeStorefrontCopy(value: string): string {
     .map((part, index) => {
       if (index % 2 === 1) return part;
       return part
+        .replace(
+          /&(?:amp;)?(acirc|icirc|Acirc|Icirc);/g,
+          (_, entity: string) =>
+            ({ acirc: "â", icirc: "î", Acirc: "Â", Icirc: "Î" })[entity]!
+        )
         .replace(/[şţŞŢ]/g, char => ({ ş: "ș", ţ: "ț", Ş: "Ș", Ţ: "Ț" })[char]!)
         .replace(/(?<![\p{L}\p{N}&])[a-zA-Z]+(?![\p{L}\p{N};])/gu, word => {
           // All-uppercase tokens may be technical names, such as SI.
@@ -80,5 +85,5 @@ export function normalizeStorefrontCopy(value: string): string {
         .replace(/[ \t]{2,}/g, " ");
     })
     .join("")
-    .replace(/(<\/(?:p|div|h[1-6]|li|ul|ol)>)(?=[^\s<])/gi, "$1 ");
+    .replace(/(<\/(?:p|div|h[1-6]|li|ul|ol)>)(?=\S)/gi, "$1 ");
 }

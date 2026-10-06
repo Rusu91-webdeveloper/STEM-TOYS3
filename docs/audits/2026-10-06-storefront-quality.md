@@ -134,6 +134,18 @@ checks cannot accept the payment/email integrations without their credentials.
 [Cart mobile](assets/2026-10-06-storefront/cart-mobile-after.png) ·
 [Payment mobile](assets/2026-10-06-storefront/payment-mobile-after.png)
 
+## Preview cache acceptance
+
+The deployed preview exposed two extra delivery paths: old API cache payloads
+and server catalog requests sent to the current live site. Formatting only fresh
+database results left those paths with supplier photos and old copy. Current
+public presentation now runs after API cache reads, server catalog fetches and
+cached homepage recommendations. No production cache flush or inventory write is
+needed. Focused tests cover all supported API payload shapes, cache immutability
+and idempotence. Romanian HTML letter entities and paragraph boundaries are also
+normalized without decoding markup entities into HTML. The PR description
+records the corrected preview acceptance.
+
 ## Photo refresh
 
 Run `pnpm exec tsx scripts/cache-catalog-images.ts` to mirror newly observed

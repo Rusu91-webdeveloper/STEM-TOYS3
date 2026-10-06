@@ -97,3 +97,10 @@ export function toShopperProduct<T>(product: T): T {
   }
   return sanitized as T;
 }
+
+/** Apply current presentation rules after reading a catalog cache entry. */
+export function toShopperCatalog<T extends { products: unknown[] }>(
+  payload: T
+): T {
+  return { ...payload, products: payload.products.map(toShopperProduct) };
+}

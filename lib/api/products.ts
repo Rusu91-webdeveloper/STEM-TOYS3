@@ -1,4 +1,5 @@
 import { applyProductContentOverride } from "@/lib/products/catalog-content-overrides";
+import { toShopperProduct } from "@/lib/products/public-shopper";
 import type { Product } from "@/types/product";
 
 import { logger } from "../logger";
@@ -122,17 +123,17 @@ export async function getProducts(
       "products" in data &&
       Array.isArray(data.products)
     ) {
-      return data.products;
+      return data.products.map(toShopperProduct);
     }
 
     // Fallback: if the response is already an array
     if (Array.isArray(data)) {
-      return data;
+      return data.map(toShopperProduct);
     }
 
     // Fallback: if it's a single product object
     if (data && typeof data === "object" && "id" in data && "name" in data) {
-      return [data];
+      return [toShopperProduct(data)];
     }
 
     console.error("[getProducts] Unexpected API response format:", data);
