@@ -38,7 +38,17 @@ async function check(browser, path, persistent, viewport) {
         assetUrls.push(url);
         if (persistent || assetRequests === 1) return route.abort("failed");
       }
-      return route.continue();
+      const token = process.env.VERCEL_OIDC_TOKEN;
+      return route.continue(
+        token && url.origin === base.origin
+          ? {
+              headers: {
+                ...request.headers(),
+                "x-vercel-trusted-oidc-idp-token": token,
+              },
+            }
+          : undefined
+      );
     });
     page.on("request", request => {
       if (request.isNavigationRequest() && request.frame() === page.mainFrame())
