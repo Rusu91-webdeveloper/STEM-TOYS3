@@ -3,8 +3,8 @@ import path from "path";
 
 import { notFound, permanentRedirect } from "next/navigation";
 
-import { getCombinedProduct } from "@/lib/api/products";
 import { prisma } from "@/lib/prisma";
+import { getCombinedProduct } from "@/lib/products/product-read";
 import { resolveProductPageDecision } from "@/lib/products/public-slug";
 
 const PREVIOUSLY_BLOCKED_SLUG =
@@ -31,7 +31,7 @@ jest.mock("@/lib/prisma", () => ({
   },
 }));
 
-jest.mock("@/lib/api/products", () => ({
+jest.mock("@/lib/products/product-read", () => ({
   getCombinedProduct: jest.fn(),
 }));
 

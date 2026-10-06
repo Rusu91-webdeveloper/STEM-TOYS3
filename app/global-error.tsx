@@ -1,7 +1,9 @@
 "use client";
 
 import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+import { recoverChunkLoad } from "@/lib/recovery/chunk-recovery";
 
 /**
  * Global error page for Next.js App Router
@@ -17,6 +19,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const [copyStatus, setCopyStatus] = useState("");
   useEffect(() => {
     // Log the error
     console.error("🚨 GLOBAL ERROR:", {
@@ -33,6 +36,7 @@ export default function GlobalError({
     if (typeof window !== "undefined") {
       fetch("/api/errors", {
         method: "POST",
+        keepalive: true,
         headers: {
           "Content-Type": "application/json",
         },
@@ -48,6 +52,7 @@ export default function GlobalError({
         }),
       }).catch(console.error);
     }
+    recoverChunkLoad(error);
   }, [error]);
 
   const handleRefresh = () => {
@@ -80,7 +85,7 @@ ${error.stack || "No stack trace available"}
       navigator.clipboard
         .writeText(errorText)
         .then(() => {
-          alert("Error details copied to clipboard");
+          setCopyStatus("Detaliile au fost copiate.");
         })
         .catch(() => {
           // Fallback for older browsers
@@ -90,73 +95,78 @@ ${error.stack || "No stack trace available"}
           textArea.select();
           document.execCommand("copy");
           document.body.removeChild(textArea);
-          alert("Error details copied to clipboard");
+          setCopyStatus("Detaliile au fost copiate.");
         });
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-lg bg-white rounded-xl shadow-lg p-8 flex flex-col items-center gap-6">
-        {/* Icon */}
-        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 text-yellow-600 mb-2">
-          <AlertTriangle size={40} />
-        </div>
-        {/* Title */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-center">
-          Application Error
-        </h1>
-        {/* Message */}
-        <p className="text-base sm:text-lg text-gray-700 mb-2 text-center">
-          The application encountered a critical error and needs to be
-          restarted. We apologize for the inconvenience.
-        </p>
-        {/* Error details (development only) */}
-        {process.env.NODE_ENV === "development" && (
-          <div className="w-full bg-gray-50 border border-gray-200 rounded p-3 text-xs text-left text-gray-800 mb-2">
-            <strong>Error Details (Development):</strong>
-            <br />
-            <code className="break-all">{error.message}</code>
-            {error.digest && (
-              <>
+    <html lang="ro">
+      <body>
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+          <div className="w-full max-w-lg bg-white rounded-xl shadow-lg p-8 flex flex-col items-center gap-6">
+            {/* Icon */}
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 text-yellow-600 mb-2">
+              <AlertTriangle size={40} />
+            </div>
+            {copyStatus && <p role="status">{copyStatus}</p>}
+            {/* Title */}
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-center">
+              Pagina nu s-a încărcat
+            </h1>
+            {/* Message */}
+            <p className="text-base sm:text-lg text-gray-700 mb-2 text-center">
+              Reîncearcă încărcarea paginii. Dacă problema continuă,
+              contactează-ne.
+            </p>
+            {/* Error details (development only) */}
+            {process.env.NODE_ENV === "development" && (
+              <div className="w-full bg-gray-50 border border-gray-200 rounded p-3 text-xs text-left text-gray-800 mb-2">
+                <strong>Error Details (Development):</strong>
                 <br />
-                <strong>Digest:</strong> <code>{error.digest}</code>
-              </>
+                <code className="break-all">{error.message}</code>
+                {error.digest && (
+                  <>
+                    <br />
+                    <strong>Digest:</strong> <code>{error.digest}</code>
+                  </>
+                )}
+              </div>
             )}
+            {/* Button group */}
+            <div className="flex flex-wrap gap-3 w-full justify-center">
+              <button
+                onClick={reset}
+                className="flex items-center gap-2 px-4 py-2 rounded bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition"
+              >
+                <RefreshCw size={18} /> Reîncearcă
+              </button>
+              <button
+                onClick={handleRefresh}
+                className="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-800 font-semibold shadow hover:bg-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition"
+              >
+                <RefreshCw size={18} /> Reîncarcă pagina
+              </button>
+              <button
+                onClick={handleGoHome}
+                className="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-800 font-semibold shadow hover:bg-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition"
+              >
+                <Home size={18} /> Pagina principală
+              </button>
+              <button
+                onClick={copyErrorDetails}
+                className="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-800 font-semibold shadow hover:bg-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition"
+              >
+                <Bug size={18} /> Copiază detaliile
+              </button>
+            </div>
+            {/* Error ID (for support/debugging) */}
+            <p className="text-xs text-gray-400 mt-2 text-center">
+              Error ID: global_error_{Date.now()}
+            </p>
           </div>
-        )}
-        {/* Button group */}
-        <div className="flex flex-wrap gap-3 w-full justify-center">
-          <button
-            onClick={reset}
-            className="flex items-center gap-2 px-4 py-2 rounded bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition"
-          >
-            <RefreshCw size={18} /> Try Again
-          </button>
-          <button
-            onClick={handleRefresh}
-            className="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-800 font-semibold shadow hover:bg-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition"
-          >
-            <RefreshCw size={18} /> Restart App
-          </button>
-          <button
-            onClick={handleGoHome}
-            className="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-800 font-semibold shadow hover:bg-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition"
-          >
-            <Home size={18} /> Go Home
-          </button>
-          <button
-            onClick={copyErrorDetails}
-            className="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-800 font-semibold shadow hover:bg-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition"
-          >
-            <Bug size={18} /> Copy Error
-          </button>
         </div>
-        {/* Error ID (for support/debugging) */}
-        <p className="text-xs text-gray-400 mt-2 text-center">
-          Error ID: global_error_{Date.now()}
-        </p>
-      </div>
-    </div>
+      </body>
+    </html>
   );
 }

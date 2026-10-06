@@ -35,6 +35,7 @@ export interface Review {
 interface ProductReviewsProps {
   productId: string;
   reviews: Review[];
+  unavailable?: boolean;
   className?: string;
   userLoggedIn?: boolean;
   onSubmitReview?: (review: Omit<Review, "id" | "userId" | "date">) => void;
@@ -43,6 +44,7 @@ interface ProductReviewsProps {
 export function ProductReviews({
   productId,
   reviews,
+  unavailable = false,
   className,
   userLoggedIn = false,
   onSubmitReview,
@@ -106,7 +108,11 @@ export function ProductReviews({
 
   // Render stars for rating display
   const renderStars = (rating: number, interactive = false) => (
-    <div className="flex" role={interactive ? "group" : undefined} aria-label={interactive ? "Notă" : undefined}>
+    <div
+      className="flex"
+      role={interactive ? "group" : undefined}
+      aria-label={interactive ? "Notă" : undefined}
+    >
       {[1, 2, 3, 4, 5].map(star => (
         <StarIcon
           key={star}
@@ -167,7 +173,9 @@ export function ProductReviews({
           <div className="flex flex-col justify-center gap-3">
             {ratingDistribution.map(({ stars, count, percentage }) => (
               <div key={stars} className="flex items-center gap-3">
-                <div className={`${productBodyTextClass} w-16 text-xs sm:text-sm`}>
+                <div
+                  className={`${productBodyTextClass} w-16 text-xs sm:text-sm`}
+                >
                   {stars === 1 ? "1 stea" : `${stars} stele`}
                 </div>
                 <div className="relative h-2 flex-1 overflow-hidden rounded-full border border-slate-200 bg-slate-200">
@@ -176,7 +184,9 @@ export function ProductReviews({
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
-                <div className={`${productMutedTextClass} w-12 text-right text-xs`}>
+                <div
+                  className={`${productMutedTextClass} w-12 text-right text-xs`}
+                >
                   {count > 0 ? `${percentage}%` : "0%"}
                 </div>
               </div>
@@ -185,11 +195,13 @@ export function ProductReviews({
         </div>
       ) : (
         <div
-          data-testid="reviews-empty"
+          data-testid={unavailable ? "reviews-unavailable" : "reviews-empty"}
           className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center"
         >
           <p className={`${productBodyTextClass} text-sm`}>
-            Încă nu există recenzii
+            {unavailable
+              ? "Recenziile nu sunt disponibile momentan. Reîncearcă mai târziu."
+              : "Încă nu există recenzii"}
           </p>
         </div>
       )}

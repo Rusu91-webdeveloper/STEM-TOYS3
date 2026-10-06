@@ -1,5 +1,15 @@
 # Current tasks
 
+- [ ] 2026-10-06 — Finish the Romanian catalog editorial review and resolve
+      storefront runtime defects at the owner's request. Estimate: 4–6 hours.
+      Review every current supplier product against its supplied facts, preserve
+      verified ages/contents/specifications, repair public review reads, correct
+      Redis rate limiting and investigate chunk loading with failure-path and
+      desktop/mobile verification. Preserve production data and payment policy;
+      finish the implementation and its deployment evidence without stopping
+      at a partial diagnosis. Work from codex/romanian-copy-runtime, retaining
+      the previous release record.
+
 - [x] 2026-10-06 — Improve storefront quality after the external C+ review.
       Estimate: 3–5 hours. Implement stock visibility, earlier admin-priced COD
       disclosure, image delivery, compact consent/catalog/checkout, Romanian

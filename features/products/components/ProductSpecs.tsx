@@ -84,11 +84,11 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
     attributes: product.attributes,
   });
   const manufacturerAge =
-    ageChip?.source === "explicit"
+    product.ageRange ||
+    (ageChip?.source === "explicit"
       ? ageChip.label
-      : product.ageRange ||
-        product.attributes?.manufacturerRecommendedAge ||
-        product.attributes?.originalAgeText;
+      : product.attributes?.manufacturerRecommendedAge ||
+        product.attributes?.originalAgeText);
   const entries: Array<{ label: string; value?: React.ReactNode }> = [
     // Removed SKU/GTIN/Dimensions/Weight from UI as requested.
     // Hide the coarse gift-guide bucket when it contradicts an explicit age.
@@ -99,7 +99,7 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
         : humanizeAgeGroup(t as any, product.ageGroup),
     },
     {
-      label: "Vârsta recomandată de producător",
+      label: "Vârstă recomandată",
       value: manufacturerAge,
     },
     {

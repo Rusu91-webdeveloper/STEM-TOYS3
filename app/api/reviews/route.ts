@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -12,6 +13,7 @@ import {
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { getProductReviews } from "@/lib/products/reviews";
 
 // Ensure node runtime to avoid edge chunk issues
 export const runtime = "nodejs";
@@ -93,6 +95,8 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       },
     });
 
+    revalidateTag(`reviews-${review.productId}`);
+
     logger.info("Created review", {
       reviewId: review.id,
       productId: review.productId,
@@ -114,41 +118,14 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     return notFound("Product ID is required");
   }
 
-  const reviews = await db.review.findMany({
-    where: {
-      productId,
-    },
-    include: {
-      user: {
-        select: {
-          name: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  // Format the reviews for the frontend
-  const formattedReviews = reviews.map(review => ({
-    id: review.id,
-    productId: review.productId,
-    userId: review.userId,
-    userName: review.user.name || "Anonymous",
-    rating: review.rating,
-    title: review.title,
-    content: review.content,
-    date: new Date(review.createdAt).toISOString(),
-    verified: true, // Since we verify that the user purchased the item
-  }));
+  const reviews = await getProductReviews(productId);
 
   logger.info("Fetched product reviews", {
     productId,
     count: reviews.length,
   });
 
-  return NextResponse.json(formattedReviews, {
+  return NextResponse.json(reviews, {
     headers: {
       // 🚀 PERFORMANCE: Add caching headers for reviews
       "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",

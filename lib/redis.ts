@@ -18,6 +18,28 @@ export const redis = isRedisConfigured
     })
   : null;
 
+// Rate limiting performs one atomic request. The cache's 150 ms latency budget
+// is too short for a cold HTTP connection; give this security check its own
+// bounded budget and never retry a possibly executed counter increment.
+const configuredRateLimitTimeout = Number(
+  process.env.RATE_LIMIT_REDIS_TIMEOUT_MS
+);
+export const rateLimitRedisTimeoutMs =
+  Number.isSafeInteger(configuredRateLimitTimeout) &&
+  configuredRateLimitTimeout > 0
+    ? configuredRateLimitTimeout
+    : 1000;
+
+export const rateLimitRedis = isRedisConfigured
+  ? new Redis({
+      url: process.env.REDIS_URL!,
+      token: process.env.REDIS_TOKEN!,
+      retry: false,
+      enableAutoPipelining: false,
+      signal: () => AbortSignal.timeout(rateLimitRedisTimeoutMs),
+    })
+  : null;
+
 // Use a memory fallback when Redis is not available
 const memoryCache = new Map<string, { value: string; expiry: number }>();
 
@@ -62,12 +84,15 @@ export async function getCartFromCache(userId: string): Promise<string | null> {
     }
 
     // Use Redis with timeout
-    return await withTimeout<string | null>(redis!.get(`cart:${userId}`), () => {
-      // Redis timeout, falling back to memory cache
-      // Fallback to memory cache on timeout
-      const item = memoryCache.get(`cart:${userId}`);
-      return item && item.expiry > Date.now() ? item.value : null;
-    });
+    return await withTimeout<string | null>(
+      redis!.get(`cart:${userId}`),
+      () => {
+        // Redis timeout, falling back to memory cache
+        // Fallback to memory cache on timeout
+        const item = memoryCache.get(`cart:${userId}`);
+        return item && item.expiry > Date.now() ? item.value : null;
+      }
+    );
   } catch (error) {
     console.error("Redis get error, using memory fallback:", error);
     // Fallback to memory cache on Redis error

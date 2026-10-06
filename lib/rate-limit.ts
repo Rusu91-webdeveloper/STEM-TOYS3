@@ -1,356 +1,234 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { redis, isRedisConfigured } from "@/lib/redis";
+import {
+  isRedisConfigured,
+  rateLimitRedis,
+  rateLimitRedisTimeoutMs,
+} from "@/lib/redis";
 
 import { RATE_LIMITS } from "./constants";
 
 interface RateLimitConfig {
-  /**
-   * Maximum number of requests allowed in the windowMs timeframe
-   */
   limit: number;
-
-  /**
-   * Time window in milliseconds
-   */
   windowMs: number;
-
-  /**
-   * Optional identifier function (defaults to IP address)
-   */
   identifierFn?: (req: NextRequest) => string;
 }
 
-// Provider selection and timeouts
 const RATE_LIMIT_PROVIDER = (
   process.env.RATE_LIMIT_PROVIDER || "auto"
 ).toLowerCase();
-// **PERFORMANCE**: Increase Redis timeout to reduce cache misses and improve TTFB
-const REDIS_TIMEOUT = parseInt(
-  process.env.REDIS_TIMEOUT ??
-    (process.env.NODE_ENV === "production" ? "1000" : "2000"),
-  10
-);
-
-// Simple circuit breaker state
+const CIRCUIT_WINDOW_MS = 60_000;
+const CIRCUIT_OPEN_MS = 30_000;
 let circuitOpen = false;
 let circuitOpenedAt = 0;
+let windowStartedAt = Date.now();
 let rollingCalls = 0;
 let rollingTimeouts = 0;
-const CIRCUIT_WINDOW_MS = 60_000; // 60s window
-const CIRCUIT_OPEN_MS = 30_000; // stay open 30s
-const TIMEOUT_THRESHOLD_RATIO = 0.2; // 20%
+let consecutiveFailures = 0;
+let probeInFlight = false;
+let fallbackRequests = 0;
+let lastFailureLogAt = -Infinity;
 
-function maybeResetRollingWindow() {
-  // Lightweight decay each minute
-  // If last open was long ago, reset counters
-  if (Date.now() - circuitOpenedAt > CIRCUIT_WINDOW_MS) {
+// INCR and expiry must be atomic. A missing key starts at one, and successful
+// requests must not extend the window. Three separate REST calls did neither.
+export const RATE_LIMIT_SCRIPT = `
+local count = redis.call('INCR', KEYS[1])
+local ttl = redis.call('PTTL', KEYS[1])
+if count == 1 or ttl < 0 then
+  redis.call('PEXPIRE', KEYS[1], ARGV[1])
+  ttl = tonumber(ARGV[1])
+end
+return {count, ttl}
+`;
+
+function recordRedisAttempt(failed: boolean) {
+  const now = Date.now();
+  if (now - windowStartedAt >= CIRCUIT_WINDOW_MS) {
+    windowStartedAt = now;
     rollingCalls = 0;
     rollingTimeouts = 0;
   }
-}
-
-function recordRedisAttempt(didTimeout: boolean) {
-  rollingCalls += 1;
-  if (didTimeout) rollingTimeouts += 1;
-
-  const ratio = rollingCalls > 0 ? rollingTimeouts / rollingCalls : 0;
-  if (!circuitOpen && rollingCalls >= 50 && ratio > TIMEOUT_THRESHOLD_RATIO) {
-    circuitOpen = true;
-    circuitOpenedAt = Date.now();
-    console.warn(
-      `[ratelimit] Circuit opened: timeouts=${rollingTimeouts} calls=${rollingCalls} ratio=${ratio.toFixed(2)}`
-    );
-  }
-}
-
-function circuitAllowsRedis(): boolean {
-  if (!circuitOpen) return true;
-  // Half-open after open interval
-  if (Date.now() - circuitOpenedAt > CIRCUIT_OPEN_MS) {
+  rollingCalls++;
+  if (failed) {
+    rollingTimeouts++;
+    consecutiveFailures++;
+    if (
+      probeInFlight ||
+      consecutiveFailures >= 3 ||
+      (rollingCalls >= 10 && rollingTimeouts / rollingCalls > 0.2)
+    ) {
+      circuitOpen = true;
+      circuitOpenedAt = now;
+    }
+    if (now - lastFailureLogAt >= CIRCUIT_OPEN_MS) {
+      console.warn("[ratelimit] Redis unavailable; using local limits", {
+        circuitOpen,
+        timeoutMs: rateLimitRedisTimeoutMs,
+      });
+      lastFailureLogAt = now;
+    }
+  } else {
+    consecutiveFailures = 0;
     circuitOpen = false;
-    rollingCalls = 0;
-    rollingTimeouts = 0;
-    console.warn("[ratelimit] Circuit half-open: probing Redis again");
-    return true;
   }
-  return false;
+  probeInFlight = false;
 }
 
-/**
- * Execute a Redis operation with a timeout to prevent hanging
- */
-async function withRedisTimeout<T>(
-  operation: Promise<T>,
-  fallbackFn: () => T
-): Promise<T> {
+function circuitAllowsRedis() {
+  if (!circuitOpen) return true;
+  if (Date.now() - circuitOpenedAt < CIRCUIT_OPEN_MS || probeInFlight)
+    return false;
+  probeInFlight = true;
+  return true;
+}
+
+async function redisCounter(
+  key: string,
+  windowMs: number
+): Promise<[number, number]> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    maybeResetRollingWindow();
-    // Create a promise that rejects after the timeout
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(
-          new Error(
-            `Redis rate limit operation timed out after ${REDIS_TIMEOUT}ms`
-          )
-        );
-      }, REDIS_TIMEOUT);
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(
+        () => reject(new Error("Redis rate limit timeout")),
+        rateLimitRedisTimeoutMs
+      );
     });
-
-    // Race the operation against the timeout
-    const result = await Promise.race([operation, timeoutPromise]);
-    recordRedisAttempt(false);
-    return result as T;
-  } catch (error) {
-    console.error("Redis rate limit operation failed or timed out:", error);
-    recordRedisAttempt(true);
-    // Execute fallback function if operation fails or times out
-    return fallbackFn();
+    const result = await Promise.race([
+      rateLimitRedis!.eval<[number, number]>(
+        RATE_LIMIT_SCRIPT,
+        [key],
+        [windowMs]
+      ),
+      timeout,
+    ]);
+    if (
+      !Array.isArray(result) ||
+      result.length !== 2 ||
+      !Number.isSafeInteger(result[0]) ||
+      result[0] < 1 ||
+      !Number.isFinite(result[1]) ||
+      result[1] < 0 ||
+      result[1] > windowMs
+    ) {
+      throw new Error("Invalid Redis rate limit counter");
+    }
+    return result;
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
   }
 }
 
-/**
- * Redis-based rate limiting middleware for Next.js API routes
- * @param config Rate limiting configuration
- * @returns A function that can be used to rate limit requests
- */
-export function rateLimit(config: RateLimitConfig) {
-  const { limit, windowMs, identifierFn } = config;
-
-  // Convert windowMs to seconds for Redis expiry
-  const windowSeconds = Math.ceil(windowMs / 1000);
-
-  return async function rateLimitMiddleware(req: NextRequest) {
-    // Get identifier (default to IP from headers)
-    const identifier = identifierFn
-      ? identifierFn(req)
-      : (req.headers.get("x-forwarded-for") ??
-        req.headers.get("x-real-ip") ??
-        "unknown");
-
-    // Create a unique Redis key for this rate limit
-    const rateLimitKey = `ratelimit:${identifier}`;
-
-    let currentCount = 0;
-    let resetTime = 0;
-
-    try {
-      // Provider selection
-      const preferMemory =
-        RATE_LIMIT_PROVIDER === "memory" ||
-        (RATE_LIMIT_PROVIDER === "auto" &&
-          process.env.NODE_ENV !== "production");
-
-      const canUseRedis =
-        !preferMemory && isRedisConfigured && circuitAllowsRedis();
-
-      if (canUseRedis) {
-        // Using Redis for rate limiting
-        // Use Redis for distributed rate limiting with timeout protection
-
-        // First, get the current count with timeout
-        const result = await withRedisTimeout(
-          redis.get(rateLimitKey),
-          () => null
-        );
-
-        if (result === null) {
-          // If Redis timed out or failed, fall back to in-memory
-          console.warn(
-            `Redis timeout for rate limit key ${rateLimitKey}, using in-memory fallback`
-          );
-          return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
-        }
-
-        currentCount = result ? parseInt(result as string, 10) : 0;
-
-        // Get TTL to calculate reset time with timeout
-        const ttl = await withRedisTimeout(redis.ttl(rateLimitKey), () => -1);
-
-        if (ttl === -1) {
-          // If TTL operation failed, fall back to in-memory
-          console.warn(
-            `Redis TTL timeout for rate limit key ${rateLimitKey}, using in-memory fallback`
-          );
-          return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
-        }
-
-        resetTime = Date.now() + (ttl > 0 ? ttl * 1000 : windowMs);
-
-        // Increment the counter
-        currentCount++;
-
-        // Update Redis with new count and set/reset expiry with timeout
-        const setResult = await withRedisTimeout(
-          redis.set(rateLimitKey, currentCount.toString(), {
-            ex: windowSeconds,
-          }),
-          () => "OK" // Redis set returns "OK" on success
-        );
-
-        if (setResult !== "OK") {
-          // If set operation failed, fall back to in-memory for this request
-          console.warn(
-            `Redis set timeout for rate limit key ${rateLimitKey}, using in-memory fallback`
-          );
-          return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
-        }
-      } else {
-        // Redis not configured, using in-memory rate limiting
-        // Fallback to in-memory rate limiting if Redis is not available
-        return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
-      }
-    } catch (error) {
-      // If Redis fails, fall back to in-memory rate limiting
-
-      console.error("Redis rate limiting error, using fallback:", error);
-      return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
-    }
-
-    // Calculate remaining requests and reset time
-    const remaining = Math.max(0, limit - currentCount);
-    const reset = Math.ceil((resetTime - Date.now()) / 1000); // in seconds
-
-    // Set rate limit headers
-    const headers = {
-      "X-RateLimit-Limit": limit.toString(),
-      "X-RateLimit-Remaining": remaining.toString(),
-      "X-RateLimit-Reset": reset.toString(),
-    };
-
-    // If limit exceeded, return 429 Too Many Requests
-    if (currentCount > limit) {
-      return new NextResponse(
-        JSON.stringify({
-          success: false,
-          message: "Too many requests, please try again later.",
-        }),
-        {
-          status: 429,
-          headers: {
-            ...headers,
-            "Retry-After": reset.toString(),
-          },
-        }
-      );
-    }
-
-    // Request allowed, pass through with rate limit headers
-    return null;
-  };
-}
-
-// In-memory storage for fallback rate limiting
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
-/**
- * Fallback in-memory rate limiting when Redis is unavailable
- */
-function fallbackInMemoryRateLimit(
-  req: NextRequest,
-  identifier: string,
-  limit: number,
-  windowMs: number
-) {
-  // Get current time
+function memoryCounter(key: string, windowMs: number) {
   const now = Date.now();
-
-  // Get or initialize rate limit entry
-  let rateLimit = rateLimitStore.get(identifier);
-
-  if (!rateLimit || now > rateLimit.resetTime) {
-    // Initialize or reset rate limit
-    rateLimit = {
-      count: 0,
-      resetTime: now + windowMs,
-    };
-  }
-
-  // Increment count
-  rateLimit.count += 1;
-
-  // Update store
-  rateLimitStore.set(identifier, rateLimit);
-
-  // Calculate remaining requests and reset time
-  const remaining = Math.max(0, limit - rateLimit.count);
-  const reset = Math.ceil((rateLimit.resetTime - now) / 1000); // in seconds
-
-  // Set rate limit headers
-  const headers = {
-    "X-RateLimit-Limit": limit.toString(),
-    "X-RateLimit-Remaining": remaining.toString(),
-    "X-RateLimit-Reset": reset.toString(),
-  };
-
-  // If limit exceeded, return 429 Too Many Requests
-  if (rateLimit.count > limit) {
-    return new NextResponse(
-      JSON.stringify({
-        success: false,
-        message: "Too many requests, please try again later.",
-      }),
-      {
-        status: 429,
-        headers: {
-          ...headers,
-          "Retry-After": reset.toString(),
-        },
-      }
-    );
-  }
-
-  // Request allowed, pass through with rate limit headers
-  return null;
+  const existing = rateLimitStore.get(key);
+  const entry =
+    existing && now < existing.resetTime
+      ? existing
+      : { count: 0, resetTime: now + windowMs };
+  entry.count++;
+  rateLimitStore.set(key, entry);
+  return entry;
 }
 
-/**
- * Clean up expired rate limit entries from in-memory store
- */
-function cleanupRateLimitStore() {
-  const now = Date.now();
-
-  for (const [key, value] of rateLimitStore.entries()) {
-    if (now > value.resetTime) {
-      rateLimitStore.delete(key);
+function blockedResponse(count: number, resetTime: number, limit: number) {
+  if (count <= limit) return null;
+  const retryAfter = Math.max(1, Math.ceil((resetTime - Date.now()) / 1000));
+  return new NextResponse(
+    JSON.stringify({
+      success: false,
+      message: "Too many requests, please try again later.",
+    }),
+    {
+      status: 429,
+      headers: {
+        "Content-Type": "application/json",
+        "X-RateLimit-Limit": String(limit),
+        "X-RateLimit-Remaining": "0",
+        "X-RateLimit-Reset": String(Math.ceil(resetTime / 1000)),
+        "Retry-After": String(retryAfter),
+      },
     }
-  }
-
-  // Run cleanup every minute
-  setTimeout(cleanupRateLimitStore, 60 * 1000);
+  );
 }
 
-// Initialize cleanup for the in-memory fallback
-cleanupRateLimitStore();
+export function rateLimit({ limit, windowMs, identifierFn }: RateLimitConfig) {
+  if (
+    !Number.isSafeInteger(limit) ||
+    limit < 1 ||
+    !Number.isSafeInteger(windowMs) ||
+    windowMs < 1
+  ) {
+    throw new Error("Rate limit and window must be positive integers");
+  }
+  return async function rateLimitMiddleware(req: NextRequest) {
+    const identifier = identifierFn
+      ? identifierFn(req)
+      : req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+        req.headers.get("x-real-ip") ||
+        "unknown";
+    // Different configured quotas must not consume one another's counters.
+    const key = `ratelimit:v2:${limit}:${windowMs}:${identifier}`;
+    // Count every request locally as well, so switching providers does not give
+    // this process a fresh allowance after a timeout or during recovery.
+    const localAttempt = memoryCounter(key, windowMs);
+    const preferMemory =
+      RATE_LIMIT_PROVIDER === "memory" ||
+      (RATE_LIMIT_PROVIDER === "auto" && process.env.NODE_ENV !== "production");
 
-/**
- * Helper function to apply rate limiting to an API route
- * @param handler The API route handler
- * @param config Rate limiting configuration
- * @returns The rate-limited API route handler
- */
-export function withRateLimit<TArgs extends any[]>(
-  handler: (req: NextRequest, ...args: TArgs) => Promise<NextResponse> | NextResponse,
+    if (
+      !preferMemory &&
+      isRedisConfigured &&
+      rateLimitRedis &&
+      circuitAllowsRedis()
+    ) {
+      try {
+        const [count, ttl] = await redisCounter(key, windowMs);
+        recordRedisAttempt(false);
+        const resetTime = Date.now() + Math.max(1, ttl);
+        const local = rateLimitStore.get(key);
+        // Preserve known usage if a previous request used the local fallback.
+        const effectiveCount = Math.max(
+          count,
+          local?.count ?? localAttempt.count
+        );
+        rateLimitStore.set(key, { count: effectiveCount, resetTime });
+        return blockedResponse(effectiveCount, resetTime, limit);
+      } catch {
+        recordRedisAttempt(true);
+      }
+    }
+    fallbackRequests++;
+    const { count, resetTime } = localAttempt;
+    return blockedResponse(count, resetTime, limit);
+  };
+}
+
+const cleanupTimer = setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of rateLimitStore) {
+    if (now >= value.resetTime) rateLimitStore.delete(key);
+  }
+}, 60_000);
+cleanupTimer.unref?.();
+
+export function withRateLimit<TArgs extends unknown[]>(
+  handler: (
+    req: NextRequest,
+    ...args: TArgs
+  ) => Promise<NextResponse> | NextResponse,
   config: RateLimitConfig
 ) {
-  const rateLimiter = rateLimit(config);
-
-  return async function rateLimitedHandler(req: NextRequest, ...args: TArgs) {
-    // Apply rate limiting
-    const rateLimitResponse = await rateLimiter(req);
-
-    // If rate limit exceeded, return 429 response
-    if (rateLimitResponse) {
-      return rateLimitResponse;
-    }
-
-    // Otherwise, call original handler
-    return handler(req, ...args);
+  const limiter = rateLimit(config);
+  return async (req: NextRequest, ...args: TArgs) => {
+    const blocked = await limiter(req);
+    return blocked ?? handler(req, ...args);
   };
 }
 
-// Expose minimal health for the circuit state
 export const rateLimitHealth = {
   get status() {
     return {
@@ -359,7 +237,8 @@ export const rateLimitHealth = {
       circuitOpen,
       rollingCalls,
       rollingTimeouts,
-      redisTimeoutMs: REDIS_TIMEOUT,
+      fallbackRequests,
+      redisTimeoutMs: rateLimitRedisTimeoutMs,
     };
   },
 };

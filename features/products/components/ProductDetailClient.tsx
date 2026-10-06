@@ -50,6 +50,7 @@ interface ProductDetailClientProps {
   upsellProducts?: ProductUpsell[];
   relatedProducts?: any[];
   initialReviews?: Review[];
+  reviewsUnavailable?: boolean;
   userLoggedIn?: boolean;
   isBook?: boolean;
   bundleContents?: BundleContentItem[];
@@ -61,6 +62,7 @@ export default function ProductDetailClient({
   codSettings,
   relatedProducts: _relatedProducts = [],
   initialReviews = [],
+  reviewsUnavailable = false,
   userLoggedIn = false,
   isBook,
   bundleContents = [],
@@ -300,6 +302,7 @@ export default function ProductDetailClient({
           <LazyProductReviews
             productId={product.id}
             reviews={initialReviews}
+            unavailable={reviewsUnavailable}
             userLoggedIn={userLoggedIn}
             className="space-y-6"
           />
