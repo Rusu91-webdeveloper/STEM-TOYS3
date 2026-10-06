@@ -16,7 +16,7 @@ export default function GlobalError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string };
+  error: Error & { digest?: string; chunkRetryCount?: number };
   reset: () => void;
 }) {
   const [copyStatus, setCopyStatus] = useState("");
@@ -49,6 +49,7 @@ export default function GlobalError({
           url: window.location.href,
           errorId: `global_error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           digest: error.digest,
+          additional: { chunkRetryCount: error.chunkRetryCount ?? 0 },
         }),
       }).catch(console.error);
     }

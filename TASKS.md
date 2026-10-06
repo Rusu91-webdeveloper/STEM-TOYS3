@@ -1,5 +1,14 @@
 # Current tasks
 
+- [ ] 2026-10-06 — Owner requested analysis and repair of the remaining Meta
+      crawler chunk failures. Estimate: 1–2 hours. Branch
+      codex/crawler-chunk-recovery from current main ccc6a1cb. Preserve checkout,
+      entered forms and error telemetry. Reproduce the failed shared chunk and
+      add bounded client-loader recovery before React receives a rejected import;
+      verify transient/persistent failures, desktop/mobile, protected paths and
+      the exact deployed build. Do not attribute the historical bot network
+      condition to the application without evidence.
+
 - [x] 2026-10-06 — Finish the Romanian catalog editorial review and resolve
       storefront review/Redis defects at the owner's request. Estimate: 4–6 hours.
       Review every current supplier product against its supplied facts, preserve
