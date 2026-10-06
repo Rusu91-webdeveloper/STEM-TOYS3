@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 
 import { useTranslation } from "@/lib/i18n";
@@ -107,30 +108,30 @@ export default function StemBenefitsPage() {
         <p className="text-muted-foreground">{t("benefitsTransferContent2")}</p>
         <p className="text-sm">
           {t("benefitsExploreCategories")}{" "}
-          <a className="underline" href="/categories/science">
+          <Link className="underline" href="/categories/stiinta">
             {t("guide2025ScienceCategory")}
-          </a>
+          </Link>
           ,{" "}
-          <a className="underline" href="/categories/technology">
+          <Link className="underline" href="/categories/tehnologie">
             {t("guide2025TechnologyCategory")}
-          </a>
+          </Link>
           ,{" "}
-          <a className="underline" href="/categories/engineering">
+          <Link className="underline" href="/categories/inginerie">
             {t("guide2025EngineeringCategory")}
-          </a>
+          </Link>
           ,{" "}
-          <a className="underline" href="/categories/mathematics">
+          <Link className="underline" href="/categories/matematica">
             {t("guide2025MathematicsCategory")}
-          </a>
+          </Link>
           .
         </p>
         <div className="mt-2">
-          <a
+          <Link
             href="/products"
             className="inline-block px-5 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition"
           >
             {t("benefitsSeeProducts")}
-          </a>
+          </Link>
         </div>
       </section>
     </div>

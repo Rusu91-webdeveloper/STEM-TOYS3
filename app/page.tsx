@@ -112,7 +112,7 @@ async function loadHomepageProducts(): Promise<Product[]> {
 }
 
 export default async function Home() {
-  const products = await loadHomepageProducts();
+  const products = (await loadHomepageProducts()).map(toShopperProduct);
   return (
     <HomePageClient featuredProducts={products}>
       <FeaturedProductsGrid products={products} />

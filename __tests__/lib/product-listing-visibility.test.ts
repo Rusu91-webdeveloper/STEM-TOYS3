@@ -18,7 +18,7 @@ describe("Product listing visibility", () => {
             inventoryMode: "supplier-availability",
           },
         };
-        
+
         expect(visibleInBrowse(product)).toBe(true);
       });
 
@@ -33,7 +33,7 @@ describe("Product listing visibility", () => {
             inventoryMode: "supplier-availability",
           },
         };
-        
+
         expect(visibleInBrowse(product)).toBe(false);
       });
     });
@@ -50,7 +50,7 @@ describe("Product listing visibility", () => {
             // No inventoryMode or different value
           },
         };
-        
+
         expect(visibleInBrowse(product)).toBe(false);
       });
 
@@ -63,7 +63,7 @@ describe("Product listing visibility", () => {
           metadata: {},
           attributes: {},
         };
-        
+
         expect(visibleInBrowse(product)).toBe(false);
       });
 
@@ -76,12 +76,12 @@ describe("Product listing visibility", () => {
           metadata: {},
           attributes: {},
         };
-        
+
         expect(visibleInBrowse(product)).toBe(true);
       });
     });
 
-    it("shows low-stock products if keepLowStock is true", () => {
+    it("keeps low stock purchasable but never shows zero stock", () => {
       const product = {
         slug: "test-product",
         name: "Test Product",
@@ -94,8 +94,9 @@ describe("Product listing visibility", () => {
         },
         attributes: {},
       };
-      
-      expect(visibleInBrowse(product)).toBe(true);
+
+      expect(visibleInBrowse(product)).toBe(false);
+      expect(visibleInBrowse({ ...product, stockQuantity: 1 })).toBe(true);
     });
 
     it("excludes books from browse listings", () => {
@@ -107,7 +108,7 @@ describe("Product listing visibility", () => {
         metadata: {},
         attributes: {},
       };
-      
+
       expect(visibleInBrowse(product)).toBe(false);
     });
 
@@ -124,7 +125,7 @@ describe("Product listing visibility", () => {
         },
         attributes: {},
       };
-      
+
       expect(visibleInBrowse(product)).toBe(false);
     });
 
@@ -147,7 +148,7 @@ describe("Product listing visibility", () => {
           metadata: {},
           attributes: {},
         };
-        
+
         expect(visibleInBrowse(product)).toBe(false);
       });
     });
@@ -172,7 +173,7 @@ describe("Product listing visibility", () => {
 
       // Simulate unfiltered listing (no ageGroup filter)
       const selectedAgeGroup = undefined;
-      
+
       let filtered = products;
       if (selectedAgeGroup) {
         filtered = products.filter(p => p.ageGroup === selectedAgeGroup);
@@ -193,7 +194,7 @@ describe("Product listing visibility", () => {
 
       // Simulate filtered listing (ageGroup filter applied)
       const selectedAgeGroup = "ELEMENTARY_6_8";
-      
+
       const filtered = products.filter(p => p.ageGroup === selectedAgeGroup);
 
       // Only products matching the filter should be included
@@ -211,11 +212,15 @@ describe("Product listing visibility", () => {
         createMockProduct("MIDDLE_SCHOOL_9_12"),
       ];
 
-      const ageGroups = ["PRESCHOOL_3_5", "ELEMENTARY_6_8", "MIDDLE_SCHOOL_9_12"];
+      const ageGroups = [
+        "PRESCHOOL_3_5",
+        "ELEMENTARY_6_8",
+        "MIDDLE_SCHOOL_9_12",
+      ];
 
       ageGroups.forEach(ageGroup => {
         const filtered = products.filter(p => p.ageGroup === ageGroup);
-        
+
         // Should only include products with matching ageGroup
         expect(filtered.every(p => p.ageGroup === ageGroup)).toBe(true);
         expect(filtered.some(p => p.ageGroup === null)).toBe(false);

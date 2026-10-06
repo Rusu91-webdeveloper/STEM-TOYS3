@@ -63,7 +63,11 @@ import {
   homeOverlayTopClass,
 } from "@/features/home/components/homeTheme";
 import { getTranslation } from "@/lib/i18n/server";
-import { categoryLandingSlug } from "@/lib/products/stem-category";
+import {
+  categoryLandingSlug,
+  categoryPagePath,
+  CATEGORY_PUBLIC_SLUGS,
+} from "@/lib/products/stem-category";
 import { blogService } from "@/lib/services/blog-service";
 import { getCategoryName } from "@/lib/services/categories-service";
 import { buildProductsUrl } from "@/lib/utils/product-filters-url";
@@ -101,7 +105,13 @@ function slugToStemCategory(
 }
 
 export function generateStaticParams() {
-  return [...PAGE_SLUGS.map(slug => ({ slug })), { slug: "math" }];
+  return [
+    ...PAGE_SLUGS.flatMap(slug => [
+      { slug },
+      { slug: CATEGORY_PUBLIC_SLUGS[slug] },
+    ]),
+    { slug: "math" },
+  ];
 }
 
 export async function generateMetadata({
@@ -115,7 +125,7 @@ export async function generateMetadata({
     notFound();
   }
   const name = getCategoryName(landing, "ro");
-  const canonical = `https://www.techtots.ro/categories/${landing}`;
+  const canonical = `https://www.techtots.ro${categoryPagePath(landing)}`;
   const title = `${name} | Jucării STEM | TechTots`;
   const description = `Descoperă jucăriile STEM din categoria ${name}: produse active pentru joacă și învățare, cu livrare în România.`;
   return {
@@ -679,12 +689,15 @@ export default async function CategoryDetailPage({
   const { slug: slugParam } = await params;
   const query = await searchParams;
   const requestedSlug = slugParam.toLowerCase();
-  if (requestedSlug === "math") {
-    permanentRedirect("/categories/mathematics");
-  }
   const slug = categoryLandingSlug(requestedSlug);
   if (!slug) {
     notFound();
+  }
+  if (requestedSlug !== CATEGORY_PUBLIC_SLUGS[slug]) {
+    const page = parseCategoryPage(query.page);
+    permanentRedirect(
+      `${categoryPagePath(slug)}${page > 1 ? `?page=${page}` : ""}`
+    );
   }
   const cookieStore = await cookies();
   const _locale = cookieStore.get("locale")?.value ?? "ro";
@@ -722,7 +735,7 @@ export default async function CategoryDetailPage({
               "@type": "ListItem",
               position: 3,
               name: heroTitle,
-              item: `/categories/${slug}`,
+              item: categoryPagePath(slug),
             },
           ],
         }}

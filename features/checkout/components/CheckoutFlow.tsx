@@ -806,6 +806,7 @@ export function CheckoutFlow() {
         <EnhancedCheckoutStepper
           currentStep={currentStep}
           checkoutData={checkoutData}
+          onStepChange={goToStep}
         />
 
         {/* Step Content */}
@@ -825,6 +826,24 @@ export function CheckoutFlow() {
 
           {currentStep === "shipping-method" && (
             <div className="space-y-6">
+              <div className="flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+                <div>
+                  <p className="font-semibold">
+                    {checkoutData.shippingAddress?.fullName}
+                  </p>
+                  <p className="text-slate-600">
+                    {checkoutData.shippingAddress?.addressLine1},{" "}
+                    {checkoutData.shippingAddress?.city}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="min-h-11 shrink-0 text-slate-700 underline"
+                  onClick={() => setCurrentStep("shipping-address")}
+                >
+                  Modifică adresa
+                </button>
+              </div>
               <ShippingMethodSelector
                 initialMethod={checkoutData.shippingMethod}
                 shippingAddress={checkoutData.shippingAddress}

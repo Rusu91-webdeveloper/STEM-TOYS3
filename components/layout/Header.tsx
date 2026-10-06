@@ -265,7 +265,7 @@ export default function Header() {
                 TechTots
               </span>
               <span className="mt-1 text-[8px] font-bold uppercase tracking-[0.18em] text-blue-600">
-                STEM • Play • Discover
+                STEM • Joacă • Descoperă
               </span>
             </span>
           </Link>

@@ -2,15 +2,17 @@ import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import { getCached } from "@/lib/cache";
-import { TIME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { withPerformanceMonitoring } from "@/lib/performance";
+import { loadStorefrontCatalog } from "@/lib/products/category-listing";
 import {
   filterCatalogForCategory,
   paginateItems,
 } from "@/lib/products/category-query";
-import { loadStorefrontCatalog } from "@/lib/products/category-listing";
-import { toShopperProduct } from "@/lib/products/public-shopper";
+import {
+  toShopperCatalog,
+  toShopperProduct,
+} from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
 import {
   canonicalizeCategorySlug,
@@ -146,7 +148,7 @@ export async function GET(request: NextRequest) {
         );
 
         if (cachedResult && cachedResult.products?.length > 0) {
-          const response = NextResponse.json(cachedResult);
+          const response = NextResponse.json(toShopperCatalog(cachedResult));
           response.headers.set("X-Cache", "HIT-FAST");
           response.headers.set("Cache-Control", "no-store");
           return response;
@@ -183,7 +185,7 @@ export async function GET(request: NextRequest) {
         cacheDuration
       );
 
-      const response = NextResponse.json(cachedResult);
+      const response = NextResponse.json(toShopperCatalog(cachedResult));
       response.headers.set("X-Cache", "HIT");
       response.headers.set("Cache-Control", "no-store");
       return response;
@@ -213,7 +215,7 @@ export async function GET(request: NextRequest) {
       specialCategories,
     });
 
-    const response = NextResponse.json(result);
+    const response = NextResponse.json(toShopperCatalog(result));
     response.headers.set("X-Cache", "MISS");
     response.headers.set("Cache-Control", "no-store");
 

@@ -1,7 +1,9 @@
 import type { Product } from "@/types/product";
 
 import { applyProductContentOverride } from "./catalog-content-overrides";
+import { storefrontImage } from "./catalog-image";
 import { getProductBuyingGuide } from "./product-buying-guides";
+import { normalizeStorefrontCopy } from "./storefront-copy";
 
 const SUPPLIER_BUY_HOSTS = ["boribon.ro", "kidstory.ro"];
 const IMAGE_PATH = /\.(avif|gif|jpe?g|png|svg|webp)(?:$|[?#])/i;
@@ -79,9 +81,26 @@ export function toShopperProduct<T>(product: T): T {
   if (!sanitized || typeof sanitized !== "object" || Array.isArray(sanitized)) {
     return product;
   }
-  const slug = (sanitized as { slug?: unknown }).slug;
+  const record = sanitized as Record<string, unknown>;
+  for (const key of ["name", "description"] as const) {
+    if (typeof record[key] === "string")
+      record[key] = normalizeStorefrontCopy(record[key]);
+  }
+  if (Array.isArray(record.images)) {
+    record.images = record.images.map(source =>
+      typeof source === "string" ? storefrontImage(source) : source
+    );
+  }
+  const slug = record.slug;
   if (typeof slug === "string" && getProductBuyingGuide(slug)) {
     return applyProductContentOverride(sanitized as Product) as T;
   }
   return sanitized as T;
+}
+
+/** Apply current presentation rules after reading a catalog cache entry. */
+export function toShopperCatalog<T extends { products: unknown[] }>(
+  payload: T
+): T {
+  return { ...payload, products: payload.products.map(toShopperProduct) };
 }

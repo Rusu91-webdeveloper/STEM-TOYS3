@@ -3,6 +3,7 @@ import {
   CATEGORY_LABELS_RO,
   canonicalizeCategorySlug,
   categoryLandingSlug,
+  categoryPagePath,
 } from "@/lib/products/stem-category";
 
 // Product-category typos that must not become their own landing URLs.
@@ -32,7 +33,7 @@ export function isRemovedCategoryPageSlug(slug?: string | null): boolean {
 export function getCategoryPageHref(slug?: string | null): string | null {
   const canonical = canonicalizeCategorySlug(slug);
   if (!canonical) return null;
-  return `/categories/${canonical}`;
+  return categoryPagePath(canonical);
 }
 
 export interface StorefrontCategoryLink {
@@ -54,7 +55,7 @@ export function resolveStorefrontCategoryLink(input: {
   const ownPage = categoryLandingSlug(slug);
   if (ownPage) {
     return {
-      href: `/categories/${ownPage}`,
+      href: categoryPagePath(ownPage),
       label: CATEGORY_LABELS_RO[ownPage],
     };
   }
@@ -63,7 +64,7 @@ export function resolveStorefrontCategoryLink(input: {
   const stemPage = canonicalizeCategorySlug(input.stemDiscipline);
   if (stem.recognized && stem.label && stemPage) {
     return {
-      href: `/categories/${stemPage}`,
+      href: categoryPagePath(stemPage),
       label: stem.label,
     };
   }
@@ -73,7 +74,7 @@ export function resolveStorefrontCategoryLink(input: {
     canonicalizeCategorySlug(input.categoryName);
   if (!fromCategory) return null;
   return {
-    href: `/categories/${fromCategory}`,
+    href: categoryPagePath(fromCategory),
     label: CATEGORY_LABELS_RO[fromCategory],
   };
 }

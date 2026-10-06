@@ -17,8 +17,8 @@ import { useSearchParams } from "next/navigation";
 import React, { useState, useEffect, useMemo, useRef, Suspense } from "react";
 
 import { ProductVariantProvider } from "@/features/products";
-import { useTranslation } from "@/lib/i18n";
 import { formatStorefrontPrice } from "@/lib/format/storefront-price";
+import { useTranslation } from "@/lib/i18n";
 import { isVisibleOnProductsListing } from "@/lib/products/catalog-access";
 import { giftOrder } from "@/lib/products/merchandising";
 import { isListedInCategory } from "@/lib/products/stem-category";
@@ -451,11 +451,12 @@ function ClientProductsPageContent({
   ]);
 
   // Same visibility function as sitemap product URLs.
-  const totalBrowseableProducts = useMemo(() => {
-    return products.filter(product =>
-      isVisibleOnProductsListing(product as any)
-    ).length;
-  }, [products]);
+  const totalBrowseableProducts = useMemo(
+    () =>
+      products.filter(product => isVisibleOnProductsListing(product as any))
+        .length,
+    [products]
+  );
 
   const bundleFilteredProducts = useMemo(() => {
     if (bundleViewMode === "bundles") {
@@ -852,9 +853,9 @@ function ClientProductsPageContent({
         <div className="w-full">
           {/* Page header — breadcrumb + title */}
           <div className="px-3 pt-3 sm:px-4 sm:pt-5 lg:px-6 lg:pt-6">
-            <div className="container mx-auto overflow-hidden rounded-[1.5rem] bg-[#0b1220] px-5 py-7 shadow-[0_28px_70px_-44px_rgba(15,23,42,0.9)] sm:rounded-[2rem] sm:px-8 sm:py-10 lg:px-12 lg:py-12">
+            <div className="container mx-auto overflow-hidden rounded-[1.5rem] bg-[#0b1220] px-5 py-4 sm:rounded-[1.5rem] sm:px-6 sm:py-5 lg:px-8 lg:py-5">
               {/* Breadcrumb */}
-              <nav className="mb-5 flex items-center gap-1.5 text-xs font-medium text-slate-400">
+              <nav className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-400">
                 <Link href="/" className="transition-colors hover:text-white">
                   {t("home", "Home")}
                 </Link>
@@ -863,15 +864,15 @@ function ClientProductsPageContent({
                   {t("allProducts", "Toate Produsele")}
                 </span>
               </nav>
-              <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] text-sky-300">
                     Catalog TechTots
                   </p>
-                  <h1 className="text-3xl font-bold tracking-[-0.045em] text-white sm:text-4xl lg:text-5xl">
+                  <h1 className="text-2xl font-bold tracking-[-0.035em] text-white sm:text-3xl">
                     {getCategoryTitle()}
                   </h1>
-                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
                     {getCategoryDescription()}
                   </p>
                 </div>
@@ -914,7 +915,7 @@ function ClientProductsPageContent({
           </div>
 
           {/* Main content — sidebar + products grid */}
-          <div className="container mx-auto px-3 py-5 sm:px-4 sm:py-7 lg:px-6 lg:py-8">
+          <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-5 lg:px-6 lg:py-5">
             <div className="flex flex-col items-start gap-5 xl:flex-row xl:gap-7">
               <ProductFiltersErrorBoundary
                 onError={() => {

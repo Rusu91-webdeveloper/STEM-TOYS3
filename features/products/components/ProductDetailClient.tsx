@@ -6,8 +6,10 @@ import { useSearchParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
 import { LazyProductReviews } from "@/components/lazy/client";
+import { CodPaymentNotice } from "@/components/storefront/CodPaymentNotice";
 import { useProductViewTracking } from "@/lib/analytics/use-storefront-tracking";
 import { useTranslation } from "@/lib/i18n";
+import type { PublicCODSettings } from "@/lib/pricing/cod-settings";
 import { getProductBuyingGuide } from "@/lib/products/product-buying-guides";
 import { productPublicPath } from "@/lib/products/public-slug";
 import {
@@ -44,6 +46,7 @@ import ProductUpsellPicker, { type ProductUpsell } from "./ProductUpsellPicker";
 
 interface ProductDetailClientProps {
   product: any;
+  codSettings?: PublicCODSettings;
   upsellProducts?: ProductUpsell[];
   relatedProducts?: any[];
   initialReviews?: Review[];
@@ -55,6 +58,7 @@ interface ProductDetailClientProps {
 
 export default function ProductDetailClient({
   product,
+  codSettings,
   relatedProducts: _relatedProducts = [],
   initialReviews = [],
   userLoggedIn = false,
@@ -235,6 +239,9 @@ export default function ProductDetailClient({
                     justAdded={justAddedToCart}
                     onAdd={handleQuickAddToCart}
                   />
+                  {!derivedIsBook && codSettings && (
+                    <CodPaymentNotice settings={codSettings} />
+                  )}
                   {buyingGuide && <ProductBuyingSummary guide={buyingGuide} />}
                   <p className="text-sm text-slate-600">
                     Plată cu cardul sau ramburs · Livrare 1–4 zile lucrătoare

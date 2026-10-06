@@ -9,7 +9,10 @@ import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
 import { buildDefaultProductFaq } from "@/lib/seo/product-faq";
 import { resolveStorefrontCategoryLink } from "@/lib/utils/category-page-links";
-import { getShippingSettings } from "@/lib/utils/store-settings";
+import {
+  getCODSettings,
+  getShippingSettings,
+} from "@/lib/utils/store-settings";
 import type { Product } from "@/types/product";
 
 import type { BundleContentItem } from "./BundleContents";
@@ -89,16 +92,18 @@ async function fetchBundleContents(
   for (const itemId of itemIds) {
     const item = bundleProductsById.get(itemId);
     if (!item) continue;
-    orderedItems.push({
-      id: item.id,
-      name: item.name,
-      slug: toPublicProductSlug(item.slug),
-      description: item.description ?? "",
-      images: item.images as string[],
-      price: item.price,
-      stockQuantity: item.stockQuantity,
-      isActive: item.isActive,
-    });
+    orderedItems.push(
+      toShopperProduct({
+        id: item.id,
+        name: item.name,
+        slug: toPublicProductSlug(item.slug),
+        description: item.description ?? "",
+        images: item.images as string[],
+        price: item.price,
+        stockQuantity: item.stockQuantity,
+        isActive: item.isActive,
+      })
+    );
   }
 
   return orderedItems;
@@ -125,12 +130,20 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
       ? Promise.resolve([])
       : fetchBundleContents(product.id);
 
-  const [reviews, bundleContents, upsellProducts] = await Promise.all([
+  const [
+    reviews,
+    bundleContents,
+    upsellProducts,
+    codSettings,
+    shippingSettings,
+  ] = await Promise.all([
     reviewsPromise,
     bundleContentsPromise,
     product.sku && !isBook
       ? getUpsellProducts(product.sku)
       : Promise.resolve([]),
+    getCODSettings(),
+    getShippingSettings(),
   ]);
 
   const reviewsForSchema = reviews
@@ -151,7 +164,7 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
     product,
     reviewsForSchema,
     undefined,
-    await getShippingSettings()
+    shippingSettings
   );
   const fallbackFaq = buildDefaultProductFaq(product);
   const productFaq =
@@ -240,6 +253,7 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
     <>
       <SeoJsonLd data={structuredData} />
       <ProductDetailClient
+        codSettings={codSettings}
         product={product}
         isBook={isBook}
         initialReviews={reviews}

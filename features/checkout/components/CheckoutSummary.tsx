@@ -338,18 +338,23 @@ export function CheckoutSummary({
       </div>
 
       {currentStep !== "review" && (
-        <div className={`${checkoutPromoPanelClass} p-4 sm:p-5`}>
-          <p className="mb-3 text-sm font-medium text-slate-700">
+        <details
+          open={Boolean(localAppliedCoupon)}
+          className={`${checkoutPromoPanelClass} p-3`}
+        >
+          <summary className="cursor-pointer text-sm font-medium text-slate-600">
             {t("havePromoCode", "Ai un cod promoțional?")}
-          </p>
-          <CouponInput
-            cartTotal={cartTotalIncludingVAT}
-            appliedCoupon={localAppliedCoupon}
-            onCouponApplied={handleCouponApplied}
-            onCouponRemoved={handleCouponRemoved}
-            disabled={isDiscountDisabled}
-          />
-        </div>
+          </summary>
+          <div className="mt-3">
+            <CouponInput
+              cartTotal={cartTotalIncludingVAT}
+              appliedCoupon={localAppliedCoupon}
+              onCouponApplied={handleCouponApplied}
+              onCouponRemoved={handleCouponRemoved}
+              disabled={isDiscountDisabled}
+            />
+          </div>
+        </details>
       )}
 
       <div className="grid grid-cols-3 gap-2 border-t border-slate-200/80 pt-4 sm:gap-3">

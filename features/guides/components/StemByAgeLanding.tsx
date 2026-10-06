@@ -20,8 +20,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 const surfaceBase =
   "rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-900/10 backdrop-blur-sm sm:p-8";
@@ -89,11 +89,11 @@ export function StemByAgeLanding() {
       linkIntro: translate("byAge3to5Explore"),
       links: [
         {
-          href: "/categories/mathematics",
+          href: "/categories/matematica",
           label: translate("guide2025MathematicsCategory"),
         },
         {
-          href: "/categories/engineering",
+          href: "/categories/inginerie",
           label: translate("guide2025EngineeringCategory"),
         },
       ],
@@ -111,11 +111,11 @@ export function StemByAgeLanding() {
       linkIntro: translate("byAge6to8See"),
       links: [
         {
-          href: "/categories/technology",
+          href: "/categories/tehnologie",
           label: translate("guide2025TechnologyCategory"),
         },
         {
-          href: "/categories/science",
+          href: "/categories/stiinta",
           label: translate("guide2025ScienceCategory"),
         },
       ],
@@ -133,11 +133,11 @@ export function StemByAgeLanding() {
       linkIntro: translate("byAge9to12Recommend"),
       links: [
         {
-          href: "/categories/engineering",
+          href: "/categories/inginerie",
           label: translate("guide2025EngineeringCategory"),
         },
         {
-          href: "/categories/mathematics",
+          href: "/categories/matematica",
           label: translate("guide2025MathematicsCategory"),
         },
       ],
@@ -155,11 +155,11 @@ export function StemByAgeLanding() {
       linkIntro: translate("byAge13plusDiscover"),
       links: [
         {
-          href: "/categories/technology",
+          href: "/categories/tehnologie",
           label: translate("guide2025TechnologyCategory"),
         },
         {
-          href: "/categories/engineering",
+          href: "/categories/inginerie",
           label: translate("guide2025EngineeringCategory"),
         },
       ],

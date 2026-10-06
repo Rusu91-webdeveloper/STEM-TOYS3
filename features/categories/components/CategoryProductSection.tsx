@@ -9,6 +9,7 @@ import { ProductCard } from "@/features/products/components/ProductCard";
 import { getCategoryPageProducts } from "@/lib/products/category-listing";
 import {
   CATEGORY_LABELS_RO,
+  categoryPagePath,
   type CanonicalCategorySlug,
   formatProductCountRo,
 } from "@/lib/products/stem-category";
@@ -78,7 +79,7 @@ export async function CategoryProductSection({
               >
                 {listing.page > 1 ? (
                   <Link
-                    href={`/categories/${slug}?page=${listing.page - 1}`}
+                    href={`${categoryPagePath(slug)}?page=${listing.page - 1}`}
                     className="text-sm font-semibold text-indigo-700 hover:text-indigo-900"
                   >
                     Pagina anterioară
@@ -93,7 +94,7 @@ export async function CategoryProductSection({
                 </p>
                 {listing.page < listing.totalPages ? (
                   <Link
-                    href={`/categories/${slug}?page=${listing.page + 1}`}
+                    href={`${categoryPagePath(slug)}?page=${listing.page + 1}`}
                     className="text-sm font-semibold text-indigo-700 hover:text-indigo-900"
                   >
                     Pagina următoare

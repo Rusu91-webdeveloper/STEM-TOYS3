@@ -2,6 +2,7 @@ import { Metadata } from "next";
 
 import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
+import { normalizeStorefrontCopy } from "@/lib/products/storefront-copy";
 import { SITE_URL } from "@/lib/site";
 
 import { createMetadata } from "../metadata";
@@ -121,10 +122,10 @@ export function generateProductMetadata(
   const translations = {
     ro: {
       title: seoData.metaTitle
-        ? seoData.metaTitle
+        ? normalizeStorefrontCopy(seoData.metaTitle)
         : `${product.name} | ${categoryName} pentru copii | TechTots`,
       description: seoData.metaDescription
-        ? seoData.metaDescription
+        ? normalizeStorefrontCopy(seoData.metaDescription)
         : safeDescription.length > 160
           ? `${safeDescription.substring(0, 157)}...`
           : safeDescription,
@@ -603,10 +604,10 @@ export function validateStructuredData(structuredData: any[]): {
           warnings.push(`ImageObject ${index}: Missing caption or description`);
         }
         break;
+      default:
+        break;
     }
   });
-
-  const totalChecks = structuredData.length * 5; // Rough estimate of checks per schema
   const errorPenalty = errors.length * 20;
   const warningPenalty = warnings.length * 5;
   const score = Math.max(0, 100 - errorPenalty - warningPenalty);

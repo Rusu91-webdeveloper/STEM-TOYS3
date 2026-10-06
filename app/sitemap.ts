@@ -3,7 +3,10 @@ import { MetadataRoute } from "next";
 import { db } from "@/lib/db";
 import { includeInProductSitemap } from "@/lib/products/catalog-access";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
-import { CANONICAL_CATEGORY_SLUGS } from "@/lib/products/stem-category";
+import {
+  CANONICAL_CATEGORY_SLUGS,
+  categoryPagePath,
+} from "@/lib/products/stem-category";
 import { regionalStemCities } from "@/lib/seo/regional-search";
 
 export const dynamic = "force-dynamic";
@@ -160,18 +163,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     const categoryPages = CANONICAL_CATEGORY_SLUGS.map(slug => ({
-      url: `${baseUrl}/categories/${slug}`,
+      url: `${baseUrl}${categoryPagePath(slug)}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 0.62,
     }));
 
-    const productPages = products.filter(includeInProductSitemap).map(product => ({
-      url: `${baseUrl}/products/${toPublicProductSlug(product.slug)}`,
-      lastModified: product.updatedAt,
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    }));
+    const productPages = products
+      .filter(includeInProductSitemap)
+      .map(product => ({
+        url: `${baseUrl}/products/${toPublicProductSlug(product.slug)}`,
+        lastModified: product.updatedAt,
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      }));
 
     const blogPages = blogs.map(blog => ({
       url: `${baseUrl}/blog/${blog.slug}`,

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 interface OptimizedProductImageProps {
   src: string;
@@ -18,39 +18,6 @@ interface OptimizedProductImageProps {
   onLoad?: () => void;
   onError?: () => void;
 }
-
-// Generate a better blur placeholder with proper aspect ratio
-// Currently unused but kept for future enhancement
-const _generateBlurDataURL = (width = 400, height = 400) => {
-  // Check if we're in a browser environment
-  if (typeof window === "undefined" || typeof document === "undefined") {
-    return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
-  }
-
-  try {
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-
-    if (!ctx)
-      return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
-
-    // Create a subtle gradient blur
-    const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, "#f3f4f6");
-    gradient.addColorStop(0.5, "#e5e7eb");
-    gradient.addColorStop(1, "#d1d5db");
-
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
-
-    return canvas.toDataURL();
-  } catch (error) {
-    console.warn("Error generating blur data URL:", error);
-    return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
-  }
-};
 
 // Default blur data URL for SSR compatibility
 const DEFAULT_BLUR_DATA_URL =
@@ -71,48 +38,21 @@ export function OptimizedProductImage({
   onLoad,
   onError,
 }: OptimizedProductImageProps) {
-  const [imageError, setImageError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Generate WebP URL if supported
-  const getOptimizedSrc = (originalSrc: string) => {
-    if (!originalSrc) return originalSrc;
-
-    // If it's already a WebP or external URL, return as-is
-    if (originalSrc.includes(".webp") || originalSrc.startsWith("http")) {
-      return originalSrc;
-    }
-
-    // For local images, try to use WebP version
-    const extension = originalSrc.split(".").pop();
-    if (extension && ["jpg", "jpeg", "png"].includes(extension.toLowerCase())) {
-      return originalSrc.replace(`.${extension}`, ".webp");
-    }
-
-    return originalSrc;
-  };
+  const [failedSource, setFailedSource] = useState<string | null>(null);
 
   const handleLoad = () => {
-    setIsLoading(false);
     onLoad?.();
   };
 
   const handleError = () => {
-    setImageError(true);
-    setIsLoading(false);
+    setFailedSource(src);
     onError?.();
   };
 
-  const optimizedSrc = getOptimizedSrc(src);
   const fallbackBlurDataURL = blurDataURL ?? DEFAULT_BLUR_DATA_URL;
 
-  useEffect(() => {
-    setImageError(false);
-    setIsLoading(true);
-  }, [optimizedSrc]);
-
   // Error fallback component
-  if (imageError) {
+  if (failedSource === src) {
     return (
       <div
         className={`flex items-center justify-center bg-gray-100 ${className}`}
@@ -131,16 +71,16 @@ export function OptimizedProductImage({
               d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          <span className="text-xs">Image unavailable</span>
+          <span className="text-xs">Imagine indisponibilă</span>
         </div>
       </div>
     );
   }
 
   const imageProps = {
-    src: optimizedSrc,
+    src,
     alt,
-    className: `transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"} ${className}`,
+    className,
     priority,
     quality,
     sizes,
@@ -151,19 +91,7 @@ export function OptimizedProductImage({
     ...(fill ? { fill: true } : { width, height }),
   };
 
-  return (
-    <>
-      <Image {...imageProps} alt={alt} />
-      {/* Loading overlay */}
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-          <div className="animate-pulse">
-            <div className="h-4 w-4 bg-gray-300 rounded-full animate-bounce"></div>
-          </div>
-        </div>
-      )}
-    </>
-  );
+  return <Image key={src} {...imageProps} alt={alt} />;
 }
 
 // Higher-order component for responsive images

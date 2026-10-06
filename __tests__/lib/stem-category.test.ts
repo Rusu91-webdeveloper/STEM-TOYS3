@@ -219,9 +219,9 @@ describe("Matematică presence", () => {
     expect(getCategoryName("math", "ro")).toBe("Matematică");
     expect(categoryLandingSlug("mathematics")).toBe("mathematics");
     expect(categoryLandingSlug("math")).toBe("mathematics");
-    expect(getCategoryPageHref("mathematics")).toBe("/categories/mathematics");
-    expect(getCategoryPageHref("math")).toBe("/categories/mathematics");
-    expect(getCategoryPageHref("logic-games")).toBe("/categories/mathematics");
+    expect(getCategoryPageHref("mathematics")).toBe("/categories/matematica");
+    expect(getCategoryPageHref("math")).toBe("/categories/matematica");
+    expect(getCategoryPageHref("logic-games")).toBe("/categories/matematica");
     expect(isRemovedCategoryPageSlug("mathematics")).toBe(false);
   });
 });

@@ -147,17 +147,9 @@ export function createMetadata({
       site: "@TechTotsRO",
       creator: "@TechTotsRO",
     },
-    robots: {
-      index: !noindex,
-      follow: !noindex,
-      googleBot: {
-        index: !noindex,
-        follow: !noindex,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-        "max-video-preview": -1,
-      },
-    },
+    // Indexing is the crawler default. An inherited explicit "index" conflicts
+    // with Next's automatic noindex when a child route calls notFound().
+    ...(noindex && { robots: { index: false, follow: false } }),
     metadataBase: new URL(baseUrl),
     other: {
       // Location information for local SEO

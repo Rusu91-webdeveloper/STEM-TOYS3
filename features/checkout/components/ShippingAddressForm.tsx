@@ -19,7 +19,6 @@ import {
   checkoutCardClass,
   checkoutFieldInputClass,
   checkoutFieldLabelClass,
-  checkoutInfoBannerClass,
 } from "@/features/checkout/lib/checkoutTheme";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation } from "@/lib/i18n";
@@ -98,7 +97,6 @@ const romanianCounties = [
 ];
 
 // Only Romania is available for shipping
-const countries = [{ code: "RO", name: "România" }];
 
 const parseStreetFromLegacyAddress = (
   line1: string,
@@ -106,14 +104,21 @@ const parseStreetFromLegacyAddress = (
   city?: string
 ): Pick<
   ShippingAddress,
-  "street" | "streetNumber" | "block" | "entrance" | "floor" | "apartment" | "addressDetails"
+  | "street"
+  | "streetNumber"
+  | "block"
+  | "entrance"
+  | "floor"
+  | "apartment"
+  | "addressDetails"
 > => {
   const cleanedCity = (city || "").trim().toLowerCase();
-  const firstPart = line1
-    .split(",")
-    .map(part => part.trim())
-    .filter(Boolean)
-    .find(part => part.toLowerCase() !== cleanedCity) || line1.trim();
+  const firstPart =
+    line1
+      .split(",")
+      .map(part => part.trim())
+      .filter(Boolean)
+      .find(part => part.toLowerCase() !== cleanedCity) || line1.trim();
 
   const streetNoMatch = firstPart.match(
     /^(.*?)(?:\s+(?:nr\.?|no\.?)?\s*(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?))$/i
@@ -121,15 +126,21 @@ const parseStreetFromLegacyAddress = (
   const street = (streetNoMatch?.[1] || firstPart).trim();
   const streetNumber =
     (streetNoMatch?.[2] || "").replace(/\s+/g, "") ||
-    ((line2 || "").trim().match(/^\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?$/)?.[0] ??
+    ((line2 || "")
+      .trim()
+      .match(/^\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?$/)?.[0] ??
       "");
 
   const detailsSource = [line1, line2 || ""].join(", ");
-  const block = detailsSource.match(/\b(?:bl(?:oc)?\.?)\s*([a-zA-Z0-9\-\/]+)/i)?.[1];
+  const block = detailsSource.match(
+    /\b(?:bl(?:oc)?\.?)\s*([a-zA-Z0-9\-\/]+)/i
+  )?.[1];
   const entrance = detailsSource.match(
     /\b(?:sc(?:ara)?\.?|entr(?:are)?\.?)\s*([a-zA-Z0-9\-\/]+)/i
   )?.[1];
-  const floor = detailsSource.match(/\b(?:et(?:aj)?\.?|floor)\s*([a-zA-Z0-9\-\/]+)/i)?.[1];
+  const floor = detailsSource.match(
+    /\b(?:et(?:aj)?\.?|floor)\s*([a-zA-Z0-9\-\/]+)/i
+  )?.[1];
   const apartment = detailsSource.match(
     /\b(?:ap(?:t|artament)?\.?)\s*([a-zA-Z0-9\-\/]+)/i
   )?.[1];
@@ -157,7 +168,9 @@ const parseStreetFromLegacyAddress = (
   };
 };
 
-const composeLegacyAddressLines = (address: ShippingAddress): ShippingAddress => {
+const composeLegacyAddressLines = (
+  address: ShippingAddress
+): ShippingAddress => {
   const street = (address.street || "").trim();
   const streetNumber = (address.streetNumber || "").trim();
   const block = (address.block || "").trim();
@@ -314,7 +327,7 @@ export function ShippingAddressForm({
     if (!canLoadSavedAddresses) {
       setSavedAddresses([]);
       setIsLoadingAddresses(false);
-      return;
+      return undefined;
     }
 
     let cancelled = false;
@@ -333,7 +346,9 @@ export function ShippingAddressForm({
           );
           if (defaultAddress && !initialData) {
             setSelectedAddressId(defaultAddress.id);
-            setFormData(mapSavedAddressToCheckout(defaultAddress, defaultCountry));
+            setFormData(
+              mapSavedAddressToCheckout(defaultAddress, defaultCountry)
+            );
           }
         }
       } catch (error) {
@@ -458,9 +473,7 @@ export function ShippingAddressForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-        <div
-          className={`${checkoutCardClass} p-6 text-slate-900 shadow-sm`}
-        >
+      <div className={`${checkoutCardClass} p-6 text-slate-900 shadow-sm`}>
         <div className="mb-6">
           <h2 className="text-xl font-bold tracking-tight text-slate-900">
             {t("checkoutShippingInfoTitle", "Informații livrare")}
@@ -472,12 +485,6 @@ export function ShippingAddressForm({
             )}
           </p>
         </div>
-
-        {!allowInternational && (
-          <div className={`${checkoutInfoBannerClass} mb-4`}>
-            {t("deliveryOnlyRomania")}
-          </div>
-        )}
 
         {isLoadingAddresses ? (
           <div className="flex items-center justify-center py-6">
@@ -579,7 +586,8 @@ export function ShippingAddressForm({
                   onChange={handleChange}
                   className={cn(
                     checkoutFieldInputClass,
-                    errors.email && "border-red-500 focus-visible:ring-red-500/20"
+                    errors.email &&
+                      "border-red-500 focus-visible:ring-red-500/20"
                   )}
                 />
                 {errors.email && (
@@ -594,11 +602,13 @@ export function ShippingAddressForm({
               <Input
                 id="fullName"
                 name="fullName"
+                autoComplete="name"
                 value={formData.fullName}
                 onChange={handleChange}
                 className={cn(
                   checkoutFieldInputClass,
-                  errors.fullName && "border-red-500 focus-visible:ring-red-500/20"
+                  errors.fullName &&
+                    "border-red-500 focus-visible:ring-red-500/20"
                 )}
               />
               {errors.fullName && (
@@ -606,47 +616,69 @@ export function ShippingAddressForm({
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="companyName" className={checkoutFieldLabelClass}>
-                  {t("companyNameOptional", "Company name (optional)")}
-                </Label>
-                <Input
-                  id="companyName"
-                  name="companyName"
-                  value={formData.companyName || ""}
-                  onChange={handleChange}
-                  className={cn(
-                    checkoutFieldInputClass,
-                    errors.companyName && "border-red-500 focus-visible:ring-red-500/20"
-                  )}
-                />
-                {errors.companyName && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.companyName}
-                  </p>
-                )}
-              </div>
+            <details
+              className="rounded-lg border border-slate-200 p-3"
+              open={
+                Boolean(
+                  formData.companyName ||
+                    formData.cui ||
+                    errors.companyName ||
+                    errors.cui
+                ) || undefined
+              }
+            >
+              <summary className="cursor-pointer text-sm font-medium text-slate-700">
+                Cumpăr pe firmă (opțional)
+              </summary>
+              <div className="mt-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label
+                      htmlFor="companyName"
+                      className={checkoutFieldLabelClass}
+                    >
+                      {t("companyNameOptional", "Company name (optional)")}
+                    </Label>
+                    <Input
+                      id="companyName"
+                      name="companyName"
+                      value={formData.companyName || ""}
+                      onChange={handleChange}
+                      className={cn(
+                        checkoutFieldInputClass,
+                        errors.companyName &&
+                          "border-red-500 focus-visible:ring-red-500/20"
+                      )}
+                    />
+                    {errors.companyName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.companyName}
+                      </p>
+                    )}
+                  </div>
 
-              <div>
-                <Label htmlFor="cui" className={checkoutFieldLabelClass}>
-                  {t("cuiOptional", "CUI/VAT (optional)")}
-                </Label>
-                <Input
-                  id="cui"
-                  name="cui"
-                  value={formData.cui || ""}
-                  onChange={handleChange}
-                  className={cn(
-                    checkoutFieldInputClass,
-                    errors.cui && "border-red-500 focus-visible:ring-red-500/20"
-                  )}
-                />
-                {errors.cui && (
-                  <p className="mt-1 text-sm text-red-600">{errors.cui}</p>
-                )}
+                  <div>
+                    <Label htmlFor="cui" className={checkoutFieldLabelClass}>
+                      {t("cuiOptional", "CUI/VAT (optional)")}
+                    </Label>
+                    <Input
+                      id="cui"
+                      name="cui"
+                      value={formData.cui || ""}
+                      onChange={handleChange}
+                      className={cn(
+                        checkoutFieldInputClass,
+                        errors.cui &&
+                          "border-red-500 focus-visible:ring-red-500/20"
+                      )}
+                    />
+                    {errors.cui && (
+                      <p className="mt-1 text-sm text-red-600">{errors.cui}</p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            </details>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -660,7 +692,8 @@ export function ShippingAddressForm({
                   onChange={handleChange}
                   className={cn(
                     checkoutFieldInputClass,
-                    errors.street && "border-red-500 focus-visible:ring-red-500/20"
+                    errors.street &&
+                      "border-red-500 focus-visible:ring-red-500/20"
                   )}
                 />
                 {errors.street && (
@@ -669,7 +702,10 @@ export function ShippingAddressForm({
               </div>
 
               <div>
-                <Label htmlFor="streetNumber" className={checkoutFieldLabelClass}>
+                <Label
+                  htmlFor="streetNumber"
+                  className={checkoutFieldLabelClass}
+                >
                   {t("streetNumberLabel", "Număr")}
                 </Label>
                 <Input
@@ -679,7 +715,8 @@ export function ShippingAddressForm({
                   onChange={handleChange}
                   className={cn(
                     checkoutFieldInputClass,
-                    errors.streetNumber && "border-red-500 focus-visible:ring-red-500/20"
+                    errors.streetNumber &&
+                      "border-red-500 focus-visible:ring-red-500/20"
                   )}
                 />
                 {errors.streetNumber && (
@@ -690,62 +727,88 @@ export function ShippingAddressForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <Label htmlFor="block" className={checkoutFieldLabelClass}>
-                  {t("blockLabel", "Bloc")}
-                </Label>
-                <Input
-                  id="block"
-                  name="block"
-                  value={formData.block || ""}
-                  onChange={handleChange}
-                  className={checkoutFieldInputClass}
-                />
-              </div>
+            <details
+              className="rounded-lg border border-slate-200 p-3"
+              open={
+                Boolean(
+                  formData.block ||
+                    formData.entrance ||
+                    formData.floor ||
+                    formData.apartment
+                ) || undefined
+              }
+            >
+              <summary className="cursor-pointer text-sm font-medium text-slate-700">
+                Bloc, scară, etaj sau apartament (opțional)
+              </summary>
+              <div className="mt-3">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <Label htmlFor="block" className={checkoutFieldLabelClass}>
+                      {t("blockLabel", "Bloc")}
+                    </Label>
+                    <Input
+                      id="block"
+                      name="block"
+                      value={formData.block || ""}
+                      onChange={handleChange}
+                      className={checkoutFieldInputClass}
+                    />
+                  </div>
 
-              <div>
-                <Label htmlFor="entrance" className={checkoutFieldLabelClass}>
-                  {t("entranceLabel", "Scară")}
-                </Label>
-                <Input
-                  id="entrance"
-                  name="entrance"
-                  value={formData.entrance || ""}
-                  onChange={handleChange}
-                  className={checkoutFieldInputClass}
-                />
-              </div>
+                  <div>
+                    <Label
+                      htmlFor="entrance"
+                      className={checkoutFieldLabelClass}
+                    >
+                      {t("entranceLabel", "Scară")}
+                    </Label>
+                    <Input
+                      id="entrance"
+                      name="entrance"
+                      value={formData.entrance || ""}
+                      onChange={handleChange}
+                      className={checkoutFieldInputClass}
+                    />
+                  </div>
 
-              <div>
-                <Label htmlFor="floor" className={checkoutFieldLabelClass}>
-                  {t("floorLabel", "Etaj")}
-                </Label>
-                <Input
-                  id="floor"
-                  name="floor"
-                  value={formData.floor || ""}
-                  onChange={handleChange}
-                  className={checkoutFieldInputClass}
-                />
-              </div>
+                  <div>
+                    <Label htmlFor="floor" className={checkoutFieldLabelClass}>
+                      {t("floorLabel", "Etaj")}
+                    </Label>
+                    <Input
+                      id="floor"
+                      name="floor"
+                      value={formData.floor || ""}
+                      onChange={handleChange}
+                      className={checkoutFieldInputClass}
+                    />
+                  </div>
 
-              <div>
-                <Label htmlFor="apartment" className={checkoutFieldLabelClass}>
-                  {t("apartmentLabel", "Apartament")}
-                </Label>
-                <Input
-                  id="apartment"
-                  name="apartment"
-                  value={formData.apartment || ""}
-                  onChange={handleChange}
-                  className={checkoutFieldInputClass}
-                />
+                  <div>
+                    <Label
+                      htmlFor="apartment"
+                      className={checkoutFieldLabelClass}
+                    >
+                      {t("apartmentLabel", "Apartament")}
+                    </Label>
+                    <Input
+                      id="apartment"
+                      name="apartment"
+                      value={formData.apartment || ""}
+                      onChange={handleChange}
+                      className={checkoutFieldInputClass}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
+            </details>
 
             <div>
-              <Label htmlFor="addressDetails" className={checkoutFieldLabelClass}>
+              <Label
+                htmlFor="addressDetails"
+                className={checkoutFieldLabelClass}
+              >
                 {t("addressDetailsLabel", "Detalii adresă (opțional)")}
               </Label>
               <Input
@@ -773,7 +836,8 @@ export function ShippingAddressForm({
                   onChange={handleChange}
                   className={cn(
                     checkoutFieldInputClass,
-                    errors.city && "border-red-500 focus-visible:ring-red-500/20"
+                    errors.city &&
+                      "border-red-500 focus-visible:ring-red-500/20"
                   )}
                 />
                 {errors.city && (
@@ -793,7 +857,8 @@ export function ShippingAddressForm({
                     onChange={handleChange}
                     className={cn(
                       checkoutFieldInputClass,
-                      errors.state && "border-red-500 focus-visible:ring-red-500/20"
+                      errors.state &&
+                        "border-red-500 focus-visible:ring-red-500/20"
                     )}
                   />
                 ) : (
@@ -804,7 +869,8 @@ export function ShippingAddressForm({
                     <SelectTrigger
                       className={cn(
                         checkoutFieldInputClass,
-                        errors.state && "border-red-500 focus-visible:ring-red-500/20"
+                        errors.state &&
+                          "border-red-500 focus-visible:ring-red-500/20"
                       )}
                     >
                       <SelectValue
@@ -834,11 +900,13 @@ export function ShippingAddressForm({
                 <Input
                   id="postalCode"
                   name="postalCode"
+                  autoComplete="shipping postal-code"
                   value={formData.postalCode}
                   onChange={handleChange}
                   className={cn(
                     checkoutFieldInputClass,
-                    errors.postalCode && "border-red-500 focus-visible:ring-red-500/20"
+                    errors.postalCode &&
+                      "border-red-500 focus-visible:ring-red-500/20"
                   )}
                 />
                 {errors.postalCode && (
@@ -860,33 +928,17 @@ export function ShippingAddressForm({
                     onChange={handleChange}
                     className={cn(
                       checkoutFieldInputClass,
-                      errors.country && "border-red-500 focus-visible:ring-red-500/20"
+                      errors.country &&
+                        "border-red-500 focus-visible:ring-red-500/20"
                     )}
                   />
                 ) : (
-                  <Select
-                    value={formData.country}
-                    onValueChange={value => handleSelectChange("country", value)}
-                    disabled={true}
-                  >
-                    <SelectTrigger
-                      className={cn(
-                        checkoutFieldInputClass,
-                        errors.country && "border-red-500 focus-visible:ring-red-500/20"
-                      )}
-                    >
-                      <SelectValue
-                        placeholder={t("selectCountry", "Select a country")}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries.map(country => (
-                        <SelectItem key={country.code} value={country.code}>
-                          {country.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="country"
+                    value="România"
+                    readOnly
+                    className={checkoutFieldInputClass}
+                  />
                 )}
                 {errors.country && (
                   <p className="mt-1 text-sm text-red-600">{errors.country}</p>
@@ -895,12 +947,14 @@ export function ShippingAddressForm({
             </div>
 
             <div>
-                <Label htmlFor="phone" className={checkoutFieldLabelClass}>
-                  {t("phone")}
-                </Label>
+              <Label htmlFor="phone" className={checkoutFieldLabelClass}>
+                {t("phone")}
+              </Label>
               <Input
                 id="phone"
                 name="phone"
+                type="tel"
+                autoComplete="tel"
                 value={formData.phone}
                 onChange={handleChange}
                 className={cn(
