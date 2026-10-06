@@ -9,6 +9,7 @@ import {
   disciplineBadgeLabel,
   resolveProductAgeChip,
 } from "@/lib/products/romanian-catalog";
+import { storefrontAttributeLabel } from "@/lib/products/storefront-attributes";
 
 import {
   productBodyTextClass,
@@ -29,7 +30,9 @@ function humanizeAgeGroup(
   if (!value) return undefined;
   const key = `ageGroup.${value}`;
   const translated = (t as any)(key);
-  return translated || value;
+  return translated && translated !== key
+    ? translated
+    : storefrontAttributeLabel(value);
 }
 
 function humanizeStemDiscipline(value?: string): string | undefined {
@@ -43,7 +46,9 @@ function humanizeProductType(
   if (!value) return undefined;
   const key = `productType.${value}`;
   const translated = (t as any)(key);
-  return translated || value;
+  return translated && translated !== key
+    ? translated
+    : storefrontAttributeLabel(value);
 }
 
 function humanizeLearningOutcome(
@@ -53,7 +58,9 @@ function humanizeLearningOutcome(
   if (!value) return undefined;
   const key = `learningOutcome.${value}`;
   const translated = (t as any)(key);
-  return translated || value;
+  return translated && translated !== key
+    ? translated
+    : storefrontAttributeLabel(value);
 }
 
 function humanizeSpecialCategory(
@@ -63,7 +70,9 @@ function humanizeSpecialCategory(
   if (!value) return undefined;
   const key = `specialCategory.${value}`;
   const translated = (t as any)(key);
-  return translated || value;
+  return translated && translated !== key
+    ? translated
+    : storefrontAttributeLabel(value);
 }
 
 export default function ProductSpecs({ product }: ProductSpecsProps) {
@@ -158,7 +167,7 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
       {brand && (
         <div className="mb-2 flex flex-wrap items-baseline gap-2">
           <span className={`${productMutedTextClass} text-xs sm:text-sm`}>
-            Brand
+            Marcă
           </span>
           {manufacturerBrand ? (
             <span className="text-xs font-medium text-emerald-700 sm:text-sm">

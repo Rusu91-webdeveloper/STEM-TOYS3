@@ -308,11 +308,7 @@ export function ProductGrid({
       ) : layout === "grid" && !isEffectivelySingleColumn ? (
         <div className={`grid ${gridColsClass} gap-2 sm:gap-3 lg:gap-3.5`}>
           {sortedProducts.map((product, index) => (
-            <div
-              key={product.id}
-              className="animate-fadeIn"
-              style={{ animationDelay: `${Math.min(index * 0.1, 0.5)}s` }}
-            >
+            <div key={product.id}>
               <ProductCard
                 product={product}
                 className="transition-shadow duration-300"

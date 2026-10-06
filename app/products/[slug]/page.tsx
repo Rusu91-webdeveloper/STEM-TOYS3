@@ -7,6 +7,7 @@ import ProductDetailServer from "@/features/products/components/ProductDetailSer
 import { getCombinedProduct } from "@/lib/api/products";
 import { prisma } from "@/lib/prisma";
 import { resolvePdpVisibility } from "@/lib/products/catalog-access";
+import { toShopperProduct } from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { generateProductMetadata } from "@/lib/utils/seo";
 
@@ -92,10 +93,10 @@ async function loadPublicProduct(rawSlug: string) {
     return null;
   }
 
-  return {
+  return toShopperProduct({
     ...product,
     slug: toPublicProductSlug(product.slug),
-  };
+  });
 }
 
 export async function generateMetadata({

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { CANONICAL_CATEGORY_SLUGS } from "@/lib/products/stem-category";
+import {
+  CANONICAL_CATEGORY_SLUGS,
+  categoryPagePath,
+} from "@/lib/products/stem-category";
 
 function siteBaseUrl(): string {
   const configured = process.env.NEXT_PUBLIC_BASE_URL?.trim();
@@ -23,7 +26,7 @@ export function GET() {
   const now = new Date().toISOString();
   const paths = [
     "/categories",
-    ...CANONICAL_CATEGORY_SLUGS.map(slug => `/categories/${slug}`),
+    ...CANONICAL_CATEGORY_SLUGS.map(categoryPagePath),
   ];
 
   const body = paths

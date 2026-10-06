@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen } from "@testing-library/react";
+
 import {
   CategoriesGrid,
   CategoryData,
@@ -97,7 +98,7 @@ describe("CategoriesGrid", () => {
     expect(screen.getByText("16 produse")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Matematică/i })).toHaveAttribute(
       "href",
-      "/categories/mathematics"
+      "/categories/matematica"
     );
     expect(screen.getByText("Matematică distractivă")).toBeInTheDocument();
   });

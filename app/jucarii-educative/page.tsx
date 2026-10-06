@@ -140,7 +140,7 @@ export default function EducationalToysLandingPage() {
             "Leagă idei, tastează sau programează și vede efectul în mișcare: robotul răspunde la ce a hotărât el, nu la un singur buton magic.",
         },
         {
-          href: "/categories/mathematics",
+          href: "/categories/matematica",
           label: "Matematică aplicată",
           description:
             "Numără, compară, rezolvă provocări concrete — înțelege numerele prin joc, nu prin fișe stoarse la final de săptămână.",

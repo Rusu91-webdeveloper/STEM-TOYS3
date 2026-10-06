@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { toShopperProduct } from "@/lib/products/public-shopper";
 import {
   curatedStockIsFresh,
   isCuratedSupplier,
@@ -73,19 +74,21 @@ export async function getUpsellProducts(
           )
       )
       .slice(0, 6)
-      .map(p => ({
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        price: p.price,
-        stockQuantity: p.stockQuantity,
-        images: Array.isArray(p.images)
-          ? p.images.filter(
-              (image): image is string =>
-                typeof image === "string" && /^https?:\/\//.test(image)
-            )
-          : [],
-      }));
+      .map(p =>
+        toShopperProduct({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          price: p.price,
+          stockQuantity: p.stockQuantity,
+          images: Array.isArray(p.images)
+            ? p.images.filter(
+                (image): image is string =>
+                  typeof image === "string" && /^https?:\/\//.test(image)
+              )
+            : [],
+        })
+      );
   } catch (error) {
     console.error("Failed to fetch upsell products:", error);
     return [];

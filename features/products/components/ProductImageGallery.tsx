@@ -59,7 +59,7 @@ export function ProductImageGallery({
   };
 
   useEffect(() => {
-    if (!isFullscreenOpen) return;
+    if (!isFullscreenOpen) return undefined;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -120,13 +120,17 @@ export function ProductImageGallery({
           <span className="sr-only">Deschide imaginea pe tot ecranul</span>
         </button>
         <Image
-          src={visibleImages[currentImageIndex]?.image || "/placeholder-product.png"}
+          src={
+            visibleImages[currentImageIndex]?.image ||
+            "/placeholder-product.png"
+          }
           alt={getAlt(currentImageIndex)}
           fill
           priority={currentImageIndex === 0}
           onError={() =>
             handleImageError(
-              visibleImages[currentImageIndex]?.originalIndex ?? currentImageIndex
+              visibleImages[currentImageIndex]?.originalIndex ??
+                currentImageIndex
             )
           }
           className="object-contain bg-white p-2 transition-opacity sm:p-3"
@@ -194,7 +198,7 @@ export function ProductImageGallery({
                   "scale-105 border-emerald-400/60 ring-2 ring-emerald-400/50"
               )}
               onClick={() => handleThumbnailClick(index)}
-              aria-label={`View image ${index + 1}`}
+              aria-label={`Vezi imaginea ${index + 1}`}
             >
               <Image
                 src={image}
@@ -248,7 +252,10 @@ export function ProductImageGallery({
 
             <div className="relative h-full w-full">
               <Image
-                src={visibleImages[currentImageIndex]?.image || "/placeholder-product.png"}
+                src={
+                  visibleImages[currentImageIndex]?.image ||
+                  "/placeholder-product.png"
+                }
                 alt={getAlt(currentImageIndex)}
                 fill
                 priority

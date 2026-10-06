@@ -28,9 +28,7 @@ describe("disciplineBadgeLabel", () => {
 
   it("keeps a specific discipline over a generic category name", () => {
     expect(disciplineBadgeLabel("SCIENCE", "GENERAL")).toBe("Știință");
-    expect(
-      disciplineBadgeLabel(null, "Robotics", "robotics")
-    ).toBe("Robotică");
+    expect(disciplineBadgeLabel(null, "Robotics", "robotics")).toBe("Robotică");
   });
 
   it("maps English category names and slugs when there is no STEM discipline", () => {
@@ -64,7 +62,7 @@ describe("disciplineBadgeLabel", () => {
       })
     ).toEqual({
       label: "Inginerie",
-      href: "/categories/engineering",
+      href: "/categories/inginerie",
     });
   });
 
@@ -77,7 +75,7 @@ describe("disciplineBadgeLabel", () => {
       })
     ).toEqual({
       label: "Știință",
-      href: "/categories/science",
+      href: "/categories/stiinta",
     });
   });
 });

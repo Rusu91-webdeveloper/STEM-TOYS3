@@ -40,7 +40,10 @@ export const HeroSection = React.memo(
       { icon: CreditCard, label: "Netopia / Stripe" },
     ];
     return (
-      <section aria-labelledby="home-title" className="bg-[#f7f6f2] text-[#152d26]">
+      <section
+        aria-labelledby="home-title"
+        className="bg-[#f7f6f2] text-[#152d26]"
+      >
         <div className="mx-auto grid max-w-[1440px] items-center gap-8 px-5 py-5 sm:px-8 sm:py-8 lg:grid-cols-[0.9fr_1.2fr] lg:gap-14 lg:py-14">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#487561]">
@@ -52,9 +55,7 @@ export const HeroSection = React.memo(
             >
               Joacă de azi.
               <br />
-              <span className="text-[#487561]">
-                Idei mari pentru mâine.
-              </span>
+              <span className="text-[#487561]">Idei mari pentru mâine.</span>
             </h1>
             <p className="mt-4 max-w-xl text-base leading-7 text-[#53635c]">
               Seturi de construcție, experimente și jucării educative care
@@ -100,11 +101,14 @@ export const HeroSection = React.memo(
                 </li>
               ))}
             </ul>
-            <Link href="/shipping#rto" className="mt-4 inline-block text-xs text-[#64726b] underline underline-offset-4 hover:text-[#173e31]">
+            <Link
+              href="/shipping#rto"
+              className="mt-4 inline-block text-xs text-[#64726b] underline underline-offset-4 hover:text-[#173e31]"
+            >
               Detalii despre livrare și condițiile plății ramburs
             </Link>
           </div>
-          <BrandScene priority={products.length === 0} />
+          <BrandScene priority />
         </div>
       </section>
     );

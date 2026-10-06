@@ -20,8 +20,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 const surfaceBase =
   "rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-900/10 backdrop-blur-sm sm:p-8";
@@ -102,7 +102,9 @@ export function StemGuideLanding() {
                 variant="outline"
                 className="rounded-2xl border border-white/40 bg-white/5 px-7 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 sm:text-base"
               >
-                <Link href="/products">{translate("guide2025SeeProducts")}</Link>
+                <Link href="/products">
+                  {translate("guide2025SeeProducts")}
+                </Link>
               </Button>
             </div>
             <div className="mt-10 grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -111,7 +113,9 @@ export function StemGuideLanding() {
                   key={item.key}
                   className="rounded-2xl border border-white/10 bg-white/5 p-5 text-left shadow-inner shadow-black/30 transition hover:border-emerald-400/40 hover:bg-white/10"
                 >
-                  <p className="text-sm text-slate-200 sm:text-base">{item.label}</p>
+                  <p className="text-sm text-slate-200 sm:text-base">
+                    {item.label}
+                  </p>
                 </div>
               ))}
             </div>
@@ -138,12 +142,19 @@ export function StemGuideLanding() {
                   className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50 p-4 shadow-inner shadow-slate-900/5"
                 >
                   <Lightbulb className="mt-1 h-5 w-5 text-amber-500" />
-                  <p className="text-sm text-slate-700 sm:text-base">{item.label}</p>
+                  <p className="text-sm text-slate-700 sm:text-base">
+                    {item.label}
+                  </p>
                 </div>
               ))}
             </CardContent>
           </Card>
-          <Card className={cn(surfaceBase, "bg-gradient-to-br from-indigo-900/60 via-slate-950/80 to-slate-950/90")}>
+          <Card
+            className={cn(
+              surfaceBase,
+              "bg-gradient-to-br from-indigo-900/60 via-slate-950/80 to-slate-950/90"
+            )}
+          >
             <CardHeader className="p-0">
               <CardTitle className="flex items-center gap-3 text-base text-white sm:text-lg">
                 <Compass className="h-5 w-5 text-sky-300" />
@@ -172,14 +183,23 @@ export function StemGuideLanding() {
       <section className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16">
         <article
           id="ce-sunt-stem"
-          className={cn(surfaceBase, "space-y-5 bg-gradient-to-br from-slate-900/80 via-indigo-900/70 to-slate-950/90")}
+          className={cn(
+            surfaceBase,
+            "space-y-5 bg-gradient-to-br from-slate-900/80 via-indigo-900/70 to-slate-950/90"
+          )}
         >
           <Badge className="w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-200">
             {translate("guide2025WhatAreStem")}
           </Badge>
-          <h2 className="text-2xl font-semibold text-white sm:text-3xl">{translate("guide2025WhatAreStemH2")}</h2>
-          <p className="text-sm text-slate-200 sm:text-base">{translate("guide2025WhatAreStemContent")}</p>
-          <p className="text-sm text-slate-200 sm:text-base">{translate("guide2025WhatAreStemContent2")}</p>
+          <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+            {translate("guide2025WhatAreStemH2")}
+          </h2>
+          <p className="text-sm text-slate-200 sm:text-base">
+            {translate("guide2025WhatAreStemContent")}
+          </p>
+          <p className="text-sm text-slate-200 sm:text-base">
+            {translate("guide2025WhatAreStemContent2")}
+          </p>
         </article>
       </section>
 
@@ -194,39 +214,46 @@ export function StemGuideLanding() {
               <Badge className="mb-3 w-fit rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700">
                 {translate("guide2025Categories")}
               </Badge>
-              <h2 id="categorii-title" className="text-2xl font-semibold text-slate-900 sm:text-3xl">
+              <h2
+                id="categorii-title"
+                className="text-2xl font-semibold text-slate-900 sm:text-3xl"
+              >
                 {translate("guide2025CategoriesH2")}
               </h2>
-              <p className="mt-3 max-w-2xl text-sm text-slate-600 sm:text-base">{translate("guide2025Description")}</p>
+              <p className="mt-3 max-w-2xl text-sm text-slate-600 sm:text-base">
+                {translate("guide2025Description")}
+              </p>
             </div>
             <Button
               asChild
               size="lg"
               className="rounded-2xl bg-gradient-to-r from-emerald-500 via-sky-500 to-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:from-emerald-400 hover:via-sky-400 hover:to-indigo-400"
             >
-              <Link href="/categories">{translate("exploreAllCategoriesLabel")}</Link>
+              <Link href="/categories">
+                {translate("exploreAllCategoriesLabel")}
+              </Link>
             </Button>
           </div>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <CategoryCard
               title={translate("guide2025ScienceCategory")}
               description={translate("guide2025ScienceContent")}
-              href="/categories/science"
+              href="/categories/stiinta"
             />
             <CategoryCard
               title={translate("guide2025TechnologyCategory")}
               description={translate("guide2025TechnologyContent")}
-              href="/categories/technology"
+              href="/categories/tehnologie"
             />
             <CategoryCard
               title={translate("guide2025EngineeringCategory")}
               description={translate("guide2025EngineeringContent")}
-              href="/categories/engineering"
+              href="/categories/inginerie"
             />
             <CategoryCard
               title={translate("guide2025MathematicsCategory")}
               description={translate("guide2025MathematicsContent")}
-              href="/categories/mathematics"
+              href="/categories/matematica"
             />
           </div>
         </div>
@@ -237,13 +264,21 @@ export function StemGuideLanding() {
         className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16"
         aria-labelledby="varsta-title"
       >
-        <div className={cn(surfaceBase, "space-y-6 bg-gradient-to-br from-slate-900/75 via-slate-950/80 to-indigo-950/75")}>
+        <div
+          className={cn(
+            surfaceBase,
+            "space-y-6 bg-gradient-to-br from-slate-900/75 via-slate-950/80 to-indigo-950/75"
+          )}
+        >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <Badge className="w-fit rounded-full border border-sky-400/40 bg-sky-500/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-sky-200">
                 {translate("guide2025AgeRecommendations")}
               </Badge>
-              <h2 id="varsta-title" className="mt-3 text-2xl font-semibold text-white sm:text-3xl">
+              <h2
+                id="varsta-title"
+                className="mt-3 text-2xl font-semibold text-white sm:text-3xl"
+              >
                 {translate("guide2025AgeRecommendationsH2")}
               </h2>
             </div>
@@ -260,12 +295,22 @@ export function StemGuideLanding() {
             </Button>
           </div>
           <ul className="space-y-3">
-            <ListItem>{translate("guide2025AgeRecommendationsContent")}</ListItem>
-            <ListItem>{translate("guide2025AgeRecommendationsContent2")}</ListItem>
-            <ListItem>{translate("guide2025AgeRecommendationsContent3")}</ListItem>
-            <ListItem>{translate("guide2025AgeRecommendationsContent4")}</ListItem>
+            <ListItem>
+              {translate("guide2025AgeRecommendationsContent")}
+            </ListItem>
+            <ListItem>
+              {translate("guide2025AgeRecommendationsContent2")}
+            </ListItem>
+            <ListItem>
+              {translate("guide2025AgeRecommendationsContent3")}
+            </ListItem>
+            <ListItem>
+              {translate("guide2025AgeRecommendationsContent4")}
+            </ListItem>
           </ul>
-          <p className="text-sm text-slate-200 sm:text-base">{translate("guide2025PracticalSuggestion")}</p>
+          <p className="text-sm text-slate-200 sm:text-base">
+            {translate("guide2025PracticalSuggestion")}
+          </p>
         </div>
       </section>
 
@@ -277,17 +322,30 @@ export function StemGuideLanding() {
         <div className={cn(surfaceBase, "space-y-6 bg-white/90")}>
           <div className="flex items-center gap-3">
             <Target className="h-6 w-6 text-emerald-500" />
-            <h2 id="alegere-title" className="text-2xl font-semibold text-slate-900 sm:text-3xl">
+            <h2
+              id="alegere-title"
+              className="text-2xl font-semibold text-slate-900 sm:text-3xl"
+            >
               {translate("guide2025HowToChooseH2")}
             </h2>
           </div>
           <ol className="space-y-3 pl-4">
-            <ListItem as="li">{translate("guide2025HowToChooseContent1")}</ListItem>
-            <ListItem as="li">{translate("guide2025HowToChooseContent2")}</ListItem>
-            <ListItem as="li">{translate("guide2025HowToChooseContent3")}</ListItem>
-            <ListItem as="li">{translate("guide2025HowToChooseContent4")}</ListItem>
+            <ListItem as="li">
+              {translate("guide2025HowToChooseContent1")}
+            </ListItem>
+            <ListItem as="li">
+              {translate("guide2025HowToChooseContent2")}
+            </ListItem>
+            <ListItem as="li">
+              {translate("guide2025HowToChooseContent3")}
+            </ListItem>
+            <ListItem as="li">
+              {translate("guide2025HowToChooseContent4")}
+            </ListItem>
           </ol>
-          <p className="text-sm text-slate-700 sm:text-base">{translate("guide2025HowToChooseContent5")}</p>
+          <p className="text-sm text-slate-700 sm:text-base">
+            {translate("guide2025HowToChooseContent5")}
+          </p>
         </div>
       </section>
 
@@ -296,16 +354,27 @@ export function StemGuideLanding() {
         className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16"
         aria-labelledby="top-title"
       >
-        <div className={cn(surfaceBase, "space-y-6 bg-gradient-to-br from-indigo-900/75 via-slate-950/80 to-slate-950/90")}>
+        <div
+          className={cn(
+            surfaceBase,
+            "space-y-6 bg-gradient-to-br from-indigo-900/75 via-slate-950/80 to-slate-950/90"
+          )}
+        >
           <div className="flex items-center gap-3">
             <Sparkles className="h-6 w-6 text-sky-300" />
-            <h2 id="top-title" className="text-2xl font-semibold text-white sm:text-3xl">
+            <h2
+              id="top-title"
+              className="text-2xl font-semibold text-white sm:text-3xl"
+            >
               {translate("guide2025TopRecommendationsH2")}
             </h2>
           </div>
           <p className="text-sm text-slate-200 sm:text-base">
             {translate("guide2025TopRecommendationsContent")}{" "}
-            <Link href="/products" className="text-sky-300 underline underline-offset-4">
+            <Link
+              href="/products"
+              className="text-sky-300 underline underline-offset-4"
+            >
               /products
             </Link>
             .
@@ -321,13 +390,19 @@ export function StemGuideLanding() {
         <div className={cn(surfaceBase, "space-y-6 bg-slate-900/80")}>
           <div className="flex items-center gap-3">
             <BookIcon />
-            <h2 id="faq-title" className="text-2xl font-semibold text-white sm:text-3xl">
+            <h2
+              id="faq-title"
+              className="text-2xl font-semibold text-white sm:text-3xl"
+            >
               {translate("guide2025Faq")}
             </h2>
           </div>
           <p className="text-sm text-slate-200 sm:text-base">
             {translate("guide2025FaqContent")}{" "}
-            <Link href="/faq" className="text-emerald-300 underline underline-offset-4">
+            <Link
+              href="/faq"
+              className="text-emerald-300 underline underline-offset-4"
+            >
               /faq
             </Link>
             .
@@ -355,14 +430,27 @@ export function StemGuideLanding() {
   );
 }
 
-function CategoryCard({ title, description, href }: { title: string; description: string; href: string }) {
+function CategoryCard({
+  title,
+  description,
+  href,
+}: {
+  title: string;
+  description: string;
+  href: string;
+}) {
   return (
     <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300/60 hover:shadow-md">
       <div>
         <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-        <p className="mt-2 text-sm text-slate-600 sm:text-base">{description}</p>
+        <p className="mt-2 text-sm text-slate-600 sm:text-base">
+          {description}
+        </p>
       </div>
-      <Link href={href} className="mt-4 inline-flex items-center text-sm font-semibold text-emerald-700 underline underline-offset-4">
+      <Link
+        href={href}
+        className="mt-4 inline-flex items-center text-sm font-semibold text-emerald-700 underline underline-offset-4"
+      >
         {href}
         <ArrowRight className="ml-2 h-4 w-4" />
       </Link>
@@ -381,7 +469,7 @@ function ListItem({
     <Component
       className={cn(
         "flex items-start gap-3 text-left",
-        Component === "li" ? "list-none" : undefined,
+        Component === "li" ? "list-none" : undefined
       )}
     >
       <span className="mt-1 h-2.5 w-2.5 rounded-full bg-gradient-to-br from-emerald-300 via-sky-300 to-indigo-300 shadow-md shadow-emerald-500/40" />

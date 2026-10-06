@@ -42,7 +42,7 @@ export default function CookieConsent() {
   };
 
   const buttonClass =
-    "rounded-lg border border-slate-400 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
+    "min-h-11 rounded-lg border border-slate-400 bg-white px-2.5 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 sm:px-4 sm:text-sm";
   if (consent && !open)
     return (
       <button
@@ -58,55 +58,57 @@ export default function CookieConsent() {
     <section
       aria-label="Preferințe cookie-uri"
       data-cookie-consent
-      className="fixed inset-x-0 bottom-0 z-[70] max-h-[75svh] overflow-y-auto border-t border-slate-200 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-4px_24px_rgba(15,23,42,0.12)]"
+      className="fixed inset-x-0 bottom-0 z-[70] max-h-[75svh] overflow-y-auto border-t border-slate-200 bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-4px_24px_rgba(15,23,42,0.12)] sm:px-5"
     >
-      <div className="mx-auto max-w-5xl">
-        <h2 className="text-base font-bold text-slate-900">
-          Tu alegi cookie-urile
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-700">
-          Folosim stocarea necesară pentru coș, autentificare și finalizarea
-          comenzii. Cu acordul tău, folosim Google Analytics și Vercel pentru
-          analiza traficului și performanței, iar Meta și TikTok pentru
-          măsurarea și personalizarea reclamelor. Opțiunile sunt dezactivate
-          până alegi. Poți cumpăra și dacă le refuzi.{" "}
-          <Link href="/privacy" className="underline">
-            Politica de confidențialitate
-          </Link>
-          .
-        </p>
-        {customize && (
-          <fieldset className="mt-3 space-y-2 text-sm text-slate-800">
-            <legend className="mb-2 font-semibold">Preferințele tale</legend>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked disabled /> Necesare — active
-              permanent
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={analytics}
-                onChange={event => setAnalytics(event.target.checked)}
-              />{" "}
-              Analiză și performanță — Google Analytics, Vercel
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={marketing}
-                onChange={event => setMarketing(event.target.checked)}
-              />{" "}
-              Publicitate — Meta, TikTok
-            </label>
-          </fieldset>
-        )}
-        {error && (
-          <p role="alert" className="mt-2 text-sm text-red-700">
-            Nu am putut salva preferințele în acest browser. Cookie-urile
-            opționale rămân dezactivate până când putem salva alegerea.
+      <div
+        className={`mx-auto max-w-6xl ${!customize ? "lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-x-8" : ""}`}
+      >
+        <div>
+          <h2 className="text-base font-bold text-slate-900">
+            Tu alegi cookie-urile
+          </h2>
+          <p className="mt-1 text-xs leading-5 text-slate-700 sm:text-sm">
+            Cookie-uri necesare pentru coș și comandă. Cu acordul tău, Google
+            Analytics/Vercel măsoară traficul, iar Meta/TikTok reclamele. Poți
+            cumpăra și dacă refuzi.{" "}
+            <Link href="/privacy" className="underline">
+              Confidențialitate
+            </Link>
+            .
           </p>
-        )}
-        <div className="mt-4 flex flex-wrap gap-2">
+          {customize && (
+            <fieldset className="mt-3 space-y-2 text-sm text-slate-800">
+              <legend className="mb-2 font-semibold">Preferințele tale</legend>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked disabled /> Necesare — active
+                permanent
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={analytics}
+                  onChange={event => setAnalytics(event.target.checked)}
+                />{" "}
+                Analiză și performanță — Google Analytics, Vercel
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={marketing}
+                  onChange={event => setMarketing(event.target.checked)}
+                />{" "}
+                Publicitate — Meta, TikTok
+              </label>
+            </fieldset>
+          )}
+          {error && (
+            <p role="alert" className="mt-2 text-sm text-red-700">
+              Nu am putut salva preferințele în acest browser. Cookie-urile
+              opționale rămân dezactivate până când putem salva alegerea.
+            </p>
+          )}
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2 lg:mt-0">
           <button
             type="button"
             className={buttonClass}
@@ -148,11 +150,13 @@ export default function CookieConsent() {
             </button>
           )}
         </div>
-        <p className="mt-2 text-xs text-slate-600">
-          Păstrăm alegerea timp de 6 luni. O poți schimba oricând din „Setări
-          cookie-uri”. Retragerea acordului reîncarcă pagina pentru a opri
-          serviciile deja încărcate.
-        </p>
+        {customize && (
+          <p className="mt-2 text-xs text-slate-600">
+            Păstrăm alegerea timp de 6 luni. O poți schimba oricând din „Setări
+            cookie-uri”. Retragerea acordului reîncarcă pagina pentru a opri
+            serviciile deja încărcate.
+          </p>
+        )}
       </div>
     </section>
   );

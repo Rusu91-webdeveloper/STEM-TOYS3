@@ -1,5 +1,15 @@
 # Current tasks
 
+- [ ] 2026-10-06 — Improve storefront quality after the external C+ review.
+      Estimate: 3–5 hours. Implement stock visibility, earlier admin-priced COD
+      disclosure, image delivery, compact consent/catalog/checkout, Romanian
+      copy/category URLs and SEO fixes; verify desktop/mobile and publish a
+      reviewable draft. Implementation complete on codex/storefront-quality;
+      funded real guest COD acceptance and production publication remain
+      pending. See
+      [quality audit](docs/audits/2026-10-06-storefront-quality.md). Elapsed
+      work time not recorded.
+
 - [x] 2026-10-05 — Remove the storefront header legal band at the owner's
       request; put accessible withdrawal/guarantee entries in the footer and
       explain withdrawal using order terminology. Preserve the official asset,

@@ -192,22 +192,22 @@ export default function NotFound() {
               {[
                 {
                   name: "Știință",
-                  href: "/categories/science",
+                  href: "/categories/stiinta",
                   color: "bg-blue-500",
                 },
                 {
                   name: "Tehnologie",
-                  href: "/categories/technology",
+                  href: "/categories/tehnologie",
                   color: "bg-green-500",
                 },
                 {
                   name: "Inginerie",
-                  href: "/categories/engineering",
+                  href: "/categories/inginerie",
                   color: "bg-purple-500",
                 },
                 {
                   name: "Matematică",
-                  href: "/categories/mathematics",
+                  href: "/categories/matematica",
                   color: "bg-orange-500",
                 },
               ].map(category => (

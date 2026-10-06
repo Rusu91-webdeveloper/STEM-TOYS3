@@ -18,17 +18,24 @@ export function giftOrder(product: BrowseProduct): number {
 }
 export function visibleInBrowse(product: BrowseProduct): boolean {
   if (product.isBook) return false;
+  // Editorial low-stock exceptions must never advertise an unavailable item.
+  if (!Number.isFinite(product.stockQuantity) || product.stockQuantity <= 0)
+    return false;
   const editorial = product.metadata?.merchandising;
   if (editorial?.browseHidden) return false;
-  
+
   // Capacity model (Kidstory): stockQuantity=1 means "available", hide only at 0
   // Quantity model (Boribon, others): hide at stockQuantity <= 1 (running low or out)
-  const isCapacityModel = product.attributes?.inventoryMode === "supplier-availability";
+  const isCapacityModel =
+    product.attributes?.inventoryMode === "supplier-availability";
   const stockThreshold = isCapacityModel ? 0 : 1;
-  
-  if (product.stockQuantity <= stockThreshold && editorial?.keepLowStock !== true)
+
+  if (
+    product.stockQuantity <= stockThreshold &&
+    editorial?.keepLowStock !== true
+  )
     return false;
-    
+
   return !/air.toobz|aqua.*(?:reumplere|refill)|fridge.rover|spider|păianjen|paianjen|E tiintific|miE care|Ã|�/i.test(
     product.name
   );
@@ -92,10 +99,16 @@ export function readFeaturedOrder(product: FeaturedCandidate): number | null {
   }
   const merchandising = product.metadata?.merchandising;
   const fromMeta = merchandising?.featuredOrder;
-  if (typeof fromMeta === "number" && Number.isFinite(fromMeta) && fromMeta > 0) {
+  if (
+    typeof fromMeta === "number" &&
+    Number.isFinite(fromMeta) &&
+    fromMeta > 0
+  ) {
     return fromMeta;
   }
-  const giftIndex = GIFT_SLUGS.indexOf(product.slug as (typeof GIFT_SLUGS)[number]);
+  const giftIndex = GIFT_SLUGS.indexOf(
+    product.slug as (typeof GIFT_SLUGS)[number]
+  );
   if (giftIndex >= 0) return giftIndex + 1;
   return null;
 }

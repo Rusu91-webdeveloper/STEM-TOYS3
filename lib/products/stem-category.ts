@@ -15,6 +15,18 @@ export const CANONICAL_CATEGORY_SLUGS = [
 
 export type CanonicalCategorySlug = (typeof CANONICAL_CATEGORY_SLUGS)[number];
 
+export const CATEGORY_PUBLIC_SLUGS: Record<CanonicalCategorySlug, string> = {
+  science: "stiinta",
+  technology: "tehnologie",
+  engineering: "inginerie",
+  mathematics: "matematica",
+  "educational-books": "carti-educationale",
+};
+
+export function categoryPagePath(slug: CanonicalCategorySlug): string {
+  return `/categories/${CATEGORY_PUBLIC_SLUGS[slug]}`;
+}
+
 export const CATEGORY_LABELS_RO: Record<CanonicalCategorySlug, string> = {
   science: "Știință",
   technology: "Tehnologie",
@@ -125,7 +137,7 @@ export function canonicalizeCategorySlug(
   return null;
 }
 
-/** Landing routes that return 200. `math` redirects to `mathematics`. */
+/** Romanian public routes and retained English aliases share catalog keys. */
 export function categoryLandingSlug(
   slug: string | null | undefined
 ): CanonicalCategorySlug | null {
@@ -133,6 +145,9 @@ export function categoryLandingSlug(
   if (lower === "math") return "mathematics";
   if ((CANONICAL_CATEGORY_SLUGS as readonly string[]).includes(lower)) {
     return lower as CanonicalCategorySlug;
+  }
+  for (const slug of CANONICAL_CATEGORY_SLUGS) {
+    if (CATEGORY_PUBLIC_SLUGS[slug] === lower) return slug;
   }
   return null;
 }
