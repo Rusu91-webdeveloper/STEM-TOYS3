@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 
-import { appConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
+import { appConfig } from "@/lib/config/app-config";
 import { db } from "@/lib/db";
 import { isUniqueConstraintError } from "@/lib/returns/errors";
+import {
+  canRequestReturnForItem,
+  isWithinReturnWindowForItem,
+} from "@/lib/returns/item-eligibility";
 import {
   RETURN_PHOTO_LIMIT,
   RETURN_REASON_LABELS_RO,
@@ -12,7 +16,6 @@ import {
   getLiabilityForReturnReason,
   isReturnReason,
   isConformityComplaint,
-  isWithinReturnWindowForOrder,
   normalizeReturnDetails,
   normalizeReturnPhotos,
 } from "@/lib/returns/policy";
@@ -22,7 +25,7 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Trebuie să fii autentificat pentru a iniția un retur." },
         { status: 401 }
@@ -33,12 +36,14 @@ export async function POST(request: Request) {
     const normalizedDetails = normalizeReturnDetails(details);
     const normalizedPhotos = normalizeReturnPhotos(photos);
     const normalizedOrderItemIds = Array.isArray(orderItemIds)
-      ? [...new Set(
-          orderItemIds
-            .filter((id): id is string => typeof id === "string")
-            .map(id => id.trim())
-            .filter(Boolean)
-        )]
+      ? [
+          ...new Set(
+            orderItemIds
+              .filter((id): id is string => typeof id === "string")
+              .map(id => id.trim())
+              .filter(Boolean)
+          ),
+        ]
       : [];
 
     if (normalizedOrderItemIds.length === 0) {
@@ -97,7 +102,10 @@ export async function POST(request: Request) {
     const orderIds = [...new Set(orderItems.map(item => item.orderId))];
     if (orderIds.length > 1) {
       return NextResponse.json(
-        { error: "Toate produsele selectate trebuie să aparțină aceleiași comenzi." },
+        {
+          error:
+            "Toate produsele selectate trebuie să aparțină aceleiași comenzi.",
+        },
         { status: 400 }
       );
     }
@@ -105,21 +113,9 @@ export async function POST(request: Request) {
     // Check if the return is within 14 days of delivery
     const order = orderItems[0].order;
 
-    if (order.status !== "DELIVERED") {
+    if (orderItems.some(item => !canRequestReturnForItem(order, item))) {
       return NextResponse.json(
         { error: "Poți returna doar produse din comenzi livrate." },
-        { status: 400 }
-      );
-    }
-
-    const digitalItems = orderItems.filter(item => item.isDigital);
-    if (digitalItems.length > 0) {
-      return NextResponse.json(
-        {
-          error: `Produsele digitale nu pot fi returnate: ${digitalItems
-            .map(item => item.name)
-            .join(", ")}`,
-        },
         { status: 400 }
       );
     }
@@ -127,7 +123,10 @@ export async function POST(request: Request) {
     // Eligibility uses delivery evidence; creation date is only a legacy audit reference.
     // This matches the frontend logic for return eligibility
     const referenceDate = getReturnReferenceDate(order as any);
-    if (!isConformityComplaint(returnReason) && !isWithinReturnWindowForOrder(order as any)) {
+    if (
+      !isConformityComplaint(returnReason) &&
+      orderItems.some(item => !isWithinReturnWindowForItem(order, item))
+    ) {
       const dateType = (order as any).deliveredAt
         ? "livrare"
         : "plasarea comenzii";
@@ -195,7 +194,7 @@ export async function POST(request: Request) {
       status: "PENDING" as const,
       details: normalizedDetails,
       photos: normalizedPhotos,
-      liability: defaultLiability,
+      liability: item.isDigital ? ("UNDECIDED" as const) : defaultLiability,
     }));
 
     // Use transaction to ensure data consistency

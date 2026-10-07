@@ -6,6 +6,10 @@ const mockCsrf = jest.fn();
 const mockFind = jest.fn();
 const mockReject = jest.fn();
 const mockStripe = jest.fn();
+const mockRelease = jest.fn();
+jest.mock("@/lib/checkout/release-cod-hold", () => ({
+  releaseCodGuaranteeHoldIfNeeded: (...args: unknown[]) => mockRelease(...args),
+}));
 jest.mock("@/lib/auth", () => ({ auth: () => mockAuth() }));
 jest.mock("@/lib/csrf", () => ({ validateCsrfForRequest: () => mockCsrf() }));
 jest.mock("@/lib/db", () => ({
@@ -30,6 +34,7 @@ const send = (body: object) =>
 beforeEach(() => {
   jest.clearAllMocks();
   mockAuth.mockResolvedValue({ user: { id: "admin", role: "ADMIN" } });
+  mockRelease.mockResolvedValue({ outcome: "expired" });
   mockCsrf.mockResolvedValue({ valid: true });
   mockFind.mockResolvedValue({
     id: "o1",
@@ -44,6 +49,9 @@ test.each([undefined, false])(
     expect(response.status).toBe(200);
     expect((await response.json()).guaranteeCaptured).toBe(false);
     expect(mockReject).toHaveBeenCalled();
+    expect(mockRelease).toHaveBeenCalledWith(
+      expect.objectContaining({ orderId: "o1", event: "refusal" })
+    );
     expect(mockStripe).not.toHaveBeenCalled();
   }
 );
@@ -68,3 +76,16 @@ test("rejects an invalid reason", async () => {
   expect((await send({ reason: {} })).status).toBe(400);
   expect(mockReject).not.toHaveBeenCalled();
 });
+test.each(["PAID", "REFUNDED"])(
+  "cannot overwrite a settled COD payment: %s",
+  async paymentStatus => {
+    mockFind.mockResolvedValue({
+      id: "o1",
+      paymentMethod: "cash_on_delivery",
+      paymentStatus,
+    });
+    expect((await send({ reason: "Refused" })).status).toBe(409);
+    expect(mockReject).not.toHaveBeenCalled();
+    expect(mockRelease).not.toHaveBeenCalled();
+  }
+);

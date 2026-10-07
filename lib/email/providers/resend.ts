@@ -15,12 +15,7 @@ export class ResendProvider implements EmailProvider {
     }
 
     // Lazy import to avoid bundling in edge contexts if not used
-    const { Resend } = await import("resend").catch(() => ({
-      Resend: null as any,
-    }));
-    if (!Resend) {
-      throw new Error("resend package is not installed");
-    }
+    const { Resend } = await import("resend");
 
     const resend = new Resend(apiKey);
     const toArray = Array.isArray(request.to) ? request.to : [request.to];
@@ -36,17 +31,22 @@ export class ResendProvider implements EmailProvider {
       subject,
       html,
       text,
-      reply_to: process.env.EMAIL_REPLY_TO,
+      replyTo: process.env.EMAIL_REPLY_TO,
       attachments: request.attachments?.map(a => ({
         filename: a.filename,
         content: a.content,
         contentType: a.contentType,
       })),
-    } as any);
+    });
+    // The SDK resolves provider rejections as { data: null, error }, rather
+    // than throwing. Do not turn a rejected message into successful delivery.
+    if (response.error) throw new Error(response.error.message);
+    if (!response.data?.id)
+      throw new Error("Resend did not acknowledge the email");
 
     return {
       success: true,
-      messageId: (response as any)?.id ?? null,
+      messageId: response.data.id,
       raw: response,
     };
   }

@@ -3,17 +3,22 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { validateCsrfForRequest } from "@/lib/csrf";
+import { db } from "@/lib/db";
 import {
-  refundReviewSchema,
-  reviewedStripeRefund,
-} from "@/lib/returns/reviewed-stripe-refund";
+  sendReturnApprovedEmail,
+  sendReturnRejectedEmail,
+} from "@/lib/email/return-templates";
+import { isStripePaymentMethod } from "@/lib/orders/customer-order-display";
+import { generateReturnLabel } from "@/lib/return-label";
+import { reconcileManualRepayments } from "@/lib/returns/manual-refund-ledger";
 import {
   manualRefundAudit,
   manualRefundProofSchema,
 } from "@/lib/returns/manual-refund-proof";
-import { db } from "@/lib/db";
-import { isStripePaymentMethod } from "@/lib/orders/customer-order-display";
-import { generateReturnLabel } from "@/lib/return-label";
+import {
+  refundReviewSchema,
+  reviewedStripeRefund,
+} from "@/lib/returns/reviewed-stripe-refund";
 import {
   canTransitionReturnStatus,
   getAllowedNextReturnStatuses,
@@ -21,10 +26,6 @@ import {
   mapReturnStatusToOrderItemStatus,
 } from "@/lib/returns/status-machine";
 import { getStripeServerClient } from "@/lib/stripe-server";
-import {
-  sendReturnApprovedEmail,
-  sendReturnRejectedEmail,
-} from "@/lib/email/return-templates";
 
 // Increase timeout for this route (Vercel)
 export const maxDuration = 60; // 60 seconds
@@ -36,7 +37,7 @@ export async function PATCH(
   try {
     const session = await auth();
 
-    if (!session?.user || session.user.role !== "ADMIN") {
+    if (!session?.user?.id || session.user.role !== "ADMIN") {
       return NextResponse.json(
         { error: "Unauthorized. Admin access required." },
         { status: 403 }
@@ -394,41 +395,58 @@ export async function PATCH(
 
         let processorFullyRefunded = isOrderAlreadyRefunded;
         let manualAudit: string | null = null;
+        let manualProof: Parameters<typeof manualRefundAudit>[0] | null = null;
         const finalizeRefundState = async () => {
-          const shouldMarkOrderRefunded =
-            processorFullyRefunded && order.paymentStatus !== "REFUNDED";
-
-          await db.$transaction(async tx => {
-            await tx.return.update({
-              where: { id: returnId },
-              data: {
-                status: "REFUNDED",
-                refundStatus: "SUCCESS",
-                refundError: "",
-                ...(manualAudit
-                  ? {
-                      resolutionNotes: [returnData.resolutionNotes, manualAudit]
-                        .filter(Boolean)
-                        .join("\n"),
-                    }
-                  : {}),
-              },
-            });
-
-            await tx.orderItem.update({
-              where: { id: returnData.orderItemId },
-              data: {
-                returnStatus: mapReturnStatusToOrderItemStatus("REFUNDED"),
-              },
-            });
-
-            if (shouldMarkOrderRefunded) {
-              await tx.order.update({
-                where: { id: order.id },
-                data: { paymentStatus: "REFUNDED" },
+          await db.$transaction(
+            async tx => {
+              if (manualProof) {
+                const previous = await tx.return.findMany({
+                  where: { orderId: order.id, refundStatus: "SUCCESS" },
+                  select: { id: true, resolutionNotes: true },
+                });
+                processorFullyRefunded = reconcileManualRepayments(previous, {
+                  returnId,
+                  orderTotal: Number(order.total),
+                  proof: manualProof,
+                }).fullyRefunded;
+              }
+              const shouldMarkOrderRefunded =
+                processorFullyRefunded && order.paymentStatus !== "REFUNDED";
+              await tx.return.update({
+                where: { id: returnId },
+                data: {
+                  status: "REFUNDED",
+                  refundStatus: "SUCCESS",
+                  refundError: "",
+                  ...(manualAudit
+                    ? {
+                        resolutionNotes: [
+                          returnData.resolutionNotes,
+                          manualAudit,
+                        ]
+                          .filter(Boolean)
+                          .join("\n"),
+                      }
+                    : {}),
+                },
               });
-            }
-          });
+
+              await tx.orderItem.update({
+                where: { id: returnData.orderItemId },
+                data: {
+                  returnStatus: mapReturnStatusToOrderItemStatus("REFUNDED"),
+                },
+              });
+
+              if (shouldMarkOrderRefunded) {
+                await tx.order.update({
+                  where: { id: order.id },
+                  data: { paymentStatus: "REFUNDED" },
+                });
+              }
+            },
+            { isolationLevel: "Serializable" }
+          );
         };
 
         if (isReturnAlreadyRefundSuccessful || isOrderAlreadyRefunded) {
@@ -457,6 +475,7 @@ export async function PATCH(
                 { status: 400 }
               );
             }
+            manualProof = proof.data;
             manualAudit = manualRefundAudit(proof.data, session.user.id);
             processorFullyRefunded =
               Math.round(proof.data.review.amountRon * 100) ===
@@ -680,23 +699,25 @@ async function sendApprovalEmailAsync(updatedReturn: any) {
     console.log(`📄 Background: Generating PDF label...`);
 
     // Generate return label PDF
-    const pdfBuffer = await generateReturnLabel({
-      orderId: updatedReturn.order.id,
-      orderNumber: updatedReturn.order.orderNumber,
-      returnId: updatedReturn.id,
-      productName: updatedReturn.orderItem.name,
-      productId: updatedReturn.orderItem.productId || "",
-      productSku: updatedReturn.orderItem.product?.sku || "",
-      reason: updatedReturn.reason,
-      customerName: (updatedReturn.user.name ??
-        updatedReturn.user.email) as string,
-      customerEmail: updatedReturn.user.email,
-      customerAddress,
-      language: "ro",
-    });
+    const pdfBuffer = updatedReturn.orderItem.isDigital
+      ? null
+      : await generateReturnLabel({
+          orderId: updatedReturn.order.id,
+          orderNumber: updatedReturn.order.orderNumber,
+          returnId: updatedReturn.id,
+          productName: updatedReturn.orderItem.name,
+          productId: updatedReturn.orderItem.productId || "",
+          productSku: updatedReturn.orderItem.product?.sku || "",
+          reason: updatedReturn.reason,
+          customerName: (updatedReturn.user.name ??
+            updatedReturn.user.email) as string,
+          customerEmail: updatedReturn.user.email,
+          customerAddress,
+          language: "ro",
+        });
 
     console.log(
-      `✅ Background: PDF generated, size: ${pdfBuffer.length} bytes`
+      `✅ Background: PDF generated, size: ${pdfBuffer?.length ?? 0} bytes`
     );
 
     // Format order date
@@ -709,7 +730,7 @@ async function sendApprovalEmailAsync(updatedReturn: any) {
     });
 
     // Convert PDF to Base64 for email attachment
-    const pdfBase64 = pdfBuffer.toString("base64");
+    const pdfBase64 = pdfBuffer?.toString("base64");
 
     console.log(
       `📧 Background: Sending approval email to ${updatedReturn.user.email}...`
@@ -725,6 +746,7 @@ async function sendApprovalEmailAsync(updatedReturn: any) {
       quantity: updatedReturn.orderItem.quantity,
       reason: updatedReturn.reason,
       pdfBase64,
+      isDigital: updatedReturn.orderItem.isDigital === true,
     });
 
     if (result.success) {

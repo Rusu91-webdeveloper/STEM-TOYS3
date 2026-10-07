@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { markCODOrderAsRejected } from "@/lib/analytics/cod-analytics";
 import { auth } from "@/lib/auth";
+import { releaseCodGuaranteeHoldIfNeeded } from "@/lib/checkout/release-cod-hold";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
 
@@ -16,7 +17,7 @@ export async function POST(
   try {
     const session = await auth();
 
-    if (!session?.user || session.user.role !== "ADMIN") {
+    if (!session?.user?.id || session.user.role !== "ADMIN") {
       return NextResponse.json(
         { error: "Unauthorized. Admin access required." },
         { status: 403 }
@@ -38,7 +39,9 @@ export async function POST(
       typeof reason !== "string" ||
       !reason.trim() ||
       reason.length > 1000 ||
-      (notes !== null && notes !== undefined && (typeof notes !== "string" || notes.length > 4000))
+      (notes !== null &&
+        notes !== undefined &&
+        (typeof notes !== "string" || notes.length > 4000))
     ) {
       return NextResponse.json(
         { error: "Rejection reason is required" },
@@ -53,6 +56,7 @@ export async function POST(
       select: {
         id: true,
         paymentMethod: true,
+        paymentStatus: true,
         notes: true,
       },
     });
@@ -70,9 +74,18 @@ export async function POST(
         { status: 400 }
       );
     }
+    if (["PAID", "REFUNDED"].includes(order.paymentStatus)) {
+      return NextResponse.json(
+        {
+          error:
+            "This COD payment has already been settled. Review its payment/refund evidence before changing it.",
+        },
+        { status: 409 }
+      );
+    }
 
     // Recording RTO is not a legal determination of liability. No payment
-    // provider is called here, including for legacy clients requesting capture.
+    // capture is permitted here, including for legacy clients requesting it.
     if (captureGuarantee === true) {
       return NextResponse.json(
         {
@@ -92,8 +105,15 @@ export async function POST(
       [notes, ...processingNotes].filter(Boolean).join(" | ") || undefined
     );
 
+    const guaranteeSettlement = await releaseCodGuaranteeHoldIfNeeded({
+      orderId: order.id,
+      notes: order.notes,
+      event: "refusal",
+    });
+
     return NextResponse.json({
       success: true,
+      guaranteeSettlement,
       message: "COD order marked as rejected",
       guaranteeCaptured: false,
       guaranteeCaptureAmount: null,

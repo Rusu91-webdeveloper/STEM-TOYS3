@@ -5,6 +5,7 @@ import { getUserCache } from "@/lib/cache/user-cache";
 import { withCsrfProtection } from "@/lib/csrf";
 import { db } from "@/lib/db";
 import { eraseCustomerAccount } from "@/lib/privacy/account-erasure";
+import { privacyRequestDeadline } from "@/lib/privacy/request-deadline";
 
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store" };
@@ -30,7 +31,12 @@ async function handle(request: NextRequest) {
           user: { select: { email: true, name: true } },
         },
       });
-      return reply({ requests });
+      return reply({
+        requests: requests.map(request => ({
+          ...request,
+          ...privacyRequestDeadline(request.createdAt),
+        })),
+      });
     }
     const response = await withCsrfProtection(
       request.clone() as NextRequest,

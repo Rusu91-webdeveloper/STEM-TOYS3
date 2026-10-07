@@ -71,7 +71,18 @@ export async function POST(request: NextRequest) {
     const { reference, action } = parsed.data;
     if (action === "retry_email") {
       const receipt = await deliverWithdrawal(reference);
-      return NextResponse.json({ receipt }, { headers });
+      return NextResponse.json(
+        {
+          receipt,
+          deliveryComplete:
+            receipt.customerNotified && receipt.merchantNotified,
+        },
+        {
+          headers,
+          status:
+            receipt.customerNotified && receipt.merchantNotified ? 200 : 202,
+        }
+      );
     }
     const record = await db.emailLog.findUnique({ where: { id: reference } });
     const receipt = readWithdrawalReceipt(record?.metadata);

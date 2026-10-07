@@ -16,15 +16,19 @@ import React, { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "@/components/ui/use-toast";
+import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
 import {
   canRetryCustomerOrderPayment,
   getCustomerOrderStatusKey,
 } from "@/lib/orders/customer-order-display";
-import { Separator } from "@/components/ui/separator";
-import { useCurrency } from "@/lib/currency";
-import { useTranslation } from "@/lib/i18n";
+import {
+  canRequestReturnForItem,
+  DIGITAL_RETURN_INSTRUCTIONS_RO,
+} from "@/lib/returns/item-eligibility";
 import {
   RETURN_POLICY_CUSTOMER_PAYS_RO,
   RETURN_POLICY_SELLER_PAYS_RO,
@@ -94,10 +98,7 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
   // Helper function to format payment method for display
   const formatPaymentMethod = (method: string) => {
     const normalizedMethod = method.toLowerCase();
-    if (
-      normalizedMethod === "cash_on_delivery" ||
-      normalizedMethod === "cod"
-    ) {
+    if (normalizedMethod === "cash_on_delivery" || normalizedMethod === "cod") {
       return t("cashOnDelivery") || "Cash on Delivery";
     }
     if (normalizedMethod.includes("stripe")) {
@@ -149,7 +150,7 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
   estimatedDelivery.setDate(orderDate.getDate() + 7); // 7 days for delivery estimate
 
   const isWithinReturnWindow = () =>
-    order.status === "DELIVERED" &&
+    ["DELIVERED", "COMPLETED"].includes(order.status) &&
     isWithinReturnWindowForOrder({
       createdAt: order.createdAt,
       deliveredAt: order.deliveredAt,
@@ -218,7 +219,9 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
           <div className="space-x-2">
             <Badge
               className={`${getStatusBadgeVariant(
-                displayStatus === "awaiting_payment" ? "PENDING_REVIEW" : order.status
+                displayStatus === "awaiting_payment"
+                  ? "PENDING_REVIEW"
+                  : order.status
               )} capitalize`}
             >
               {displayStatus === "awaiting_payment"
@@ -247,7 +250,8 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-amber-900">
             <p>
-              Comanda a fost creată, dar plata online nu a fost confirmată. Poți relua plata fără să refaci produsele din coș.
+              Comanda a fost creată, dar plata online nu a fost confirmată. Poți
+              relua plata fără să refaci produsele din coș.
             </p>
             <Button
               onClick={handleRetryPayment}
@@ -324,16 +328,27 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Order items */}
         <div className="md:col-span-2 space-y-4">
-          {order.status === "DELIVERED" &&
-            order.items.some(item => !item.isDigital) && (
-              <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-                <p>
-                  Poți comunica retragerea în primele <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la primire. Garanția legală pentru neconformitate rămâne disponibilă separat.
-                </p>
-                <p className="mt-1">{RETURN_POLICY_CUSTOMER_PAYS_RO}</p>
-                <p className="mt-1">{RETURN_POLICY_SELLER_PAYS_RO}</p>
-              </div>
-            )}
+          {(["DELIVERED", "COMPLETED"].includes(order.status) ||
+            (order.paymentStatus === "PAID" &&
+              order.items.some(item => item.isDigital))) && (
+            <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+              <p>
+                Poți comunica retragerea în primele{" "}
+                <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la primire.
+                Garanția legală pentru neconformitate rămâne disponibilă
+                separat.
+              </p>
+              {order.items.some(item => !item.isDigital) && (
+                <>
+                  <p className="mt-1">{RETURN_POLICY_CUSTOMER_PAYS_RO}</p>
+                  <p className="mt-1">{RETURN_POLICY_SELLER_PAYS_RO}</p>
+                </>
+              )}
+              {order.items.some(item => item.isDigital) && (
+                <p className="mt-1">{DIGITAL_RETURN_INSTRUCTIONS_RO}</p>
+              )}
+            </div>
+          )}
 
           <h3 className="text-lg font-medium">{t("items")}</h3>
           <div className="border rounded-lg divide-y">
@@ -371,39 +386,41 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                         </div>
                       </div>
                       <div className="mt-auto pt-2">
-                        {order.status === "DELIVERED" && (
+                        {canRequestReturnForItem(order, item) && (
                           <>
-                            {hasReviewed ? (
-                              <div className="flex items-center text-sm text-green-600 mt-2">
-                                <Check className="h-4 w-4 mr-1" />
-                                {t("reviewSubmitted")}
-                              </div>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                asChild
-                                className="mt-2 mr-2"
-                              >
-                                <Link
-                                  href={`/account/orders/${order.id}/review?itemId=${item.id}&productId=${item.productId}`}
+                            {!item.isDigital &&
+                              (hasReviewed ? (
+                                <div className="flex items-center text-sm text-green-600 mt-2">
+                                  <Check className="h-4 w-4 mr-1" />
+                                  {t("reviewSubmitted")}
+                                </div>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  asChild
+                                  className="mt-2 mr-2"
                                 >
-                                  <Star className="h-4 w-4 mr-1" />
-                                  {t("writeReview")}
-                                </Link>
-                              </Button>
-                            )}
+                                  <Link
+                                    href={`/account/orders/${order.id}/review?itemId=${item.id}&productId=${item.productId}`}
+                                  >
+                                    <Star className="h-4 w-4 mr-1" />
+                                    {t("writeReview")}
+                                  </Link>
+                                </Button>
+                              ))}
 
                             {/* Return status badge */}
-                            {item.returnStatus && item.returnStatus !== "NONE" && (
-                              <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mt-2 mr-2">
-                                Retur {item.returnStatus.toLowerCase()}
-                              </div>
-                            )}
+                            {item.returnStatus &&
+                              item.returnStatus !== "NONE" && (
+                                <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mt-2 mr-2">
+                                  Retur {item.returnStatus.toLowerCase()}
+                                </div>
+                              )}
 
-                            {/* Physical-item requests include conformity review beyond the withdrawal window */}
-                            {!item.isDigital &&
-                             (!item.returnStatus || item.returnStatus === "NONE") && (
+                            {/* Requests include separate withdrawal and conformity review. */}
+                            {(!item.returnStatus ||
+                              item.returnStatus === "NONE") && (
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -420,17 +437,24 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                             )}
 
                             {/* Show message if return window has expired */}
-                            {!isWithinReturnWindow() && !item.isDigital && (!item.returnStatus || item.returnStatus === "NONE") && (
-                              <div className="flex items-center text-sm text-muted-foreground mt-2">
-                                <Package className="h-4 w-4 mr-1" />
-                                Perioada de retragere a expirat ({RETURN_WINDOW_LABEL_RO}); poți solicita verificarea unei neconformități în baza garanției legale.
-                              </div>
-                            )}
+                            {!isWithinReturnWindow() &&
+                              !item.isDigital &&
+                              (!item.returnStatus ||
+                                item.returnStatus === "NONE") && (
+                                <div className="flex items-center text-sm text-muted-foreground mt-2">
+                                  <Package className="h-4 w-4 mr-1" />
+                                  Perioada de retragere a expirat (
+                                  {RETURN_WINDOW_LABEL_RO}); poți solicita
+                                  verificarea unei neconformități în baza
+                                  garanției legale.
+                                </div>
+                              )}
                             {/* Info message for digital items */}
                             {item.isDigital && (
                               <div className="flex items-center text-sm text-muted-foreground mt-2">
                                 <FileText className="h-4 w-4 mr-1" />
-                                Produs digital - nu poate fi returnat
+                                Conținut digital — retragerea și neconformitatea
+                                se verifică separat. Nu expedia nimic.
                               </div>
                             )}
                           </>

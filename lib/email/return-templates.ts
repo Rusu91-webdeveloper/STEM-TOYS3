@@ -3,14 +3,16 @@
  * Includes return approved, rejected, and pending confirmation emails
  */
 
+import { DIGITAL_RETURN_INSTRUCTIONS_RO } from "@/lib/returns/item-eligibility";
 import {
   getCustomerReturnInstructions,
   RETURN_POLICY_REFUND_RO,
   RETURN_POLICY_DISPATCH_RO,
 } from "@/lib/returns/policy";
 
-import { getEmailService } from "./index";
 import { getStoreSettings, getBaseUrl, generateEmailHTML } from "./base";
+
+import { getEmailService } from "./index";
 
 // Romanian reason labels
 const reasonLabelsRo: Record<string, string> = {
@@ -36,6 +38,7 @@ export async function sendReturnApprovedEmail({
   quantity,
   reason,
   pdfBase64,
+  isDigital = false,
 }: {
   to: string;
   customerName: string;
@@ -45,6 +48,7 @@ export async function sendReturnApprovedEmail({
   quantity: number;
   reason: string;
   pdfBase64?: string;
+  isDigital?: boolean;
 }) {
   const storeSettings = await getStoreSettings();
   const baseUrl = getBaseUrl();
@@ -100,7 +104,10 @@ export async function sendReturnApprovedEmail({
             </table>
           </div>
           
-          <!-- Instructions -->
+          ${
+            isDigital
+              ? `<p>${DIGITAL_RETURN_INSTRUCTIONS_RO}</p>`
+              : `          <!-- Instructions -->
           <h3 style="color: #1f2937; margin: 24px 0 16px 0;">📦 Instrucțiuni pentru Returnare:</h3>
           <ol style="line-height: 1.8; color: #374151; padding-left: 20px;">
             <li>Documentul PDF atașat identifică returul; nu este un AWB preplătit.</li>
@@ -110,12 +117,14 @@ export async function sendReturnApprovedEmail({
             <li>Păstrați dovada de expediere până la procesarea returnării.</li>
           </ol>
           
+`
+          }
           <!-- Warning -->
           <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 24px 0;">
-            <p style="margin: 0; color: #92400e; font-weight: 600;">${getCustomerReturnInstructions(reason)}</p>
+            <p style="margin: 0; color: #92400e; font-weight: 600;">${isDigital ? DIGITAL_RETURN_INSTRUCTIONS_RO : getCustomerReturnInstructions(reason)}</p>
           </div>
           
-          <p style="font-size: 16px; color: #374151; line-height: 1.6;">${RETURN_POLICY_REFUND_RO}</p>
+          <p style="font-size: 16px; color: #374151; line-height: 1.6;">${isDigital ? "Suma și termenul rambursării se verifică separat în funcție de dreptul de retragere sau remediul pentru neconformitate; aprobarea nu confirmă încă efectuarea plății." : RETURN_POLICY_REFUND_RO}</p>
           
           <!-- CTA Button -->
           <div style="text-align: center; margin: 32px 0;">
@@ -144,15 +153,16 @@ export async function sendReturnApprovedEmail({
   const emailService = getEmailService();
 
   // Build attachments array if PDF is provided
-  const attachments = pdfBase64
-    ? [
-        {
-          filename: `TechTots_Eticheta_Returnare_${orderNumber}.pdf`,
-          content: pdfBase64,
-          contentType: "application/pdf",
-        },
-      ]
-    : undefined;
+  const attachments =
+    pdfBase64 && !isDigital
+      ? [
+          {
+            filename: `TechTots_Eticheta_Returnare_${orderNumber}.pdf`,
+            content: pdfBase64,
+            contentType: "application/pdf",
+          },
+        ]
+      : undefined;
 
   return emailService.sendEmail({
     to,
@@ -291,6 +301,7 @@ export async function sendBulkReturnApprovedEmail({
     productName: string;
     quantity: number;
     reason: string;
+    isDigital?: boolean;
   }>;
   pdfBase64?: string;
 }) {
@@ -308,6 +319,8 @@ export async function sendBulkReturnApprovedEmail({
   `
     )
     .join("");
+
+  const hasPhysicalItems = items.some(item => !item.isDigital);
 
   const html = `
     <!DOCTYPE html>
@@ -353,7 +366,9 @@ export async function sendBulkReturnApprovedEmail({
             </tbody>
           </table>
           
-          <!-- Instructions -->
+          ${
+            hasPhysicalItems
+              ? `          <!-- Instructions -->
           <h3 style="color: #1f2937; margin: 24px 0 16px 0;">📝 Instrucțiuni pentru Returnare:</h3>
           <ol style="line-height: 1.8; color: #374151; padding-left: 20px;">
             <li>Documentul PDF atașat identifică returul; nu este un AWB preplătit.</li>
@@ -363,14 +378,17 @@ export async function sendBulkReturnApprovedEmail({
             <li>Păstrați dovada de expediere.</li>
           </ol>
           
+`
+              : `<p>${DIGITAL_RETURN_INSTRUCTIONS_RO}</p>`
+          }
           <!-- Important Notice -->
           <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 24px 0;">
             <p style="margin: 0 0 8px 0; color: #92400e; font-weight: 600;">⚠️ Important:</p>
-            <p style="margin: 0; color: #92400e;">${[...new Set(items.map(item => getCustomerReturnInstructions(item.reason)))].join(" ")}</p>
+            <p style="margin: 0; color: #92400e;">${[...new Set(items.map(item => (item.isDigital ? DIGITAL_RETURN_INSTRUCTIONS_RO : getCustomerReturnInstructions(item.reason))))].join(" ")}</p>
           </div>
           
-          <p style="font-size: 16px; color: #dc2626; font-weight: 600;">${RETURN_POLICY_DISPATCH_RO}</p>
-          <p style="font-size: 16px; color: #374151; line-height: 1.6;">${RETURN_POLICY_REFUND_RO}</p>
+          <p style="font-size: 16px; color: #dc2626; font-weight: 600;">${hasPhysicalItems ? RETURN_POLICY_DISPATCH_RO : DIGITAL_RETURN_INSTRUCTIONS_RO}</p>
+          <p style="font-size: 16px; color: #374151; line-height: 1.6;">${hasPhysicalItems ? RETURN_POLICY_REFUND_RO : "Verificăm separat suma și termenul rambursării pentru conținutul digital."}</p>
           
           <!-- CTA Button -->
           <div style="text-align: center; margin: 32px 0;">

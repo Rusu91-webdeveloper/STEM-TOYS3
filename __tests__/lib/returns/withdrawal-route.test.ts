@@ -10,7 +10,10 @@ import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
 import { rateLimiter } from "@/lib/rate-limit";
 import { createWithdrawalReceipt } from "@/lib/returns/withdrawal";
-import { registerWithdrawal } from "@/lib/returns/withdrawal-service";
+import {
+  deliverWithdrawal,
+  registerWithdrawal,
+} from "@/lib/returns/withdrawal-service";
 
 jest.mock("@/lib/auth", () => ({ auth: jest.fn() }));
 jest.mock("@/lib/csrf", () => ({ validateCsrfForRequest: jest.fn() }));
@@ -164,4 +167,44 @@ test("slow validation does not shift the original request-receipt timestamp", as
   } finally {
     jest.useRealTimers();
   }
+});
+
+test("an authenticated admin records review and retry outcomes", async () => {
+  (auth as jest.Mock).mockResolvedValue({
+    user: { id: "admin", role: "ADMIN" },
+  });
+  const receipt = createWithdrawalReceipt(input);
+  (db.emailLog.findUnique as jest.Mock).mockResolvedValue({
+    status: "failed",
+    metadata: receipt,
+  });
+  (db.emailLog.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+  const req = (action: string) =>
+    new NextRequest("https://shop.example/api/admin/withdrawals", {
+      method: "POST",
+      body: JSON.stringify({ reference: receipt.reference, action }),
+    });
+  expect((await adminPost(req("reviewed"))).status).toBe(200);
+  expect(db.emailLog.updateMany).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: {
+        metadata: expect.objectContaining({ reviewedAt: expect.any(String) }),
+      },
+    })
+  );
+  (deliverWithdrawal as jest.Mock).mockResolvedValue({
+    ...receipt,
+    customerNotified: true,
+    merchantNotified: true,
+  });
+  expect((await adminPost(req("retry_email"))).status).toBe(200);
+  expect(deliverWithdrawal).toHaveBeenCalledWith(receipt.reference);
+  (deliverWithdrawal as jest.Mock).mockResolvedValue({
+    ...receipt,
+    customerNotified: true,
+    merchantNotified: false,
+  });
+  const incomplete = await adminPost(req("retry_email"));
+  expect(incomplete.status).toBe(202);
+  expect((await incomplete.json()).deliveryComplete).toBe(false);
 });

@@ -1,5 +1,24 @@
 # Current tasks
 
+- [ ] 2026-10-07 — Finalize COD hold expiry, returns/refund acceptance and
+      privacy operations at the owner's request. Estimate: 3–5 hours; elapsed
+      time not recorded. Branch `codex/holds-refunds-privacy` from clean main
+      `baa18e29`. Implementation now defines delivery/cancellation/refusal after
+      expiry, shared verified release/retry evidence, cumulative manual
+      repayment, digital-product review and refund access control, truthful
+      email acceptance, and calendar-month privacy response deadlines. PR #64 is
+      already merged. Implementation/local validation completed 7 October: 194
+      focused tests, real local admin/refund/erasure and desktop/mobile checks
+      pass; full Jest and TypeScript comparisons add zero failures. Existing
+      repository test/type debt remains. Local/regression evidence and the draft
+      follow-up are recorded in
+      [the operations audit](docs/audits/2026-10-07-holds-refunds-privacy.md).
+      Actual Stripe test-mode refunds, authorized inbox rendering, company
+      address, provider agreements and current production retention/cron
+      confirmation remain pending. Mac restarts interrupted intermediate checks;
+      resumed checks run one heavy job at a time after storage was freed. This
+      does not certify an A+.
+
 - [x] 2026-10-06 — Owner requested analysis and repair of the remaining Meta
       crawler chunk failures. Estimate: 1–2 hours. Branch
       codex/crawler-chunk-recovery from current main ccc6a1cb. Preserve

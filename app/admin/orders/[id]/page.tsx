@@ -1,6 +1,5 @@
 "use client";
 
-import { useCsrfToken } from "@/hooks/useCsrfToken";
 import {
   ArrowLeft,
   Package,
@@ -38,6 +37,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { CodHoldSettlementNotice } from "@/features/returns/components/CodHoldSettlementNotice";
+import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { parseCodGuaranteeEvidence } from "@/lib/checkout/cod-guarantee";
 import { useCurrency } from "@/lib/currency";
 
@@ -2969,17 +2970,18 @@ export default function OrderDetailsPage() {
                     </div>
                     <div className="flex justify-between gap-3">
                       <span className="text-amber-800/80">
-                        Guarantee captured
+                        Historical capture record
                       </span>
                       <span className="font-medium">
                         {codGuaranteeEvidence?.capturedAt
                           ? `${formatPrice(codGuaranteeEvidence.capturedAmount || 0)} at ${formatAdminDateTime(
                               codGuaranteeEvidence.capturedAt
                             )}`
-                          : "No"}
+                          : "None recorded"}
                       </span>
                     </div>
                   </div>
+                  <CodHoldSettlementNotice notes={order.notes} />
                   {codConsentInfo.termsSnapshot && (
                     <p className="mt-2 text-xs text-amber-900/90">
                       <span className="font-medium">Snapshot:</span>{" "}
@@ -3004,7 +3006,7 @@ export default function OrderDetailsPage() {
                           Processing...
                         </>
                       ) : (
-                        "Mark Refused (RTO) + Capture Guarantee"
+                        "Mark Refused (RTO) + Release Hold"
                       )}
                     </Button>
                   </div>

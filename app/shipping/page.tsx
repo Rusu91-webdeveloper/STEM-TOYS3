@@ -494,7 +494,7 @@ export default async function ShippingPage() {
             Legea nr. 193/2000.
           </p>
           <p className="mt-2">{RETURN_POLICY_COD_RTO_RO}</p>
-          <p className="mt-4">Ultima actualizare: 4 octombrie 2026</p>
+          <p className="mt-4">Ultima actualizare: 7 octombrie 2026</p>
         </section>
       </div>
     </main>

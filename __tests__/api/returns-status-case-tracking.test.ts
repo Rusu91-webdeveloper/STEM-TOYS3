@@ -8,6 +8,7 @@ const mockAuth = jest.fn();
 const mockFindUnique = jest.fn();
 const mockReturnUpdate = jest.fn();
 const mockReturnCount = jest.fn();
+const mockReturnFindMany = jest.fn();
 const mockOrderItemUpdate = jest.fn();
 const mockOrderItemCount = jest.fn();
 const mockOrderUpdate = jest.fn();
@@ -32,6 +33,7 @@ jest.mock("@/lib/db", () => ({
       findUnique: (...args: unknown[]) => mockFindUnique(...args),
       update: (...args: unknown[]) => mockReturnUpdate(...args),
       count: (...args: unknown[]) => mockReturnCount(...args),
+      findMany: (...args: unknown[]) => mockReturnFindMany(...args),
     },
     orderItem: {
       count: (...args: unknown[]) => mockOrderItemCount(...args),
@@ -120,6 +122,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
   beforeEach(() => {
     jest.resetAllMocks();
     mockCsrf.mockResolvedValue({ valid: true });
+    mockReturnFindMany.mockResolvedValue([]);
 
     mockAuth.mockResolvedValue({
       user: {
@@ -141,6 +144,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
     mockDbTransaction.mockImplementation(async callback =>
       callback({
         return: {
+          findMany: (...args: unknown[]) => mockReturnFindMany(...args),
           update: (...args: unknown[]) => mockReturnUpdate(...args),
         },
         orderItem: {

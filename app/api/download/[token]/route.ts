@@ -47,6 +47,18 @@ export async function GET(
       );
     }
 
+    // A partial refund of this item terminates supply even when another item
+    // keeps the overall order PAID. A completed complaint intake alone does not.
+    if (
+      download.orderItem.returnStatus === "REFUNDED" ||
+      download.orderItem.order.paymentStatus !== "PAID"
+    ) {
+      return NextResponse.json(
+        { error: "Digital supply is no longer available for this purchase" },
+        { status: 410 }
+      );
+    }
+
     // Check if token has expired
     if (new Date() > download.expiresAt) {
       console.log(`Download token expired: ${token}`);

@@ -169,7 +169,7 @@ describe("POST /api/returns/create-bulk", () => {
     expect(mockTransaction).not.toHaveBeenCalled();
   });
 
-  it("rejects digital items even if they are submitted directly to the API", async () => {
+  it("admits digital requests for individual review without treating downloads as consent", async () => {
     mockOrderItemFindMany.mockResolvedValue([
       buildOrderItem({
         name: "Carte Digitală",
@@ -187,17 +187,16 @@ describe("POST /api/returns/create-bulk", () => {
         body: JSON.stringify({
           orderItemIds: ["item_1"],
           reason: "OTHER",
-          details: "Nu ar trebui acceptat",
+          details: "Verifică drepturile pentru conținut digital",
           photos: ["https://utfs.io/f/photo-1"],
         }),
       })
     );
     const payload = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(payload.error).toContain("Produsele digitale nu pot fi returnate");
-    expect(payload.error).toContain("Carte Digitală");
-    expect(mockTransaction).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(payload.success).toBe(true);
+    expect(mockCreateMany).toHaveBeenCalled();
   });
 
   it("normalizes duplicate item ids and still creates a valid bulk return", async () => {

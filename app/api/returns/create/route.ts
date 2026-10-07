@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 
-import { appConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
+import { appConfig } from "@/lib/config/app-config";
 import { db } from "@/lib/db";
 import { isUniqueConstraintError } from "@/lib/returns/errors";
+import {
+  canRequestReturnForItem,
+  isWithinReturnWindowForItem,
+} from "@/lib/returns/item-eligibility";
 import {
   RETURN_REASON_LABELS_RO,
   RETURN_WINDOW_DAYS,
   getLiabilityForReturnReason,
   isReturnReason,
   isConformityComplaint,
-  isWithinReturnWindowForOrder,
   normalizeReturnDetails,
 } from "@/lib/returns/policy";
 import { mapReturnStatusToOrderItemStatus } from "@/lib/returns/status-machine";
@@ -19,7 +22,7 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Trebuie să fii autentificat pentru a iniția un retur." },
         { status: 401 }
@@ -60,16 +63,6 @@ export async function POST(request: Request) {
     const returnReason = reason;
     const defaultLiability = getLiabilityForReturnReason(returnReason);
 
-    // Check if item is a digital book (not returnable)
-    if ((orderItem as any).isDigital) {
-      return NextResponse.json(
-        {
-          error: "Produsele digitale nu pot fi returnate.",
-        },
-        { status: 400 }
-      );
-    }
-
     // Verify the user owns this order
     if (
       orderItem.order.userId !== session.user.id &&
@@ -96,14 +89,17 @@ export async function POST(request: Request) {
     }
 
     // Only allow returns for delivered items
-    if (orderItem.order.status !== "DELIVERED") {
+    if (!canRequestReturnForItem(orderItem.order, orderItem)) {
       return NextResponse.json(
         { error: "Poți returna doar produse din comenzi livrate." },
         { status: 400 }
       );
     }
 
-    if (!isConformityComplaint(returnReason) && !isWithinReturnWindowForOrder(orderItem.order as any)) {
+    if (
+      !isConformityComplaint(returnReason) &&
+      !isWithinReturnWindowForItem(orderItem.order, orderItem)
+    ) {
       return NextResponse.json(
         {
           error: `Returul poate fi solicitat doar în primele ${RETURN_WINDOW_DAYS} zile calendaristice de la livrare.`,
@@ -122,7 +118,7 @@ export async function POST(request: Request) {
           reason: returnReason,
           details: normalizedDetails,
           status: "PENDING",
-          liability: defaultLiability,
+          liability: orderItem.isDigital ? "UNDECIDED" : defaultLiability,
         },
         include: {
           user: {

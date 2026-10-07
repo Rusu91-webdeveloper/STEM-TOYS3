@@ -4,6 +4,7 @@ import React from "react";
 import { PaymentForm } from "@/features/checkout/components/PaymentForm";
 import { fetchCodGuaranteePolicy } from "@/features/checkout/lib/checkoutApi";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
+import { COD_CONSENT_VERSION } from "@/lib/checkout/cod-consent";
 
 jest.mock("@/features/cart", () => {
   const items = [{ productId: "toy-1", price: 168, quantity: 1 }];
@@ -171,7 +172,7 @@ describe("PaymentForm mandatory COD authorization", () => {
           paymentMethod: "cash_on_delivery",
           codGuaranteePaymentIntentId: "pi_hold",
           codGuaranteeAmount: 19.99,
-          codConsentVersion: "2026-10-04-returns-v2",
+          codConsentVersion: COD_CONSENT_VERSION,
         })
       );
       const payload = JSON.parse(

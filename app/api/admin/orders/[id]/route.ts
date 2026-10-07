@@ -5,9 +5,9 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { invalidateCachePattern } from "@/lib/cache";
 import { invalidateAnalyticsOnOrderChange } from "@/lib/cache/analytics-cache";
-import { parseCodGuaranteeEvidence } from "@/lib/checkout/cod-guarantee";
+import { releaseCodGuaranteeHoldIfNeeded } from "@/lib/checkout/release-cod-hold";
+import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
-import { getStripeServerClient } from "@/lib/stripe-server";
 import {
   deriveOrderFulfillmentSummary,
   groupSupplierOrdersForOperations,
@@ -303,6 +303,12 @@ export async function PATCH(
     }
 
     const { id: orderId } = await params;
+    if (!(await validateCsrfForRequest(request)).valid) {
+      return NextResponse.json(
+        { error: "Security validation failed" },
+        { status: 403 }
+      );
+    }
     const body = await request.json();
 
     // Validate the request body
@@ -357,7 +363,12 @@ export async function PATCH(
 
     // If cancelling order and cancellation reason is provided, save it in notes
     if (status === "CANCELLED" && cancellationReason) {
-      updateData.notes = `Cancellation reason: ${cancellationReason}`;
+      updateData.notes = [
+        existingOrder.notes,
+        `Cancellation reason: ${cancellationReason}`,
+      ]
+        .filter(Boolean)
+        .join(" | ");
     }
 
     // Update the order
@@ -388,38 +399,14 @@ export async function PATCH(
       },
     });
 
-    // For delivered COD orders, release the guarantee hold if it was authorized and not captured.
-    if (status === "DELIVERED" && isCODOrder) {
-      const codGuarantee = parseCodGuaranteeEvidence(existingOrder.notes);
-      const guaranteePiId = codGuarantee.authorizedPaymentIntentId;
-      if (guaranteePiId) {
-        try {
-          const stripe = getStripeServerClient();
-          const intent = await stripe.paymentIntents.retrieve(guaranteePiId);
-          if (intent.status === "requires_capture") {
-            await stripe.paymentIntents.cancel(guaranteePiId, {
-              cancellation_reason: "abandoned",
-            });
-            await db.order.update({
-              where: { id: updatedOrder.id },
-              data: {
-                notes: [
-                  updatedOrder.notes,
-                  `COD Guarantee released at ${new Date().toISOString()} - PI: ${guaranteePiId}`,
-                ]
-                  .filter(Boolean)
-                  .join(" | "),
-              },
-            });
-          }
-        } catch (releaseError) {
-          console.error(
-            `Failed to release COD guarantee hold for order ${updatedOrder.id}:`,
-            releaseError
-          );
-        }
-      }
-    }
+    const guaranteeSettlement =
+      isCODOrder && ["DELIVERED", "COMPLETED", "CANCELLED"].includes(status)
+        ? await releaseCodGuaranteeHoldIfNeeded({
+            orderId: updatedOrder.id,
+            notes: existingOrder.notes,
+            event: status === "CANCELLED" ? "cancellation" : "delivery",
+          })
+        : null;
 
     // Send email notification if status changed to SHIPPED, DELIVERED, CANCELLED, or COMPLETED
     try {
@@ -543,7 +530,7 @@ export async function PATCH(
       invalidateCachePattern("enhanced-orders*"),
     ]);
 
-    return NextResponse.json({ order: formattedOrder });
+    return NextResponse.json({ order: formattedOrder, guaranteeSettlement });
   } catch (error) {
     console.error("Error updating order:", error);
 
