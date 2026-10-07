@@ -79,7 +79,16 @@ export default function SidebarNav({
 }
 
 export const adminNavItems = [
-  { title: "Retrageri din contract", href: "/admin/withdrawals", icon: FileText },
+  {
+    title: "Starea magazinului",
+    href: "/admin/store-health",
+    icon: AlertCircle,
+  },
+  {
+    title: "Retrageri din contract",
+    href: "/admin/withdrawals",
+    icon: FileText,
+  },
   {
     title: "Dashboard",
     href: "/admin",

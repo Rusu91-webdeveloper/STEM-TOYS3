@@ -99,6 +99,7 @@ export function MobileFilterBar({
             />
             <input
               type="search"
+              aria-label="Caută produse"
               value={searchQuery}
               onChange={e => onSearchQueryChange(e.currentTarget.value)}
               placeholder={t(
@@ -111,7 +112,7 @@ export function MobileFilterBar({
               <button
                 type="button"
                 onClick={onClearSearch}
-                className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                className="absolute right-1 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
                 aria-label={t("clearSearch", "Clear search")}
               >
                 <X className="h-3.5 w-3.5" />

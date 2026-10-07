@@ -3,7 +3,6 @@ import { unstable_cache } from "next/cache";
 import type { Review } from "@/features/products/components/ProductReviews";
 import { db } from "@/lib/db";
 
-
 /** The API and server-rendered product page use the same public projection. */
 export function getProductReviews(productId: string): Promise<Review[]> {
   return unstable_cache(
@@ -22,7 +21,7 @@ export function getProductReviews(productId: string): Promise<Review[]> {
           orderItem: {
             select: {
               productId: true,
-              order: { select: { userId: true } },
+              order: { select: { userId: true, status: true } },
             },
           },
         },
@@ -39,7 +38,8 @@ export function getProductReviews(productId: string): Promise<Review[]> {
         date: review.createdAt.toISOString(),
         verified:
           review.orderItem?.productId === review.productId &&
-          review.orderItem?.order.userId === review.userId,
+          review.orderItem?.order.userId === review.userId &&
+          review.orderItem?.order.status === "DELIVERED",
       }));
     },
     ["public-product-reviews", productId],

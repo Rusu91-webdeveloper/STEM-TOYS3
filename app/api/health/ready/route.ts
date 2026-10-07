@@ -1,102 +1,45 @@
-import { PrismaClient } from "@prisma/client";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-// Initialize Prisma client
-const prisma = new PrismaClient();
+import { db } from "@/lib/db";
 
-/**
- * Readiness probe endpoint for container orchestration systems
- * This endpoint checks if the application is ready to serve traffic
- * by verifying critical dependencies like database connectivity
- */
-export async function GET(request: NextRequest) {
-  const startTime = Date.now();
+export const dynamic = "force-dynamic";
+const headers = { "Cache-Control": "no-store" };
 
+async function readiness() {
+  if (
+    !process.env.DATABASE_URL ||
+    !(process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET)
+  )
+    return { status: "not_ready", reason: "Configuration unavailable" };
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    // Check database connectivity
-    const dbStartTime = Date.now();
-    await prisma.$queryRaw`SELECT 1`;
-    const dbResponseTime = Date.now() - dbStartTime;
-
-    // Consider ready if database responds within 2 seconds
-    if (dbResponseTime > 2000) {
-      return NextResponse.json(
-        {
-          status: "not_ready",
-          reason: "Database response too slow",
-          checks: {
-            database: {
-              status: "slow",
-              responseTime: dbResponseTime,
-            },
-          },
-          timestamp: new Date().toISOString(),
-          responseTime: Date.now() - startTime,
-        },
-        { status: 503 }
-      );
-    }
-
-    // Check environment variables are set
-    const requiredEnvVars = ["DATABASE_URL", "NEXTAUTH_SECRET"];
-    const missingEnvVars = requiredEnvVars.filter(
-      envVar => !process.env[envVar]
-    );
-
-    if (missingEnvVars.length > 0) {
-      return NextResponse.json(
-        {
-          status: "not_ready",
-          reason: "Missing required environment variables",
-          missing: missingEnvVars,
-          timestamp: new Date().toISOString(),
-          responseTime: Date.now() - startTime,
-        },
-        { status: 503 }
-      );
-    }
-
-    // All checks passed - ready to serve traffic
-    return NextResponse.json(
-      {
-        status: "ready",
-        checks: {
-          database: {
-            status: "healthy",
-            responseTime: dbResponseTime,
-          },
-          environment: {
-            status: "configured",
-          },
-        },
-        timestamp: new Date().toISOString(),
-        responseTime: Date.now() - startTime,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      {
-        status: "not_ready",
-        reason: "Database connection failed",
-        error: (error as Error).message,
-        timestamp: new Date().toISOString(),
-        responseTime: Date.now() - startTime,
-      },
-      { status: 503 }
-    );
+    await Promise.race([
+      db.$queryRaw`SELECT 1`,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Readiness timeout")), 2000);
+      }),
+    ]);
+    return { status: "ready" };
+  } catch {
+    return { status: "not_ready", reason: "Database unavailable" };
   } finally {
-    await prisma.$disconnect();
+    if (timer) clearTimeout(timer);
+    // Keep the shared pool alive for requests and subsequent probes.
   }
 }
 
-export async function HEAD(request: NextRequest) {
-  try {
-    // Quick database check for HEAD requests
-    await prisma.$queryRaw`SELECT 1`;
-    await prisma.$disconnect();
-    return new NextResponse(null, { status: 200 });
-  } catch (error) {
-    return new NextResponse(null, { status: 503 });
-  }
+export async function GET() {
+  const result = await readiness();
+  return NextResponse.json(
+    { ...result, timestamp: new Date().toISOString() },
+    { status: result.status === "ready" ? 200 : 503, headers }
+  );
+}
+
+export async function HEAD() {
+  const result = await readiness();
+  return new NextResponse(null, {
+    status: result.status === "ready" ? 200 : 503,
+    headers,
+  });
 }

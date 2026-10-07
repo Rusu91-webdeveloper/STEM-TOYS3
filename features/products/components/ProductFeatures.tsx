@@ -33,6 +33,7 @@ export function ProductFeatures({
   productSlug,
   t,
 }: ProductFeaturesProps) {
+  const hasActivities = Boolean(activities?.length);
   const hasDynamicFreeShippingThreshold =
     typeof freeShippingThreshold === "number" &&
     Number.isFinite(freeShippingThreshold);
@@ -97,13 +98,13 @@ export function ProductFeatures({
       {/* Detailed Features & Benefits */}
       <div className={`${productSubSectionCardClass} space-y-4`}>
         <h3 className={productTitleClass}>
-          {activities
+          {hasActivities
             ? "Ce poți încerca"
             : t("featuresBenefits", "Idei de joacă și recomandări")}
         </h3>
-        {activities ? (
+        {hasActivities ? (
           <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed text-slate-700">
-            {activities.map(activity => (
+            {activities?.map(activity => (
               <li key={activity}>{activity}</li>
             ))}
           </ol>

@@ -29,6 +29,12 @@ export default function ClientLayout({
 
   return (
     <>
+      <a
+        className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[1000] focus:rounded-md focus:bg-slate-950 focus:p-3 focus:text-white"
+        href="#main-content"
+      >
+        Sari la conținut
+      </a>
       {/* <SessionValidator /> */}
       <AccountLinkingNotice />
       <DatabaseConfigNotice />
@@ -38,6 +44,8 @@ export default function ClientLayout({
         </Suspense>
       )}
       <main
+        id="main-content"
+        tabIndex={-1}
         className={`relative flex-grow ${
           isStorefrontSurface
             ? "storefront-shell overflow-hidden bg-[#f5f7fb]"

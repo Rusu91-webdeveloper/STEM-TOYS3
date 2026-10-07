@@ -7,6 +7,7 @@ export interface ProductBuyingGuide {
   preparation: string;
   safety: string;
   activities: string[];
+  manualUrl?: string;
 }
 
 const GUIDES: Record<string, ProductBuyingGuide> = {

@@ -1,5 +1,20 @@
 # Current tasks
 
+- [x] 2026-10-07 — Implement the storefront A+ review improvements beyond
+      testing. Estimate: 2–4 hours; elapsed time not recorded. Branch
+      `codex/storefront-excellence` from clean `f1b37da1`. Buying summaries for
+      all 104 reviewed products, qualified age labels, gift finder, early
+      shipping estimates, official demonstrations/manuals, Romanian search and
+      accessible controls, genuine purchase reviews/delivery invitations,
+      Merchant feed and admin health visibility are implemented. Local
+      desktop/mobile, feed, access-control and focused checks are recorded in
+      the [storefront audit](docs/audits/2026-10-07-storefront-excellence.md).
+      Production build and 84 focused checks pass; full Jest/TypeScript
+      comparisons add zero regressions. Existing repository check debt remains.
+      Production publication,
+      Merchant Center registration, authentic customer footage and provider
+      backup/restore confirmation remain separate acceptance steps.
+
 - [x] 2026-10-07 — Owner explicitly authorized publishing all completed PR #71
       changes to production. Estimate: 30–60 minutes. Confirm exact reviewed
       commit, merge, verify the production deployment and both TechTots domains,

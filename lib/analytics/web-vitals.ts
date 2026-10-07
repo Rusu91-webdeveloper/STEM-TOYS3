@@ -28,6 +28,9 @@ const DEFAULT_CONFIG: WebVitalsConfig = {
   sendToConsole: process.env.NODE_ENV === "development",
   sendToAPI: false,
 };
+let metricConfig = DEFAULT_CONFIG;
+let vitalsRegistered = false;
+let performanceRegistered = false;
 
 // Core Web Vitals thresholds for 2025
 const THRESHOLDS = {
@@ -50,6 +53,15 @@ function getRating(
   return "poor";
 }
 
+function resourceUrl(raw: string) {
+  try {
+    const url = new URL(raw, window.location.origin);
+    return `${url.origin}${url.pathname}`;
+  } catch {
+    return "unknown";
+  }
+}
+
 function sendToGoogleAnalytics(metric: WebVitalsMetric) {
   if (typeof window !== "undefined" && hasAnalyticsConsent() && window.gtag) {
     window.gtag("event", metric.name, {
@@ -59,11 +71,9 @@ function sendToGoogleAnalytics(metric: WebVitalsMetric) {
         metric.name === "CLS" ? metric.value * 1000 : metric.value
       ),
       non_interaction: true,
-      custom_parameters: {
-        metric_rating: metric.rating,
-        metric_delta: metric.delta,
-        navigation_type: metric.navigationType,
-      },
+      metric_rating: metric.rating,
+      metric_delta: metric.delta,
+      navigation_type: metric.navigationType,
     });
   }
 }
@@ -95,7 +105,7 @@ function sendToAPI(metric: WebVitalsMetric, config: WebVitalsConfig) {
       id: metric.id,
       rating: metric.rating,
       navigationType: metric.navigationType,
-      url: window.location.href,
+      url: `${window.location.origin}${window.location.pathname}`,
       ts: Date.now(),
     }),
   }).catch(console.error);
@@ -126,31 +136,34 @@ function handleMetric(
 }
 
 export function initWebVitals(config: Partial<WebVitalsConfig> = {}) {
-  const finalConfig = { ...DEFAULT_CONFIG, ...config };
+  if (typeof window === "undefined") return;
+  metricConfig = { ...DEFAULT_CONFIG, ...config };
+  if (vitalsRegistered) return;
+  vitalsRegistered = true;
 
   // Track Largest Contentful Paint
   onLCP(metric => {
-    handleMetric(metric, finalConfig);
+    handleMetric(metric, metricConfig);
   });
 
   // Track Interaction to Next Paint (replaces FID)
   onINP(metric => {
-    handleMetric(metric, finalConfig);
+    handleMetric(metric, metricConfig);
   });
 
   // Track Cumulative Layout Shift
   onCLS(metric => {
-    handleMetric(metric, finalConfig);
+    handleMetric(metric, metricConfig);
   });
 
   // Track First Contentful Paint
   onFCP(metric => {
-    handleMetric(metric, finalConfig);
+    handleMetric(metric, metricConfig);
   });
 
   // Track Time to First Byte
   onTTFB(metric => {
-    handleMetric(metric, finalConfig);
+    handleMetric(metric, metricConfig);
   });
 }
 
@@ -182,13 +195,13 @@ export function trackPagePerformance() {
           // Track slow resources (> 1 second)
           if (resource.duration > 1000) {
             console.warn(
-              `Slow resource: ${resource.name} (${resource.duration.toFixed(2)}ms)`
+              `Slow resource: ${resourceUrl(resource.name)} (${resource.duration.toFixed(2)}ms)`
             );
 
             if (hasAnalyticsConsent() && window.gtag) {
               window.gtag("event", "slow_resource", {
                 event_category: "Performance",
-                event_label: resource.name,
+                event_label: resourceUrl(resource.name),
                 value: Math.round(resource.duration),
                 non_interaction: true,
               });
@@ -270,6 +283,8 @@ export function trackMobilePerformance() {
 // Initialize all performance tracking
 export function initPerformanceTracking(config: Partial<WebVitalsConfig> = {}) {
   initWebVitals(config);
+  if (typeof window === "undefined" || performanceRegistered) return;
+  performanceRegistered = true;
   trackPagePerformance();
   trackEcommercePerformance();
   trackMobilePerformance();

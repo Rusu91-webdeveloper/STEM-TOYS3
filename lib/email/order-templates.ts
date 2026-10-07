@@ -3,7 +3,7 @@
  * Includes digital book delivery, order confirmation, and shipping notifications
  */
 
-import { getEmailService } from "./index";
+import { getReviewInvitation } from "@/lib/products/review-invitation";
 
 import {
   getStoreSettings,
@@ -12,6 +12,7 @@ import {
   generateEmailHTML,
   formatPrice,
 } from "./base";
+import { getEmailService } from "./index";
 
 /**
  * Digital book delivery email with download links
@@ -818,6 +819,7 @@ export async function sendOrderDeliveredEmail({
   to,
   customerName,
   orderId,
+  internalOrderId,
   orderItems,
   totalAmount,
   shippingAddress,
@@ -826,6 +828,7 @@ export async function sendOrderDeliveredEmail({
   to: string;
   customerName: string;
   orderId: string;
+  internalOrderId?: string;
   orderItems: Array<{
     id: string;
     productId: string;
@@ -838,7 +841,12 @@ export async function sendOrderDeliveredEmail({
   shippingAddress: string;
   deliveredAt: string;
 }) {
-  const storeSettings = await getStoreSettings();
+  const [storeSettings, invitation] = await Promise.all([
+    getStoreSettings(),
+    internalOrderId
+      ? getReviewInvitation(internalOrderId, to).catch(() => null)
+      : Promise.resolve(null),
+  ]);
   const baseUrl = getBaseUrl();
 
   const { generateProfessionalEmail, generatePreviewText } = await import(
@@ -895,27 +903,22 @@ export async function sendOrderDeliveredEmail({
   )}
 
     ${createCTASection(
-    "Lasă un Review",
-    "Ajută alți părinți să facă alegerea potrivită prin părerea ta valoroasă despre produsele primite.",
+    invitation ? "Cum a fost experiența?" : "Ai nevoie de ajutor?",
+    invitation
+      ? "După ce încerci produsul, scrie o recenzie din cont. Îi ajuți pe alți părinți să aleagă informat."
+      : "Spune-ne dacă ai întrebări despre produs sau despre comanda livrată.",
     {
-      text: "✍️ Lasă un Review",
-      url:
-        orderItems.length > 0
-          ? `${baseUrl}/orders/${orderId}/review?itemId=${orderItems[0].id}&productId=${orderItems[0].productId}&email=${encodeURIComponent(to)}`
-          : `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
-    },
-    {
-      text: "👁️ Vezi Comanda",
-      url: `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
+      text: invitation ? "Scrie o recenzie" : "Contactează-ne",
+      url: invitation?.reviewUrl ?? `${baseUrl}/contact`,
     }
   )}
 
     ${createFeatureGrid([
     {
       icon: "🎯",
-      title: "Calitate Garantată",
+      title: "Instrucțiuni și recomandări",
       description:
-        "Toate produsele noastre sunt testate și aprobate pentru siguranța copiilor.",
+        "Respectă vârsta recomandată, avertismentele și instrucțiunile producătorului.",
       color: colors.success[600],
     },
     {
@@ -927,9 +930,9 @@ export async function sendOrderDeliveredEmail({
     },
     {
       icon: "🛡️",
-      title: "Garanție Extinsă",
+      title: "Garanție legală",
       description:
-        "Oferim garanție extinsă pentru toate produsele STEM din colecția noastră.",
+        "Consultă drepturile și remediile pentru neconformitate în politica de garanție.",
       color: colors.warning[600],
     },
     {
@@ -992,7 +995,7 @@ export async function sendOrderDeliveredEmail({
   `;
 
   const previewText = generatePreviewText(
-    `Comanda #${orderId} a fost livrată cu succes! Sperăm că totul este în regulă cu produsele. Lasă un review și descoperă produse noi.`,
+    `Comanda #${orderId} a fost livrată. Consultă recomandările produsului și contactează-ne dacă ai nevoie de ajutor.`,
     150
   );
 

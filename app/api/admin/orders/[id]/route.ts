@@ -437,6 +437,7 @@ export async function PATCH(
             to: userEmail,
             customerName,
             orderId: updatedOrder.orderNumber,
+            internalOrderId: updatedOrder.id,
             orderItems: updatedOrder.items.map(item => ({
               id: item.id,
               productId: item.productId ?? "",

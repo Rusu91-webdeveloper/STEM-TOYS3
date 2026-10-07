@@ -2,13 +2,14 @@ import { notFound } from "next/navigation";
 import React from "react";
 
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
-import { getCombinedProduct } from "@/lib/products/product-read";
 import { db } from "@/lib/db";
+import { getCombinedProduct } from "@/lib/products/product-read";
 import { toShopperProduct } from "@/lib/products/public-shopper";
 import { toPublicProductSlug } from "@/lib/products/public-slug";
 import { getProductReviews } from "@/lib/products/reviews";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
 import { buildDefaultProductFaq } from "@/lib/seo/product-faq";
+import { productDeliveryEstimate } from "@/lib/shipping/product-delivery";
 import { resolveStorefrontCategoryLink } from "@/lib/utils/category-page-links";
 import {
   getCODSettings,
@@ -246,6 +247,7 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
       <SeoJsonLd data={structuredData} />
       <ProductDetailClient
         codSettings={codSettings}
+        delivery={productDeliveryEstimate(product, shippingSettings)}
         product={product}
         isBook={isBook}
         initialReviews={reviews}

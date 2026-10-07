@@ -1,7 +1,8 @@
 "use client";
 
 import { StarIcon } from "lucide-react";
-import React, { useState } from "react";
+import Link from "next/link";
+import React from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import { Separator } from "@/components/ui/separator";
 import { gradientButtonClass } from "@/features/home/components/homeTheme";
 import { cn } from "@/lib/utils";
 
-import { ProductReviewForm } from "./ProductReviewForm";
 import {
   productAccentPillClass,
   productBodyTextClass,
@@ -42,20 +42,10 @@ interface ProductReviewsProps {
 }
 
 export function ProductReviews({
-  productId,
   reviews,
   unavailable = false,
   className,
-  userLoggedIn = false,
-  onSubmitReview,
 }: ProductReviewsProps) {
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [reviewTitle, setReviewTitle] = useState("");
-  const [reviewContent, setReviewContent] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
   // Calculate average rating
   const averageRating = reviews.length
     ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
@@ -74,63 +64,18 @@ export function ProductReviews({
       })
     : [];
 
-  // Handle form reset
-  const resetForm = () => {
-    setRating(0);
-    setReviewTitle("");
-    setReviewContent("");
-    setShowReviewForm(false);
-  };
-
-  // Handle review submission
-  const handleSubmitReview = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!rating) return;
-
-    setSubmitting(true);
-
-    const newReview = {
-      productId,
-      userName: "Client", // This would come from auth state in a real app
-      rating,
-      title: reviewTitle,
-      content: reviewContent,
-    };
-
-    if (onSubmitReview) {
-      onSubmitReview(newReview);
-    }
-
-    // This would normally happen after a successful API response
-    setSubmitting(false);
-    resetForm();
-  };
-
-  // Render stars for rating display
-  const renderStars = (rating: number, interactive = false) => (
-    <div
-      className="flex"
-      role={interactive ? "group" : undefined}
-      aria-label={interactive ? "Notă" : undefined}
-    >
+  const renderStars = (rating: number) => (
+    <div className="flex" role="img" aria-label={`${rating.toFixed(1)} din 5`}>
       {[1, 2, 3, 4, 5].map(star => (
         <StarIcon
           key={star}
-          aria-hidden={interactive ? undefined : true}
-          aria-label={
-            interactive ? (star === 1 ? "1 stea" : `${star} stele`) : undefined
-          }
-          role={interactive ? "button" : undefined}
+          aria-hidden
           className={cn(
-            "h-5 w-5 drop-shadow-sm transition-colors",
-            interactive && "cursor-pointer",
-            (interactive ? star <= (hoverRating || rating) : star <= rating)
-              ? "text-yellow-300 fill-yellow-300"
+            "h-5 w-5",
+            star <= rating
+              ? "text-yellow-500 fill-yellow-500"
               : "text-slate-300"
           )}
-          onClick={interactive ? () => setRating(star) : undefined}
-          onMouseEnter={interactive ? () => setHoverRating(star) : undefined}
-          onMouseLeave={interactive ? () => setHoverRating(0) : undefined}
         />
       ))}
     </div>
@@ -206,38 +151,18 @@ export function ProductReviews({
         </div>
       )}
 
-      {!showReviewForm && (
-        <Button
-          onClick={() => setShowReviewForm(true)}
-          disabled={!userLoggedIn}
-          className={cn(
-            gradientButtonClass,
-            "w-full justify-center rounded-2xl px-5 py-2 text-sm font-semibold shadow-lg shadow-emerald-500/30 transition hover:shadow-emerald-400/20 disabled:from-slate-700 disabled:via-slate-800 disabled:to-slate-900 disabled:text-slate-200 disabled:opacity-60"
-          )}
-        >
+      <Button
+        asChild
+        className={cn(gradientButtonClass, "min-h-11 w-full rounded-2xl")}
+      >
+        <Link href="/auth/login?callbackUrl=%2Faccount%2Forders">
           Scrie o recenzie
-        </Button>
-      )}
-
-      {!userLoggedIn && (
-        <p className={`${productMutedTextClass} text-xs sm:text-sm`}>
-          Trebuie să fii autentificat ca să lași o recenzie.
-        </p>
-      )}
-
-      {showReviewForm && userLoggedIn && (
-        <ProductReviewForm
-          rating={rating}
-          reviewTitle={reviewTitle}
-          reviewContent={reviewContent}
-          submitting={submitting}
-          onRatingStars={renderStars(rating, true)}
-          onTitleChange={setReviewTitle}
-          onContentChange={setReviewContent}
-          onSubmit={handleSubmitReview}
-          onCancel={resetForm}
-        />
-      )}
+        </Link>
+      </Button>
+      <p className={`${productMutedTextClass} text-xs sm:text-sm`}>
+        Intră în cont și alege produsul dintr-o comandă livrată. Recenzia este
+        legată de produsul cumpărat.
+      </p>
 
       <div className="space-y-5 pt-4">
         <Separator className="bg-slate-200" />

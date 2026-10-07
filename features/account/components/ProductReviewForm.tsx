@@ -107,41 +107,63 @@ export function ProductReviewForm({
     }
   };
 
-  // Render stars for rating
-  const renderStars = () => (
-    <div className="flex">
-      {[1, 2, 3, 4, 5].map(star => (
-        <StarIcon
-          key={star}
-          className={cn(
-            "h-8 w-8 cursor-pointer transition-colors",
-            star <= (hoverRating || rating)
-              ? "text-yellow-400 fill-yellow-400"
-              : "text-gray-300"
-          )}
-          onClick={() => setRating(star)}
-          onMouseEnter={() => setHoverRating(star)}
-          onMouseLeave={() => setHoverRating(0)}
-        />
-      ))}
-    </div>
-  );
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="rating">
+        <span id="rating-label" className="text-sm font-medium">
           {t("rating", "Evaluare")} <span className="text-red-500">*</span>
-        </Label>
+        </span>
         <div>
-          {renderStars()}
+          <div
+            role="radiogroup"
+            aria-labelledby="rating-label"
+            aria-required="true"
+            aria-invalid={Boolean(errors.rating)}
+            aria-describedby={errors.rating ? "rating-error" : undefined}
+            className="flex"
+          >
+            {[1, 2, 3, 4, 5].map(star => (
+              <label
+                key={star}
+                className="relative flex h-11 w-11 cursor-pointer items-center justify-center"
+                onMouseEnter={() => setHoverRating(star)}
+                onMouseLeave={() => setHoverRating(0)}
+              >
+                <input
+                  type="radio"
+                  name="rating"
+                  value={star}
+                  checked={rating === star}
+                  onChange={() => setRating(star)}
+                  aria-label={star === 1 ? "1 stea" : `${star} stele`}
+                  className="peer sr-only"
+                  disabled={isSubmitting}
+                />
+                <StarIcon
+                  aria-hidden
+                  className={cn(
+                    "h-8 w-8 rounded transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-600",
+                    star <= (hoverRating || rating)
+                      ? "text-yellow-400 fill-yellow-400"
+                      : "text-gray-400"
+                  )}
+                />
+              </label>
+            ))}
+          </div>
           {rating > 0 && (
             <p className="mt-1 text-sm">
               {rating} {rating === 1 ? t("star", "stea") : t("stars", "stele")}
             </p>
           )}
           {errors.rating && (
-            <p className="mt-1 text-sm text-red-500">{errors.rating}</p>
+            <p
+              id="rating-error"
+              role="alert"
+              className="mt-1 text-sm text-red-500"
+            >
+              {errors.rating}
+            </p>
           )}
         </div>
       </div>
@@ -153,13 +175,23 @@ export function ProductReviewForm({
         </Label>
         <Input
           id="title"
+          aria-invalid={Boolean(errors.title)}
+          aria-describedby={errors.title ? "title-error" : undefined}
+          maxLength={100}
+          disabled={isSubmitting}
           value={title}
           onChange={e => setTitle(e.target.value)}
           placeholder={t("titlePlaceholder", "Rezumă experiența ta")}
           className={errors.title ? "border-red-500" : ""}
         />
         {errors.title && (
-          <p className="mt-1 text-sm text-red-500">{errors.title}</p>
+          <p
+            id="title-error"
+            role="alert"
+            className="mt-1 text-sm text-red-500"
+          >
+            {errors.title}
+          </p>
         )}
       </div>
 
@@ -170,6 +202,10 @@ export function ProductReviewForm({
         </Label>
         <Textarea
           id="content"
+          aria-invalid={Boolean(errors.content)}
+          aria-describedby={errors.content ? "content-error" : undefined}
+          maxLength={1000}
+          disabled={isSubmitting}
           value={content}
           onChange={e => setContent(e.target.value)}
           placeholder={t(
@@ -180,7 +216,13 @@ export function ProductReviewForm({
           className={errors.content ? "border-red-500" : ""}
         />
         {errors.content && (
-          <p className="mt-1 text-sm text-red-500">{errors.content}</p>
+          <p
+            id="content-error"
+            role="alert"
+            className="mt-1 text-sm text-red-500"
+          >
+            {errors.content}
+          </p>
         )}
       </div>
 

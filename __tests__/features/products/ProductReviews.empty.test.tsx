@@ -10,7 +10,9 @@ describe("ProductReviews empty state", () => {
     );
 
     expect(screen.getByText("Încă nu există recenzii")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Scrie o recenzie" })).toBeDisabled();
+    expect(
+      screen.getByRole("link", { name: "Scrie o recenzie" })
+    ).toHaveAttribute("href", "/auth/login?callbackUrl=%2Faccount%2Forders");
     expect(screen.queryByText(/Customer Reviews/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/No reviews yet/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Write a review/i)).not.toBeInTheDocument();

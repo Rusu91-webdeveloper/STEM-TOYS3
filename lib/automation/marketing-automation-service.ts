@@ -247,8 +247,8 @@ export class MarketingAutomationService {
     trigger: AutomationTrigger
   ): Promise<AutomationResult> {
     try {
-      const isWorkflowEnabled = await isWorkflowEnabled("postPurchase");
-      if (!isWorkflowEnabled) {
+      const workflowEnabled = await isWorkflowEnabled("postPurchase");
+      if (!workflowEnabled) {
         return {
           success: false,
           error: "Post-purchase workflow is not enabled",
@@ -556,11 +556,7 @@ export class MarketingAutomationService {
   ): Promise<void> {
     const emailResult = await MarketingEmailService.sendReviewRequestEmail(
       workflow.metadata.customerEmail,
-      {
-        orderNumber: workflow.metadata.orderId,
-        total: workflow.metadata.orderTotal,
-      },
-      workflow.metadata.orderItems[0] // Simplified - would need proper order structure
+      { id: workflow.metadata.orderId }
     );
 
     console.log(

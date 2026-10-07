@@ -1,4 +1,4 @@
-// import { Book } from "./book";
+import type { ProductBuyingGuide } from "@/lib/products/product-buying-guides";
 
 export interface ProductVariant {
   id: string;
@@ -18,6 +18,7 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
+  buyingGuide?: ProductBuyingGuide;
   price: number;
   priceCurrency?: string; // Currency of the price (EUR or RON)
   compareAtPrice?: number;

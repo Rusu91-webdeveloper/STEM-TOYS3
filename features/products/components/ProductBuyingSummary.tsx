@@ -16,7 +16,24 @@ export function ProductBuyingSummary({ guide }: { guide: ProductBuyingGuide }) {
           <dd>{guide.preparation}</dd>
         </div>
       </dl>
-      <p className="text-xs leading-relaxed text-slate-600">{guide.safety}</p>
+      <details className="border-t border-sky-100 pt-2">
+        <summary className="min-h-11 cursor-pointer py-3 font-semibold text-slate-800">
+          Siguranță și instrucțiuni
+        </summary>
+        <p className="pb-3 text-sm leading-relaxed text-slate-600">
+          {guide.safety}
+        </p>
+        {guide.manualUrl && (
+          <a
+            href={guide.manualUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center font-semibold text-sky-800 underline underline-offset-4"
+          >
+            Instrucțiuni de la producător (PDF, filă nouă)
+          </a>
+        )}
+      </details>
     </section>
   );
 }

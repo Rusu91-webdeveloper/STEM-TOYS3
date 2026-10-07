@@ -1,8 +1,9 @@
 "use client";
 
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ export function ProductImageGallery({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
   const [failedImageIndexes, setFailedImageIndexes] = useState<number[]>([]);
+  const returnFocus = useRef<HTMLElement | null>(null);
 
   const visibleImages = images
     .map((image, index) => ({
@@ -49,7 +51,10 @@ export function ProductImageGallery({
     );
   };
 
-  const openFullscreen = () => setIsFullscreenOpen(true);
+  const openFullscreen = () => {
+    returnFocus.current = document.activeElement as HTMLElement | null;
+    setIsFullscreenOpen(true);
+  };
   const closeFullscreen = () => setIsFullscreenOpen(false);
 
   const handleImageError = (originalIndex: number) => {
@@ -57,29 +62,6 @@ export function ProductImageGallery({
       prev.includes(originalIndex) ? prev : [...prev, originalIndex]
     );
   };
-
-  useEffect(() => {
-    if (!isFullscreenOpen) return undefined;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeFullscreen();
-      } else if (visibleImages.length > 1 && event.key === "ArrowLeft") {
-        handlePrevImage();
-      } else if (visibleImages.length > 1 && event.key === "ArrowRight") {
-        handleNextImage();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isFullscreenOpen, visibleImages.length]);
 
   useEffect(() => {
     setFailedImageIndexes([]);
@@ -134,7 +116,7 @@ export function ProductImageGallery({
             )
           }
           className="object-contain bg-white p-2 transition-opacity sm:p-3"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          sizes="(max-width: 1023px) 90vw, 45vw"
         />
 
         {visibleImages.length > 1 && (
@@ -142,7 +124,7 @@ export function ProductImageGallery({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-1 top-1/2 z-20 h-7 w-7 -translate-y-1/2 rounded-full border border-white/15 bg-slate-900/70 backdrop-blur sm:left-2 sm:h-9 sm:w-9"
+              className="absolute left-1 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border border-white/15 bg-slate-900/70 backdrop-blur sm:left-2"
               onClick={event => {
                 event.stopPropagation();
                 handlePrevImage();
@@ -154,7 +136,7 @@ export function ProductImageGallery({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-1 top-1/2 z-20 h-7 w-7 -translate-y-1/2 rounded-full border border-white/15 bg-slate-900/70 backdrop-blur sm:right-2 sm:h-9 sm:w-9"
+              className="absolute right-1 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border border-white/15 bg-slate-900/70 backdrop-blur sm:right-2"
               onClick={event => {
                 event.stopPropagation();
                 handleNextImage();
@@ -174,7 +156,7 @@ export function ProductImageGallery({
             event.stopPropagation();
             openFullscreen();
           }}
-          className="absolute bottom-1 left-1 z-20 h-7 rounded-full border border-white/15 bg-slate-950/70 px-2.5 text-[10px] font-semibold text-slate-100 backdrop-blur hover:bg-slate-900/80 sm:hidden"
+          className="absolute bottom-1 left-1 z-20 h-11 rounded-full border border-white/15 bg-slate-950/70 px-3 text-xs font-semibold text-slate-100 backdrop-blur hover:bg-slate-900/80 sm:hidden"
         >
           Mărește
         </Button>
@@ -199,6 +181,7 @@ export function ProductImageGallery({
               )}
               onClick={() => handleThumbnailClick(index)}
               aria-label={`Vezi imaginea ${index + 1}`}
+              aria-pressed={currentImageIndex === index}
             >
               <Image
                 src={image}
@@ -213,98 +196,118 @@ export function ProductImageGallery({
         </div>
       )}
 
-      {isFullscreenOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Vizualizare imagine pe tot ecranul"
-          className="fixed inset-0 z-[90] bg-black/95"
-          onClick={closeFullscreen}
-        >
-          <button
-            type="button"
-            onClick={event => {
-              event.stopPropagation();
-              closeFullscreen();
+      <DialogPrimitive.Root
+        open={isFullscreenOpen}
+        onOpenChange={setIsFullscreenOpen}
+      >
+        <DialogPrimitive.Portal>
+          <DialogPrimitive.Overlay className="fixed inset-0 z-[90] bg-black/95" />
+          <DialogPrimitive.Content
+            aria-describedby={undefined}
+            className="fixed inset-0 z-[90] bg-black/95"
+            onCloseAutoFocus={event => {
+              event.preventDefault();
+              returnFocus.current?.focus();
             }}
-            aria-label="Închide vizualizarea pe tot ecranul"
-            className="absolute right-3 top-3 z-[100] flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur border border-white/30 hover:bg-white/30 transition-colors sm:right-5 sm:top-5 sm:h-12 sm:w-12"
+            onKeyDown={event => {
+              if (visibleImages.length > 1 && event.key === "ArrowLeft") {
+                event.preventDefault();
+                handlePrevImage();
+              }
+              if (visibleImages.length > 1 && event.key === "ArrowRight") {
+                event.preventDefault();
+                handleNextImage();
+              }
+            }}
           >
-            <X className="h-6 w-6" />
-          </button>
-
-          <div
-            className="relative mx-auto flex h-full w-full max-w-6xl items-center justify-center pb-24 sm:pb-16 sm:px-16"
-            onClick={event => event.stopPropagation()}
-          >
-            {visibleImages.length > 1 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute left-0 top-1/2 z-20 h-10 w-10 -translate-y-1/2 rounded-full border border-white/25 bg-black/60 text-white hover:bg-black/80 sm:left-2"
-                onClick={handlePrevImage}
-                aria-label="Imaginea anterioară"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-            )}
-
-            <div className="relative h-full w-full">
-              <Image
-                src={
-                  visibleImages[currentImageIndex]?.image ||
-                  "/placeholder-product.png"
-                }
-                alt={getAlt(currentImageIndex)}
-                fill
-                priority
-                onError={() =>
-                  handleImageError(
-                    visibleImages[currentImageIndex]?.originalIndex ??
-                      currentImageIndex
-                  )
-                }
-                className="object-contain"
-                sizes="100vw"
-              />
-            </div>
-
-            {visibleImages.length > 1 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-1/2 z-20 h-10 w-10 -translate-y-1/2 rounded-full border border-white/25 bg-black/60 text-white hover:bg-black/80 sm:right-2"
-                onClick={handleNextImage}
-                aria-label="Imaginea următoare"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            )}
-
-            {visibleImages.length > 1 && (
-              <div className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/25 bg-black/70 px-3 py-1 text-xs font-medium text-white">
-                {currentImageIndex + 1} / {visibleImages.length}
-              </div>
-            )}
-          </div>
-
-          <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center sm:bottom-8">
+            <DialogPrimitive.Title className="sr-only">
+              {alt} — galerie de imagini
+            </DialogPrimitive.Title>
             <button
               type="button"
               onClick={event => {
                 event.stopPropagation();
                 closeFullscreen();
               }}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 shadow-xl hover:bg-slate-100 transition-colors active:scale-95"
+              aria-label="Închide vizualizarea pe tot ecranul"
+              className="absolute right-3 top-3 z-[100] flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur border border-white/30 hover:bg-white/30 transition-colors sm:right-5 sm:top-5 sm:h-12 sm:w-12"
             >
-              <X className="h-4 w-4" />
-              Închide
+              <X className="h-6 w-6" />
             </button>
-          </div>
-        </div>
-      )}
+
+            <div
+              className="relative mx-auto flex h-full w-full max-w-6xl items-center justify-center pb-24 sm:pb-16 sm:px-16"
+              onClick={event => event.stopPropagation()}
+            >
+              {visibleImages.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-0 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border border-white/25 bg-black/60 text-white hover:bg-black/80 sm:left-2"
+                  onClick={handlePrevImage}
+                  aria-label="Imaginea anterioară"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+              )}
+
+              <div className="relative h-full w-full">
+                <Image
+                  src={
+                    visibleImages[currentImageIndex]?.image ||
+                    "/placeholder-product.png"
+                  }
+                  alt={getAlt(currentImageIndex)}
+                  fill
+                  priority
+                  onError={() =>
+                    handleImageError(
+                      visibleImages[currentImageIndex]?.originalIndex ??
+                        currentImageIndex
+                    )
+                  }
+                  className="object-contain"
+                  sizes="100vw"
+                />
+              </div>
+
+              {visibleImages.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border border-white/25 bg-black/60 text-white hover:bg-black/80 sm:right-2"
+                  onClick={handleNextImage}
+                  aria-label="Imaginea următoare"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              )}
+
+              {visibleImages.length > 1 && (
+                <div className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/25 bg-black/70 px-3 py-1 text-xs font-medium text-white">
+                  {currentImageIndex + 1} / {visibleImages.length}
+                </div>
+              )}
+            </div>
+
+            <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center sm:bottom-8">
+              <button
+                type="button"
+                onClick={event => {
+                  event.stopPropagation();
+                  closeFullscreen();
+                }}
+                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 shadow-xl hover:bg-slate-100 transition-colors active:scale-95"
+              >
+                <X className="h-4 w-4" />
+                Închide
+              </button>
+            </div>
+          </DialogPrimitive.Content>
+        </DialogPrimitive.Portal>
+      </DialogPrimitive.Root>
     </div>
   );
 }

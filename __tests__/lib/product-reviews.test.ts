@@ -15,7 +15,10 @@ const row = {
   content: "Un experiment interesant.",
   createdAt: new Date("2026-10-01T12:00:00Z"),
   user: { name: "Ana" },
-  orderItem: { productId: "product-1", order: { userId: "buyer-1" } },
+  orderItem: {
+    productId: "product-1",
+    order: { userId: "buyer-1", status: "DELIVERED" },
+  },
 };
 
 beforeEach(() => jest.clearAllMocks());
@@ -52,7 +55,10 @@ it("does not invent verification for an unrelated order item", async () => {
     {
       ...row,
       user: { name: null },
-      orderItem: { productId: "other", order: { userId: "buyer-1" } },
+      orderItem: {
+        productId: "other",
+        order: { userId: "buyer-1", status: "DELIVERED" },
+      },
     },
     {
       ...row,
@@ -73,4 +79,17 @@ it("distinguishes an empty catalog from a database failure", async () => {
   await expect(getProductReviews("product-1")).rejects.toThrow(
     "database unavailable"
   );
+});
+
+it("does not label an undelivered purchase as verified", async () => {
+  (db.review.findMany as jest.Mock).mockResolvedValue([
+    {
+      ...row,
+      orderItem: {
+        productId: "product-1",
+        order: { userId: "buyer-1", status: "PROCESSING" },
+      },
+    },
+  ]);
+  expect((await getProductReviews("product-1"))[0].verified).toBe(false);
 });

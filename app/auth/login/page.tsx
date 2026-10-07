@@ -295,7 +295,7 @@ function LoginForm() {
         <p className="text-sm text-slate-600">
           {t(
             "loginHeroSubtitle",
-            "Blochează accesul la istoricul comenzilor, recompense și oferte exclusive."
+            "Accesează comenzile și lasă o recenzie pentru produsele livrate."
           )}
         </p>
       </div>
@@ -344,8 +344,9 @@ function LoginForm() {
             className={cn(
               "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-sky-400 focus-visible:ring-sky-400",
               {
-                "border-red-400 focus-visible:ring-red-400":
-                  Boolean(errors.email),
+                "border-red-400 focus-visible:ring-red-400": Boolean(
+                  errors.email
+                ),
               }
             )}
           />
@@ -366,7 +367,9 @@ function LoginForm() {
               >
                 {t("forgotPassword")}
               </Link>
-              <p className="mt-1 text-xs text-slate-500">{t("oauthUserHint")}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                {t("oauthUserHint")}
+              </p>
             </div>
           </div>
           <PasswordInput
@@ -440,17 +443,14 @@ export default function LoginPage() {
 
   return (
     <AuthExperienceLayout
-      title={t(
-        "loginHeroTitle",
-        "Conectează-te la platforma părinților care cresc vizionari STEM"
-      )}
+      title={t("loginHeroTitle", "Bine ai revenit la TechTots")}
       subtitle={t(
         "loginHeroDescription",
-        "Gestionăm comenzile, garanțiile și recomandările inteligente într-un singur hub."
+        "Accesează istoricul comenzilor, produsele digitale și informațiile contului."
       )}
       highlight={t(
         "loginHeroHighlight",
-        "Autentificarea îți activează suport prioritar și oferte personalizate."
+        "Poți scrie recenzii pentru produsele din comenzile tale livrate."
       )}
     >
       <Suspense fallback={<LoginFormFallback />}>

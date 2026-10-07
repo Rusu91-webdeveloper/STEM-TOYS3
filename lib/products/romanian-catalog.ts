@@ -232,9 +232,7 @@ export function disciplineBadgeLabel(
   return categoryStorefrontLabel(categorySlug, categoryName);
 }
 
-export function resolveProductAgeChip(
-  product: AgeChipProduct
-): AgeChip | null {
+export function resolveProductAgeChip(product: AgeChipProduct): AgeChip | null {
   const group = product.ageGroup ? AGE_GROUPS[product.ageGroup] : undefined;
   const manufacturerMin = manufacturerMinimum(product);
   const descriptionMin = product.description
@@ -272,11 +270,24 @@ export function resolveProductAgeChip(
   }
 
   if (minimum !== null) {
+    // Preserve assistance/autonomy qualifiers from an explicit source. A
+    // minimum-only chip would conceal conditions that matter when choosing.
+    const qualifiedAge = [
+      attributeString(product.attributes, "manufacturerRecommendedAge"),
+      attributeString(product.attributes, "originalAgeText"),
+      product.ageRange,
+    ].find(
+      raw =>
+        raw &&
+        !isCoarseBracketList(raw) &&
+        explicitSingleValue(raw) === minimum &&
+        /ajutor|asisten|supravegh|autonom|individual|adult/i.test(raw)
+    );
     const contradicts = Boolean(
       group && (minimum < group.min || minimum > group.max)
     );
     return {
-      label: `${minimum}+ ani`,
+      label: qualifiedAge ? normalizeAgeText(qualifiedAge) : `${minimum}+ ani`,
       source: "explicit",
       contradictsCoarseGroup: contradicts,
     };

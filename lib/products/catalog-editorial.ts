@@ -1,4 +1,5 @@
 import catalog from "./catalog-editorial.ro.json";
+import { getProductBuyingGuide } from "./product-buying-guides";
 
 export const reviewedCatalog = catalog;
 
@@ -44,12 +45,26 @@ export function applyReviewedCatalogCopy<T>(product: T): T {
       ? record.attributes
       : {};
   const metaDescription = `${copy.intro} Vârstă recomandată: ${copy.age}.`;
+  const authoredGuide = getProductBuyingGuide(copy.slug);
+  const manualUrl = copy.sources.find(source =>
+    /^https:\/\/[^\s]+\.pdf(?:\?[^\s]*)?$/i.test(source)
+  );
 
   return {
     ...record,
     name: copy.name,
     description,
     ageRange: copy.age,
+    buyingGuide: {
+      brand: copy.brand,
+      age: copy.age,
+      summary: copy.intro,
+      contents: copy.contents,
+      preparation: authoredGuide?.preparation ?? copy.specifications,
+      safety: copy.warning,
+      activities: authoredGuide?.activities ?? [],
+      ...(manualUrl ? { manualUrl } : {}),
+    },
     attributes: {
       ...attributes,
       brand: copy.brand,

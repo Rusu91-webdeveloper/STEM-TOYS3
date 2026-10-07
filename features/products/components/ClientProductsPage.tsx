@@ -16,11 +16,12 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React, { useState, useEffect, useMemo, useRef, Suspense } from "react";
 
-import { ProductVariantProvider } from "@/features/products";
+import { ProductVariantProvider } from "@/features/products/context/ProductVariantContext";
 import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { useTranslation } from "@/lib/i18n";
 import { isVisibleOnProductsListing } from "@/lib/products/catalog-access";
 import { giftOrder } from "@/lib/products/merchandising";
+import { matchesProductSearch } from "@/lib/products/search";
 import { isListedInCategory } from "@/lib/products/stem-category";
 import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import {
@@ -428,12 +429,8 @@ function ClientProductsPageContent({
 
     // Filter by search query
     if (state.searchQuery) {
-      const query = state.searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        product =>
-          product.name?.toLowerCase().includes(query) ||
-          product.description?.toLowerCase().includes(query) ||
-          product.tags?.some(tag => tag.toLowerCase().includes(query))
+      filtered = filtered.filter(product =>
+        matchesProductSearch(product, state.searchQuery)
       );
     }
 
@@ -976,6 +973,7 @@ function ClientProductsPageContent({
                     visibleProductsCount={bundleFilteredProducts.length}
                     displayedProducts={displayedProducts}
                     viewMode={state.viewMode}
+                    onViewModeChange={actions.setViewMode}
                     sortOption={sortOption}
                     onSortChange={handleSortChange}
                     searchQuery={state.searchQuery}
