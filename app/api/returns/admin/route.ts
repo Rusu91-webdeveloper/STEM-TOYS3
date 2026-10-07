@@ -1,8 +1,17 @@
-import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
+import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  getReturnDestination,
+  readDestinationEvidence,
+  supplierNotesWithoutDestination,
+} from "@/lib/returns/return-destination";
+import {
+  supplierContract,
+  supplierReturnSelect,
+} from "@/lib/returns/supplier-return-contracts";
 
 export async function GET(request: Request) {
   try {
@@ -111,6 +120,7 @@ export async function GET(request: Request) {
         },
         orderItem: {
           select: {
+            isDigital: true,
             id: true,
             name: true,
             price: true,
@@ -123,10 +133,7 @@ export async function GET(request: Request) {
                 sku: true,
                 images: true,
                 supplier: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+                  select: supplierReturnSelect,
                 },
               },
             },
@@ -209,6 +216,7 @@ export async function GET(request: Request) {
           },
           orderItem: {
             select: {
+              isDigital: true,
               id: true,
               name: true,
               price: true,
@@ -221,10 +229,7 @@ export async function GET(request: Request) {
                   sku: true,
                   images: true,
                   supplier: {
-                    select: {
-                      id: true,
-                      name: true,
-                    },
+                    select: supplierReturnSelect,
                   },
                 },
               },
@@ -283,7 +288,15 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      returns,
+      returns: returns.map(record => ({
+        ...record,
+        destination: getReturnDestination(record),
+        destinationReview: readDestinationEvidence(record.supplierAuthorizationNotes),
+        supplierContract: supplierContract(record.orderItem.product?.supplier),
+        supplierAuthorizationNotes: supplierNotesWithoutDestination(
+          record.supplierAuthorizationNotes
+        ),
+      })),
       pagination: {
         total,
         page,

@@ -1,5 +1,21 @@
 # Current tasks
 
+- [x] 2026-10-07 — Implement supplier/company return destinations from the
+      owner's two supplied dropshipping contracts. Estimate: 2–4 hours. Review
+      contract conditions and address evidence; record authenticated destination
+      review before approval; keep emails, identification PDFs and account
+      instructions consistent for single, mixed and digital returns. Preserve
+      consumer remedies independently of supplier reimbursement and verify SMTP
+      transport. Implemented authenticated contract review, safe company
+      fallback, per-item destinations and PDFs, digital exceptions, SMTP
+      acceptance/retry, and professional email/PDF branding. Eleven focused
+      suites / 73 tests and real local admin/API/mobile/PDF checks pass. Owner
+      confirmed the original mixed email with three PDFs; three revised messages
+      were accepted by SMTP, with revised receipt/rendering pending. Details in
+      the
+      [supplier audit](docs/audits/2026-10-07-supplier-return-destinations.md).
+      Continue draft PR #71; no production release authorized.
+
 - [ ] 2026-10-07 — Finalize COD hold expiry, returns/refund acceptance and
       privacy operations at the owner's request. Estimate: 3–5 hours; elapsed
       time not recorded. Branch `codex/holds-refunds-privacy` from clean main
@@ -21,12 +37,16 @@
       Added aggregate cron evidence that survives console stripping and the
       production warn log level; 14 focused tests pass. Two real withdrawal SMTP
       messages were accepted; rendering confirmation remains pending. Four
-      return-email sends failed: Brevo's configured key is disabled (401).
-      Stripe test-mode refunds still need reauthentication. Supplier business
-      addresses are present, but signed return contracts/RMA destinations and
-      provider agreements remain pending. Mac restarts interrupted intermediate
-      checks; resumed checks run one heavy job at a time after storage was
-      freed. This does not certify an A+.
+      return-email sends initially failed because Brevo's key is disabled (401).
+      Return notifications now use existing SMTP credentials; four original and
+      three redesigned messages were accepted. Owner confirmed the original
+      mixed email's three PDFs; revised rendering remains pending. Supplier
+      contracts supplied/reviewed; per-case warehouse authorization and active
+      execution remain required. Stripe is reconnected but verified access
+      remains live-only; actual sandbox refunds and remaining provider
+      agreements are pending. Mac restarts interrupted intermediate checks;
+      resumed checks run one heavy job at a time after storage was freed. This
+      does not certify an A+.
 
 - [x] 2026-10-06 — Owner requested analysis and repair of the remaining Meta
       crawler chunk failures. Estimate: 1–2 hours. Branch

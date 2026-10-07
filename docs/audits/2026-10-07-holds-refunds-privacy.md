@@ -115,12 +115,12 @@ PAID. Merely opening a complaint does not revoke paid access.
 
 ### Remaining acceptance matrix
 
-| Check                            | Local evidence                                                                                                                                                   | External completion still required                                                                                                                                                                                                                                                                  |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Authenticated admin review/retry | Real credentials, ADMIN/customer separation, CSRF, durable review and failure/retry state.                                                                       | Confirm deployed admin workflow after approved release.                                                                                                                                                                                                                                             |
-| Full/partial Stripe refunds      | Focused reviewed-refund tests cover processor history, pending/failure/retry and amounts.                                                                        | Stripe test-mode order, actual partial/full refunds through authenticated routes, provider IDs/history and retry evidence. Connector currently requires reauthentication.                                                                                                                           |
-| Manual repayment                 | Actual local database/API partial then cumulative full repayment with immutable bank-reference evidence.                                                         | Reconcile a real completed repayment only when independently confirmed by operator evidence.                                                                                                                                                                                                        |
-| Redesigned emails                | Source templates rendered with synthetic fixtures; real customer/merchant withdrawal SMTP sends were accepted on 7 October, with message IDs retained privately. | Owner-authorized Gmail test inbox is recorded privately; receipt/rendering confirmation remains pending. Four real return-template sends failed because Brevo's configured API key is disabled. Restore the key, then retest physical/digital/rejection/mixed messages and PDF attachments. |
+| Check                            | Local evidence                                                                                                                                                   | External completion still required                                                                                                                                                                                                        |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Authenticated admin review/retry | Real credentials, ADMIN/customer separation, CSRF, durable review and failure/retry state.                                                                       | Confirm deployed admin workflow after approved release.                                                                                                                                                                                   |
+| Full/partial Stripe refunds      | Focused reviewed-refund tests cover processor history, pending/failure/retry and amounts.                                                                        | Stripe test-mode order, actual partial/full refunds through authenticated routes, provider IDs/history and retry evidence. Connector was reconnected, but the verified scope is live-only; an isolated test sandbox/key remains required. |
+| Manual repayment                 | Actual local database/API partial then cumulative full repayment with immutable bank-reference evidence.                                                         | Reconcile a real completed repayment only when independently confirmed by operator evidence.                                                                                                                                              |
+| Redesigned emails                | Source templates rendered with synthetic fixtures; real customer/merchant withdrawal SMTP sends were accepted on 7 October, with message IDs retained privately. | Return approval/rejection now uses existing SMTP credentials. Four original and three revised return notifications were accepted. Owner confirmed the original mixed email with three PDFs; revised inbox rendering awaits confirmation.  |
 
 Do not use real customers or production funds as acceptance fixtures. The owner
 authorized the Gmail address above for both customer and merchant tests. Six
@@ -132,8 +132,10 @@ withdrawal was created. This checks source rendering and actual transport,
 separately from the previously tested authenticated admin/database workflow.
 HTML/PDF fixtures, hashes and message IDs are retained privately in ignored test
 results. Temporary mail credentials are removed after use. No money was moved.
-Stripe still requires reauthentication; its saved CLI test key expired 14
-February 2026. The owner requested a Stripe login page, which was opened.
+Stripe was reconnected and the owner reported test-mode authorization; the
+available account/credentials verified for this session remain live-only. Its
+saved CLI test key expired 14 February 2026. Actual full/partial sandbox refunds
+remain unexecuted. Never use live payments as acceptance fixtures.
 
 ## Supplier destinations and contract review
 
@@ -147,21 +149,19 @@ contracts permit return/defect handling. Read-only production Supplier data has:
 | Boribon  | Bulevardul pipera Nr 2C,MVK building, Voluntari, Ilfov, 077190, Romania                    |
 | Kidstory | str Baicului nr. 80, cladirea UI2, parter, Bucuresti, Bucuresti(sector 2), 021784, Romania |
 
-These are business addresses, not verified RMA receiving destinations. Supplier
-records have no signed-contract/return-annex field; portal terms/privacy flags
-do not establish those clauses. Production SupplierMessage and
-SupplierSupportTicket tables are empty, including attachments. No signed
-Boribon/Kidstory contract was found in repository documents. The owner has been
-asked for its location. Do not automate a destination until the applicable
-contract/annex establishes accepted reasons, receiving address, authorization
-procedure, transport responsibility and deadlines.
-
-Supplier recourse is separate from TechTots' duties to consumers. A supplier's
-B2B return restrictions cannot by themselves remove the customer's conformity
-remedy. See
-[OUG 140/2021, current consolidated articles 12 and 16](https://legislatie.just.ro/Public/DetaliiDocument/303291).
-Keep coordination with TechTots in customer instructions until the actual
-receiving destination and authorization are confirmed.
+The owner subsequently supplied the KidStory and Boribon dropshipping PDFs.
+Their relevant clauses and rendered pages were reviewed. Boribon's named depot
+matches the database address; KidStory's receiving depot still requires case ARP
+confirmation. Both supplied copies have blank supplier signature fields, so
+execution is not assumed. Contract-based admin review, supplier/company routing,
+deadline fallback, SMTP notifications and professional PDF/email design are now
+implemented and locally accepted. See the detailed
+[supplier return decision and acceptance record](2026-10-07-supplier-return-destinations.md).
+Supplier conditions govern recourse without automatically removing customer
+remedies;
+[OUG 140/2021, articles 12 and 16](https://legislatie.just.ro/Public/DetaliiDocument/303291)
+remain separate. Current warehouse and active contract confirmation are required
+before a supplier destination is saved.
 
 ## Privacy operation and remaining owner evidence
 
@@ -197,15 +197,15 @@ Daily operator procedure:
    actual category-specific retention settings. Do not infer agreement
    acceptance from installed code or published provider terms.
 
-| Owner-controlled item            | Known evidence                                                                                                                                                          | Required confirmation                                                                                                               |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Operator identity                | WEBIRA REM S.R.L., CUI 51813997; registration confirmed 3 October; current company address confirmed by owner 7 October.                                                | Supplier return/RMA destination and applicable signed contract remain pending, as above.                                            |
-| Application retention            | Production policies re-read 7 October through Vercel's Neon integration: EmailEvent 30 days / PerformanceMetric 60 days, both autoDelete=true.                          | Scheduled invocation observed; deletion counts and completion of the remaining 5,593 overdue metric records still require evidence. |
-| GA4                              | Project record confirms two months and reset-on-activity disabled on 4 October.                                                                                         | Preserve current settings evidence and distinguish aggregate/provider retention.                                                    |
-| Hosting/database/storage         | Current Neon TechTots3 project: AWS Frankfurt, main/default branch, one-day history retention, no snapshots or snapshot schedule. Connected to all Vercel environments. | Accepted agreements, roles, transfers, other provider retention and deletion/restore handling remain pending.                       |
-| Transactional/support mail       | Production EMAIL_PROVIDER=brevo for unified return sends; withdrawal SMTP=smtp.gmail.com:587. Real SMTP acceptance observed; Brevo key is disabled.                     | Restore Brevo, confirm inbox rendering, applicable accepted terms/DPA and provider/mailbox retention.                               |
-| Payments/delivery                | Stripe, NETOPIA and FAN Courier integration paths.                                                                                                                      | Applicable accepted contracts and roles, provider-held evidence/retention and rights routing.                                       |
-| Identity/measurement/advertising | Google sign-in/GA4 and Meta integration paths; optional uses remain consent-dependent.                                                                                  | Accepted applicable provider terms/addenda, enabled uses and transfer evidence.                                                     |
+| Owner-controlled item            | Known evidence                                                                                                                                                          | Required confirmation                                                                                                                                        |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Operator identity                | WEBIRA REM S.R.L., CUI 51813997; registration confirmed 3 October; current company address confirmed by owner 7 October.                                                | Supplied contract copies reviewed; active supplier execution and per-case receiving authorization remain operator confirmations.                             |
+| Application retention            | Production policies re-read 7 October through Vercel's Neon integration: EmailEvent 30 days / PerformanceMetric 60 days, both autoDelete=true.                          | Scheduled invocation observed; deletion counts and completion of the remaining 5,593 overdue metric records still require evidence.                          |
+| GA4                              | Project record confirms two months and reset-on-activity disabled on 4 October.                                                                                         | Preserve current settings evidence and distinguish aggregate/provider retention.                                                                             |
+| Hosting/database/storage         | Current Neon TechTots3 project: AWS Frankfurt, main/default branch, one-day history retention, no snapshots or snapshot schedule. Connected to all Vercel environments. | Accepted agreements, roles, transfers, other provider retention and deletion/restore handling remain pending.                                                |
+| Transactional/support mail       | Return/withdrawal acceptance now uses existing SMTP credentials (smtp.gmail.com:587); the global Brevo setting is unchanged and its key remains disabled.               | Confirm revised inbox rendering, applicable accepted terms/DPA and provider/mailbox retention; repair Brevo separately for mail paths that still require it. |
+| Payments/delivery                | Stripe, NETOPIA and FAN Courier integration paths.                                                                                                                      | Applicable accepted contracts and roles, provider-held evidence/retention and rights routing.                                                                |
+| Identity/measurement/advertising | Google sign-in/GA4 and Meta integration paths; optional uses remain consent-dependent.                                                                                  | Accepted applicable provider terms/addenda, enabled uses and transfer evidence.                                                                              |
 
 The production daily maintenance invocation on 7 October at 01:00:44 UTC was
 observed in Vercel: `vercel-cron/1.0`, HTTP 200, 483 ms function execution,

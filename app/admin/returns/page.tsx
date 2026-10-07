@@ -1,8 +1,5 @@
 "use client";
 
-import { ReturnRefundReviewDialog } from "@/features/returns/components/ReturnRefundReviewDialog";
-
-import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { formatDistance, format } from "date-fns";
 import {
   Loader2,
@@ -29,10 +26,11 @@ import {
   Building2,
 } from "lucide-react";
 import Image from "next/image";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { DateRange } from "react-day-picker";
-import { useSearchParams, useRouter } from "next/navigation";
 
+import { AnalyticsChart } from "@/components/ui/analytics-chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,6 +41,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import {
   Dialog,
   DialogContent,
@@ -66,7 +65,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -76,10 +74,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { AnalyticsChart } from "@/components/ui/analytics-chart";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { ReturnDestinationReview } from "@/features/returns/components/ReturnDestinationReview";
+import { ReturnRefundReviewDialog } from "@/features/returns/components/ReturnRefundReviewDialog";
+import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { RETURN_REASON_LABELS_RO } from "@/lib/returns/policy";
+import type { DestinationEvidence, ReturnDestination } from "@/lib/returns/return-destination";
 import { canTransitionReturnStatus } from "@/lib/returns/status-machine";
 
 type ReturnReason =
@@ -168,6 +169,9 @@ interface ReturnItem {
   refundStatus?: string | null;
   refundError?: string | null;
   photos?: string[];
+  destination?: ReturnDestination;
+  destinationReview?: DestinationEvidence | null;
+  supplierContract?: string | null;
   supplierAuthorizationStatus?: string | null;
   supplierAuthorizationDeadline?: string | null;
   supplierAuthorizationRequestedAt?: string | null;
@@ -204,6 +208,7 @@ interface ReturnItem {
     paymentMethod: string;
   };
   orderItem: {
+    isDigital?: boolean;
     id: string;
     name: string;
     price: number;
@@ -215,6 +220,10 @@ interface ReturnItem {
       sku: string;
       images: string[];
       supplier?: {
+        businessAddress?: string | null;
+        businessCity?: string | null;
+        businessState?: string | null;
+        businessCountry?: string | null;
         id: string;
         name: string;
       } | null;
@@ -603,7 +612,10 @@ export default function AdminReturnsPage() {
 
       toast({
         title: "Status Updated",
-        description: `Return status changed to ${statusBadges[newStatus].label}`,
+        description: data?.notification?.success === false
+          ? "Statusul a fost salvat, dar emailul a eșuat. Corectează configurația și retrimite aprobarea."
+          : `Return status changed to ${statusBadges[newStatus].label}`,
+        variant: data?.notification?.success === false ? "destructive" : "default",
       });
 
       // Refresh the data
@@ -654,7 +666,10 @@ export default function AdminReturnsPage() {
 
       toast({
         title: "Bulk Approval Successful",
-        description: `Successfully approved ${selectedReturns.length} returns. Customers will receive consolidated emails with single shipping labels per order.`,
+        description: response.status === 202
+          ? "Retururile au fost aprobate, dar unele emailuri au eșuat. Corectează configurația și retrimite aprobarea."
+          : `Aprobat ${selectedReturns.length} retururi. Serviciul de email a acceptat mesajele cu documente și destinații pentru fiecare articol.`,
+        variant: response.status === 202 ? "destructive" : "default",
       });
 
       // Clear selection and refresh data
@@ -1442,7 +1457,7 @@ export default function AdminReturnsPage() {
                       <span>
                         <strong>Bulk Processing:</strong> Returns from the same
                         order will be grouped together. Customers will receive
-                        one email with one shipping label per order.
+                        one email with a return document per physical item and its destination.
                       </span>
                     </div>
                   </div>
@@ -1523,11 +1538,11 @@ export default function AdminReturnsPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center space-x-3">
-                                {returnItem.orderItem.product.images?.[0] && (
+                                {returnItem.orderItem.product?.images?.[0] && (
                                   <div className="relative h-10 w-10 rounded overflow-hidden">
                                     <Image
                                       src={
-                                        returnItem.orderItem.product.images[0]
+                                        returnItem.orderItem.product?.images[0]
                                       }
                                       alt={returnItem.orderItem.name}
                                       className="object-cover"
@@ -1760,7 +1775,7 @@ export default function AdminReturnsPage() {
       {refundTarget && <ReturnRefundReviewDialog key={refundTarget.id} target={refundTarget} onClose={() => setRefundTarget(null)} onUpdated={record => { applyUpdatedReturn(record as ReturnItem); fetchReturns(pagination.page, filterStatus, filterReason, filterLiability, filterCustomerSegment, dateRange); }} />}
 
       <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-3xl max-h-[90dvh] overflow-y-auto overflow-x-hidden min-w-0 [overflow-wrap:anywhere] [&>*]:min-w-0 [&_input]:min-w-0 [&_textarea]:min-w-0 [&_button]:whitespace-normal">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
@@ -1820,11 +1835,11 @@ export default function AdminReturnsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-4">
-                    {selectedReturnForDetails.orderItem.product.images?.[0] && (
+                    {selectedReturnForDetails.orderItem.product?.images?.[0] && (
                       <div className="relative h-24 w-24 rounded-lg overflow-hidden border">
                         <Image
                           src={
-                            selectedReturnForDetails.orderItem.product.images[0]
+                            selectedReturnForDetails.orderItem.product?.images[0]
                           }
                           alt={selectedReturnForDetails.orderItem.name}
                           className="object-cover"
@@ -1839,12 +1854,12 @@ export default function AdminReturnsPage() {
                       <div className="text-sm text-muted-foreground space-y-1">
                         <p>
                           SKU:{" "}
-                          {selectedReturnForDetails.orderItem.product.sku ||
+                          {selectedReturnForDetails.orderItem.product?.sku ||
                             "N/A"}
                         </p>
                         <p>
                           Supplier:{" "}
-                          {selectedReturnForDetails.orderItem.product.supplier
+                          {selectedReturnForDetails.orderItem.product?.supplier
                             ?.name || "In-house / Unknown"}
                         </p>
                         <p>
@@ -2113,6 +2128,24 @@ export default function AdminReturnsPage() {
                 </CardContent>
               </Card>
 
+              <ReturnDestinationReview
+                key={selectedReturnForDetails.id}
+                returnId={selectedReturnForDetails.id}
+                status={selectedReturnForDetails.status}
+                isDigital={selectedReturnForDetails.orderItem.isDigital}
+                destination={selectedReturnForDetails.destination}
+                evidence={selectedReturnForDetails.destinationReview}
+                contract={selectedReturnForDetails.supplierContract}
+                warehouseAddress={[
+                  selectedReturnForDetails.orderItem.product?.supplier?.businessAddress,
+                  selectedReturnForDetails.orderItem.product?.supplier?.businessCity,
+                  selectedReturnForDetails.orderItem.product?.supplier?.businessState,
+                  selectedReturnForDetails.orderItem.product?.supplier?.businessCountry,
+                ].filter(Boolean).join(", ")}
+                headers={csrf.addToHeaders({ "Content-Type": "application/json" })}
+                onSaved={(destination, destinationReview) => applyUpdatedReturn({ ...selectedReturnForDetails, destination, destinationReview })}
+              />
+
               {/* Supplier Routing & Authorization */}
               <Card>
                 <CardHeader className="pb-3">
@@ -2129,14 +2162,14 @@ export default function AdminReturnsPage() {
                     <div>
                       <span className="text-muted-foreground">Supplier: </span>
                       <span className="font-medium">
-                        {selectedReturnForDetails.orderItem.product.supplier
+                        {selectedReturnForDetails.orderItem.product?.supplier
                           ?.name || "Unknown"}
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">SKU: </span>
                       <span className="font-mono">
-                        {selectedReturnForDetails.orderItem.product.sku ||
+                        {selectedReturnForDetails.orderItem.product?.sku ||
                           "N/A"}
                       </span>
                     </div>
@@ -2217,7 +2250,7 @@ export default function AdminReturnsPage() {
 
                     <div className="space-y-2">
                       <label className="text-sm font-medium">
-                        Supplier Response Deadline
+                        Response deadline / approved arrival deadline
                       </label>
                       <Input
                         type="date"
@@ -2400,6 +2433,12 @@ export default function AdminReturnsPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {(selectedReturnForDetails.status === "APPROVED" || selectedReturnForDetails.status === "REJECTED") && (
+                <Button variant="outline" onClick={() => handleUpdateStatus(selectedReturnForDetails.id, selectedReturnForDetails.status)}>
+                  Retrimite emailul cu instrucțiuni
+                </Button>
+              )}
 
               {/* Quick Actions */}
               <div className="flex justify-end gap-2 pt-4 border-t">
