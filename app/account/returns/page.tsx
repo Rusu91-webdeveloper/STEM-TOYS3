@@ -8,13 +8,12 @@ import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import {
   glassCardClass,
   glassPanelClass,
   gradientButtonClass,
 } from "@/features/home/components/homeTheme";
-import { useToast } from "@/components/ui/use-toast";
-import { cn } from "@/lib/utils";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import {
   RETURN_POLICY_CUSTOMER_PAYS_RO,
@@ -23,6 +22,8 @@ import {
   RETURN_POLICY_SELLER_PAYS_RO,
   RETURN_WINDOW_LABEL_RO,
 } from "@/lib/returns/policy";
+import { destinationInstruction, type ReturnDestination } from "@/lib/returns/return-destination-display";
+import { cn } from "@/lib/utils";
 
 // Define return types
 type ReturnReason =
@@ -49,6 +50,7 @@ interface ReturnItem {
   status: ReturnStatus;
   createdAt: string;
   photos: string[];
+  destination?: ReturnDestination | null;
   order: {
     orderNumber: string;
     createdAt: string;
@@ -199,7 +201,7 @@ export default function ReturnsPage() {
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
-                  {returnItem.orderItem.product.images?.[0] && (
+                  {returnItem.orderItem.product?.images?.[0] && (
                     <div className="relative mx-auto h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:mx-0">
                       <Image
                         src={returnItem.orderItem.product.images[0]}
@@ -284,6 +286,7 @@ export default function ReturnsPage() {
               
               {returnItem.status === "APPROVED" && (
                 <div className="mt-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/15 p-4 text-sm text-emerald-100">
+                  {returnItem.destination && <p className="mb-2 break-words">{destinationInstruction(returnItem.destination)}</p>}
                   Returnarea ta a fost aprobată. Verifică emailul pentru instrucțiunile de retur.
                 </div>
               )}

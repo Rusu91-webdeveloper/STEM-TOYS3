@@ -5,9 +5,12 @@
  * It maintains backward compatibility while gradually transitioning to the new system.
  */
 
+
 import { sendEmailWithBrevo } from "../brevo";
-import { PersonalizationEngine } from "./personalization-engine";
+
 import { DatabaseTemplateService } from "./database-template-service";
+import { PersonalizationEngine } from "./personalization-engine";
+import { getReturnEmailService } from "./return-service";
 
 /**
  * Send email using the queue system when available, fallback to direct sending
@@ -240,7 +243,7 @@ export async function sendReturnNotificationEmail({
     </div>
   `;
 
-  return sendEmailViaUnifiedSystem(to, subject, html, {
+  return getReturnEmailService().sendEmail({ to, subject, html,
     template: "return-notification",
     variables: {
       orderNumber,

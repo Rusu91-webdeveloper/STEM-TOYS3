@@ -34,7 +34,7 @@ const toc = [
 export default function TermsPage() {
   const { t } = useTranslation();
   const contactEmail = COMPANY_LEGAL.email;
-  const lastUpdated = "4 octombrie 2026";
+  const lastUpdated = "7 octombrie 2026";
 
   return (
     <LegalPageShell
@@ -195,9 +195,9 @@ export default function TermsPage() {
                 </li>
                 <li>
                   Poți transmite declarația online, fără autentificare, la{" "}
-                  <a href="/withdrawal">Retrageți-vă din contract aici</a>.
-                  După „Confirmați retragerea”, primești o confirmare de primire
-                  cu declarația, data și ora transmiterii, pe suport durabil.
+                  <a href="/withdrawal">Retrageți-vă din contract aici</a>. După
+                  „Confirmați retragerea”, primești o confirmare de primire cu
+                  declarația, data și ora transmiterii, pe suport durabil.
                 </li>
               </ul>
             </section>

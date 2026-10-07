@@ -43,6 +43,8 @@ export class UnifiedEmailService {
           // Ensure from/replyTo are respected if provider uses them
           // Adapters read from env for now; template engine will set html later
         });
+        if (!result.success)
+          throw new Error(`Email rejected by ${provider.name}`);
         const deliveryTime = Math.max(0, Math.round(nowMs() - sendStart));
         return {
           success: true,

@@ -1,7 +1,7 @@
 import { sendEmailViaUnifiedSystem } from "@/lib/brevoTemplates";
-import { parseCodGuaranteeEvidence } from "@/lib/checkout/cod-guarantee";
+import { releaseCodGuaranteeHoldIfNeeded } from "@/lib/checkout/release-cod-hold";
+export { releaseCodGuaranteeHoldIfNeeded } from "@/lib/checkout/release-cod-hold";
 import { db } from "@/lib/db";
-import { getStripeServerClient } from "@/lib/stripe-server";
 
 import { getNotificationSettings } from "./order-processing";
 
@@ -27,44 +27,6 @@ export interface OrderStatusUpdate {
 
 const isCodPaymentMethod = (paymentMethod?: string | null) =>
   paymentMethod === "cash_on_delivery" || paymentMethod === "cod";
-
-export async function releaseCodGuaranteeHoldIfNeeded(params: {
-  orderId: string;
-  notes?: string | null;
-}): Promise<void> {
-  const codGuarantee = parseCodGuaranteeEvidence(params.notes);
-  const guaranteePiId = codGuarantee.authorizedPaymentIntentId;
-
-  if (!guaranteePiId) return;
-
-  try {
-    const stripe = getStripeServerClient();
-    const intent = await stripe.paymentIntents.retrieve(guaranteePiId);
-
-    if (intent.status !== "requires_capture") return;
-
-    await stripe.paymentIntents.cancel(guaranteePiId, {
-      cancellation_reason: "abandoned",
-    });
-
-    await db.order.update({
-      where: { id: params.orderId },
-      data: {
-        notes: [
-          params.notes,
-          `COD Guarantee released at ${new Date().toISOString()} - PI: ${guaranteePiId}`,
-        ]
-          .filter(Boolean)
-          .join(" | "),
-      },
-    });
-  } catch (releaseError) {
-    console.error(
-      `Failed to release COD guarantee hold for order ${params.orderId}:`,
-      releaseError
-    );
-  }
-}
 
 /**
  * Update order status with validation and notifications
@@ -139,10 +101,14 @@ export async function updateOrderStatus(
       },
     });
 
-    if (newStatus === "DELIVERED" && isCODOrder) {
+    if (
+      ["DELIVERED", "COMPLETED", "CANCELLED"].includes(newStatus) &&
+      isCODOrder
+    ) {
       await releaseCodGuaranteeHoldIfNeeded({
         orderId,
         notes: order.notes,
+        event: newStatus === "CANCELLED" ? "cancellation" : "delivery",
       });
     }
 

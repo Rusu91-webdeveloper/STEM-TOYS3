@@ -3,28 +3,37 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { validateCsrfForRequest } from "@/lib/csrf";
-import {
-  refundReviewSchema,
-  reviewedStripeRefund,
-} from "@/lib/returns/reviewed-stripe-refund";
+import { db } from "@/lib/db";
+import { sendReturnRejectedEmail } from "@/lib/email/return-templates";
+import { isStripePaymentMethod } from "@/lib/orders/customer-order-display";
+import { sendReturnApprovalNotification } from "@/lib/returns/approval-notification";
+import { reconcileManualRepayments } from "@/lib/returns/manual-refund-ledger";
 import {
   manualRefundAudit,
   manualRefundProofSchema,
 } from "@/lib/returns/manual-refund-proof";
-import { db } from "@/lib/db";
-import { isStripePaymentMethod } from "@/lib/orders/customer-order-display";
-import { generateReturnLabel } from "@/lib/return-label";
+import {
+  containsDestinationMarker,
+  getReturnDestination,
+  readDestinationEvidence,
+  supplierNotesWithoutDestination,
+  writeDestinationEvidence,
+} from "@/lib/returns/return-destination";
+import {
+  refundReviewSchema,
+  reviewedStripeRefund,
+} from "@/lib/returns/reviewed-stripe-refund";
 import {
   canTransitionReturnStatus,
   getAllowedNextReturnStatuses,
   isReturnLifecycleStatus,
   mapReturnStatusToOrderItemStatus,
 } from "@/lib/returns/status-machine";
-import { getStripeServerClient } from "@/lib/stripe-server";
 import {
-  sendReturnApprovedEmail,
-  sendReturnRejectedEmail,
-} from "@/lib/email/return-templates";
+  supplierContract,
+  supplierReturnSelect,
+} from "@/lib/returns/supplier-return-contracts";
+import { getStripeServerClient } from "@/lib/stripe-server";
 
 // Increase timeout for this route (Vercel)
 export const maxDuration = 60; // 60 seconds
@@ -36,7 +45,7 @@ export async function PATCH(
   try {
     const session = await auth();
 
-    if (!session?.user || session.user.role !== "ADMIN") {
+    if (!session?.user?.id || session.user.role !== "ADMIN") {
       return NextResponse.json(
         { error: "Unauthorized. Admin access required." },
         { status: 403 }
@@ -212,10 +221,7 @@ export async function PATCH(
             product: {
               include: {
                 supplier: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+                  select: supplierReturnSelect,
                 },
               },
             },
@@ -282,11 +288,27 @@ export async function PATCH(
     }
 
     if ("supplierAuthorizationNotes" in (body ?? {})) {
-      updateData.supplierAuthorizationNotes =
+      if (
+        typeof supplierAuthorizationNotes === "string" &&
+        containsDestinationMarker(supplierAuthorizationNotes)
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Destination evidence must be saved through destination review",
+          },
+          { status: 400 }
+        );
+      }
+      const plainNotes =
         typeof supplierAuthorizationNotes === "string" &&
         supplierAuthorizationNotes.trim().length > 0
           ? supplierAuthorizationNotes.trim()
           : null;
+      updateData.supplierAuthorizationNotes = writeDestinationEvidence(
+        plainNotes,
+        readDestinationEvidence(returnData.supplierAuthorizationNotes)
+      );
     }
 
     if ("supplierAuthorizationDeadline" in (body ?? {})) {
@@ -316,7 +338,11 @@ export async function PATCH(
     const updatedReturn =
       Object.keys(updateData).length > 0
         ? await db.return.update({
-            where: { id: returnId },
+            where: {
+              id: returnId,
+              status: returnData.status,
+              updatedAt: returnData.updatedAt,
+            },
             data: updateData,
             include: {
               user: {
@@ -348,10 +374,7 @@ export async function PATCH(
                   product: {
                     include: {
                       supplier: {
-                        select: {
-                          id: true,
-                          name: true,
-                        },
+                        select: supplierReturnSelect,
                       },
                     },
                   },
@@ -394,41 +417,58 @@ export async function PATCH(
 
         let processorFullyRefunded = isOrderAlreadyRefunded;
         let manualAudit: string | null = null;
+        let manualProof: Parameters<typeof manualRefundAudit>[0] | null = null;
         const finalizeRefundState = async () => {
-          const shouldMarkOrderRefunded =
-            processorFullyRefunded && order.paymentStatus !== "REFUNDED";
-
-          await db.$transaction(async tx => {
-            await tx.return.update({
-              where: { id: returnId },
-              data: {
-                status: "REFUNDED",
-                refundStatus: "SUCCESS",
-                refundError: "",
-                ...(manualAudit
-                  ? {
-                      resolutionNotes: [returnData.resolutionNotes, manualAudit]
-                        .filter(Boolean)
-                        .join("\n"),
-                    }
-                  : {}),
-              },
-            });
-
-            await tx.orderItem.update({
-              where: { id: returnData.orderItemId },
-              data: {
-                returnStatus: mapReturnStatusToOrderItemStatus("REFUNDED"),
-              },
-            });
-
-            if (shouldMarkOrderRefunded) {
-              await tx.order.update({
-                where: { id: order.id },
-                data: { paymentStatus: "REFUNDED" },
+          await db.$transaction(
+            async tx => {
+              if (manualProof) {
+                const previous = await tx.return.findMany({
+                  where: { orderId: order.id, refundStatus: "SUCCESS" },
+                  select: { id: true, resolutionNotes: true },
+                });
+                processorFullyRefunded = reconcileManualRepayments(previous, {
+                  returnId,
+                  orderTotal: Number(order.total),
+                  proof: manualProof,
+                }).fullyRefunded;
+              }
+              const shouldMarkOrderRefunded =
+                processorFullyRefunded && order.paymentStatus !== "REFUNDED";
+              await tx.return.update({
+                where: { id: returnId },
+                data: {
+                  status: "REFUNDED",
+                  refundStatus: "SUCCESS",
+                  refundError: "",
+                  ...(manualAudit
+                    ? {
+                        resolutionNotes: [
+                          returnData.resolutionNotes,
+                          manualAudit,
+                        ]
+                          .filter(Boolean)
+                          .join("\n"),
+                      }
+                    : {}),
+                },
               });
-            }
-          });
+
+              await tx.orderItem.update({
+                where: { id: returnData.orderItemId },
+                data: {
+                  returnStatus: mapReturnStatusToOrderItemStatus("REFUNDED"),
+                },
+              });
+
+              if (shouldMarkOrderRefunded) {
+                await tx.order.update({
+                  where: { id: order.id },
+                  data: { paymentStatus: "REFUNDED" },
+                });
+              }
+            },
+            { isolationLevel: "Serializable" }
+          );
         };
 
         if (isReturnAlreadyRefundSuccessful || isOrderAlreadyRefunded) {
@@ -457,6 +497,7 @@ export async function PATCH(
                 { status: 400 }
               );
             }
+            manualProof = proof.data;
             manualAudit = manualRefundAudit(proof.data, session.user.id);
             processorFullyRefunded =
               Math.round(proof.data.review.amountRon * 100) ===
@@ -573,25 +614,20 @@ export async function PATCH(
       }
     }
 
-    // If status is changed to APPROVED, send email with return label (non-blocking)
-    if (hasStatusUpdate && status === "APPROVED") {
-      console.log(`📧 Queueing return approval email for return ${returnId}`);
-
-      // Fire-and-forget: Don't await this - let it run in background
-      // This prevents timeout while still sending the email
-      sendApprovalEmailAsync(updatedReturn).catch(err => {
-        console.error("❌ Background email sending failed:", err);
-      });
-    }
-
-    // If status is changed to REJECTED, send rejection email (non-blocking)
-    if (hasStatusUpdate && status === "REJECTED") {
-      console.log(`📧 Queueing return rejection email for return ${returnId}`);
-
-      // Fire-and-forget: Don't await this - let it run in background
-      sendRejectionEmailAsync(updatedReturn).catch(err => {
-        console.error("❌ Background rejection email sending failed:", err);
-      });
+    let notification: { success: boolean; error?: string } | undefined;
+    if (hasStatusUpdate && (status === "APPROVED" || status === "REJECTED")) {
+      try {
+        notification =
+          status === "APPROVED"
+            ? await sendReturnApprovalNotification(updatedReturn)
+            : await sendRejectionEmailAsync(updatedReturn);
+      } catch {
+        notification = {
+          success: false,
+          error:
+            "Email sending failed; retry the same status after correcting the mail configuration.",
+        };
+      }
     }
 
     // Always return the updated return object (with refundStatus/refundError if set)
@@ -627,10 +663,7 @@ export async function PATCH(
             product: {
               include: {
                 supplier: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+                  select: supplierReturnSelect,
                 },
               },
             },
@@ -647,7 +680,28 @@ export async function PATCH(
     if (finalReturn && finalReturn.refundError == null) {
       finalReturn.refundError = "";
     }
-    return NextResponse.json({ success: true, return: finalReturn });
+    return NextResponse.json(
+      {
+        success: true,
+        notification,
+        return: finalReturn
+          ? {
+              ...finalReturn,
+              destination: getReturnDestination(finalReturn),
+              destinationReview: readDestinationEvidence(
+                finalReturn.supplierAuthorizationNotes
+              ),
+              supplierContract: supplierContract(
+                finalReturn.orderItem.product?.supplier
+              ),
+              supplierAuthorizationNotes: supplierNotesWithoutDestination(
+                finalReturn.supplierAuthorizationNotes
+              ),
+            }
+          : null,
+      },
+      { status: notification?.success === false ? 202 : 200 }
+    );
   } catch (error: unknown) {
     console.error("Error updating return status:", error);
 
@@ -656,94 +710,16 @@ export async function PATCH(
       error instanceof PrismaClientKnownRequestError &&
       error.code === "P2025"
     ) {
-      return NextResponse.json({ error: "Return not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Return changed during review. Reload before retrying." },
+        { status: 409 }
+      );
     }
 
     return NextResponse.json(
       { error: "Failed to update return status" },
       { status: 500 }
     );
-  }
-}
-
-// Async helper function to send approval email with PDF - runs in background
-async function sendApprovalEmailAsync(updatedReturn: any) {
-  try {
-    console.log(`📧 Background: Starting email for return ${updatedReturn.id}`);
-
-    // Get customer address from default address if available
-    const defaultAddress = updatedReturn.user.addresses[0];
-    const customerAddress = defaultAddress
-      ? `${defaultAddress.addressLine1}, ${defaultAddress.city}, ${defaultAddress.state}, ${defaultAddress.postalCode}, ${defaultAddress.country}`
-      : undefined;
-
-    console.log(`📄 Background: Generating PDF label...`);
-
-    // Generate return label PDF
-    const pdfBuffer = await generateReturnLabel({
-      orderId: updatedReturn.order.id,
-      orderNumber: updatedReturn.order.orderNumber,
-      returnId: updatedReturn.id,
-      productName: updatedReturn.orderItem.name,
-      productId: updatedReturn.orderItem.productId || "",
-      productSku: updatedReturn.orderItem.product?.sku || "",
-      reason: updatedReturn.reason,
-      customerName: (updatedReturn.user.name ??
-        updatedReturn.user.email) as string,
-      customerEmail: updatedReturn.user.email,
-      customerAddress,
-      language: "ro",
-    });
-
-    console.log(
-      `✅ Background: PDF generated, size: ${pdfBuffer.length} bytes`
-    );
-
-    // Format order date
-    const orderDate = new Date(
-      updatedReturn.order.createdAt
-    ).toLocaleDateString("ro-RO", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-    // Convert PDF to Base64 for email attachment
-    const pdfBase64 = pdfBuffer.toString("base64");
-
-    console.log(
-      `📧 Background: Sending approval email to ${updatedReturn.user.email}...`
-    );
-
-    // Use the new proper email template that uses UnifiedEmailService
-    const result = await sendReturnApprovedEmail({
-      to: updatedReturn.user.email,
-      customerName: updatedReturn.user.name ?? "Client",
-      orderNumber: updatedReturn.order.orderNumber,
-      orderDate,
-      productName: updatedReturn.orderItem.name,
-      quantity: updatedReturn.orderItem.quantity,
-      reason: updatedReturn.reason,
-      pdfBase64,
-    });
-
-    if (result.success) {
-      console.log(
-        `✅ Background: Return approval email sent to ${updatedReturn.user.email}`
-      );
-    } else {
-      console.error(`❌ Background: Email sending failed:`, result.error);
-    }
-  } catch (emailError) {
-    console.error("❌ Background email error:", emailError);
-    console.error("❌ Email error details:", {
-      errorMessage:
-        emailError instanceof Error ? emailError.message : "Unknown error",
-      returnId: updatedReturn.id,
-      customerEmail: updatedReturn.user.email,
-      orderNumber: updatedReturn.order.orderNumber,
-    });
-    throw emailError;
   }
 }
 
@@ -784,6 +760,7 @@ async function sendRejectionEmailAsync(updatedReturn: any) {
     } else {
       console.error(`❌ Background: Rejection email failed:`, result.error);
     }
+    return result;
   } catch (emailError) {
     console.error("❌ Background rejection email error:", emailError);
     console.error("❌ Email error details:", {

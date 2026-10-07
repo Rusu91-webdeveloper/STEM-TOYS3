@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { releaseCodGuaranteeHoldIfNeeded } from "@/lib/checkout/release-cod-hold";
+import { validateCsrfForRequest } from "@/lib/csrf";
 import {
   handleOrderStatusChange,
   checkAndTriggerHighValueOrderEmail,
 } from "@/lib/email/email-triggers";
+import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   req: NextRequest,
@@ -14,10 +17,17 @@ export async function PATCH(
     const session = await auth();
     const { orderId } = await params;
 
-    if (!session?.user || session.user.role !== "ADMIN") {
+    if (!session?.user?.id || session.user.role !== "ADMIN") {
       return NextResponse.json(
         { error: "Admin authentication required" },
         { status: 401 }
+      );
+    }
+
+    if (!(await validateCsrfForRequest(req)).valid) {
+      return NextResponse.json(
+        { error: "Security validation failed" },
+        { status: 403 }
       );
     }
 
@@ -95,7 +105,11 @@ export async function PATCH(
 
     // For COD orders: automatically mark payment as PAID when delivered
     // This reflects real-world business logic where payment is collected on delivery
-    if (isCODOrder && status === "DELIVERED" && order.paymentStatus !== "PAID") {
+    if (
+      isCODOrder &&
+      status === "DELIVERED" &&
+      order.paymentStatus !== "PAID"
+    ) {
       updateData.paymentStatus = "PAID";
       console.log(
         `✅ COD Order ${orderId}: Automatically updating paymentStatus to PAID (order delivered)`
@@ -107,6 +121,15 @@ export async function PATCH(
       where: { id: orderId },
       data: updateData,
     });
+
+    const guaranteeSettlement =
+      isCODOrder && ["DELIVERED", "CANCELLED"].includes(status)
+        ? await releaseCodGuaranteeHoldIfNeeded({
+            orderId,
+            notes: order.notes,
+            event: status === "CANCELLED" ? "cancellation" : "delivery",
+          })
+        : null;
 
     // Prepare additional data for email triggers
     const additionalData: Record<string, any> = {
@@ -130,7 +153,7 @@ export async function PATCH(
           : undefined,
       refundInfo:
         status === "CANCELLED"
-          ? "Rambursarea se va procesa în 3-5 zile lucrătoare"
+          ? "Verificăm separat sumele efectiv achitate și dreptul la rambursare. Autorizarea temporară nu este o plată."
           : undefined,
       failureReason:
         status === "FAILED" ? notes || "Eroare de procesare" : undefined,
@@ -170,6 +193,7 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
+      guaranteeSettlement,
       order: {
         id: updatedOrder.id,
         orderNumber: updatedOrder.orderNumber,

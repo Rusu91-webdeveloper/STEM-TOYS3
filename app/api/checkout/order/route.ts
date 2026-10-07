@@ -13,7 +13,10 @@ import {
   deriveInitialPaymentStatus,
   resolveCheckoutPricing,
 } from "@/lib/checkout/authoritative-pricing";
-import { COD_CONSENT_VERSION } from "@/lib/checkout/cod-consent";
+import {
+  COD_CONSENT_TEXT,
+  COD_CONSENT_VERSION,
+} from "@/lib/checkout/cod-consent";
 import { formatCodGuaranteeAuthorizationNote } from "@/lib/checkout/cod-guarantee";
 import { guestCodGuaranteeIntentError } from "@/lib/checkout/cod-guarantee-intent";
 import {
@@ -437,6 +440,23 @@ export async function POST(request: Request) {
     const isCODPayment =
       requestedPaymentMethod === "cash_on_delivery" ||
       requestedPaymentProvider === "cod";
+    if (
+      isCODPayment &&
+      (orderData.stripePaymentIntentId ||
+        (requestedPaymentProvider && requestedPaymentProvider !== "cod") ||
+        (requestedPaymentMethod &&
+          requestedPaymentMethod !== "cash_on_delivery"))
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Cash-on-delivery uses a separate card hold. Refresh checkout and select one payment method.",
+          error: "COD_PAYMENT_FLOW_CONFLICT",
+        },
+        { status: 400 }
+      );
+    }
     const isNetopiaPayment =
       requestedPaymentMethod.startsWith("netopia_") ||
       (requestedPaymentProvider === "netopia" &&
@@ -762,11 +782,16 @@ export async function POST(request: Request) {
       : null;
     const codGuaranteeRequired = codGuaranteePolicy?.required === true;
 
-    if (isCODPayment && codGuaranteeRequired && (pricing.codGuaranteeAmount === null || pricing.codGuaranteeConfigError)) {
+    if (
+      isCODPayment &&
+      codGuaranteeRequired &&
+      (pricing.codGuaranteeAmount === null || pricing.codGuaranteeConfigError)
+    ) {
       return NextResponse.json(
         {
           success: false,
-          message: "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu.",
+          message:
+            "Momentan nu putem autoriza garanția pentru plata ramburs. Te rugăm să plătești online cu cardul sau să încerci din nou mai târziu.",
           error: "COD_GUARANTEE_PRICE_NOT_CONFIGURED",
         },
         { status: 400 }
@@ -1345,9 +1370,8 @@ export async function POST(request: Request) {
     if (isCODPayment && effectiveCodGuaranteePaymentIntentId) {
       orderTags.push("COD_GUARANTEE_AUTHORIZED");
     }
-    const codConsentSnapshot = codConsentText
-      ? codConsentText.slice(0, 500)
-      : null;
+    // Persist the complete server-owned version, not a truncated client claim.
+    const codConsentSnapshot = isCODPayment ? COD_CONSENT_TEXT : null;
     const codGuaranteeAuthorizationNote =
       isCODPayment && effectiveCodGuaranteePaymentIntentId
         ? formatCodGuaranteeAuthorizationNote({
@@ -1699,7 +1723,7 @@ export async function POST(request: Request) {
         `Successfully created order ${dbOrder.id} with ${items.length} items`
       );
 
-      if (stripeClient && orderData.stripePaymentIntentId) {
+      if (!isCODPayment && stripeClient && orderData.stripePaymentIntentId) {
         const metadata: Record<string, string> = {
           orderId: dbOrder.id,
           orderNumber: dbOrder.orderNumber || orderNumber,
@@ -1802,7 +1826,9 @@ export async function POST(request: Request) {
         // Admin notifications are now sent via webhook after payment confirmation
         // For COD orders, we can send immediately since no payment confirmation is needed
         if (isCODPayment && dbOrder?.id) {
-          const { sendAdminNewOrderNotification } = await import("@/lib/email/order-email-integration");
+          const { sendAdminNewOrderNotification } = await import(
+            "@/lib/email/order-email-integration"
+          );
           sendAdminNewOrderNotification(dbOrder.id).catch(err => {
             console.error(
               `Failed to send admin new order notification for ${dbOrder.id}:`,
@@ -2186,9 +2212,10 @@ export async function POST(request: Request) {
             dbOrder?.orderNumber || dbOrder?.id || orderId;
 
           // Use improved order confirmation email
-          const { sendOrderConfirmationImproved, sendAdminNewOrderNotification } = await import(
-            "@/lib/email/order-email-integration"
-          );
+          const {
+            sendOrderConfirmationImproved,
+            sendAdminNewOrderNotification,
+          } = await import("@/lib/email/order-email-integration");
 
           const sendResult = await sendOrderConfirmationImproved(
             dbOrder?.id || orderId

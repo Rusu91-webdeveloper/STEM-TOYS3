@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { UploadButton } from "@uploadthing/react";
 import { Loader2, ArrowLeft, ShoppingBag, Check, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,8 +9,6 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { UploadButton } from "@uploadthing/react";
-import type { OurFileRouter } from "@/lib/uploadthing";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +37,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from "@/lib/currency";
 import {
+  canRequestReturnForItem,
+  isWithinReturnWindowForItem,
+  DIGITAL_RETURN_INSTRUCTIONS_RO,
+} from "@/lib/returns/item-eligibility";
+import {
   RETURN_PHOTO_LIMIT,
   RETURN_POLICY_CUSTOMER_PAYS_RO,
   RETURN_POLICY_EVIDENCE_RO,
@@ -51,8 +55,8 @@ import {
   RETURN_REASON_VALUES,
   RETURN_WINDOW_LABEL_RO,
   getResponsibilityForReturnReason,
-  isWithinReturnWindowForOrder,
 } from "@/lib/returns/policy";
+import type { OurFileRouter } from "@/lib/uploadthing";
 
 // Define return types
 interface OrderItem {
@@ -65,7 +69,7 @@ interface OrderItem {
     name: string;
     slug: string;
     images: string[];
-  };
+  } | null;
   isDigital: boolean;
   returnStatus: string;
 }
@@ -74,6 +78,7 @@ interface Order {
   id: string;
   orderNumber: string;
   status: string;
+  paymentStatus?: string;
   createdAt: string;
   items: OrderItem[];
   deliveredAt?: string;
@@ -84,12 +89,9 @@ const returnSchema = z.object({
   orderItemIds: z
     .array(z.string())
     .min(1, "Selectează cel puțin un produs pentru retur"),
-  reason: z.enum(
-    RETURN_REASON_VALUES,
-    {
-      required_error: "Te rugăm să selectezi motivul returului",
-    }
-  ),
+  reason: z.enum(RETURN_REASON_VALUES, {
+    required_error: "Te rugăm să selectezi motivul returului",
+  }),
   details: z.string().optional(),
   photos: z.array(z.string()).max(RETURN_PHOTO_LIMIT),
 });
@@ -124,25 +126,31 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
 
   // Add state for uploading photos
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
-  
+
   // Get photos from form watch
   const photos = form.watch("photos") || [];
   const selectedReason = form.watch("reason");
+  const selectedIds = form.watch("orderItemIds");
+  const selectedItems =
+    order?.items.filter(item => selectedIds.includes(item.id)) ?? [];
+  const digitalOnlySelection =
+    order?.items.every(item => item.isDigital) ||
+    (selectedItems.length > 0 && selectedItems.every(item => item.isDigital));
   const selectedResponsibility = selectedReason
     ? getResponsibilityForReturnReason(selectedReason)
     : null;
   const selectedReasonHelp = selectedReason
     ? RETURN_REASON_HELP_TEXT_RO[selectedReason]
     : null;
-  
+
   const showPhotoUpload = true;
 
   const isWithin14Days = (currentOrder: Order) =>
-    currentOrder.status === "DELIVERED" &&
-    isWithinReturnWindowForOrder({
-      createdAt: currentOrder.createdAt,
-      deliveredAt: currentOrder.deliveredAt,
-    });
+    currentOrder.items.some(
+      item =>
+        canRequestReturnForItem(currentOrder, item) &&
+        isWithinReturnWindowForItem(currentOrder, item)
+    );
 
   // Fetch order details
   useEffect(() => {
@@ -158,7 +166,6 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
 
         const data = await response.json();
         setOrder(data.order);
-
       } catch (error) {
         console.error("Error fetching order:", error);
         toast({
@@ -260,10 +267,11 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
             <h2 className="text-2xl font-bold mb-2">Retur înregistrat</h2>
             <p className="text-gray-500 mb-4">
               Cererea ta de retur a fost înregistrată pentru toate produsele
-              selectate. La retragere, expediază bunurile în 14 zile de la
-              comunicarea retragerii. Pentru neconformitate, TechTots organizează
-              transportul fără costuri pentru tine. Fotografiile trimise sunt
-              păstrate împreună cu cererea.
+              selectate.{" "}
+              {digitalOnlySelection
+                ? "Pentru conținut digital nu expedia nimic și nu plăti transport; verificăm separat retragerea și neconformitatea."
+                : "Pentru produsele fizice, la retragere expediază bunurile în 14 zile de la comunicarea retragerii. Pentru neconformitate, TechTots organizează transportul fără costuri pentru tine."}{" "}
+              Dovezile trimise sunt păstrate împreună cu cererea.
             </p>
             <div className="mt-6">
               <Link href="/account/returns">
@@ -303,27 +311,39 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
               <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-                <p>
-                  Retragerea fără justificare se comunică în <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la livrare. Neconformitățile se verifică separat, în baza garanției legale.
-                </p>
-                <p className="mt-1">
-                  {selectedResponsibility === "SUPPLIER"
-                    ? RETURN_POLICY_SELLER_PAYS_RO
-                    : selectedResponsibility === "COURIER"
-                      ? RETURN_POLICY_SELLER_PAYS_RO
-                      : RETURN_POLICY_CUSTOMER_PAYS_RO}
-                </p>
+                {order.items.some(item => !item.isDigital) &&
+                  !digitalOnlySelection && (
+                    <>
+                      <p>
+                        Retragerea fără justificare se comunică în{" "}
+                        <strong>{RETURN_WINDOW_LABEL_RO}</strong> de la livrare.
+                        Neconformitățile se verifică separat, în baza garanției
+                        legale.
+                      </p>
+                      <p className="mt-1">
+                        {selectedResponsibility === "SUPPLIER"
+                          ? RETURN_POLICY_SELLER_PAYS_RO
+                          : selectedResponsibility === "COURIER"
+                            ? RETURN_POLICY_SELLER_PAYS_RO
+                            : RETURN_POLICY_CUSTOMER_PAYS_RO}
+                      </p>
+                    </>
+                  )}
                 <p className="mt-1">{RETURN_POLICY_EVIDENCE_RO}</p>
+                {order.items.some(item => item.isDigital) && (
+                  <p className="mt-1">{DIGITAL_RETURN_INSTRUCTIONS_RO}</p>
+                )}
               </div>
 
               <div>
-                <h3 className="text-sm font-medium mb-3">Produse din comandă</h3>
+                <h3 className="text-sm font-medium mb-3">
+                  Produse din comandă
+                </h3>
 
                 {order.items.filter(
                   item =>
-                    order.status === "DELIVERED" &&
-                    item.returnStatus === "NONE" &&
-                    !item.isDigital
+                    canRequestReturnForItem(order, item) &&
+                    item.returnStatus === "NONE"
                 ).length === 0 ? (
                   <div className="text-sm text-muted-foreground">
                     Nu există produse eligibile pentru retur.
@@ -339,18 +359,35 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                             {order.items
                               .filter(
                                 item =>
-                                  order.status === "DELIVERED" &&
-                                  item.returnStatus === "NONE" &&
-                                  !item.isDigital
+                                  canRequestReturnForItem(order, item) &&
+                                  item.returnStatus === "NONE"
                               )
                               .map(item => {
                                 const disabled =
-                                  order.status !== "DELIVERED" ||
-                                  item.returnStatus !== "NONE" ||
-                                  item.isDigital;
+                                  !canRequestReturnForItem(order, item) ||
+                                  item.returnStatus !== "NONE";
                                 return (
                                   <div
                                     key={item.id}
+                                    role="checkbox"
+                                    aria-checked={field.value.includes(item.id)}
+                                    aria-disabled={disabled}
+                                    tabIndex={disabled ? -1 : 0}
+                                    onKeyDown={event => {
+                                      if (
+                                        disabled ||
+                                        ![" ", "Enter"].includes(event.key)
+                                      )
+                                        return;
+                                      event.preventDefault();
+                                      field.onChange(
+                                        field.value.includes(item.id)
+                                          ? field.value.filter(
+                                              id => id !== item.id
+                                            )
+                                          : [...field.value, item.id]
+                                      );
+                                    }}
                                     className={`flex p-4 border rounded-lg ${field.value.includes(item.id) ? "border-primary bg-primary/5" : "border-gray-200"} ${disabled ? "opacity-50 pointer-events-none" : ""}`}
                                   >
                                     <FormControl>
@@ -381,7 +418,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                                       onClick={() => {
                                         // Prevent interaction with disabled items
                                         if (disabled) return;
-                                        
+
                                         if (field.value.includes(item.id)) {
                                           field.onChange(
                                             field.value.filter(
@@ -396,7 +433,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                                         }
                                       }}
                                     >
-                                      {item.product.images?.[0] && (
+                                      {item.product?.images?.[0] && (
                                         <div className="relative h-16 w-16 rounded overflow-hidden">
                                           <Image
                                             src={item.product.images[0]}
@@ -418,7 +455,8 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                                         {item.returnStatus !== "NONE" && (
                                           <div className="mt-2">
                                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                              Retur {item.returnStatus.toLowerCase()}
+                                              Retur{" "}
+                                              {item.returnStatus.toLowerCase()}
                                             </span>
                                           </div>
                                         )}
@@ -460,11 +498,18 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.entries(RETURN_REASON_LABELS_RO).filter(([key]) => !order || isWithin14Days(order) || isConformityComplaint(key as ReturnReasonCode)).map(([key, label]) => (
-                          <SelectItem key={key} value={key}>
-                            {label}
-                          </SelectItem>
-                        ))}
+                        {Object.entries(RETURN_REASON_LABELS_RO)
+                          .filter(
+                            ([key]) =>
+                              !order ||
+                              isWithin14Days(order) ||
+                              isConformityComplaint(key as ReturnReasonCode)
+                          )
+                          .map(([key, label]) => (
+                            <SelectItem key={key} value={key}>
+                              {label}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -474,12 +519,30 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
 
               {selectedReason && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-                  <p>
-                    <strong>Încadrare automată:</strong>{" "}
-                    {selectedResponsibility === "SUPPLIER" || selectedResponsibility === "COURIER" ? "TechTots organizează transportul fără costuri pentru tine" : RETURN_RESPONSIBILITY_LABELS_RO[selectedResponsibility || "UNDECIDED"]}
-                  </p>
-                  {selectedReasonHelp && <p className="mt-1">{selectedReasonHelp}</p>}
-                  <p className="mt-2">{getCustomerReturnInstructions(selectedReason)}</p>
+                  {digitalOnlySelection ? (
+                    <p>
+                      Verificare individuală pentru conținut digital. Nu expedia
+                      nimic și nu plăti transport.
+                    </p>
+                  ) : (
+                    <>
+                      <p>
+                        <strong>Încadrare pentru produsele fizice:</strong>{" "}
+                        {selectedResponsibility === "SUPPLIER" ||
+                        selectedResponsibility === "COURIER"
+                          ? "TechTots organizează transportul fără costuri pentru tine"
+                          : RETURN_RESPONSIBILITY_LABELS_RO[
+                              selectedResponsibility || "UNDECIDED"
+                            ]}
+                      </p>
+                      {selectedReasonHelp && (
+                        <p className="mt-1">{selectedReasonHelp}</p>
+                      )}
+                      <p className="mt-2">
+                        {getCustomerReturnInstructions(selectedReason)}
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -492,15 +555,17 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                     <FormControl>
                       <Textarea
                         placeholder={
-                          selectedReason === "MISSING_PARTS"
-                            ? "Spune-ne ce piese lipsesc din cutie."
-                            : selectedReason === "WRONG_ITEM_SHIPPED"
-                              ? "Spune-ne ce ai comandat și ce ai primit."
-                              : selectedReason === "DAMAGED_IN_TRANSIT"
-                                ? "Descrie starea cutiei și cum a fost afectat produsul."
-                                : selectedReason === "DAMAGED_OR_DEFECTIVE"
-                                  ? "Descrie defectul sau problema de funcționare."
-                                  : "Descrie pe scurt motivul returului și starea produsului."
+                          digitalOnlySelection
+                            ? "Descrie problema conținutului digital sau motivul cererii."
+                            : selectedReason === "MISSING_PARTS"
+                              ? "Spune-ne ce piese lipsesc din cutie."
+                              : selectedReason === "WRONG_ITEM_SHIPPED"
+                                ? "Spune-ne ce ai comandat și ce ai primit."
+                                : selectedReason === "DAMAGED_IN_TRANSIT"
+                                  ? "Descrie starea cutiei și cum a fost afectat produsul."
+                                  : selectedReason === "DAMAGED_OR_DEFECTIVE"
+                                    ? "Descrie defectul sau problema de funcționare."
+                                    : "Descrie pe scurt motivul returului și starea produsului."
                         }
                         {...field}
                       />
@@ -517,29 +582,33 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                   name="photos"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Fotografii (opțional)
-                      </FormLabel>
+                      <FormLabel>Fotografii (opțional)</FormLabel>
                       <FormControl>
                         <div className="space-y-4">
                           <div className="text-sm text-gray-600">
-                            Încarcă fotografii clare cu produsul, ambalajul și problema semnalată. Dacă nu poți trimite fotografii, vom stabili cu tine verificarea produsului; lipsa lor nu anulează drepturile legale.
-                            Pozele se salvează cu cererea și ne ajută să documentăm cazul în relația cu furnizorul.
+                            {digitalOnlySelection
+                              ? "Poți încărca capturi de ecran care arată problema conținutului digital. Lipsa lor nu anulează drepturile legale. Dovezile se salvează împreună cu cererea."
+                              : "Încarcă fotografii clare cu produsul, ambalajul și problema semnalată. Dacă nu poți trimite fotografii, vom stabili cu tine verificarea produsului; lipsa lor nu anulează drepturile legale. Pozele se salvează cu cererea și ne ajută să documentăm cazul în relația cu furnizorul."}
                           </div>
-                          
+
                           {/* Upload Button */}
                           {photos.length < RETURN_PHOTO_LIMIT && (
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                               <UploadButton<OurFileRouter, "returnPhoto">
                                 endpoint="returnPhoto"
-                                onClientUploadComplete={(res) => {
+                                onClientUploadComplete={res => {
                                   if (res) {
-                                    const uploadedUrls = res.map((file: any) => file.fileUrl || file.url);
-                                    field.onChange([...field.value, ...uploadedUrls]);
+                                    const uploadedUrls = res.map(
+                                      (file: any) => file.fileUrl || file.url
+                                    );
+                                    field.onChange([
+                                      ...field.value,
+                                      ...uploadedUrls,
+                                    ]);
                                     setUploadingPhotos(false);
                                   }
                                 }}
-                                onUploadError={(error) => {
+                                onUploadError={error => {
                                   console.error("Upload error:", error);
                                   setUploadingPhotos(false);
                                   toast({
@@ -571,7 +640,9 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        const newPhotos = photos.filter((_, i) => i !== index);
+                                        const newPhotos = photos.filter(
+                                          (_, i) => i !== index
+                                        );
                                         field.onChange(newPhotos);
                                       }}
                                       className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -592,7 +663,8 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                           )}
 
                           <p className="text-xs text-gray-500">
-                            Imagini de până la 5MB, maximum {RETURN_PHOTO_LIMIT}.
+                            Imagini de până la 5MB, maximum {RETURN_PHOTO_LIMIT}
+                            .
                           </p>
                         </div>
                       </FormControl>

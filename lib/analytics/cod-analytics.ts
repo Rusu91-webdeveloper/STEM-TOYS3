@@ -4,8 +4,9 @@
  * Tracks COD order performance, rejection rates, and related metrics
  */
 
-import { db } from "@/lib/db";
 import { PaymentStatus, OrderStatus } from "@prisma/client";
+
+import { db } from "@/lib/db";
 
 export interface CODAnalyticsResult {
   /** Total COD orders */
@@ -178,7 +179,7 @@ export async function markCODOrderAsRejected(
     throw new Error(`Order ${orderId} not found`);
   }
 
-  if (order.paymentMethod !== "cash_on_delivery") {
+  if (!["cash_on_delivery", "cod"].includes(order.paymentMethod)) {
     throw new Error(`Order ${orderId} is not a COD order`);
   }
 

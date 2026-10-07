@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getReturnDestination } from "@/lib/returns/return-destination";
 
 export async function GET(request: Request) {
   try {
@@ -25,6 +26,10 @@ export async function GET(request: Request) {
         createdAt: true,
         updatedAt: true,
         photos: true,
+        supplierAuthorizationNotes: true,
+        supplierAuthorizationStatus: true,
+        supplierAuthorizationNumber: true,
+        supplierAuthorizationDeadline: true,
         order: {
           select: {
             orderNumber: true,
@@ -33,6 +38,7 @@ export async function GET(request: Request) {
         },
         orderItem: {
           select: {
+            isDigital: true,
             name: true,
             price: true,
             quantity: true,
@@ -43,6 +49,7 @@ export async function GET(request: Request) {
                 slug: true,
                 images: true,
                 sku: true,
+                supplierId: true,
               },
             },
           },
@@ -53,7 +60,22 @@ export async function GET(request: Request) {
       },
     });
 
-    return NextResponse.json({ returns });
+    return NextResponse.json({
+      returns: returns.map(record => {
+        const {
+          supplierAuthorizationNotes: _notes,
+          supplierAuthorizationStatus: _status,
+          supplierAuthorizationNumber: _number,
+          supplierAuthorizationDeadline: _deadline,
+          ...customerRecord
+        } = record;
+        return {
+          ...customerRecord,
+          destination:
+            record.status === "APPROVED" ? getReturnDestination(record) : null,
+        };
+      }),
+    });
   } catch (error) {
     console.error("Error fetching returns:", error);
     return NextResponse.json(

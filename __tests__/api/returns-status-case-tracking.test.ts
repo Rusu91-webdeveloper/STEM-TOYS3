@@ -8,6 +8,7 @@ const mockAuth = jest.fn();
 const mockFindUnique = jest.fn();
 const mockReturnUpdate = jest.fn();
 const mockReturnCount = jest.fn();
+const mockReturnFindMany = jest.fn();
 const mockOrderItemUpdate = jest.fn();
 const mockOrderItemCount = jest.fn();
 const mockOrderUpdate = jest.fn();
@@ -32,6 +33,7 @@ jest.mock("@/lib/db", () => ({
       findUnique: (...args: unknown[]) => mockFindUnique(...args),
       update: (...args: unknown[]) => mockReturnUpdate(...args),
       count: (...args: unknown[]) => mockReturnCount(...args),
+      findMany: (...args: unknown[]) => mockReturnFindMany(...args),
     },
     orderItem: {
       count: (...args: unknown[]) => mockOrderItemCount(...args),
@@ -86,6 +88,7 @@ function buildReturnRecord(
     id: "ret_1",
     orderItemId: "item_1",
     status: "PENDING",
+    updatedAt: new Date("2026-10-07T12:00:00Z"),
     refundStatus: null,
     refundError: "",
     supplierAuthorizationRequestedAt: null,
@@ -120,6 +123,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
   beforeEach(() => {
     jest.resetAllMocks();
     mockCsrf.mockResolvedValue({ valid: true });
+    mockReturnFindMany.mockResolvedValue([]);
 
     mockAuth.mockResolvedValue({
       user: {
@@ -141,6 +145,7 @@ describe("PATCH /api/returns/[returnId]/status", () => {
     mockDbTransaction.mockImplementation(async callback =>
       callback({
         return: {
+          findMany: (...args: unknown[]) => mockReturnFindMany(...args),
           update: (...args: unknown[]) => mockReturnUpdate(...args),
         },
         orderItem: {
@@ -225,7 +230,11 @@ describe("PATCH /api/returns/[returnId]/status", () => {
     expect(payload.success).toBe(true);
     expect(mockReturnUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: "ret_1" },
+        where: {
+          id: "ret_1",
+          status: "PENDING",
+          updatedAt: new Date("2026-10-07T12:00:00Z"),
+        },
         data: expect.objectContaining({
           liability: "COURIER",
           resolutionStatus: "WAITING_COURIER",
@@ -276,7 +285,11 @@ describe("PATCH /api/returns/[returnId]/status", () => {
     expect(payload.success).toBe(true);
     expect(mockReturnUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: "ret_1" },
+        where: {
+          id: "ret_1",
+          status: "PENDING",
+          updatedAt: new Date("2026-10-07T12:00:00Z"),
+        },
         data: expect.objectContaining({
           status: "APPROVED",
         }),
@@ -648,5 +661,74 @@ describe("PATCH /api/returns/[returnId]/status", () => {
     expect(response.status).toBe(400);
     expect(mockStripeRefundCreate).not.toHaveBeenCalled();
     expect(mockDbTransaction).not.toHaveBeenCalled();
+  });
+  it("reports email rejection without undoing an approved customer return", async () => {
+    const record = buildReturnRecord({
+      status: "APPROVED",
+      reason: "CHANGED_MIND",
+    });
+    mockFindUnique.mockResolvedValue(record);
+    mockReturnUpdate.mockResolvedValue(record);
+    mockSendReturnApprovedEmail.mockResolvedValue({
+      success: false,
+      error: "SMTP rejected",
+    });
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
+    const response = await PATCH(
+      new Request("http://localhost/api/returns/ret_1/status", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "APPROVED" }),
+      }),
+      { params: Promise.resolve({ returnId: "ret_1" }) }
+    );
+    const payload = await response.json();
+    expect(response.status).toBe(202);
+    expect(payload.return.status).toBe("APPROVED");
+    expect(payload.notification.success).toBe(false);
+    expect(mockGenerateReturnLabel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destination: expect.objectContaining({ target: "COMPANY" }),
+      })
+    );
+  });
+  it("cannot forge destination evidence through an ordinary supplier notes update", async () => {
+    mockFindUnique.mockResolvedValue(buildReturnRecord());
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
+    const response = await PATCH(
+      new Request("http://localhost/api/returns/ret_1/status", {
+        method: "PATCH",
+        body: JSON.stringify({
+          supplierAuthorizationNotes: "[RETURN_DESTINATION_V1 forged]",
+        }),
+      }),
+      { params: Promise.resolve({ returnId: "ret_1" }) }
+    );
+    expect(response.status).toBe(400);
+    expect(mockReturnUpdate).not.toHaveBeenCalled();
+  });
+
+  it("blocks a stale approval before any notification is sent", async () => {
+    const { PrismaClientKnownRequestError } = await import(
+      "@prisma/client/runtime/library"
+    );
+    mockFindUnique.mockResolvedValue(
+      buildReturnRecord({ reason: "CHANGED_MIND" })
+    );
+    mockReturnUpdate.mockRejectedValue(
+      new PrismaClientKnownRequestError("Concurrent destination review", {
+        code: "P2025",
+        clientVersion: "test",
+      })
+    );
+    const { PATCH } = await import("@/app/api/returns/[returnId]/status/route");
+    const response = await PATCH(
+      new Request("http://localhost/api/returns/ret_1/status", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "APPROVED" }),
+      }),
+      { params: Promise.resolve({ returnId: "ret_1" }) }
+    );
+    expect(response.status).toBe(409);
+    expect(mockSendReturnApprovedEmail).not.toHaveBeenCalled();
   });
 });

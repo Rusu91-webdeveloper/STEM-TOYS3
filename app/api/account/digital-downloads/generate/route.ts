@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       where: {
         id: orderItemId,
         isDigital: true,
+        returnStatus: { not: "REFUNDED" },
         order: {
           userId: session.user.id,
           paymentStatus: "PAID",

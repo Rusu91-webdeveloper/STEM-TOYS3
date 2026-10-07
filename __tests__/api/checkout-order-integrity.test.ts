@@ -966,6 +966,8 @@ describe("POST /api/checkout/order integrity", () => {
         guestCodRequest(420, {
           codGuaranteePaymentIntentId: "pi_guest_guarantee",
           codGuaranteeAmount: 19.99,
+          codConsentText:
+            "Client-supplied text must not replace the accepted terms",
         })
       );
       const acceptedPayload = await accepted.json();
@@ -976,6 +978,11 @@ describe("POST /api/checkout/order integrity", () => {
         "pi_guest_guarantee"
       );
       expect(txOrderCreate).toHaveBeenCalled();
+      const { COD_CONSENT_TEXT } = require("@/lib/checkout/cod-consent");
+      expect(txOrderCreate.mock.calls[0][0].data.notes).toContain(
+        COD_CONSENT_TEXT
+      );
+      expect(Stripe.paymentIntents.capture).not.toHaveBeenCalled();
       expect(Stripe.paymentIntents.update).toHaveBeenCalledWith(
         "pi_guest_guarantee",
         expect.objectContaining({
@@ -983,6 +990,23 @@ describe("POST /api/checkout/order integrity", () => {
         })
       );
     });
+
+    it.each([
+      { stripePaymentIntentId: "pi_regular_payment" },
+      { paymentProvider: "stripe" },
+      { paymentMethod: "stripe_new" },
+    ])(
+      "rejects conflicting COD/prepaid payment fields before payment or order writes",
+      async extra => {
+        const Stripe = require("stripe");
+        const response = await POST(guestCodRequest(420, extra));
+        expect(response.status).toBe(400);
+        expect((await response.json()).error).toBe("COD_PAYMENT_FLOW_CONFLICT");
+        expect(txOrderCreate).not.toHaveBeenCalled();
+        expect(Stripe.paymentIntents.retrieve).not.toHaveBeenCalled();
+        expect(Stripe.paymentIntents.capture).not.toHaveBeenCalled();
+      }
+    );
 
     it.each(["requires_payment_method", "processing", "canceled", "succeeded"])(
       "rejects a low-value COD guarantee with status %s",

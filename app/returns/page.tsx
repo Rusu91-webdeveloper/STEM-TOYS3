@@ -14,7 +14,7 @@ import {
 import { auth } from "@/lib/server/auth";
 import { getStoreSettings } from "@/lib/utils/store-settings";
 
-const lastUpdated = "4 octombrie 2026";
+const lastUpdated = "7 octombrie 2026";
 
 const quickSummaryLeft = [
   `${RETURN_WINDOW_LABEL_RO} pentru returnare fără justificare`,
@@ -146,14 +146,17 @@ export default async function ReturnsPage() {
               <h1 className="mt-4 text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-4xl">
                 Politica de Returnare
               </h1>
-              <a href="/withdrawal" className="mt-4 inline-block rounded-lg bg-white px-5 py-3 font-semibold text-blue-800 underline">
+              <a
+                href="/withdrawal"
+                className="mt-4 inline-block rounded-lg bg-white px-5 py-3 font-semibold text-blue-800 underline"
+              >
                 Retrageți-vă din contract aici
               </a>
               <p className="mt-3 text-sm text-white">
-                Fără cont și fără justificare. Completezi declarația, o verifici,
-                apoi apeși „Confirmați retragerea” și primești confirmarea de
-                primire cu data și ora transmiterii. Formularul de retur din cont
-                rămâne disponibil separat.
+                Fără cont și fără justificare. Completezi declarația, o
+                verifici, apoi apeși „Confirmați retragerea” și primești
+                confirmarea de primire cu data și ora transmiterii. Formularul
+                de retur din cont rămâne disponibil separat.
               </p>
               <p className="mt-4 text-sm text-slate-200 sm:text-lg">
                 Condițiile de retragere, retur și remediere a produselor
@@ -330,8 +333,8 @@ export default async function ReturnsPage() {
                       de expediere a returului
                     </li>
                     <li>
-                      <strong>Notă:</strong> Pentru anumiți furnizori,
-                      folosim intern autorizări (ARP/RMA). Acestea nu condiționează
+                      <strong>Notă:</strong> Pentru anumiți furnizori, folosim
+                      intern autorizări (ARP/RMA). Acestea nu condiționează
                       drepturile tale și nu suspendă termenele legale.
                     </li>
                     <li>Urmează instrucțiunile de expediere primite</li>

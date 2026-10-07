@@ -1,6 +1,7 @@
 import { OrderStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
+import { reconcileTerminalCodHolds } from "@/lib/checkout/release-cod-hold";
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
@@ -33,6 +34,11 @@ export async function GET(req: NextRequest) {
       autoCompletion: { completed: 0, errors: 0 },
       statusUpdates: { updated: 0, errors: 0 },
       notifications: { sent: 0, errors: 0 },
+      retention: null as Awaited<ReturnType<typeof runRetentionCleanup>> | null,
+      codHolds: null as Awaited<
+        ReturnType<typeof reconcileTerminalCodHolds>
+      > | null,
+      cleanupErrors: 0,
     };
 
     // 1. ORDER PROCESSING & AUTO-FULFILLMENT
@@ -220,8 +226,11 @@ export async function GET(req: NextRequest) {
     try {
       // Orders are transaction evidence; a seven-day failed payment is not an
       // authorization to remove the order or its invoice/return relations.
-      const retention = await runRetentionCleanup(db);
-      console.log("Configured application retention cleanup", retention);
+      results.retention = await runRetentionCleanup(db);
+      console.log(
+        "Configured application retention cleanup",
+        results.retention
+      );
 
       // Clean up expired password reset tokens (older than 24 hours to be safe)
       const expiredTokens = await db.passwordResetToken.deleteMany({
@@ -251,21 +260,54 @@ export async function GET(req: NextRequest) {
         `Today's stats: ${todayStats._count} orders, $${todayStats._sum.total || 0} revenue`
       );
     } catch (error) {
+      results.cleanupErrors++;
       console.error("Error in cleanup phase:", error);
+    }
+
+    try {
+      results.codHolds = await reconcileTerminalCodHolds();
+    } catch {
+      results.cleanupErrors++;
+      console.error("Terminal COD hold reconciliation failed");
     }
 
     const duration = Date.now() - startTime;
     console.log(`Daily maintenance job completed in ${duration}ms`);
 
-    return NextResponse.json({
-      success: true,
-      message: "Daily maintenance job completed",
-      data: {
-        results,
-        duration: `${duration}ms`,
-        timestamp: new Date().toISOString(),
+    const cleanupSucceeded =
+      results.cleanupErrors === 0 &&
+      (results.retention?.errors.length ?? 0) === 0 &&
+      (results.codHolds?.outcomes.retry_required ?? 0) === 0;
+    // Production strips console.log and LOG_LEVEL=warn suppresses normal info
+    // logs. Keep one aggregate execution record independent of those settings.
+    // Never include order/customer IDs, payment identifiers or credentials.
+    const summary = {
+      event: "daily_maintenance_result",
+      level: cleanupSucceeded ? "info" : "error",
+      timestamp: new Date().toISOString(),
+      success: cleanupSucceeded,
+      retention: results.retention,
+      codHolds: results.codHolds,
+      cleanupErrors: results.cleanupErrors,
+      durationMs: duration,
+    };
+    const output = `${JSON.stringify(summary)}\n`;
+    if (cleanupSucceeded) process.stdout.write(output);
+    else process.stderr.write(output);
+    return NextResponse.json(
+      {
+        success: cleanupSucceeded,
+        message: cleanupSucceeded
+          ? "Daily maintenance job completed"
+          : "Maintenance requires cleanup retry",
+        data: {
+          results,
+          duration: `${duration}ms`,
+          timestamp: new Date().toISOString(),
+        },
       },
-    });
+      { status: cleanupSucceeded ? 200 : 503 }
+    );
   } catch (error) {
     console.error("Error in daily maintenance job:", error);
     return NextResponse.json(

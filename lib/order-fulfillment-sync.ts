@@ -2,8 +2,8 @@ import type { OrderStatus } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { notifyDeliveredOrder } from "@/lib/orders/order-delivery-notifications";
-import { deriveOrderFulfillmentSummary } from "@/lib/utils/supplier-fulfillment";
 import { releaseCodGuaranteeHoldIfNeeded } from "@/lib/utils/order-status-management";
+import { deriveOrderFulfillmentSummary } from "@/lib/utils/supplier-fulfillment";
 
 type SyncSource =
   | "order-processor"
@@ -38,7 +38,15 @@ export async function applyDerivedOrderUpdate(params: {
   carrier?: string | null;
   source?: SyncSource;
 }) {
-  const { order, nextStatus, reason, notes, trackingNumber, carrier, source = "unknown" } = params;
+  const {
+    order,
+    nextStatus,
+    reason,
+    notes,
+    trackingNumber,
+    carrier,
+    source = "unknown",
+  } = params;
 
   const updateData: Partial<{
     status: OrderStatus;
@@ -66,11 +74,17 @@ export async function applyDerivedOrderUpdate(params: {
     }
   }
 
-  if (typeof trackingNumber !== "undefined" && order.trackingNumber !== trackingNumber) {
+  if (
+    typeof trackingNumber !== "undefined" &&
+    order.trackingNumber !== trackingNumber
+  ) {
     updateData.trackingNumber = trackingNumber;
   }
 
-  if (typeof carrier !== "undefined" && (order.carrier || null) !== (carrier || null)) {
+  if (
+    typeof carrier !== "undefined" &&
+    (order.carrier || null) !== (carrier || null)
+  ) {
     updateData.carrier = carrier || null;
   }
 
@@ -127,10 +141,14 @@ export async function applyDerivedOrderUpdate(params: {
       }
     }
 
-    if (nextStatus === "DELIVERED" && isCodPaymentMethod(order.paymentMethod)) {
+    if (
+      ["DELIVERED", "COMPLETED", "CANCELLED"].includes(nextStatus) &&
+      isCodPaymentMethod(order.paymentMethod)
+    ) {
       await releaseCodGuaranteeHoldIfNeeded({
         orderId: order.id,
         notes: order.notes,
+        event: nextStatus === "CANCELLED" ? "cancellation" : "delivery",
       });
     }
 
@@ -138,7 +156,8 @@ export async function applyDerivedOrderUpdate(params: {
       await notifyDeliveredOrder({
         orderId: order.id,
         source:
-          source === "courier-status-sync" || source === "courier-status-sync-direct"
+          source === "courier-status-sync" ||
+          source === "courier-status-sync-direct"
             ? "courier-sync"
             : "unknown",
         carrier,

@@ -13,6 +13,8 @@ type Policy = {
 type Pending = {
   id: string;
   createdAt: string;
+  responseDueAt: string;
+  overdue: boolean;
   user: { email: string; name: string | null };
 };
 const categories = {
@@ -234,6 +236,17 @@ export default function PrivacyOperationsPage() {
             <p>
               {request.user.name} · {request.user.email} ·{" "}
               {new Date(request.createdAt).toLocaleDateString("ro-RO")}
+            </p>
+            <p
+              className={
+                request.overdue ? "font-semibold text-red-700" : "text-sm"
+              }
+            >
+              Răspuns până la{" "}
+              {new Date(request.responseDueAt).toLocaleDateString("ro-RO")}
+              {request.overdue
+                ? " · Termen depășit — verifică și răspunde clientului"
+                : ""}
             </p>
             <label className="block">
               <input
