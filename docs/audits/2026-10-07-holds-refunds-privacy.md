@@ -14,12 +14,15 @@ operational acceptance; it does not certify an A+ grade or complete legal
 compliance.
 
 The follow-up is published as
-[draft PR #71](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/71). The
+[PR #71](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/71). The
 normal publication hooks passed for its initial head `565dc16e`, and that exact
 Vercel preview became READY. Protected terms/returns/shipping requests returned
 200; anonymous admin requests returned 403 and maintenance returned 401.
-Production remains on main `baa18e29`. Further acceptance below is separate from
-approval to release the draft.
+These were the initial pre-release checks, when production was on `baa18e29`.
+The owner subsequently authorized production publication; PR #71 merged as
+`7c9cce07` on 7 October and both domains now serve its READY build. See the
+[production release record](2026-10-07-holds-returns-production-release.md).
+Further operational acceptance below remains separate from publication.
 
 ## Final card-hold procedure
 
@@ -66,7 +69,8 @@ The follow-up therefore writes one structured `daily_maintenance_result` record
 directly to stdout on success or stderr on cleanup failure. It records time,
 duration, category/count summaries and hold outcome counts, without customer,
 order or payment identifiers. This evidence survives both logging settings;
-deploying it and observing a scheduled execution remain pending.
+the code is deployed in `7c9cce07`, while observing its next scheduled execution
+remains pending.
 
 Operator procedure: review any `retry_required`, `review_required` or
 `captured_review` notice in order details. Re-saving a terminal order status can
@@ -279,8 +283,9 @@ and low swap space. Work resumed after disk availability increased from about 8
 GB to 77 GB. Remaining heavy checks run sequentially; the disposable database
 has a 512 MB container memory limit. No interrupted run is counted as a pass.
 
-No production merge/deployment is authorized by this follow-up. Publish the fix
-as a draft for review. Live acceptance and owner confirmations above remain
+The initial follow-up was published as a draft for review. The owner subsequently
+requested pushing all completed work to production; PR #71 is now merged and
+deployed as recorded above. Live acceptance and owner confirmations remain
 required before declaring all three readiness items closed.
 
 ## Primary sources

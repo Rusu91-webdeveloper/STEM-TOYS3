@@ -2,10 +2,14 @@
 
 Date: 7 October 2026. Follow-up on `codex/holds-refunds-privacy`, from clean
 `75497776`, continuing
-[draft PR #71](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/71). The
+[PR #71](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/71). The
 owner supplied the KidStory and Boribon dropshipping PDFs, confirmed the company
 address and authorized one personal inbox for synthetic acceptance. No
-production release, supplier message or production database write occurred.
+production release, supplier message or production database write occurred
+during the implementation acceptance below. The owner subsequently authorized
+production publication; PR #71 merged as `7c9cce07` on 7 October and both domains
+now serve its READY build. See the
+[production release record](2026-10-07-holds-returns-production-release.md).
 
 ## Contract decision
 
@@ -109,8 +113,8 @@ in ignored `test-results/supplier-contracts-2026-10-07/`. The test server and
 512MB disposable database container were stopped/removed, and temporary SMTP
 credentials were removed. The unrelated Docker workload was left alone.
 
-The draft still requires an approved production release, current per-case
-supplier authorization, deployed admin acceptance and revised inbox
-confirmation. Actual Stripe full/partial sandbox refunds and remaining
+The production release is complete. Current per-case supplier authorization,
+authenticated deployed admin acceptance and revised inbox confirmation remain
+operator acceptance items. Actual Stripe full/partial sandbox refunds and remaining
 privacy/provider agreement evidence are tracked separately. This does not
 certify an A+ grade.

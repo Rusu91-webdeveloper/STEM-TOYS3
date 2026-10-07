@@ -1,5 +1,18 @@
 # Current tasks
 
+- [x] 2026-10-07 — Owner explicitly authorized publishing all completed PR #71
+      changes to production. Estimate: 30–60 minutes. Confirm exact reviewed
+      commit, merge, verify the production deployment and both TechTots domains,
+      check anonymous access restrictions and record release evidence. Supplier
+      destinations require case approval/warehouse/deadline review; company
+      fallback and digital exceptions remain in place. No live payment or
+      customer return is used as a test fixture. Release does not close the
+      outstanding Stripe sandbox, inbox or privacy/provider acceptance items.
+      PR #71 merged as `7c9cce07`; its production build is READY on both domains.
+      Public pages, anonymous API denials and desktop/mobile checks pass. No
+      release-window runtime errors were found. See the
+      [production release record](docs/audits/2026-10-07-holds-returns-production-release.md).
+
 - [x] 2026-10-07 — Implement supplier/company return destinations from the
       owner's two supplied dropshipping contracts. Estimate: 2–4 hours. Review
       contract conditions and address evidence; record authenticated destination
@@ -14,7 +27,8 @@
       were accepted by SMTP, with revised receipt/rendering pending. Details in
       the
       [supplier audit](docs/audits/2026-10-07-supplier-return-destinations.md).
-      Continue draft PR #71; no production release authorized.
+      Owner subsequently authorized production release on 7 October; PR #71
+      is merged as 7c9cce07. Release verification is tracked above.
 
 - [ ] 2026-10-07 — Finalize COD hold expiry, returns/refund acceptance and
       privacy operations at the owner's request. Estimate: 3–5 hours; elapsed
@@ -30,7 +44,8 @@
       follow-up are recorded in
       [the operations audit](docs/audits/2026-10-07-holds-refunds-privacy.md).
       Published as
-      [draft PR #71](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/71).
+      [PR #71](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/71), now
+      merged and deployed after the owner's explicit release request.
       Owner confirmed company address and authorized Gmail test inbox. Current
       Neon 30/60-day auto-delete policies and daily cron HTTP 200 were verified;
       5,593 overdue performance records remain, with deletion counts unobserved.

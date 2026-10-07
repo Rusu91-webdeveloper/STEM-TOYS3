@@ -144,24 +144,37 @@ Standard Operating Procedures (SOP) for daily operations of TechTots dropshippin
 - [ ] **Review return form**
   - Check reason for return
   - Verify photos/videos uploaded (for claims)
-  - Confirm return is within 14-day window
+  - Check the applicable withdrawal deadline; review defect/conformity and
+    digital complaints separately rather than applying a universal 14-day cutoff
 
-- [ ] **For defect/missing parts claims:**
-  - Review photos/videos
-  - Determine if supplier authorization needed (ARP/RMA)
-  - If needed:
-    - Contact supplier for ARP/RMA number
-    - Wait for authorization
-    - Update return status
+- [ ] **Review supplier destination before approval:**
+  - Open the return details in `/admin/returns` and review the reason, condition
+    and evidence. Obtain written supplier acceptance separately when needed;
+    the app does not request or invent that approval.
+  - Record supplier authorization as `APPROVED`, its ARP/RMA reference and the
+    agreed physical-arrival deadline. Keep the return lifecycle `PENDING` during
+    this review.
+  - In “Destinația returului”, choose supplier only after confirming an active
+    contract, receiving warehouse and all displayed condition/date checks.
+    KidStory requires ARP and ten-day arrival; Boribon ordinary sealed returns
+    require arrival within eighteen days of delivery. Warranty handling has its
+    separate agreed evidence/deadline. Use the
+    [contract decision table](audits/2026-10-07-supplier-return-destinations.md)
+    for the full case requirements.
+  - Save the destination review before approving. Missing, inconsistent or
+    expired supplier evidence routes to the confirmed TechTots company address.
+    Supplier reimbursement limits do not automatically deny the customer remedy.
+  - Digital requests require entitlement review and have no physical destination.
 
-- [ ] **Generate return label**
-  - Create return shipping label
-  - Send to customer via email
-  - Use "Return Request" macro
-
-- [ ] **Update return status**
-  - Mark as "APPROVED" or "PENDING_SUPPLIER_AUTH"
-  - Add notes if needed
+- [ ] **Approve and verify notification:**
+  - Mark the reviewed return `APPROVED`, then inspect email acceptance status.
+    An incomplete notification permits authenticated retry without recreating
+    the approval.
+  - Account instructions, email and identification PDF use the same destination.
+    Mixed approvals contain one named PDF per physical item; digital items have
+    no shipping PDF.
+  - The PDF identifies the return; it is not a prepaid courier AWB. Arrange the
+    applicable courier method/cost separately from the reviewed case evidence.
 
 **Tools:**
 - Admin panel: `/admin/returns`
