@@ -13,11 +13,20 @@
       repository test/type debt remains. Local/regression evidence and the draft
       follow-up are recorded in
       [the operations audit](docs/audits/2026-10-07-holds-refunds-privacy.md).
-      Actual Stripe test-mode refunds, authorized inbox rendering, company
-      address, provider agreements and current production retention/cron
-      confirmation remain pending. Mac restarts interrupted intermediate checks;
-      resumed checks run one heavy job at a time after storage was freed. This
-      does not certify an A+.
+      Published as
+      [draft PR #71](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/71).
+      Owner confirmed company address and authorized Gmail test inbox. Current
+      Neon 30/60-day auto-delete policies and daily cron HTTP 200 were verified;
+      5,593 overdue performance records remain, with deletion counts unobserved.
+      Added aggregate cron evidence that survives console stripping and the
+      production warn log level; 14 focused tests pass. Two real withdrawal SMTP
+      messages were accepted; rendering confirmation remains pending. Four
+      return-email sends failed: Brevo's configured key is disabled (401).
+      Stripe test-mode refunds still need reauthentication. Supplier business
+      addresses are present, but signed return contracts/RMA destinations and
+      provider agreements remain pending. Mac restarts interrupted intermediate
+      checks; resumed checks run one heavy job at a time after storage was
+      freed. This does not certify an A+.
 
 - [x] 2026-10-06 — Owner requested analysis and repair of the remaining Meta
       crawler chunk failures. Estimate: 1–2 hours. Branch

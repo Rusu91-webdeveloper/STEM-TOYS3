@@ -278,6 +278,22 @@ export async function GET(req: NextRequest) {
       results.cleanupErrors === 0 &&
       (results.retention?.errors.length ?? 0) === 0 &&
       (results.codHolds?.outcomes.retry_required ?? 0) === 0;
+    // Production strips console.log and LOG_LEVEL=warn suppresses normal info
+    // logs. Keep one aggregate execution record independent of those settings.
+    // Never include order/customer IDs, payment identifiers or credentials.
+    const summary = {
+      event: "daily_maintenance_result",
+      level: cleanupSucceeded ? "info" : "error",
+      timestamp: new Date().toISOString(),
+      success: cleanupSucceeded,
+      retention: results.retention,
+      codHolds: results.codHolds,
+      cleanupErrors: results.cleanupErrors,
+      durationMs: duration,
+    };
+    const output = `${JSON.stringify(summary)}\n`;
+    if (cleanupSucceeded) process.stdout.write(output);
+    else process.stderr.write(output);
     return NextResponse.json(
       {
         success: cleanupSucceeded,
