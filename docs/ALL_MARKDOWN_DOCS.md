@@ -33,6 +33,9 @@ This file lists all markdown docs in the project so tools/AI can quickly see wha
 
 - `docs/INCIDENTS_AND_FIXES.md` – Index of focused incident/fix docs (returns, admin order cache, COD payment, DB safety).
 - `docs/RELEASE_REGRESSION_CHECKS.md` – Local release checks that compare full TypeScript and Jest results against main, with database-change detection.
+- `docs/audits/2026-10-07-holds-returns-production-release.md` – Owner-authorized PR #71 production release, exact deployment, live checks and remaining acceptance.
+- `docs/audits/2026-10-07-supplier-return-destinations.md` – Contract-based supplier/company routing, admin evidence, SMTP and PDF verification.
+- `docs/audits/2026-10-07-holds-refunds-privacy.md` – COD hold expiry, repayment and privacy procedures, verification and external acceptance gaps.
 - `docs/audits/2026-10-03-admin-analytics-auth.md` – Confirmed analytics API exposure, authorization fix, verification and release status.
 - `docs/ADMIN_ORDER_STATUS_CACHE_FIX.md` – Why admin order status now refetches from the server and how cache invalidation works.
 - `docs/COD_PAYMENT_STATUS_FIX.md` – Business rules for COD orders (`DELIVERED` ⇒ `PAID`) and the backfill script.
