@@ -1,8 +1,9 @@
 "use client";
 
-import { Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, RefreshCw, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,82 +22,124 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Define the Category type
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  image?: string;
-  isActive: boolean;
-  productCount?: number;
-};
+// Reject storefront groups or incomplete data instead of inventing statuses/counts.
+const categoryListSchema = z.array(
+  z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    slug: z.string().min(1),
+    isActive: z.boolean(),
+    productCount: z.number().int().nonnegative(),
+  })
+);
+type Category = z.infer<typeof categoryListSchema>[number];
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refresh, setRefresh] = useState(0);
 
-  // Fetch categories when component mounts
   useEffect(() => {
+    const controller = new AbortController();
     const fetchCategories = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch("/api/categories");
+        setError(null);
+        const response = await fetch("/api/admin/categories", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch categories");
         }
-        const data = await response.json();
-        setCategories(data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
+        const data = categoryListSchema.parse(await response.json());
+        if (!controller.signal.aborted) setCategories(data);
+      } catch {
+        if (!controller.signal.aborted) {
+          setError("Lista categoriilor nu a putut fi încărcată. Reîncearcă.");
+        }
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) setIsLoading(false);
       }
     };
 
-    fetchCategories();
-  }, []);
+    void fetchCategories();
+    return () => controller.abort();
+  }, [refresh]);
 
   return (
-    <div className="container py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Categories</h1>
-        <Button asChild>
-          <Link href="/admin/categories/new">
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Category
-          </Link>
-        </Button>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Categorii</h1>
+          <p className="mt-2 text-muted-foreground">
+            Organizarea catalogului și numărul de produse asociate.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            disabled={isLoading}
+            onClick={() => setRefresh(value => value + 1)}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
+            Reîncarcă categoriile
+          </Button>
+          <Button asChild>
+            <Link href="/admin/categories/new">
+              <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
+              Adaugă categorie
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Manage Categories</CardTitle>
+          <CardTitle>Categoriile din catalog</CardTitle>
           <CardDescription>
-            View, edit, and manage your content categories
+            Starea indică dacă o categorie este activă. Numărul include toate
+            produsele asociate direct, inclusiv produsele nepublicate sau
+            inactive.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Loading categories...</div>
+            <div className="text-center py-8" role="status">
+              Se încarcă categoriile…
+            </div>
+          ) : error ? (
+            <div
+              className="rounded-lg border border-destructive/30 bg-destructive/5 p-6"
+              role="alert"
+            >
+              <p>{error}</p>
+              <Button
+                className="mt-4"
+                variant="outline"
+                onClick={() => setRefresh(value => value + 1)}
+              >
+                Reîncearcă
+              </Button>
+            </div>
           ) : categories.length === 0 ? (
             <div className="text-center py-8">
-              <p className="mb-4">No categories found</p>
+              <p className="mb-4">Nu există categorii în catalog.</p>
               <Button asChild>
                 <Link href="/admin/categories/new">
-                  Create your first category
+                  Creează prima categorie
                 </Link>
               </Button>
             </div>
           ) : (
-            <Table>
+            <Table aria-label="Categoriile din catalog">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Products</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Nume</TableHead>
+                  <TableHead className="hidden md:table-cell">Slug</TableHead>
+                  <TableHead>Stare</TableHead>
+                  <TableHead className="text-right">Produse asociate</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -105,38 +148,24 @@ export default function AdminCategoriesPage() {
                     <TableCell className="font-medium">
                       {category.name}
                     </TableCell>
-                    <TableCell>{category.slug}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {category.slug}
+                    </TableCell>
                     <TableCell>
                       {category.isActive ? (
                         <span className="inline-flex items-center bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                          <Eye className="h-3 w-3 mr-1" />
-                          Active
+                          <Eye className="h-3 w-3 mr-1" aria-hidden="true" />
+                          Activă
                         </span>
                       ) : (
                         <span className="inline-flex items-center bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">
-                          <EyeOff className="h-3 w-3 mr-1" />
-                          Inactive
+                          <EyeOff className="h-3 w-3 mr-1" aria-hidden="true" />
+                          Inactivă
                         </span>
                       )}
                     </TableCell>
-                    <TableCell>{category.productCount || 0}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/admin/categories/edit/${category.id}`}>
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Edit</span>
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
-                        </Button>
-                      </div>
+                    <TableCell className="text-right tabular-nums">
+                      {category.productCount.toLocaleString("ro-RO")}
                     </TableCell>
                   </TableRow>
                 ))}
