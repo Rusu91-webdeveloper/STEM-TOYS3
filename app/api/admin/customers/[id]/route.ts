@@ -1,15 +1,8 @@
-import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
+import { paidOrders } from "@/lib/admin/customer-list";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-
-type OrderWithItems = {
-  id: string;
-  total: number;
-  createdAt: Date;
-  status: OrderStatus;
-};
 
 // GET - Get customer details
 export async function GET(
@@ -33,11 +26,23 @@ export async function GET(
         id: customerId,
         role: "CUSTOMER",
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isActive: true,
+        role: true,
+        createdAt: true,
         orders: {
-          include: {
-            // Change orderItems to items as suggested by Prisma error
-            items: true,
+          take: 1,
+          select: {
+            id: true,
+            orderNumber: true,
+            total: true,
+            createdAt: true,
+            status: true,
+            currency: true,
+            paymentStatus: true,
           },
           orderBy: {
             createdAt: "desc",
@@ -72,10 +77,11 @@ export async function GET(
     }
 
     // Calculate metrics
-    const totalSpent = customer.orders.reduce(
-      (sum: number, order: OrderWithItems) => sum + order.total,
-      0
-    );
+    const spending = await db.order.aggregate({
+      where: { ...paidOrders, userId: customerId },
+      _sum: { total: true },
+    });
+    const totalSpent = spending._sum.total ?? 0;
 
     const lastOrder = customer.orders[0];
 
@@ -94,6 +100,9 @@ export async function GET(
             id: lastOrder.id,
             date: lastOrder.createdAt,
             total: lastOrder.total,
+            currency: lastOrder.currency,
+            orderNumber: lastOrder.orderNumber,
+            paymentStatus: lastOrder.paymentStatus,
             status: lastOrder.status,
           }
         : null,
@@ -102,7 +111,9 @@ export async function GET(
       paymentCards: customer.paymentCards,
     };
 
-    return NextResponse.json(formattedCustomer);
+    return NextResponse.json(formattedCustomer, {
+      headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (error) {
     console.error("Error fetching customer:", error);
     return NextResponse.json(

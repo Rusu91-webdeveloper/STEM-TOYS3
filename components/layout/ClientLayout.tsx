@@ -27,6 +27,9 @@ export default function ClientLayout({
   const isStorefrontSurface =
     !isAdminPage && !isSupplierPage && !isCheckoutPage;
 
+  // The admin layout owns its header, navigation, skip link and main landmark.
+  if (isAdminPage) return <>{children}</>;
+
   return (
     <>
       <a

@@ -3,8 +3,8 @@ import { Metadata } from "next";
 import { AdminSupplierList } from "@/features/supplier/components/admin/AdminSupplierList";
 
 export const metadata: Metadata = {
-  title: "Supplier Management | Admin Dashboard",
-  description: "Manage supplier applications, approvals, and status updates",
+  title: "Furnizori | Administrare TechTots",
+  description: "Gestionează furnizorii, cererile și aprobările magazinului.",
 };
 
 export default function AdminSuppliersPage() {

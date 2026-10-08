@@ -41,10 +41,21 @@ export const GET = async (request: NextRequest) => {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
-    const search = searchParams.get("search") || "";
+    if (
+      !Number.isInteger(page) ||
+      page < 1 ||
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      limit > 100
+    )
+      return NextResponse.json(
+        { error: "Pagina sau limita este invalidă." },
+        { status: 400 }
+      );
+    const search = (searchParams.get("search") || "").trim().slice(0, 200);
     const status = searchParams.get("status") || "";
     const sortBy = searchParams.get("sortBy") || "createdAt";
-    const sortOrder = searchParams.get("sortOrder") || "desc";
+    const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
     // Build where clause
     const where: any = {};
@@ -52,6 +63,8 @@ export const GET = async (request: NextRequest) => {
     if (search) {
       where.OR = [
         { companyName: { contains: search, mode: "insensitive" } },
+        { name: { contains: search, mode: "insensitive" } },
+        { contactPerson: { contains: search, mode: "insensitive" } },
         { contactPersonName: { contains: search, mode: "insensitive" } },
         { contactPersonEmail: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
@@ -61,7 +74,14 @@ export const GET = async (request: NextRequest) => {
     }
 
     if (status) {
-      where.status = status;
+      if (
+        !["PENDING", "APPROVED", "REJECTED", "SUSPENDED", "INACTIVE"].includes(
+          status
+        )
+      )
+        return NextResponse.json({ error: "Stare invalidă." }, { status: 400 });
+      where.status =
+        status === "APPROVED" ? { in: ["APPROVED", "ACTIVE"] } : status;
     }
 
     // Build order by clause - map sortBy to actual field names
@@ -106,11 +126,14 @@ export const GET = async (request: NextRequest) => {
       return value;
     };
 
-    const statusCountsMap = statusCounts.reduce((acc, item) => {
-      const normalized = normalizeStatus(item.status);
-      acc[normalized] = (acc[normalized] || 0) + item._count.status;
-      return acc;
-    }, {} as Record<string, number>);
+    const statusCountsMap = statusCounts.reduce(
+      (acc, item) => {
+        const normalized = normalizeStatus(item.status);
+        acc[normalized] = (acc[normalized] || 0) + item._count.status;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     // Transform suppliers to match frontend expectations and calculate revenue
     const suppliersWithRevenue = await Promise.all(
@@ -138,8 +161,8 @@ export const GET = async (request: NextRequest) => {
           // Contact person - use detailed fields if available, otherwise fall back to basic
           contactPersonName:
             supplier.contactPersonName || supplier.contactPerson,
-          contactPersonEmail: supplier.contactPersonEmail,
-          contactPersonPhone: supplier.contactPersonPhone,
+          contactPersonEmail: supplier.contactPersonEmail || supplier.email,
+          contactPersonPhone: supplier.contactPersonPhone || supplier.phone,
 
           // Business address
           businessAddress: supplier.businessAddress,
@@ -377,8 +400,8 @@ export const POST = async (request: NextRequest) => {
       phone: supplier.phone,
       email: supplier.email,
       contactPersonName: supplier.contactPersonName || supplier.contactPerson,
-      contactPersonEmail: supplier.contactPersonEmail,
-      contactPersonPhone: supplier.contactPersonPhone,
+      contactPersonEmail: supplier.contactPersonEmail || supplier.email,
+      contactPersonPhone: supplier.contactPersonPhone || supplier.phone,
       businessAddress: supplier.businessAddress,
       businessCity: supplier.businessCity,
       businessState: supplier.businessState,

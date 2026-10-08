@@ -84,6 +84,9 @@ storybook-static
 # Database backups
 backups/
 .backups/
+# Admin route handlers are source code, not database backup files.
+!/app/api/admin/settings/backups/
+!/app/api/admin/settings/backups/**
 *.sql
 *.sql.gz
 !prisma/migrations/**/migration.sql

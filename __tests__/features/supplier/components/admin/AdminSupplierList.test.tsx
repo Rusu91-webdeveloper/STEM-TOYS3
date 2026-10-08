@@ -1,582 +1,282 @@
-/**
- * @jest-environment jsdom
- */
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+/** @jest-environment jsdom */
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from "@testing-library/react";
+
 import { AdminSupplierList } from "@/features/supplier/components/admin/AdminSupplierList";
-import { type Supplier } from "@/features/supplier/types/supplier";
 
-// Mock fetch
-global.fetch = jest.fn();
+import { mockSuppliers, mockSuppliersResponse } from "./supplier-list-fixture";
 
-const mockSuppliers: Supplier[] = [
-  {
-    id: "supplier-1",
-    userId: "user-1",
-    companyName: "TechCorp Inc",
-    companySlug: "techcorp-inc",
-    description: "Leading tech supplier",
-    website: "https://techcorp.com",
-    phone: "+1234567890",
-    vatNumber: "VAT123456",
-    taxId: "TAX789012",
-    businessAddress: "123 Tech Street",
-    businessCity: "Tech City",
-    businessState: "Tech State",
-    businessCountry: "USA",
-    businessPostalCode: "12345",
-    contactPersonName: "John Doe",
-    contactPersonEmail: "john@techcorp.com",
-    contactPersonPhone: "+1234567890",
-    yearEstablished: 2010,
-    employeeCount: 50,
-    annualRevenue: "5000000",
-    certifications: ["ISO 9001", "ISO 14001"],
-    productCategories: ["Electronics", "Software"],
-    status: "PENDING",
-    commissionRate: 15.0,
-    paymentTerms: 30,
-    minimumOrderValue: 1000.0,
-    termsAccepted: true,
-    privacyAccepted: true,
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
-    anpcApproval: false,
-    iscApproval: false,
-    romanianComplianceStatus: "PENDING",
-    romanianCurrency: "RON",
-    romanianPaymentTerms: 30,
-  },
-  {
-    id: "supplier-2",
-    userId: "user-2",
-    companyName: "EduTools Ltd",
-    companySlug: "edutools-ltd",
-    description: "Educational tools supplier",
-    website: "https://edutools.com",
-    phone: "+1987654321",
-    vatNumber: "VAT654321",
-    taxId: "TAX210987",
-    businessAddress: "456 Education Ave",
-    businessCity: "Edu City",
-    businessState: "Edu State",
-    businessCountry: "Canada",
-    businessPostalCode: "67890",
-    contactPersonName: "Jane Smith",
-    contactPersonEmail: "jane@edutools.com",
-    contactPersonPhone: "+1987654321",
-    yearEstablished: 2015,
-    employeeCount: 25,
-    annualRevenue: "2000000",
-    certifications: ["ISO 9001"],
-    productCategories: ["Educational Materials", "STEM Kits"],
-    status: "APPROVED",
-    approvedAt: new Date("2024-01-15"),
-    commissionRate: 12.0,
-    paymentTerms: 45,
-    minimumOrderValue: 500.0,
-    termsAccepted: true,
-    privacyAccepted: true,
-    createdAt: new Date("2024-01-10"),
-    updatedAt: new Date("2024-01-15"),
-    anpcApproval: true,
-    iscApproval: true,
-    romanianComplianceStatus: "APPROVED",
-    romanianCurrency: "RON",
-    romanianPaymentTerms: 30,
-  },
-  {
-    id: "supplier-3",
-    userId: "user-3",
-    companyName: "Rejected Supplies",
-    companySlug: "rejected-supplies",
-    description: "Rejected supplier",
-    website: "https://rejected.com",
-    phone: "+1122334455",
-    businessAddress: "789 Fail Street",
-    businessCity: "Fail City",
-    businessState: "Fail State",
-    businessCountry: "UK",
-    businessPostalCode: "11223",
-    contactPersonName: "Bob Wilson",
-    contactPersonEmail: "bob@rejected.com",
-    contactPersonPhone: "+1122334455",
-    certifications: [],
-    productCategories: ["Hardware"],
-    status: "REJECTED",
-    rejectionReason: "Does not meet quality standards",
-    commissionRate: 15.0,
-    paymentTerms: 30,
-    minimumOrderValue: 1000.0,
-    termsAccepted: true,
-    privacyAccepted: true,
-    createdAt: new Date("2024-01-05"),
-    updatedAt: new Date("2024-01-05"),
-    anpcApproval: false,
-    iscApproval: false,
-    romanianComplianceStatus: "REJECTED",
-    romanianCurrency: "RON",
-    romanianPaymentTerms: 30,
-  },
-];
-
-const mockSuppliersResponse = {
-  suppliers: mockSuppliers,
-  pagination: {
-    page: 1,
-    limit: 10,
-    total: 3,
-    pages: 1,
-  },
-  filters: {
-    statusCounts: {
-      PENDING: 1,
-      APPROVED: 1,
-      REJECTED: 1,
-      SUSPENDED: 0,
-      INACTIVE: 0,
-      TOTAL: 3,
-    },
-  },
-};
+const originalFetch = global.fetch;
+const originalScroll = Element.prototype.scrollIntoView;
+const ok = (data = mockSuppliersResponse) => ({
+  ok: true,
+  json: () => Promise.resolve(data),
+});
+const api = () => global.fetch as jest.Mock;
+const ready = () => screen.findByText("TechCorp Inc");
+const updateButton = (action: "Aprobă" | "Respinge") =>
+  screen.getByRole("button", { name: `${action} furnizorul TechCorp Inc` });
+const listUrl = (params: string) => expect.stringContaining(params);
 
 describe("AdminSupplierList", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  beforeAll(() => {
+    Element.prototype.scrollIntoView = jest.fn();
   });
-
+  afterAll(() => {
+    Element.prototype.scrollIntoView = originalScroll;
+  });
+  beforeEach(() => {
+    global.fetch = jest.fn().mockResolvedValue(ok());
+  });
   afterEach(() => {
-    jest.resetAllMocks();
+    global.fetch = originalFetch;
+    jest.restoreAllMocks();
   });
 
   it("should render loading state initially", () => {
-    (global.fetch as any).mockImplementation(
-      () => new Promise(() => {}) // Never resolves
-    );
-
+    api().mockImplementation(() => new Promise(() => {}));
     render(<AdminSupplierList />);
-
-    expect(screen.getByText("Loading suppliers...")).toBeInTheDocument();
+    expect(screen.getByText("Se încarcă furnizorii…")).toBeVisible();
+    expect(screen.queryByText("Total furnizori")).toBeNull();
   });
 
   it("should render suppliers list when data loads successfully", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockSuppliersResponse,
-    });
-
     render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Supplier Management")).toBeInTheDocument();
-    });
-
-    // Check header
+    await ready();
+    expect(screen.getByRole("heading", { name: /^Furnizori$/ })).toBeVisible();
     expect(
-      screen.getByText("Manage supplier applications and approvals")
-    ).toBeInTheDocument();
-
-    // Check stats cards
-    expect(screen.getByText("Total Suppliers")).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument();
-    expect(screen.getByText("Pending Review")).toBeInTheDocument();
-    expect(screen.getByText("Approved")).toBeInTheDocument();
-    expect(screen.getByText("Rejected")).toBeInTheDocument();
-
-    // Check suppliers table
-    expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    expect(screen.getByText("EduTools Ltd")).toBeInTheDocument();
-    expect(screen.getByText("Rejected Supplies")).toBeInTheDocument();
+      screen.getByText("Gestionează furnizorii, cererile și aprobările.")
+    ).toBeVisible();
+    expect(screen.getByText("Total furnizori").parentElement).toHaveTextContent(
+      "3"
+    );
+    expect(screen.getByText("EduTools Ltd")).toBeVisible();
+    expect(screen.getByText("Rejected Supplies")).toBeVisible();
   });
 
-  it("should display error message when API call fails", async () => {
-    (global.fetch as any).mockRejectedValueOnce(new Error("Network error"));
+  it.each(["network", "http"])(
+    "should display an actionable error for a %s failure",
+    async kind => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
+      if (kind === "network")
+        api().mockRejectedValue(new Error("Network error"));
+      else
+        api().mockResolvedValue({
+          ok: false,
+          status: 500,
+          json: () => Promise.resolve({}),
+        });
+      render(<AdminSupplierList />);
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Furnizorii nu au putut fi încărcați"
+      );
+      expect(screen.queryByText("Total furnizori")).toBeNull();
+    }
+  );
 
+  it("should filter suppliers by search term on the server", async () => {
     render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Network error")).toBeInTheDocument();
+    await ready();
+    api().mockResolvedValue(
+      ok({ ...mockSuppliersResponse, suppliers: [mockSuppliers[0]] })
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "Caută furnizori" }), {
+      target: { value: "TechCorp" },
     });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Aplică căutarea furnizorilor" })
+    );
+    await ready();
+    expect(api()).toHaveBeenLastCalledWith(
+      listUrl("search=TechCorp"),
+      expect.objectContaining({ cache: "no-store" })
+    );
+    expect(screen.queryByText("EduTools Ltd")).toBeNull();
+    expect(screen.queryByText("Rejected Supplies")).toBeNull();
   });
 
-  it("should display error message when API returns error response", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-    });
-
+  it("should filter suppliers by status on the server", async () => {
     render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Failed to fetch suppliers")).toBeInTheDocument();
-    });
+    await ready();
+    api().mockResolvedValue(
+      ok({ ...mockSuppliersResponse, suppliers: [mockSuppliers[1]] })
+    );
+    fireEvent.keyDown(
+      screen.getByRole("combobox", { name: "Filtrează furnizorii după stare" }),
+      { key: "ArrowDown" }
+    );
+    fireEvent.click(await screen.findByRole("option", { name: "Aprobat" }));
+    await screen.findByText("EduTools Ltd");
+    expect(api()).toHaveBeenLastCalledWith(
+      listUrl("status=APPROVED"),
+      expect.any(Object)
+    );
+    expect(screen.queryByText("TechCorp Inc")).toBeNull();
   });
 
-  it("should filter suppliers by search term", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockSuppliersResponse,
-    });
-
+  it("should sort suppliers by company name on the server", async () => {
     render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // Search for "TechCorp"
-    const searchInput = screen.getByPlaceholderText("Search suppliers...");
-    fireEvent.change(searchInput, { target: { value: "TechCorp" } });
-
-    // Should still show TechCorp but not others
-    expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    expect(screen.queryByText("EduTools Ltd")).not.toBeInTheDocument();
-    expect(screen.queryByText("Rejected Supplies")).not.toBeInTheDocument();
-  });
-
-  it("should filter suppliers by status", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockSuppliersResponse,
-    });
-
-    render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // Filter by APPROVED status
-    const statusSelect = screen.getByText("Filter by status");
-    fireEvent.click(statusSelect);
-
-    const approvedOption = screen.getByText("Approved");
-    fireEvent.click(approvedOption);
-
-    // Should show only approved supplier
-    expect(screen.queryByText("TechCorp Inc")).not.toBeInTheDocument();
-    expect(screen.getByText("EduTools Ltd")).toBeInTheDocument();
-    expect(screen.queryByText("Rejected Supplies")).not.toBeInTheDocument();
-  });
-
-  it("should sort suppliers by company name", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockSuppliersResponse,
-    });
-
-    render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // Sort by company name
-    const sortSelect = screen.getByText("Sort by");
-    fireEvent.click(sortSelect);
-
-    const companyNameOption = screen.getByText("Company Name");
-    fireEvent.click(companyNameOption);
-
-    // Should sort alphabetically: EduTools, Rejected Supplies, TechCorp
-    const rows = screen.getAllByRole("row");
-    expect(rows[1]).toHaveTextContent("EduTools Ltd");
-    expect(rows[2]).toHaveTextContent("Rejected Supplies");
-    expect(rows[3]).toHaveTextContent("TechCorp Inc");
+    await ready();
+    api().mockResolvedValue(
+      ok({
+        ...mockSuppliersResponse,
+        suppliers: [mockSuppliers[1], mockSuppliers[2], mockSuppliers[0]],
+      })
+    );
+    fireEvent.keyDown(
+      screen.getByRole("combobox", { name: "Ordonează furnizorii după" }),
+      { key: "ArrowDown" }
+    );
+    fireEvent.click(
+      await screen.findByRole("option", { name: "Numele firmei" })
+    );
+    await ready();
+    expect(api()).toHaveBeenLastCalledWith(
+      listUrl("sortBy=companyName"),
+      expect.any(Object)
+    );
+    expect(screen.getAllByRole("row")[1]).toHaveTextContent("EduTools Ltd");
+    expect(screen.getAllByRole("row")[2]).toHaveTextContent(
+      "Rejected Supplies"
+    );
   });
 
   it("should toggle sort order", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockSuppliersResponse,
-    });
-
     render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // Click sort order toggle (should be descending by default)
-    const sortOrderButton = screen.getByText("↓ Descending");
-    fireEvent.click(sortOrderButton);
-
-    // Should now show ascending
-    expect(screen.getByText("↑ Ascending")).toBeInTheDocument();
+    await ready();
+    fireEvent.click(screen.getByRole("button", { name: "↓ Descrescător" }));
+    await ready();
+    expect(screen.getByRole("button", { name: "↑ Crescător" })).toBeVisible();
+    expect(api()).toHaveBeenLastCalledWith(
+      listUrl("sortOrder=asc"),
+      expect.any(Object)
+    );
   });
 
   it("should show approve/reject buttons for pending suppliers", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockSuppliersResponse,
-    });
-
     render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // TechCorp is PENDING, so should have action buttons
-    const approveButtons = screen.getAllByRole("button", { name: /approve/i });
-    const rejectButtons = screen.getAllByRole("button", { name: /reject/i });
-
-    expect(approveButtons.length).toBeGreaterThan(0);
-    expect(rejectButtons.length).toBeGreaterThan(0);
+    await ready();
+    expect(updateButton("Aprobă")).toBeEnabled();
+    expect(updateButton("Respinge")).toBeEnabled();
   });
 
   it("should not show action buttons for non-pending suppliers", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockSuppliersResponse,
-    });
-
     render(<AdminSupplierList />);
+    await ready();
+    const row = screen.getByRole("row", { name: /EduTools Ltd/ });
+    expect(
+      within(row).queryByRole("button", { name: /Aprobă|Respinge/ })
+    ).toBeNull();
+    expect(
+      within(row).getByRole("link", { name: "Vezi furnizorul EduTools Ltd" })
+    ).toHaveAttribute("href", "/admin/suppliers/supplier-2");
+  });
 
-    await waitFor(() => {
-      expect(screen.getByText("EduTools Ltd")).toBeInTheDocument();
-    });
-
-    // EduTools is APPROVED, should not have approve/reject buttons in the table actions
-    // (only in the detailed view)
-    const tableRows = screen.getAllByRole("row");
-    const eduToolsRow = tableRows.find(row =>
-      row.textContent?.includes("EduTools Ltd")
+  it.each([
+    ["Aprobă", "APPROVED"],
+    ["Respinge", "REJECTED"],
+  ] as const)("should %s supplier successfully", async (action, status) => {
+    render(<AdminSupplierList />);
+    await ready();
+    api()
+      .mockResolvedValueOnce(ok())
+      .mockResolvedValue(
+        ok({
+          ...mockSuppliersResponse,
+          suppliers: mockSuppliers.map(s =>
+            s.id === "supplier-1" ? { ...s, status } : s
+          ),
+        })
+      );
+    fireEvent.click(updateButton(action));
+    await ready();
+    expect(api()).toHaveBeenCalledWith(
+      "/api/admin/suppliers/supplier-1",
+      expect.objectContaining({
+        method: "PUT",
+        body: JSON.stringify({ status }),
+      })
     );
-
-    // The approved supplier should not have approve/reject buttons in the table
-    expect(eduToolsRow).not.toHaveTextContent("Approve");
-    expect(eduToolsRow).not.toHaveTextContent("Reject");
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "Aprobă furnizorul TechCorp Inc" })
+      ).toBeNull()
+    );
   });
 
-  it("should approve supplier successfully", async () => {
-    (global.fetch as any)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockSuppliersResponse,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true, message: "Supplier approved" }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          ...mockSuppliersResponse,
-          suppliers: mockSuppliers.map(s =>
-            s.id === "supplier-1" ? { ...s, status: "APPROVED" as const } : s
-          ),
-        }),
-      });
-
-    render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // Find and click approve button for TechCorp
-    const approveButtons = screen
-      .getAllByRole("button")
-      .filter(button => button.querySelector('[data-lucide="check-circle"]'));
-    fireEvent.click(approveButtons[0]);
-
-    // Should refresh the list and update status
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        "/api/admin/suppliers/supplier-1",
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "APPROVED" }),
-        }
+  it.each(["http", "network"])(
+    "should retain supplier records after a %s status-update failure",
+    async kind => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
+      render(<AdminSupplierList />);
+      await ready();
+      if (kind === "http")
+        api().mockResolvedValueOnce({ ok: false, status: 500 });
+      else api().mockRejectedValueOnce(new Error("Network error"));
+      fireEvent.click(updateButton("Aprobă"));
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Starea furnizorului nu s-a actualizat"
       );
-    });
-  });
-
-  it("should reject supplier successfully", async () => {
-    (global.fetch as any)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockSuppliersResponse,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true, message: "Supplier rejected" }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          ...mockSuppliersResponse,
-          suppliers: mockSuppliers.map(s =>
-            s.id === "supplier-1" ? { ...s, status: "REJECTED" as const } : s
-          ),
-        }),
-      });
-
-    render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // Find and click reject button for TechCorp
-    const rejectButtons = screen
-      .getAllByRole("button")
-      .filter(button => button.querySelector('[data-lucide="x-circle"]'));
-    fireEvent.click(rejectButtons[0]);
-
-    // Should refresh the list and update status
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        "/api/admin/suppliers/supplier-1",
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "REJECTED" }),
-        }
-      );
-    });
-  });
-
-  it("should display error when status update fails", async () => {
-    (global.fetch as any)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockSuppliersResponse,
-      })
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-      });
-
-    render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // Try to approve supplier
-    const approveButtons = screen
-      .getAllByRole("button")
-      .filter(button => button.querySelector('[data-lucide="check-circle"]'));
-    fireEvent.click(approveButtons[0]);
-
-    // Should show error
-    await waitFor(() => {
-      expect(screen.getByText("Failed to update status")).toBeInTheDocument();
-    });
-  });
+      expect(screen.getByText("TechCorp Inc")).toBeVisible();
+      expect(updateButton("Aprobă")).toBeEnabled();
+    }
+  );
 
   it("should refresh suppliers list when refresh button is clicked", async () => {
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => mockSuppliersResponse,
-    });
-
     render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // Click refresh button
-    const refreshButton = screen.getByText("Refresh");
-    fireEvent.click(refreshButton);
-
-    // Should call API again
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(2);
-    });
+    await ready();
+    fireEvent.click(screen.getByRole("button", { name: "Actualizează" }));
+    await ready();
+    expect(api()).toHaveBeenCalledTimes(2);
   });
 
-  it("should display empty state when no suppliers match search", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockSuppliersResponse,
-    });
-
+  it("should display empty state when the server finds no suppliers", async () => {
     render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
+    await ready();
+    api().mockResolvedValue(
+      ok({
+        ...mockSuppliersResponse,
+        suppliers: [],
+        pagination: { page: 1, limit: 20, total: 0, pages: 0 },
+      })
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "Caută furnizori" }), {
+      target: { value: "nonexistent" },
     });
-
-    // Search for non-existent supplier
-    const searchInput = screen.getByPlaceholderText("Search suppliers...");
-    fireEvent.change(searchInput, { target: { value: "nonexistent" } });
-
-    // Should show empty state
+    fireEvent.click(
+      screen.getByRole("button", { name: "Aplică căutarea furnizorilor" })
+    );
     expect(
-      screen.getByText("No suppliers found matching your criteria.")
-    ).toBeInTheDocument();
+      await screen.findByText("Nu există furnizori pentru filtrele alese.")
+    ).toBeVisible();
   });
 
   it("should display status badges correctly", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockSuppliersResponse,
-    });
-
     render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // Check status badges
-    expect(screen.getByText("Pending Review")).toBeInTheDocument();
-    expect(screen.getByText("Approved")).toBeInTheDocument();
-    expect(screen.getByText("Rejected")).toBeInTheDocument();
+    await ready();
+    const table = within(screen.getByRole("table"));
+    for (const status of ["În așteptarea verificării", "Aprobat", "Respins"])
+      expect(table.getByText(status)).toBeVisible();
   });
 
   it("should display supplier details correctly", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockSuppliersResponse,
-    });
-
     render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // Check contact information display
-    expect(screen.getByText("john@techcorp.com")).toBeInTheDocument();
-    expect(screen.getByText("jane@edutools.com")).toBeInTheDocument();
-    expect(screen.getByText("bob@rejected.com")).toBeInTheDocument();
-
-    // Check categories display
-    expect(screen.getByText("Electronics")).toBeInTheDocument();
-    expect(screen.getByText("STEM Kits")).toBeInTheDocument();
-
-    // Check dates
-    expect(screen.getByText("1/1/2024")).toBeInTheDocument();
-  });
-
-  it("should handle network errors gracefully during status updates", async () => {
-    (global.fetch as any)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockSuppliersResponse,
-      })
-      .mockRejectedValueOnce(new Error("Network error"));
-
-    render(<AdminSupplierList />);
-
-    await waitFor(() => {
-      expect(screen.getByText("TechCorp Inc")).toBeInTheDocument();
-    });
-
-    // Try to approve supplier
-    const approveButtons = screen
-      .getAllByRole("button")
-      .filter(button => button.querySelector('[data-lucide="check-circle"]'));
-    fireEvent.click(approveButtons[0]);
-
-    // Should show error
-    await waitFor(() => {
-      expect(screen.getByText("Failed to update status")).toBeInTheDocument();
-    });
+    await ready();
+    for (const email of [
+      "john@techcorp.com",
+      "jane@edutools.com",
+      "bob@rejected.com",
+    ])
+      expect(screen.getByText(email)).toBeVisible();
+    expect(screen.getByText("Electronics")).toBeVisible();
+    expect(screen.getByText("STEM Kits")).toBeVisible();
+    expect(
+      screen.getByText(new Date("2024-01-01").toLocaleDateString("ro-RO"))
+    ).toBeVisible();
   });
 });

@@ -17,7 +17,7 @@ export async function GET(_request: NextRequest) {
 
     const checkoutAdminOnly = process.env.CHECKOUT_ADMIN_ONLY === "true";
 
-    // Set cache headers for static data (5 minutes)
+    // Pricing must reflect the latest saved settings across server instances.
     const response = NextResponse.json({
       taxSettings,
       shippingSettings: cleanShippingSettings,
@@ -25,8 +25,7 @@ export async function GET(_request: NextRequest) {
     });
 
     // Add cache headers for better performance
-    response.headers.set("Cache-Control", "public, max-age=300, s-maxage=300"); // 5 minutes
-    response.headers.set("ETag", `settings-${Date.now()}`);
+    response.headers.set("Cache-Control", "no-store");
 
     return response;
   } catch (error) {

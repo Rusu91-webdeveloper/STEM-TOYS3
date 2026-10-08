@@ -7,27 +7,27 @@ import {
   Settings,
   Plus,
   Play,
-  Pause,
-  Trash2,
+  // Pause,
+  // Trash2,
   Eye,
   Edit,
-  Copy,
-  Calendar,
+  // Copy,
+  // Calendar,
   Clock,
   Target,
   TrendingUp,
   AlertCircle,
-  CheckCircle,
+  // CheckCircle,
   XCircle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
+  // CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -38,7 +38,7 @@ import { EmailAutomationOverview } from "./components/email-automation-overview"
 import { EmailCampaigns } from "./components/email-campaigns";
 import { EmailSegments } from "./components/email-segments";
 import { EmailSequences } from "./components/email-sequences";
-import { EmailSettings } from "./components/email-settings";
+// import { EmailSettings } from "./components/email-settings";
 import { EmailTemplates } from "./components/email-templates";
 
 interface EmailStats {
@@ -175,7 +175,7 @@ export default function EmailAutomationPage() {
 
   const handleSettings = () => {
     // For now, just show an alert. In the future, this could open a settings modal
-    alert("Email settings functionality coming soon!");
+    window.location.assign("/admin/settings");
   };
 
   if (loading) {

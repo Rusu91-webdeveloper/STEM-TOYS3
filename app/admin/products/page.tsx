@@ -2,6 +2,8 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
+import { EnhancedProductFilter } from "@/components/admin/EnhancedProductFilter";
+import { ProductGrid } from "@/components/admin/ProductGrid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,9 +16,6 @@ import {
 import { Pagination } from "@/components/ui/pagination";
 import { db } from "@/lib/db";
 
-import { EnhancedProductFilter } from "@/components/admin/EnhancedProductFilter";
-import { ProductGrid } from "@/components/admin/ProductGrid";
-import { ManualCacheClearButton } from "@/components/admin/ManualCacheClearButton";
 import { BulkUploadModal } from "./components/BulkUploadModal";
 
 // Force this page to be dynamic and not cached
@@ -82,8 +81,8 @@ async function getCategories(): Promise<Category[]> {
 
     return categories;
   } catch (error) {
-    console.error("Error fetching categories:", error);
-    return [];
+    console.error("Admin catalog data failed:", error);
+    throw error;
   }
 }
 
@@ -103,9 +102,8 @@ async function getProducts(filters?: {
     const limit = filters?.limit || 20;
     const offset = (page - 1) * limit;
 
-    // Base conditions: active products, exclude educational-books category
+    // Include inactive records; educational books have their own catalog.
     const baseConditions: any[] = [
-      { isActive: true },
       {
         OR: [
           // Products with no category
@@ -138,10 +136,10 @@ async function getProducts(filters?: {
         where.supplierId = filters.supplierId;
       }
       if (filters.categoryId) where.categoryId = filters.categoryId;
-      if (filters.priceMin != null || filters.priceMax != null) {
+      if (filters.priceMin !== undefined || filters.priceMax !== undefined) {
         where.price = {} as any;
-        if (filters.priceMin != null) where.price.gte = filters.priceMin;
-        if (filters.priceMax != null) where.price.lte = filters.priceMax;
+        if (filters.priceMin !== undefined) where.price.gte = filters.priceMin;
+        if (filters.priceMax !== undefined) where.price.lte = filters.priceMax;
       }
     }
 
@@ -174,18 +172,8 @@ async function getProducts(filters?: {
       },
     };
   } catch (error) {
-    console.error("Error fetching products:", error);
-    return {
-      products: [],
-      pagination: {
-        page: 1,
-        limit: 20,
-        totalCount: 0,
-        totalPages: 0,
-        hasNextPage: false,
-        hasPrevPage: false,
-      },
-    };
+    console.error("Admin catalog data failed:", error);
+    throw error;
   }
 }
 
@@ -198,8 +186,8 @@ async function getSuppliers() {
     });
     return suppliers;
   } catch (error) {
-    console.error("Error fetching suppliers:", error);
-    return [] as { id: string; name: string; companyName?: string }[];
+    console.error("Admin catalog data failed:", error);
+    throw error;
   }
 }
 
@@ -213,7 +201,16 @@ export default async function AdminProductsPage({
   const resolvedSearchParams = await searchParams;
 
   const q = (resolvedSearchParams?.q as string) || undefined;
-  const status = (resolvedSearchParams?.status as string) || undefined;
+  const requestedStatus = resolvedSearchParams?.status as string;
+  const status = [
+    "PUBLISHED",
+    "APPROVED",
+    "IN_PENDING",
+    "REJECTED",
+    "DENIED",
+  ].includes(requestedStatus)
+    ? requestedStatus
+    : undefined;
   const supplierId = (resolvedSearchParams?.supplierId as string) || undefined;
   const categoryId = (resolvedSearchParams?.categoryId as string) || undefined;
   const priceMin = resolvedSearchParams?.priceMin
@@ -256,26 +253,19 @@ export default async function AdminProductsPage({
     },
   });
 
-  const formatPrice = (price: number) => {
-    // All prices are now stored in RON
-    return new Intl.NumberFormat("ro-RO", {
-      style: "currency",
-      currency: "RON",
-    }).format(price);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Produse STEM</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Produse STEM
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Gestionează produsele fizice STEM (jucării educaționale, kituri,
             materiale)
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <ManualCacheClearButton />
           <BulkUploadModal />
           <Button asChild>
             <Link href="/admin/products/create">
@@ -334,16 +324,15 @@ export default async function AdminProductsPage({
                 <Plus className="h-6 w-6 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-semibold mb-2">
-                Nu există produse STEM
+                Nu există produse pentru filtrele alese
               </h3>
               <p className="text-muted-foreground mb-4">
-                Nu ai încă niciun produs STEM în sistem. Creează primul tău
-                produs educațional.
+                Schimbă filtrele sau adaugă un produs nou în catalog.
               </p>
               <Button asChild>
                 <Link href="/admin/products/create">
                   <Plus className="h-4 w-4 mr-2" />
-                  Creează Primul Produs
+                  Adaugă un produs
                 </Link>
               </Button>
             </div>
@@ -351,6 +340,11 @@ export default async function AdminProductsPage({
         </Card>
       ) : (
         <div className="space-y-10">
+          <ProductGrid
+            products={products}
+            status="PUBLISHED"
+            title="Publicate"
+          />
           <ProductGrid products={products} status="APPROVED" title="Aprobate" />
 
           <ProductGrid

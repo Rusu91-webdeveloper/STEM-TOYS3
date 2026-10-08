@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { auth } from "@/lib/auth";
 import { deriveAdminOrderWorkflowSummary } from "@/lib/admin/order-workflow-action";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 type AllowedRole = "ADMIN" | "VISITOR";
@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
         paymentMethod: true,
         trackingNumber: true,
         total: true,
+        currency: true,
         createdAt: true,
         manualShippingReviewRequired: true,
         shippingReviewReason: true,
@@ -89,11 +90,15 @@ export async function GET(request: NextRequest) {
         paymentStatus: order.paymentStatus,
         paymentMethod: order.paymentMethod,
         total: Number(order.total ?? 0),
+        currency: order.currency,
         createdAt: order.createdAt.toISOString(),
-        manualShippingReviewRequired: order.manualShippingReviewRequired ?? false,
+        manualShippingReviewRequired:
+          order.manualShippingReviewRequired ?? false,
         shippingReviewReason: order.shippingReviewReason ?? null,
         customerName:
-          order.user?.name || order.shippingAddress?.fullName || "Guest",
+          order.user?.name ||
+          order.shippingAddress?.fullName ||
+          "Client fără cont",
         customerEmail: order.user?.email || null,
         supplierOrderCount: workflow.supplierOrderCount,
         hasPhysicalItems: workflow.hasPhysicalItems,
@@ -104,10 +109,13 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({
-      notifications,
-      serverTime: new Date().toISOString(),
-    });
+    return NextResponse.json(
+      {
+        notifications,
+        serverTime: new Date().toISOString(),
+      },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
   } catch (error) {
     console.error("Error fetching admin order notifications:", error);
     return NextResponse.json(

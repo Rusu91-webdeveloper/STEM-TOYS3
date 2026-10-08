@@ -22,8 +22,10 @@ import {
   ScanSearch,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 
+import { DashboardError } from "@/app/admin/components/dashboard-status";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,7 +64,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { useCurrency } from "@/lib/currency";
+import { downloadCsv } from "@/lib/admin/csv-export";
+import {
+  formatOrderAmount,
+  orderStatusLabels,
+  paymentStatusLabels,
+} from "@/lib/admin/dashboard-metrics";
+import { adminOrderLabel } from "@/lib/admin/order-labels";
 
 // Type definitions
 type Order = {
@@ -72,6 +80,8 @@ type Order = {
   email: string;
   date: string;
   total: number;
+  currency: string;
+  paymentStatus?: string;
   status: string;
   payment: string;
   items: number;
@@ -140,15 +150,9 @@ const getStatusColor = (status: string) => {
 
 // Helper function to format status
 const formatStatus = (status: string): string =>
-  status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+  orderStatusLabels[status.toUpperCase()] || status;
 
-const formatWorkflowStatusLabel = (value?: string) =>
-  String(value || "")
-    .toLowerCase()
-    .split("_")
-    .filter(Boolean)
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+const formatWorkflowStatusLabel = adminOrderLabel;
 
 const getWorkflowBucketBadgeClasses = (bucket?: string) => {
   switch (bucket) {
@@ -169,7 +173,7 @@ function OrderStatusBadge({ status }: { status: string }) {
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(status)}`}
     >
       {getStatusIcon(status)}
-      {status}
+      {orderStatusLabels[status.toUpperCase()] || status}
     </span>
   );
 }
@@ -202,6 +206,16 @@ function CompactMetricCard({
 }
 
 export default function OrdersPage() {
+  const customerId = useSearchParams().get("customerId");
+  return (
+    <OrderManagement
+      key={customerId || "all-customers"}
+      customerId={customerId}
+    />
+  );
+}
+
+function OrderManagement({ customerId }: { customerId: string | null }) {
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
@@ -212,10 +226,15 @@ export default function OrdersPage() {
   });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
+  const requestController = useRef<AbortController | null>(null);
+  const successfulQuery = useRef<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [status, setStatus] = useState("all");
   const [workflowBucket, setWorkflowBucket] = useState("all");
-  const [period, setPeriod] = useState("30");
-  const { formatPrice } = useCurrency();
+  const [period, setPeriod] = useState(customerId ? "all" : "30");
+  const formatPrice = (amount: number) => formatOrderAmount(amount, "RON");
 
   // Status update modal state
   const [statusUpdateModal, setStatusUpdateModal] = useState({
@@ -233,20 +252,28 @@ export default function OrdersPage() {
 
   // Function to fetch orders from the API
   const fetchOrders = useCallback(async () => {
+    requestController.current?.abort();
+    const controller = new AbortController();
+    requestController.current = controller;
     setLoading(true);
+    setLoadError(null);
+    let query = "";
     try {
       // Build query parameters
       const params = new URLSearchParams();
+      if (customerId) params.set("customerId", customerId);
       if (status !== "all") params.append("status", status);
       if (period !== "all") params.append("period", period);
       if (workflowBucket !== "all") {
         params.append("workflowBucket", workflowBucket);
       }
-      if (searchTerm) params.append("search", searchTerm);
+      if (submittedSearch) params.append("search", submittedSearch);
       params.append("page", pagination.page.toString());
       params.append("limit", pagination.limit.toString());
 
-      const response = await fetch(`/api/admin/orders?${params.toString()}`, {
+      query = params.toString();
+      const response = await fetch(`/api/admin/orders?${query}`, {
+        signal: controller.signal,
         cache: "no-store", // Prevent browser caching
         headers: {
           "Cache-Control": "no-cache", // Additional cache prevention
@@ -258,25 +285,37 @@ export default function OrdersPage() {
       }
 
       const data = await response.json();
+      if (controller.signal.aborted) return;
+      setHasLoaded(true);
+      successfulQuery.current = query;
       setOrders(data.orders ?? []);
       setPagination(prev => data.pagination ?? prev);
     } catch (error) {
+      if (controller.signal.aborted) return;
+      if (successfulQuery.current !== query) {
+        setHasLoaded(false);
+        setOrders([]);
+      }
+      setLoadError(
+        "Lista comenzilor nu a putut fi încărcată. Încearcă din nou."
+      );
       console.error("Error fetching orders:", error);
       toast({
-        title: "Error",
-        description: "Failed to load orders. Please try again.",
+        title: "Eroare",
+        description: "Comenzile nu au putut fi încărcate. Încearcă din nou.",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }, [
     status,
     workflowBucket,
     period,
-    searchTerm,
+    submittedSearch,
     pagination.page,
     pagination.limit,
+    customerId,
     toast,
   ]);
 
@@ -327,7 +366,7 @@ export default function OrdersPage() {
       }
 
       const response = await fetch(
-        `/api/admin/orders/${statusUpdateModal.order.id}`,
+        `/api/admin/orders/${statusUpdateModal.order.dbId || statusUpdateModal.order.id}`,
         {
           method: "PATCH",
           headers: {
@@ -349,8 +388,8 @@ export default function OrdersPage() {
 
       // Show success message
       toast({
-        title: "Success",
-        description: `Order status updated to ${formatStatus(statusUpdateModal.newStatus)}`,
+        title: "Salvat",
+        description: `Starea comenzii a fost actualizată: ${formatStatus(statusUpdateModal.newStatus)}.`,
       });
 
       // Re-fetch orders from server to ensure we have the latest data
@@ -359,8 +398,9 @@ export default function OrdersPage() {
     } catch (error) {
       console.error("Error updating order status:", error);
       toast({
-        title: "Error",
-        description: "Failed to update order status. Please try again.",
+        title: "Eroare",
+        description:
+          "Starea comenzii nu a putut fi actualizată. Încearcă din nou.",
         variant: "destructive",
       });
       setStatusUpdateModal(prev => ({ ...prev, updating: false }));
@@ -389,7 +429,7 @@ export default function OrdersPage() {
 
     try {
       const response = await fetch(
-        `/api/admin/orders/${deleteModal.order.id}`,
+        `/api/admin/orders/${deleteModal.order.dbId || deleteModal.order.id}`,
         {
           method: "DELETE",
           headers: {
@@ -405,8 +445,8 @@ export default function OrdersPage() {
       }
 
       toast({
-        title: "Order deleted",
-        description: `Order ${deleteModal.order.id} has been deleted.`,
+        title: "Comandă ștearsă",
+        description: `Comanda ${deleteModal.order.id} a fost ștearsă.`,
       });
 
       setDeleteModal({ isOpen: false, order: null, deleting: false });
@@ -414,9 +454,11 @@ export default function OrdersPage() {
     } catch (error) {
       console.error("Error deleting order:", error);
       toast({
-        title: "Error",
+        title: "Eroare",
         description:
-          error instanceof Error ? error.message : "Failed to delete order",
+          error instanceof Error
+            ? error.message
+            : "Comanda nu a putut fi ștearsă.",
         variant: "destructive",
       });
       setDeleteModal(prev => ({ ...prev, deleting: false }));
@@ -428,12 +470,16 @@ export default function OrdersPage() {
     fetchOrders();
   }, [fetchOrders]);
 
+  useEffect(() => () => requestController.current?.abort(), []);
+
   // Handle search form submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // Reset to first page when searching
     setPagination(prev => ({ ...prev, page: 1 }));
-    fetchOrders();
+    if (submittedSearch === searchTerm && pagination.page === 1)
+      void fetchOrders();
+    setSubmittedSearch(searchTerm);
   };
 
   // Handle pagination
@@ -449,7 +495,9 @@ export default function OrdersPage() {
     }
   };
 
-  const totalVisibleValue = orders.reduce((sum, order) => sum + order.total, 0);
+  const totalVisibleValue = orders
+    .filter(order => order.currency === "RON")
+    .reduce((sum, order) => sum + order.total, 0);
   const totalVisibleSupplierValue = orders.reduce(
     (sum, order) => sum + Number(order.totalSupplierValue ?? 0),
     0
@@ -467,39 +515,88 @@ export default function OrdersPage() {
     <>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Orders</h1>
-          <Button variant="outline" className="flex items-center gap-2 self-start sm:self-auto">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+            Comenzi
+          </h1>
+          <Button
+            variant="outline"
+            disabled={loading || !hasLoaded || !orders.length}
+            onClick={() =>
+              downloadCsv(
+                "comenzi-pagina.csv",
+                [
+                  "Comandă",
+                  "Client",
+                  "E-mail",
+                  "Dată",
+                  "Valoare",
+                  "Monedă",
+                  "Stare",
+                  "Plată",
+                ],
+                orders.map(order => [
+                  order.id,
+                  order.customer,
+                  order.email,
+                  order.date,
+                  order.total,
+                  order.currency,
+                  orderStatusLabels[order.status.toUpperCase()] || order.status,
+                  paymentStatusLabels[order.paymentStatus || ""] ||
+                    order.payment,
+                ])
+              )
+            }
+            className="flex items-center gap-2 self-start sm:self-auto"
+          >
             <Download className="h-4 w-4" />
-            <span>Export</span>
+            <span>Exportă pagina</span>
           </Button>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <CompactMetricCard
-            title="Visible Orders"
-            value={String(orders.length)}
-            hint={`Page ${pagination.page} of ${Math.max(pagination.pages, 1)}`}
-            icon={<Package2 className="h-4 w-4" />}
+        {customerId && (
+          <p className="rounded-xl border border-violet-200 bg-violet-50 p-4 text-sm text-violet-900">
+            Istoricul comenzilor acestui client.{" "}
+            <Link href="/admin/orders" className="font-medium underline">
+              Vezi toate comenzile magazinului
+            </Link>
+          </p>
+        )}
+        {loadError && (
+          <DashboardError
+            message={loadError}
+            stale={hasLoaded}
+            onRetry={() => void fetchOrders()}
           />
-          <CompactMetricCard
-            title="Order Value"
-            value={formatPrice(totalVisibleValue)}
-            hint="Total value for orders currently in view"
-            icon={<Wallet className="h-4 w-4" />}
-          />
-          <CompactMetricCard
-            title="Supplier Value"
-            value={formatPrice(totalVisibleSupplierValue)}
-            hint="Estimated supplier-side value for visible orders"
-            icon={<Building2 className="h-4 w-4" />}
-          />
-          <CompactMetricCard
-            title="Needs Action"
-            value={String(needsActionCount)}
-            hint={`${trackedOrdersCount} visible orders already have tracking data`}
-            icon={<ScanSearch className="h-4 w-4" />}
-          />
-        </div>
+        )}
+        {hasLoaded && !loading && (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <CompactMetricCard
+              title="Comenzi pe pagină"
+              value={String(orders.length)}
+              hint={`Pagina ${pagination.page} din ${Math.max(pagination.pages, 1)}`}
+              icon={<Package2 className="h-4 w-4" />}
+            />
+            <CompactMetricCard
+              title="Valoare comenzi · RON"
+              value={formatPrice(totalVisibleValue)}
+              hint="Totalul comenzilor în RON de pe această pagină"
+              icon={<Wallet className="h-4 w-4" />}
+            />
+            <CompactMetricCard
+              title="Costuri furnizori · RON"
+              value={formatPrice(totalVisibleSupplierValue)}
+              hint="Costuri înregistrate pentru comenzile de pe pagină"
+              icon={<Building2 className="h-4 w-4" />}
+            />
+            <CompactMetricCard
+              title="Necesită atenție"
+              value={String(needsActionCount)}
+              hint={`${trackedOrdersCount} comenzi de pe pagină au date de urmărire`}
+              icon={<ScanSearch className="h-4 w-4" />}
+            />
+          </div>
+        )}
 
         <Card>
           <CardContent className="p-4 sm:p-6">
@@ -510,12 +607,18 @@ export default function OrdersPage() {
               >
                 <Input
                   type="search"
-                  placeholder="Search orders..."
+                  placeholder="Caută comenzi..."
                   className="w-full"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                 />
-                <Button type="submit" variant="outline" size="icon" className="shrink-0">
+                <Button
+                  type="submit"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Caută comenzi"
+                  className="shrink-0"
+                >
                   <Search className="h-4 w-4" />
                 </Button>
               </form>
@@ -523,48 +626,61 @@ export default function OrdersPage() {
                 <Select
                   defaultValue="all"
                   value={status}
-                  onValueChange={value => setStatus(value)}
+                  onValueChange={value => {
+                    setStatus(value);
+                    setPagination(prev => ({ ...prev, page: 1 }));
+                  }}
                 >
                   <SelectTrigger className="w-full xl:w-[160px]">
-                    <SelectValue placeholder="Status" />
+                    <SelectValue placeholder="Stare" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="shipped">Shipped</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                    <SelectItem value="shipping_review">⚠️ Needs Shipping Review</SelectItem>
+                    <SelectItem value="all">Toate stările</SelectItem>
+                    <SelectItem value="completed">Finalizată</SelectItem>
+                    <SelectItem value="processing">În procesare</SelectItem>
+                    <SelectItem value="shipped">Expediată</SelectItem>
+                    <SelectItem value="cancelled">Anulată</SelectItem>
+                    <SelectItem value="shipping_review">
+                      Verificare expediere
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
                   defaultValue="all"
                   value={workflowBucket}
-                  onValueChange={value => setWorkflowBucket(value)}
+                  onValueChange={value => {
+                    setWorkflowBucket(value);
+                    setPagination(prev => ({ ...prev, page: 1 }));
+                  }}
                 >
                   <SelectTrigger className="w-full xl:w-[170px]">
-                    <SelectValue placeholder="Workflow" />
+                    <SelectValue placeholder="Procesare" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Workflow</SelectItem>
-                    <SelectItem value="needs_action">Needs Action</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="done">Done</SelectItem>
+                    <SelectItem value="all">Toate etapele</SelectItem>
+                    <SelectItem value="needs_action">
+                      Necesită atenție
+                    </SelectItem>
+                    <SelectItem value="in_progress">În desfășurare</SelectItem>
+                    <SelectItem value="done">Rezolvate</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
                   defaultValue="30"
                   value={period}
-                  onValueChange={value => setPeriod(value)}
+                  onValueChange={value => {
+                    setPeriod(value);
+                    setPagination(prev => ({ ...prev, page: 1 }));
+                  }}
                 >
                   <SelectTrigger className="w-full xl:w-[160px]">
-                    <SelectValue placeholder="Time Period" />
+                    <SelectValue placeholder="Perioadă" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="7">Last 7 days</SelectItem>
-                    <SelectItem value="30">Last 30 days</SelectItem>
-                    <SelectItem value="90">Last 90 days</SelectItem>
-                    <SelectItem value="all">All time</SelectItem>
+                    <SelectItem value="7">Ultimele 7 zile</SelectItem>
+                    <SelectItem value="30">Ultimele 30 de zile</SelectItem>
+                    <SelectItem value="90">Ultimele 90 de zile</SelectItem>
+                    <SelectItem value="all">Toate perioadele</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
@@ -582,11 +698,11 @@ export default function OrdersPage() {
               {loading ? (
                 <div className="flex justify-center items-center py-8">
                   <RotateCw className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">Loading orders...</span>
+                  <span className="ml-2">Se încarcă comenzile…</span>
                 </div>
-              ) : orders.length === 0 ? (
+              ) : !hasLoaded ? null : orders.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  No orders found. Try adjusting your filters.
+                  Nu există comenzi pentru filtrele alese.
                 </div>
               ) : (
                 <>
@@ -600,7 +716,7 @@ export default function OrdersPage() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <Link
-                                href={`/admin/orders/${order.id}`}
+                                href={`/admin/orders/${order.dbId || order.id}`}
                                 className="break-all font-medium text-primary hover:underline"
                               >
                                 {order.id}
@@ -624,27 +740,30 @@ export default function OrdersPage() {
                                   className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700"
                                   title={
                                     order.shippingReviewReason ||
-                                    "Requires shipping review"
+                                    "Necesită verificarea expedierii"
                                   }
                                 >
                                   <AlertTriangle className="h-3 w-3" />
-                                  Shipping Review
+                                  Verificare expediere
                                 </div>
                               )}
                               {order.workflowLabel && (
                                 <span
                                   className={`inline-flex items-center rounded-full px-2 py-1 text-[10px] font-medium ${getWorkflowBucketBadgeClasses(order.workflowBucket)}`}
                                 >
-                                  {order.workflowLabel}
+                                  {adminOrderLabel(order.workflowLabel)}
                                 </span>
                               )}
-                              {order.fulfillmentStatus && (
-                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-700">
-                                  {formatWorkflowStatusLabel(
-                                    order.fulfillmentStatus
-                                  )}
-                                </span>
-                              )}
+                              {order.fulfillmentStatus &&
+                                formatWorkflowStatusLabel(
+                                  order.fulfillmentStatus
+                                ) !== formatStatus(order.status) && (
+                                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-700">
+                                    {formatWorkflowStatusLabel(
+                                      order.fulfillmentStatus
+                                    )}
+                                  </span>
+                                )}
                             </div>
                           </div>
 
@@ -654,24 +773,35 @@ export default function OrdersPage() {
                                 Total
                               </p>
                               <p className="font-medium">
-                                {formatPrice(order.total)}
+                                {formatOrderAmount(order.total, order.currency)}
                               </p>
                             </div>
                             <div>
                               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                Payment
+                                Plată
                               </p>
-                              <p className="font-medium">{order.payment}</p>
+                              <p className="font-medium">
+                                {order.payment === "cod"
+                                  ? "Ramburs"
+                                  : order.payment}
+                              </p>
+                              <p className="mt-1 text-xs text-slate-500">
+                                {paymentStatusLabels[
+                                  order.paymentStatus || ""
+                                ] || "Stare necunoscută"}
+                              </p>
                             </div>
                             <div>
                               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                Items
+                                Produse
                               </p>
-                              <p className="font-medium">{order.items} items</p>
+                              <p className="font-medium">
+                                {order.items} produse
+                              </p>
                             </div>
                             <div>
                               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                Supplier Value
+                                Costuri furnizori · RON
                               </p>
                               <p className="font-medium">
                                 {formatPrice(order.totalSupplierValue ?? 0)}
@@ -682,11 +812,11 @@ export default function OrdersPage() {
                           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                             <div className="flex items-center justify-between gap-2">
                               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                                Suppliers
+                                Furnizori
                               </p>
                               <span className="text-xs text-slate-500">
-                                {order.supplierCount || 0} supplier
-                                {(order.supplierCount || 0) === 1 ? "" : "s"}
+                                {order.supplierCount || 0} furnizor
+                                {(order.supplierCount || 0) === 1 ? "" : "i"}
                               </span>
                             </div>
                             <div className="mt-2 flex flex-wrap gap-2">
@@ -701,7 +831,7 @@ export default function OrdersPage() {
                                 ))
                               ) : (
                                 <span className="text-sm text-slate-500">
-                                  No supplier split recorded
+                                  Nicio alocare înregistrată la furnizori
                                 </span>
                               )}
                             </div>
@@ -735,28 +865,32 @@ export default function OrdersPage() {
 
                           <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="text-slate-500">Tracking</span>
+                              <span className="text-slate-500">
+                                Urmărire livrare
+                              </span>
                               <span className="font-medium text-slate-900">
                                 {order.trackingNumber
-                                  ? "Main AWB"
+                                  ? "AWB principal"
                                   : (order.trackedSupplierOrders ?? 0) > 0
-                                    ? `${order.trackedSupplierOrders} supplier line(s)`
-                                    : "Pending"}
+                                    ? `${order.trackedSupplierOrders} poziții la furnizori`
+                                    : "În așteptare"}
                               </span>
                             </div>
                           </div>
 
                           <div className="grid grid-cols-2 gap-2">
                             <Button variant="outline" asChild>
-                              <Link href={`/admin/orders/${order.id}`}>
-                                View
+                              <Link
+                                href={`/admin/orders/${order.dbId || order.id}`}
+                              >
+                                Vezi
                               </Link>
                             </Button>
                             <Button
                               variant="outline"
                               onClick={() => openStatusUpdateModal(order)}
                             >
-                              Update
+                              Actualizează
                             </Button>
                             <Button
                               variant="ghost"
@@ -764,7 +898,7 @@ export default function OrdersPage() {
                               onClick={() => openDeleteModal(order)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              Delete Order
+                              Șterge comanda
                             </Button>
                           </div>
                         </div>
@@ -778,28 +912,30 @@ export default function OrdersPage() {
                         <tr className="border-b text-xs font-medium text-muted-foreground">
                           <th className="px-4 py-3 text-left">
                             <div className="flex items-center gap-1">
-                              <span>Order</span>
+                              <span>Comandă</span>
                               <ArrowUpDown className="h-3 w-3" />
                             </div>
                           </th>
                           <th className="px-4 py-3 text-left">
                             <div className="flex items-center gap-1">
-                              <span>Date</span>
+                              <span>Dată</span>
                               <ArrowUpDown className="h-3 w-3" />
                             </div>
                           </th>
-                          <th className="px-4 py-3 text-left">Customer</th>
-                          <th className="px-4 py-3 text-left">Suppliers</th>
+                          <th className="px-4 py-3 text-left">Client</th>
+                          <th className="px-4 py-3 text-left">Furnizori</th>
                           <th className="px-4 py-3 text-left">
                             <div className="flex items-center gap-1">
                               <span>Total</span>
                               <ArrowUpDown className="h-3 w-3" />
                             </div>
                           </th>
-                          <th className="px-4 py-3 text-left">Workflow</th>
-                          <th className="px-4 py-3 text-left">Status</th>
-                          <th className="px-4 py-3 text-left">Order Snapshot</th>
-                          <th className="px-4 py-3 text-right">Actions</th>
+                          <th className="px-4 py-3 text-left">Procesare</th>
+                          <th className="px-4 py-3 text-left">Stare</th>
+                          <th className="px-4 py-3 text-left">
+                            Detalii comandă
+                          </th>
+                          <th className="px-4 py-3 text-right">Acțiuni</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -810,7 +946,7 @@ export default function OrdersPage() {
                           >
                             <td className="px-4 py-4">
                               <Link
-                                href={`/admin/orders/${order.id}`}
+                                href={`/admin/orders/${order.dbId || order.id}`}
                                 className="font-medium text-primary hover:underline"
                               >
                                 {order.id}
@@ -820,29 +956,13 @@ export default function OrdersPage() {
                                   className="mt-1 flex items-center gap-1 text-amber-600"
                                   title={
                                     order.shippingReviewReason ||
-                                    "Requires shipping review"
+                                    "Necesită verificarea expedierii"
                                   }
                                 >
                                   <AlertTriangle className="h-3 w-3" />
                                   <span className="text-xs font-medium">
-                                    Shipping Review
+                                    Verificare expediere
                                   </span>
-                                </div>
-                              )}
-                              {order.workflowLabel && (
-                                <div className="mt-1 flex flex-wrap items-center gap-1">
-                                  <span
-                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getWorkflowBucketBadgeClasses(order.workflowBucket)}`}
-                                  >
-                                    {order.workflowLabel}
-                                  </span>
-                                  {order.fulfillmentStatus && (
-                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-                                      {formatWorkflowStatusLabel(
-                                        order.fulfillmentStatus
-                                      )}
-                                    </span>
-                                  )}
                                 </div>
                               )}
                             </td>
@@ -858,14 +978,16 @@ export default function OrdersPage() {
                             <td className="px-4 py-4">
                               <div className="space-y-2">
                                 <div className="flex flex-wrap gap-1">
-                                  {(order.suppliers || []).slice(0, 2).map(supplier => (
-                                    <span
-                                      key={supplier}
-                                      className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-700"
-                                    >
-                                      {supplier}
-                                    </span>
-                                  ))}
+                                  {(order.suppliers || [])
+                                    .slice(0, 2)
+                                    .map(supplier => (
+                                      <span
+                                        key={supplier}
+                                        className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-700"
+                                      >
+                                        {supplier}
+                                      </span>
+                                    ))}
                                   {(order.supplierCount || 0) > 2 && (
                                     <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
                                       +{(order.supplierCount || 0) - 2}
@@ -873,13 +995,13 @@ export default function OrdersPage() {
                                   )}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                  Supplier value:{" "}
+                                  Costuri furnizori:{" "}
                                   {formatPrice(order.totalSupplierValue ?? 0)}
                                 </div>
                               </div>
                             </td>
                             <td className="px-4 py-4 font-medium">
-                              {formatPrice(order.total)}
+                              {formatOrderAmount(order.total, order.currency)}
                             </td>
                             <td className="px-4 py-4">
                               <div className="space-y-1">
@@ -888,21 +1010,24 @@ export default function OrdersPage() {
                                     <span
                                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getWorkflowBucketBadgeClasses(order.workflowBucket)}`}
                                     >
-                                      {order.workflowLabel}
+                                      {adminOrderLabel(order.workflowLabel)}
                                     </span>
                                   )}
-                                  {order.fulfillmentStatus && (
-                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-                                      {formatWorkflowStatusLabel(
-                                        order.fulfillmentStatus
-                                      )}
-                                    </span>
-                                  )}
+                                  {order.fulfillmentStatus &&
+                                    formatWorkflowStatusLabel(
+                                      order.fulfillmentStatus
+                                    ) !== formatStatus(order.status) && (
+                                      <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
+                                        {formatWorkflowStatusLabel(
+                                          order.fulfillmentStatus
+                                        )}
+                                      </span>
+                                    )}
                                 </div>
                                 {order.manualShippingReviewRequired && (
                                   <div className="flex items-center gap-1 text-xs font-medium text-amber-700">
                                     <AlertTriangle className="h-3 w-3" />
-                                    Shipping review
+                                    Verificare expediere
                                   </div>
                                 )}
                               </div>
@@ -913,15 +1038,25 @@ export default function OrdersPage() {
                             <td className="px-4 py-4">
                               <div className="space-y-1 text-xs text-slate-600">
                                 <div>
-                                  {order.payment} • {order.items} items
+                                  {order.payment === "cod"
+                                    ? "Ramburs"
+                                    : order.payment === "card"
+                                      ? "Card"
+                                      : order.payment}{" "}
+                                  • {order.items} produse
+                                  <p>
+                                    {paymentStatusLabels[
+                                      order.paymentStatus || ""
+                                    ] || "Stare necunoscută"}
+                                  </p>
                                 </div>
                                 <div>
-                                  Tracking:{" "}
+                                  Urmărire:{" "}
                                   {order.trackingNumber
-                                    ? "Main AWB"
+                                    ? "AWB principal"
                                     : (order.trackedSupplierOrders ?? 0) > 0
-                                      ? `${order.trackedSupplierOrders} supplier line(s)`
-                                      : "Pending"}
+                                      ? `${order.trackedSupplierOrders} poziții la furnizori`
+                                      : "În așteptare"}
                                 </div>
                               </div>
                             </td>
@@ -934,23 +1069,23 @@ export default function OrdersPage() {
                                     className="h-8 w-8"
                                   >
                                     <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Actions</span>
+                                    <span className="sr-only">Acțiuni</span>
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuLabel>Acțiuni</DropdownMenuLabel>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem asChild>
-                                    <Link href={`/admin/orders/${order.id}`}>
-                                      View Details
+                                    <Link
+                                      href={`/admin/orders/${order.dbId || order.id}`}
+                                    >
+                                      Vezi detaliile
                                     </Link>
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    onClick={() =>
-                                      openStatusUpdateModal(order)
-                                    }
+                                    onClick={() => openStatusUpdateModal(order)}
                                   >
-                                    Update Status
+                                    Actualizează starea
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
@@ -958,7 +1093,7 @@ export default function OrdersPage() {
                                     onClick={() => openDeleteModal(order)}
                                   >
                                     <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete Order
+                                    Șterge comanda
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -972,30 +1107,32 @@ export default function OrdersPage() {
               )}
             </div>
 
-            <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="text-sm text-muted-foreground">
-                Showing {orders.length} of {pagination.total}
+            {hasLoaded && (
+              <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="text-sm text-muted-foreground">
+                  Se afișează {orders.length} din {pagination.total}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevPage}
+                    disabled={pagination.page <= 1 || loading}
+                  >
+                    Înapoi
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={pagination.page >= pagination.pages || loading}
+                    className="gap-1"
+                  >
+                    Înainte
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePrevPage}
-                  disabled={pagination.page <= 1 || loading}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNextPage}
-                  disabled={pagination.page >= pagination.pages || loading}
-                  className="gap-1"
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -1007,16 +1144,16 @@ export default function OrdersPage() {
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Update Order Status</DialogTitle>
+            <DialogTitle>Actualizează starea comenzii</DialogTitle>
             <DialogDescription>
-              Update the status for order #{statusUpdateModal.order?.id}
+              Actualizează starea comenzii #{statusUpdateModal.order?.id}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <label htmlFor="status" className="text-sm font-medium">
-                Order Status
+                Starea comenzii
               </label>
               <Select
                 value={statusUpdateModal.newStatus}
@@ -1025,14 +1162,14 @@ export default function OrdersPage() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="Alege starea" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PROCESSING">Processing</SelectItem>
-                  <SelectItem value="SHIPPED">Shipped</SelectItem>
-                  <SelectItem value="DELIVERED">Delivered</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  <SelectItem value="PROCESSING">În procesare</SelectItem>
+                  <SelectItem value="SHIPPED">Expediată</SelectItem>
+                  <SelectItem value="DELIVERED">Livrată</SelectItem>
+                  <SelectItem value="COMPLETED">Finalizată</SelectItem>
+                  <SelectItem value="CANCELLED">Anulată</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1044,12 +1181,12 @@ export default function OrdersPage() {
                   htmlFor="cancellationReason"
                   className="text-sm font-medium"
                 >
-                  Cancellation Reason{" "}
-                  <span className="text-muted-foreground">(Optional)</span>
+                  Motivul anulării{" "}
+                  <span className="text-muted-foreground">(Opțional)</span>
                 </label>
                 <Textarea
                   id="cancellationReason"
-                  placeholder="Enter the reason for cancelling this order (will be included in the email to customer)..."
+                  placeholder="Scrie motivul anulării. Acesta va fi inclus în e-mailul către client."
                   value={statusUpdateModal.cancellationReason}
                   onChange={e =>
                     setStatusUpdateModal(prev => ({
@@ -1060,8 +1197,7 @@ export default function OrdersPage() {
                   className="min-h-[80px]"
                 />
                 <p className="text-xs text-muted-foreground">
-                  This reason will be sent to the customer in the cancellation
-                  email.
+                  Motivul se trimite clientului în e-mailul de anulare.
                 </p>
               </div>
             )}
@@ -1069,15 +1205,18 @@ export default function OrdersPage() {
             {statusUpdateModal.order && (
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Customer:</strong> {statusUpdateModal.order.customer}
+                  <strong>Client:</strong> {statusUpdateModal.order.customer}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Current Status:</strong>{" "}
+                  <strong>Starea curentă:</strong>{" "}
                   {statusUpdateModal.order.status}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   <strong>Total:</strong>{" "}
-                  {formatPrice(statusUpdateModal.order.total)}
+                  {formatOrderAmount(
+                    statusUpdateModal.order.total,
+                    statusUpdateModal.order.currency
+                  )}
                 </p>
               </div>
             )}
@@ -1091,7 +1230,7 @@ export default function OrdersPage() {
               disabled={statusUpdateModal.updating}
             >
               <X className="h-4 w-4 mr-2" />
-              Cancel
+              Renunță
             </Button>
             <Button
               type="button"
@@ -1100,7 +1239,7 @@ export default function OrdersPage() {
                 statusUpdateModal.updating ||
                 !statusUpdateModal.newStatus ||
                 statusUpdateModal.newStatus ===
-                statusUpdateModal.order?.status.toUpperCase()
+                  statusUpdateModal.order?.status.toUpperCase()
               }
             >
               {statusUpdateModal.updating ? (
@@ -1108,7 +1247,7 @@ export default function OrdersPage() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Update Status
+              Actualizează starea
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1120,22 +1259,22 @@ export default function OrdersPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this order?</AlertDialogTitle>
+            <AlertDialogTitle>Ștergi această comandă?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the order and its related records.
-              This action cannot be undone.
+              Comanda și înregistrările asociate vor fi șterse definitiv.
+              Această acțiune nu poate fi anulată.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteModal.deleting}>
-              Cancel
+              Renunță
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={deleteOrder}
               disabled={deleteModal.deleting}
               className="bg-red-600 hover:bg-red-700"
             >
-              {deleteModal.deleting ? "Deleting..." : "Delete Order"}
+              {deleteModal.deleting ? "Se șterge…" : "Șterge comanda"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

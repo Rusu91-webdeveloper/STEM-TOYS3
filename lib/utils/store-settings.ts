@@ -1,14 +1,11 @@
-import { getCached, invalidateCache, CacheKeys } from "@/lib/cache";
+import { invalidateCache, CacheKeys } from "@/lib/cache";
 import { appConfig } from "@/lib/config/app-config";
 import { DEFAULT_COD_SETTINGS } from "@/lib/pricing/cod-settings";
 import { prisma } from "@/lib/prisma";
 import { defaultShippingSettings } from "@/lib/shipping/settings";
 
-// **PERFORMANCE**: Cache store settings at module level to avoid repeated database calls
-// Shortened duration ensures admin shipping price changes reach checkout pricing promptly
 let cachedStoreSettings: any = null;
-let settingsLastFetched = 0;
-const SETTINGS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache (reduced from 1h for COD guarantee responsiveness)
+// Store the last successfully loaded configuration only as a display fallback.
 
 function isBusinessVatRegistered(): boolean {
   return process.env.BUSINESS_VAT_REGISTERED === "true";
@@ -20,7 +17,6 @@ function isBusinessVatRegistered(): boolean {
  */
 export async function invalidateStoreSettingsCache(): Promise<void> {
   cachedStoreSettings = null;
-  settingsLastFetched = 0;
   try {
     await invalidateCache("store_settings_v1");
     await invalidateCache(CacheKeys.product("shipping-settings"));
@@ -32,27 +28,16 @@ export async function invalidateStoreSettingsCache(): Promise<void> {
 }
 
 /**
- * Get store settings from the database with aggressive caching
+ * Get current persisted settings; descriptive consumers retain a last-known fallback
  * @returns Store settings object with all business information
  */
-export async function getStoreSettings() {
-  const now = Date.now();
-
-  // **PERFORMANCE**: Return cached settings if still fresh (no database call needed)
-  if (
-    cachedStoreSettings &&
-    now - settingsLastFetched < SETTINGS_CACHE_DURATION
-  ) {
-    return cachedStoreSettings;
-  }
-
+export async function getStoreSettings(options: { strict?: boolean } = {}) {
   try {
-    // **PERFORMANCE**: Use Redis cache with longer TTL for store settings
-    const settings = await getCached(
-      "store_settings_v1",
-      () => prisma.storeSettings.findFirst(),
-      SETTINGS_CACHE_DURATION // Cache for 1 hour
-    );
+    // Read the persisted revision directly so another server's save applies immediately.
+    const settings = await prisma.storeSettings.findFirst({
+      orderBy: { createdAt: "asc" },
+      omit: { metadata: true },
+    });
 
     if (!settings) {
       // Return default settings if none exist
@@ -87,9 +72,8 @@ export async function getStoreSettings() {
         },
       };
 
-      // Cache default settings to avoid repeated database calls
+      // Retain default settings as a descriptive fallback after a read failure
       cachedStoreSettings = defaultSettings;
-      settingsLastFetched = now;
       return defaultSettings;
     }
 
@@ -105,12 +89,13 @@ export async function getStoreSettings() {
       codSettings: codSettings || { ...DEFAULT_COD_SETTINGS },
     };
 
-    // Cache successful database result
+    // Keep a last-known display fallback when the database is temporarily unavailable.
     cachedStoreSettings = transformedSettings;
-    settingsLastFetched = now;
     return transformedSettings;
   } catch (error) {
     console.error("Error fetching store settings:", error);
+    // Checkout must not quote a default tax/fee when its configuration is unavailable.
+    if (options.strict) throw error;
 
     // **PERFORMANCE**: Return cached settings even on error to avoid repeated failures
     // But don't cache a DB-error default for 5 minutes - return directly without caching
@@ -168,7 +153,7 @@ export async function getBusinessAddress() {
  * @returns Shipping settings object
  */
 export async function getShippingSettings() {
-  const settings = await getStoreSettings();
+  const settings = await getStoreSettings({ strict: true });
   return settings.shippingSettings || defaultShippingSettings();
 }
 
@@ -177,7 +162,7 @@ export async function getShippingSettings() {
  * @returns COD settings object
  */
 export async function getCODSettings() {
-  const settings = await getStoreSettings();
+  const settings = await getStoreSettings({ strict: true });
   return settings.codSettings || { ...DEFAULT_COD_SETTINGS };
 }
 
@@ -186,9 +171,11 @@ export async function getCODSettings() {
  * @returns Tax settings object
  */
 export async function getTaxSettings() {
-  const settings = await getStoreSettings();
+  const settings = await getStoreSettings({ strict: true });
   // Non-VAT business mode: keep prices final, without tax/VAT breakdown.
-  if (!isBusinessVatRegistered()) {
+  const vatRegistered =
+    settings.taxSettings?.vatRegistered ?? isBusinessVatRegistered();
+  if (!vatRegistered) {
     return {
       rate: "0",
       active: false,

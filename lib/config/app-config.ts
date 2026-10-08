@@ -45,15 +45,13 @@ function formatPhone(raw: string): string {
 /**
  * Returns store config sourced primarily from the database.
  * Falls back to env vars, then hard-coded Romanian defaults.
- * Result is cheap to call repeatedly — `getStoreSettings()` is cached in-memory.
+ * Reads the latest persisted store settings.
  */
 export async function getAppConfig(): Promise<AppConfig> {
   const settings = await getStoreSettings();
 
   const contactEmail =
-    settings?.contactEmail ||
-    process.env.EMAIL_FROM ||
-    "info@techtots.ro";
+    settings?.contactEmail || process.env.EMAIL_FROM || "info@techtots.ro";
 
   const contactPhone =
     settings?.contactPhone ||
@@ -66,22 +64,17 @@ export async function getAppConfig(): Promise<AppConfig> {
     "Strada Mehedinți 54-56";
 
   const city =
-    (settings as any)?.businessCity ||
-    process.env.STORE_CITY ||
-    "Cluj-Napoca";
+    (settings as any)?.businessCity || process.env.STORE_CITY || "Cluj-Napoca";
 
   const state =
-    (settings as any)?.businessState ||
-    process.env.STORE_STATE ||
-    "Cluj";
+    (settings as any)?.businessState || process.env.STORE_STATE || "Cluj";
 
   const postalCode =
     (settings as any)?.businessPostalCode ||
     process.env.STORE_POSTAL_CODE ||
     "400000";
 
-  const legalName =
-    process.env.STORE_LEGAL_NAME || "WEBIRA REM S.R.L.";
+  const legalName = process.env.STORE_LEGAL_NAME || "WEBIRA REM S.R.L.";
 
   return {
     storeName: settings?.storeName || process.env.EMAIL_FROM_NAME || "TechTots",
@@ -90,20 +83,15 @@ export async function getAppConfig(): Promise<AppConfig> {
     contactPhone,
     storePhoneFormatted: formatPhone(contactPhone),
     alertEmail:
-      process.env.ALERT_EMAIL ||
-      process.env.ADMIN_EMAIL ||
-      contactEmail,
-    fromEmail:
-      process.env.EMAIL_FROM || contactEmail,
+      process.env.ALERT_EMAIL || process.env.ADMIN_EMAIL || contactEmail,
+    fromEmail: process.env.EMAIL_FROM || contactEmail,
     streetAddress,
     city,
     state,
     postalCode,
-    country:
-      (settings as any)?.businessCountry || "România",
+    country: (settings as any)?.businessCountry || "România",
     fullAddress:
-      process.env.STORE_ADDRESS ||
-      `${streetAddress}, ${city}, România`,
+      process.env.STORE_ADDRESS || `${streetAddress}, ${city}, România`,
     legalName,
   };
 }
@@ -121,10 +109,14 @@ export const appConfig = {
     return process.env.EMAIL_FROM || "info@techtots.ro";
   },
   get adminEmail() {
-    return process.env.ADMIN_EMAIL || process.env.ALERT_EMAIL || "admin@techtots.ro";
+    return (
+      process.env.ADMIN_EMAIL || process.env.ALERT_EMAIL || "admin@techtots.ro"
+    );
   },
   get alertEmail() {
-    return process.env.ALERT_EMAIL || process.env.ADMIN_EMAIL || "admin@techtots.ro";
+    return (
+      process.env.ALERT_EMAIL || process.env.ADMIN_EMAIL || "admin@techtots.ro"
+    );
   },
   get fromEmail() {
     return process.env.EMAIL_FROM || "noreply@techtots.ro";
@@ -138,10 +130,18 @@ export const appConfig = {
   get streetAddress() {
     return process.env.STORE_STREET_ADDRESS || "Strada Mehedinți 54-56";
   },
-  get city() { return process.env.STORE_CITY || "Cluj-Napoca"; },
-  get state() { return process.env.STORE_STATE || "Cluj"; },
-  get postalCode() { return process.env.STORE_POSTAL_CODE || "400000"; },
-  get country() { return process.env.STORE_COUNTRY || "RO"; },
+  get city() {
+    return process.env.STORE_CITY || "Cluj-Napoca";
+  },
+  get state() {
+    return process.env.STORE_STATE || "Cluj";
+  },
+  get postalCode() {
+    return process.env.STORE_POSTAL_CODE || "400000";
+  },
+  get country() {
+    return process.env.STORE_COUNTRY || "RO";
+  },
   get fullAddress() {
     return (
       process.env.STORE_ADDRESS ||

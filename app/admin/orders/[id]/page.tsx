@@ -23,8 +23,13 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 
+import {
+  CodRejectionDialog,
+  type CodRejectionInput,
+} from "@/app/admin/components/cod-rejection-dialog";
+import { DashboardError } from "@/app/admin/components/dashboard-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -39,8 +44,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { CodHoldSettlementNotice } from "@/features/returns/components/CodHoldSettlementNotice";
 import { useCsrfToken } from "@/hooks/useCsrfToken";
+import {
+  formatOrderAmount,
+  paymentStatusLabels,
+  orderStatusLabels,
+} from "@/lib/admin/dashboard-metrics";
+import { adminOrderLabel } from "@/lib/admin/order-labels";
 import { parseCodGuaranteeEvidence } from "@/lib/checkout/cod-guarantee";
-import { useCurrency } from "@/lib/currency";
 
 // Types
 type OrderItem = {
@@ -135,6 +145,7 @@ type OrderDetails = {
   deliveredAt?: string;
   status: string;
   paymentStatus: string;
+  currency: string;
   paymentMethod: string;
   shippingMethod?: string;
   manualShippingReviewRequired?: boolean;
@@ -427,7 +438,7 @@ const getStatusColor = (status: string) => {
 };
 
 const formatStatus = (status: string): string =>
-  status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+  orderStatusLabels[status] ?? status;
 
 const SUPPLIER_WORKFLOW_STATUS_OPTIONS = [
   "PENDING",
@@ -453,25 +464,26 @@ const QUICK_SUPPLIER_WORKFLOW_ACTIONS: Array<{
 }> = [
   {
     status: "PLACED_TO_SUPPLIER",
-    label: "Placed to Supplier",
-    description: "Use after you place the order on the supplier website",
+    label: "Plasată la furnizor",
+    description: "Folosește după plasarea comenzii pe site-ul furnizorului",
   },
   {
     status: "AWB_UPLOADED",
-    label: "AWB Uploaded",
-    description: "Use after you save supplier AWB / tracking",
+    label: "AWB înregistrat",
+    description: "Folosește după salvarea AWB-ului furnizorului",
     requiresTracking: true,
   },
   {
     status: "SHIPPED",
-    label: "Shipped",
-    description: "Use after supplier/courier confirms pickup",
+    label: "Expediată",
+    description:
+      "Folosește după confirmarea preluării de către furnizor sau curier",
     requiresTracking: true,
   },
   {
     status: "DELIVERED",
-    label: "Delivered",
-    description: "Use when delivery is confirmed",
+    label: "Livrată",
+    description: "Folosește după confirmarea livrării",
   },
 ];
 
@@ -481,44 +493,44 @@ const getSupplierLineWorkflowHint = (supplierOrder: SupplierOrder) => {
 
   if (phase === "ISSUE_OOS" || phase === "ISSUE_DELAYED") {
     return {
-      title: "Resolve supplier issue",
+      title: "Rezolvă problema furnizorului",
       description:
-        "Use the OOS/Delayed workflow below, contact the customer, then continue fulfillment.",
+        "Folosește opțiunile de stoc indisponibil sau întârziere, contactează clientul și continuă procesarea.",
       tone: "warning" as const,
     };
   }
 
   if (phase === "DELIVERED" || supplierOrder.status === "DELIVERED") {
     return {
-      title: "Done",
-      description: "This supplier line is completed.",
+      title: "Rezolvate",
+      description: "Această poziție la furnizor este finalizată.",
       tone: "success" as const,
     };
   }
 
   if (phase === "SHIPPED" || supplierOrder.status === "SHIPPED") {
     return {
-      title: "Next step",
+      title: "Pasul următor",
       description:
-        "Monitor the shipment and mark Delivered when courier confirms delivery.",
+        "Urmărește expedierea și marchează Livrată după confirmarea curierului.",
       tone: "info" as const,
     };
   }
 
   if (hasTracking && (phase === "AWB_UPLOADED" || phase === "AWB_PENDING")) {
     return {
-      title: "Next step",
+      title: "Pasul următor",
       description:
-        "Tracking is saved. Mark Shipped after pickup/dispatch is confirmed.",
+        "AWB-ul este salvat. Marchează Expediată după confirmarea preluării.",
       tone: "info" as const,
     };
   }
 
   if (hasTracking) {
     return {
-      title: "Next step",
+      title: "Pasul următor",
       description:
-        "Tracking exists. Click AWB Uploaded (or Shipped if already dispatched).",
+        "AWB-ul există. Marchează AWB înregistrat sau Expediată dacă a fost deja preluată.",
       tone: "info" as const,
     };
   }
@@ -528,17 +540,17 @@ const getSupplierLineWorkflowHint = (supplierOrder: SupplierOrder) => {
     supplierOrder.status === "PLACED_TO_SUPPLIER"
   ) {
     return {
-      title: "Next step",
+      title: "Pasul următor",
       description:
-        "Wait for supplier AWB, then save tracking and click AWB Uploaded.",
+        "Așteaptă AWB-ul furnizorului, salvează-l și marchează AWB înregistrat.",
       tone: "info" as const,
     };
   }
 
   return {
-    title: "Next step",
+    title: "Pasul următor",
     description:
-      "Place the order on the supplier website, then click Placed to Supplier.",
+      "Plasează comanda pe site-ul furnizorului, apoi marchează Plasată la furnizor.",
     tone: "warning" as const,
   };
 };
@@ -584,28 +596,29 @@ const getSupplierLineChecklistSteps = (supplierOrder: SupplierOrder) => {
   const steps = [
     {
       index: 1,
-      title: "Place supplier order",
-      detail: "Order on Boribon/supplier site, then click Placed to Supplier.",
+      title: "Plasează comanda la furnizor",
+      detail:
+        "Plasează comanda pe site-ul furnizorului, apoi marchează Plasată la furnizor.",
     },
     {
       index: 2,
-      title: "Save AWB / Tracking",
-      detail: "Paste supplier AWB in the tracking field below and save it.",
+      title: "Salvează AWB-ul",
+      detail: "Introdu AWB-ul furnizorului în câmpul de mai jos și salvează-l.",
     },
     {
       index: 3,
-      title: "Mark AWB Uploaded",
-      detail: "Confirm the supplier line status after AWB is saved.",
+      title: "Marchează AWB înregistrat",
+      detail: "Confirmă starea poziției după salvarea AWB-ului.",
     },
     {
       index: 4,
-      title: "Mark Shipped",
-      detail: "Click only after courier pickup / dispatch is confirmed.",
+      title: "Marchează Expediată",
+      detail: "Folosește doar după confirmarea preluării de către curier.",
     },
     {
       index: 5,
-      title: "Mark Delivered",
-      detail: "Click when delivery is confirmed to customer.",
+      title: "Marchează Livrată",
+      detail: "Folosește după confirmarea livrării către client.",
     },
   ] as const;
 
@@ -634,28 +647,29 @@ const OOS_RESOLUTION_OPTIONS: Array<{
 }> = [
   {
     value: "WAIT_RESTOCK",
-    label: "Wait for Restock",
+    label: "Așteaptă reaprovizionarea",
     targetStatus: "ISSUE_DELAYED",
     detailPlaceholder:
-      "ETA from supplier (example: 3-5 days) or cutoff for customer reply",
+      "Termenul furnizorului (de exemplu 3–5 zile) sau termenul de răspuns al clientului",
   },
   {
     value: "OFFER_REPLACEMENT",
-    label: "Offer Replacement",
+    label: "Oferă un produs înlocuitor",
     targetStatus: "ISSUE_OOS",
-    detailPlaceholder: "Replacement options / SKUs / price difference",
+    detailPlaceholder: "Produse înlocuitoare, SKU-uri și diferența de preț",
   },
   {
     value: "PARTIAL_REFUND_ITEM",
-    label: "Partial Refund (Item)",
+    label: "Rambursare parțială pentru produs",
     targetStatus: "CANCELLED",
-    detailPlaceholder: "Refund timing / reference / who approved",
+    detailPlaceholder:
+      "Termenul rambursării, referința și persoana care a aprobat",
   },
   {
     value: "REPLACEMENT_CONFIRMED",
-    label: "Replacement Confirmed",
+    label: "Produs înlocuitor confirmat",
     targetStatus: "READY_TO_PLACE",
-    detailPlaceholder: "Approved replacement item + internal note",
+    detailPlaceholder: "Produsul înlocuitor aprobat și o notă internă",
   },
 ];
 
@@ -664,12 +678,7 @@ const OOS_ACTION_TO_TARGET_STATUS: Record<OosResolutionAction, string> =
     OOS_RESOLUTION_OPTIONS.map(option => [option.value, option.targetStatus])
   ) as Record<OosResolutionAction, string>;
 
-const formatWorkflowLabel = (value: string): string =>
-  value
-    .toLowerCase()
-    .split("_")
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+const formatWorkflowLabel = adminOrderLabel;
 
 const getFulfillmentBadgeColor = (status: string) => {
   switch (status.toUpperCase()) {
@@ -720,9 +729,12 @@ export default function OrderDetailsPage() {
   const csrf = useCsrfToken();
   const params = useParams();
   const { toast } = useToast();
-  const { formatPrice } = useCurrency();
 
   const [order, setOrder] = useState<OrderDetails | null>(null);
+  const formatPrice = (amount: number) =>
+    formatOrderAmount(amount, order?.currency || "RON");
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const requestController = useRef<AbortController | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState<string>("");
@@ -733,6 +745,7 @@ export default function OrderDetailsPage() {
   const [creatingAwb, setCreatingAwb] = useState(false);
   const [resendingAwbEmail, setResendingAwbEmail] = useState(false);
   const [rejectingCOD, setRejectingCOD] = useState(false);
+  const [codDialogOpen, setCodDialogOpen] = useState(false);
   const [savingSupplierStatusId, setSavingSupplierStatusId] = useState<
     string | null
   >(null);
@@ -876,15 +889,26 @@ export default function OrderDetailsPage() {
 
   // Fetch order details
   const fetchOrderDetails = useCallback(async () => {
+    requestController.current?.abort();
+    const controller = new AbortController();
+    requestController.current = controller;
     setLoading(true);
+    setLoadError(null);
     try {
-      const response = await fetch(`/api/admin/orders/${orderId}`);
-
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        signal: controller.signal,
+        cache: "no-store",
+      });
+      if (response.status === 404) {
+        setOrder(null);
+        return;
+      }
       if (!response.ok) {
         throw new Error("Failed to fetch order details");
       }
 
       const data = await response.json();
+      if (controller.signal.aborted) return;
       setOrder(data.order);
       setNewStatus(data.order.status);
       setSupplierStatusDrafts(
@@ -924,16 +948,15 @@ export default function OrderDetailsPage() {
         return next;
       });
     } catch (error) {
+      if (controller.signal.aborted) return;
       console.error("Error fetching order details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load order details. Please try again.",
-        variant: "destructive",
-      });
+      setLoadError(
+        "Detaliile comenzii nu au putut fi încărcate. Încearcă din nou."
+      );
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
-  }, [orderId, toast]);
+  }, [orderId]);
 
   // Create supplier order
   const createSupplierOrder = async () => {
@@ -960,7 +983,9 @@ export default function OrderDetailsPage() {
       }
 
       toast({
-        title: data?.data?.manualReviewRequired ? "Needs manual review" : "Success",
+        title: data?.data?.manualReviewRequired
+          ? "Needs manual review"
+          : "Salvat",
         description: data?.data?.manualReviewRequired
           ? (data.data.reviewReason ??
             `Created ${data.data.supplierOrdersCreated} supplier order(s), but this order still needs manual review.`)
@@ -973,7 +998,7 @@ export default function OrderDetailsPage() {
     } catch (error) {
       console.error("Error creating supplier order:", error);
       toast({
-        title: "Error",
+        title: "Eroare",
         description:
           error instanceof Error
             ? error.message
@@ -999,14 +1024,14 @@ export default function OrderDetailsPage() {
     try {
       await navigator.clipboard.writeText(lines.join("\n"));
       toast({
-        title: "Copied",
-        description: "Supplier order line summary copied to clipboard.",
+        title: "Copiat",
+        description: "Rezumatul poziției a fost copiat.",
       });
     } catch (error) {
       console.error("Error copying supplier line summary:", error);
       toast({
-        title: "Error",
-        description: "Failed to copy supplier line summary.",
+        title: "Eroare",
+        description: "Rezumatul nu a putut fi copiat.",
         variant: "destructive",
       });
     }
@@ -1043,14 +1068,14 @@ export default function OrderDetailsPage() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to update tracking number");
+        throw new Error("AWB-ul nu a putut fi actualizat.");
       }
 
       toast({
-        title: "Success",
+        title: "Salvat",
         description: shouldAutoMarkAwbUploaded
-          ? "Tracking saved and status set to AWB Uploaded"
-          : "Tracking number updated",
+          ? "AWB salvat și stare actualizată la AWB înregistrat."
+          : "AWB actualizat.",
       });
 
       setSupplierStatusDrafts(prev =>
@@ -1064,8 +1089,8 @@ export default function OrderDetailsPage() {
     } catch (error) {
       console.error("Error updating tracking:", error);
       toast({
-        title: "Error",
-        description: "Failed to update tracking number",
+        title: "Eroare",
+        description: "AWB-ul nu a putut fi actualizat.",
         variant: "destructive",
       });
     }
@@ -1095,7 +1120,9 @@ export default function OrderDetailsPage() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to update supplier order status");
+        throw new Error(
+          "Starea comenzii la furnizor nu a putut fi actualizată."
+        );
       }
 
       setSupplierStatusDrafts(prev => ({
@@ -1104,8 +1131,8 @@ export default function OrderDetailsPage() {
       }));
 
       toast({
-        title: "Success",
-        description: `Supplier line updated to ${formatWorkflowLabel(nextStatus)}`,
+        title: "Salvat",
+        description: `Starea poziției a fost actualizată: ${formatWorkflowLabel(nextStatus)}`,
       });
 
       await fetchOrderDetails();
@@ -1113,8 +1140,8 @@ export default function OrderDetailsPage() {
     } catch (error) {
       console.error("Error updating supplier order status:", error);
       toast({
-        title: "Error",
-        description: "Failed to update supplier order status",
+        title: "Eroare",
+        description: "Starea comenzii la furnizor nu a putut fi actualizată.",
         variant: "destructive",
       });
       return false;
@@ -1133,9 +1160,9 @@ export default function OrderDetailsPage() {
 
     if (needsTracking && !hasTracking) {
       toast({
-        title: "Tracking required first",
+        title: "Salvează mai întâi AWB-ul",
         description:
-          "Save the supplier AWB / tracking number first, then click this quick action.",
+          "Salvează AWB-ul furnizorului, apoi folosește această acțiune.",
         variant: "destructive",
       });
       setEditingTracking(supplierOrder.id);
@@ -1162,14 +1189,14 @@ export default function OrderDetailsPage() {
     try {
       await navigator.clipboard.writeText(message);
       toast({
-        title: "Copied",
-        description: "Customer message template copied to clipboard.",
+        title: "Copiat",
+        description: "Modelul de mesaj către client a fost copiat.",
       });
     } catch (error) {
       console.error("Error copying OOS message:", error);
       toast({
-        title: "Error",
-        description: "Failed to copy customer message.",
+        title: "Eroare",
+        description: "Mesajul către client nu a putut fi copiat.",
         variant: "destructive",
       });
     }
@@ -1203,7 +1230,7 @@ export default function OrderDetailsPage() {
       }
 
       toast({
-        title: "OOS Resolution Saved",
+        title: "Soluția pentru stoc indisponibil a fost salvată",
         description:
           draft.action === "PARTIAL_REFUND_ITEM" && data?.refund
             ? `${formatWorkflowLabel(draft.action)} applied. ${
@@ -1221,7 +1248,7 @@ export default function OrderDetailsPage() {
     } catch (error) {
       console.error("Error applying OOS resolution:", error);
       toast({
-        title: "Error",
+        title: "Eroare",
         description:
           error instanceof Error
             ? error.message
@@ -1269,7 +1296,7 @@ export default function OrderDetailsPage() {
       }
 
       toast({
-        title: "OOS Email Sent",
+        title: "E-mail pentru stoc indisponibil",
         description: data?.email?.to
           ? `Customer update sent to ${data.email.to}.`
           : "Customer update email sent.",
@@ -1283,7 +1310,7 @@ export default function OrderDetailsPage() {
     } catch (error) {
       console.error("Error sending OOS customer email:", error);
       toast({
-        title: "Error",
+        title: "Eroare",
         description:
           error instanceof Error
             ? error.message
@@ -1323,7 +1350,7 @@ export default function OrderDetailsPage() {
       }
 
       toast({
-        title: "Customer Contact Logged",
+        title: "Contactarea clientului a fost înregistrată",
         description: `Saved OOS customer notification via ${draft.channel}.`,
       });
 
@@ -1335,7 +1362,7 @@ export default function OrderDetailsPage() {
     } catch (error) {
       console.error("Error logging OOS customer notification:", error);
       toast({
-        title: "Error",
+        title: "Eroare",
         description:
           error instanceof Error
             ? error.message
@@ -1374,7 +1401,7 @@ export default function OrderDetailsPage() {
       }
 
       toast({
-        title: "AWB created",
+        title: "AWB creat",
         description: data?.warning
           ? data?.awbNumber
             ? `AWB ${data.awbNumber} created. ${data.warning}`
@@ -1388,7 +1415,7 @@ export default function OrderDetailsPage() {
     } catch (error) {
       console.error("Error creating AWB:", error);
       toast({
-        title: "Error",
+        title: "Eroare",
         description:
           error instanceof Error
             ? error.message
@@ -1421,7 +1448,7 @@ export default function OrderDetailsPage() {
 
       const withAttachment = Boolean(data?.attachmentIncluded);
       toast({
-        title: "AWB email sent",
+        title: "E-mail cu AWB trimis",
         description: withAttachment
           ? `AWB ${data?.awbNumber || ""} was resent to supplier successfully.`
           : `AWB ${data?.awbNumber || ""} was resent without PDF attachment.`,
@@ -1429,7 +1456,7 @@ export default function OrderDetailsPage() {
     } catch (error) {
       console.error("Error resending AWB email:", error);
       toast({
-        title: "Error",
+        title: "Eroare",
         description:
           error instanceof Error
             ? error.message
@@ -1441,21 +1468,11 @@ export default function OrderDetailsPage() {
     }
   };
 
-  const markCODRejected = async () => {
-    if (!order) return;
-
-    const reason = window.prompt(
-      "COD rejection reason (required):",
-      "Customer refused delivery"
-    );
-    if (!reason || !reason.trim()) {
-      return;
-    }
-
-    const extraNotes = window.prompt(
-      "Optional notes for COD refusal/RTO (optional):",
-      ""
-    );
+  const markCODRejected = async ({
+    reason,
+    notes,
+  }: CodRejectionInput): Promise<boolean> => {
+    if (!order || rejectingCOD || !reason.trim()) return false;
 
     setRejectingCOD(true);
     try {
@@ -1466,34 +1483,40 @@ export default function OrderDetailsPage() {
         }),
         body: JSON.stringify({
           reason: reason.trim(),
-          notes: extraNotes?.trim() || undefined,
+          notes: notes?.trim() || undefined,
           captureGuarantee: false,
         }),
       });
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data?.error || data?.details || "COD reject failed");
+        throw new Error(
+          data?.error ||
+            data?.details ||
+            "Refuzul coletului nu s-a înregistrat."
+        );
       }
 
       toast({
-        title: "COD rejection recorded",
+        title: "Refuzul coletului cu ramburs a fost înregistrat",
         description: data?.guaranteeCaptured
-          ? `Guarantee captured: ${formatPrice(Number(data?.guaranteeCaptureAmount || 0))}`
+          ? `Garanție încasată: ${formatPrice(Number(data?.guaranteeCaptureAmount || 0))}`
           : "Refuzul a fost înregistrat fără încasarea garanției. Verifică declarațiile de retragere și eventualele erori de livrare; o retragere legală nu se penalizează.",
       });
 
       await fetchOrderDetails();
+      return true;
     } catch (error) {
       console.error("Error rejecting COD order:", error);
       toast({
-        title: "Error",
+        title: "Eroare",
         description:
           error instanceof Error
             ? error.message
-            : "Failed to reject COD order.",
+            : "Refuzul coletului nu s-a înregistrat.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setRejectingCOD(false);
     }
@@ -1534,14 +1557,15 @@ export default function OrderDetailsPage() {
       setOrder(prev => (prev ? { ...prev, status: newStatus } : null));
 
       toast({
-        title: "Success",
+        title: "Salvat",
         description: `Order status updated to ${formatStatus(newStatus)}`,
       });
     } catch (error) {
       console.error("Error updating order status:", error);
       toast({
-        title: "Error",
-        description: "Failed to update order status. Please try again.",
+        title: "Eroare",
+        description:
+          "Starea comenzii nu a putut fi actualizată. Încearcă din nou.",
         variant: "destructive",
       });
     } finally {
@@ -1555,19 +1579,28 @@ export default function OrderDetailsPage() {
     }
   }, [orderId, fetchOrderDetails]);
 
+  useEffect(() => () => requestController.current?.abort(), []);
+
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <RefreshCw className="h-5 w-5 animate-spin" />
-            <span>Loading order details...</span>
+            <span>Se încarcă detaliile comenzii…</span>
           </div>
         </div>
       </div>
     );
   }
 
+  if (loadError)
+    return (
+      <DashboardError
+        message={loadError}
+        onRetry={() => void fetchOrderDetails()}
+      />
+    );
   if (!order) {
     return (
       <div className="space-y-6">
@@ -1575,7 +1608,7 @@ export default function OrderDetailsPage() {
           <Link href="/admin/orders">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Orders
+              Înapoi la comenzi
             </Button>
           </Link>
         </div>
@@ -1583,9 +1616,11 @@ export default function OrderDetailsPage() {
           <CardContent className="flex items-center justify-center py-8">
             <div className="text-center">
               <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold">Order Not Found</h3>
+              <h3 className="text-lg font-semibold">
+                Comanda nu a fost găsită
+              </h3>
               <p className="text-muted-foreground">
-                The requested order could not be found.
+                Comanda solicitată nu a fost găsită.
               </p>
             </div>
           </CardContent>
@@ -1622,23 +1657,23 @@ export default function OrderDetailsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-4">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="flex items-start gap-3">
             <Link href="/admin/orders">
               <Button variant="ghost" size="sm" className="mt-0.5">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Orders
+                Comenzi
               </Button>
             </Link>
             <Separator orientation="vertical" className="h-10 mt-0.5" />
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
-                Order #{order.orderNumber}
+                Comanda #{order.orderNumber}
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">
-                Placed{" "}
+                Plasată la{" "}
                 {order.date
-                  ? new Date(order.date).toLocaleDateString("en-US", {
+                  ? new Date(order.date).toLocaleDateString("ro-RO", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
@@ -1652,17 +1687,16 @@ export default function OrderDetailsPage() {
                       fulfillment.displayStatus
                     )}`}
                   >
-                    Fulfillment:{" "}
-                    {formatWorkflowLabel(fulfillment.displayStatus)}
+                    Procesare: {formatWorkflowLabel(fulfillment.displayStatus)}
                   </span>
                   {fulfillment.hasMixedSuppliers && (
                     <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                      Mixed ({fulfillment.supplierCount} suppliers)
+                      Mixtă ({fulfillment.supplierCount} furnizori)
                     </span>
                   )}
                   {fulfillment.hasIssues && (
                     <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
-                      Needs attention
+                      Necesită atenție
                     </span>
                   )}
                 </div>
@@ -1671,7 +1705,7 @@ export default function OrderDetailsPage() {
           </div>
 
           {/* Status Update Section */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(order.status)}`}
             >
@@ -1683,11 +1717,11 @@ export default function OrderDetailsPage() {
                 <SelectValue placeholder="Update status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="PROCESSING">Processing</SelectItem>
-                <SelectItem value="SHIPPED">Shipped</SelectItem>
-                <SelectItem value="DELIVERED">Delivered</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                <SelectItem value="PROCESSING">În procesare</SelectItem>
+                <SelectItem value="SHIPPED">Expediată</SelectItem>
+                <SelectItem value="DELIVERED">Livrată</SelectItem>
+                <SelectItem value="COMPLETED">Finalizată</SelectItem>
+                <SelectItem value="CANCELLED">Anulată</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -1700,7 +1734,7 @@ export default function OrderDetailsPage() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Update
+              Actualizează
             </Button>
           </div>
         </div>
@@ -1711,7 +1745,7 @@ export default function OrderDetailsPage() {
               <MessageSquareWarning className="mt-0.5 h-5 w-5 text-amber-700" />
               <div>
                 <p className="text-sm font-semibold text-amber-900">
-                  Manual fulfillment review required
+                  Este necesară verificarea expedierii
                 </p>
                 <p className="mt-1 text-sm text-amber-800">
                   {order.shippingReviewReason ||
@@ -1729,19 +1763,18 @@ export default function OrderDetailsPage() {
               htmlFor="cancellationReason"
               className="block text-sm font-medium text-red-800 mb-2"
             >
-              Cancellation Reason{" "}
-              <span className="font-normal text-red-600">(Optional)</span>
+              Motivul anulării{" "}
+              <span className="font-normal text-red-600">(Opțional)</span>
             </label>
             <Textarea
               id="cancellationReason"
-              placeholder="Enter the reason for cancelling this order (will be included in the email to customer)..."
+              placeholder="Scrie motivul anulării. Acesta va fi inclus în e-mailul către client."
               value={cancellationReason}
               onChange={e => setCancellationReason(e.target.value)}
               className="min-h-[80px] border-red-200 focus:border-red-400 bg-white"
             />
             <p className="text-xs text-red-600 mt-1">
-              This reason will be sent to the customer in the cancellation
-              email.
+              Motivul se trimite clientului în e-mailul de anulare.
             </p>
           </div>
         )}
@@ -1755,7 +1788,7 @@ export default function OrderDetailsPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-muted-foreground" />
-                Order Items
+                Produsele comenzii
                 <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">
                   {order.items.length}
                 </span>
@@ -1784,7 +1817,7 @@ export default function OrderDetailsPage() {
                         <Image
                           src={
                             item.product?.images?.[0] ??
-                            "/images/product-placeholder.jpg"
+                            "/images/placeholder.jpg"
                           }
                           alt={item.name}
                           width={80}
@@ -1819,7 +1852,7 @@ export default function OrderDetailsPage() {
                           </h4>
                           {item.isBook && item.book && (
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              by {item.book.author}
+                              de {item.book.author}
                             </p>
                           )}
                         </div>
@@ -1836,7 +1869,7 @@ export default function OrderDetailsPage() {
                         <>
                           <div className="mt-2.5 flex flex-wrap gap-1.5 text-xs">
                             <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600 font-medium">
-                              {item.supplierName || "No supplier"}
+                              {item.supplierName || "Nealocat la furnizor"}
                             </span>
                             <span
                               className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600 font-mono"
@@ -1852,11 +1885,11 @@ export default function OrderDetailsPage() {
                                 (item.supplierSkus &&
                                 item.supplierSkus.length > 1
                                   ? `${item.supplierSkus.length} SKUs`
-                                  : "No SKU")}
+                                  : "SKU necompletat")}
                             </span>
                             {Boolean((item.supplierLineCount || 0) > 1) && (
                               <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600 font-medium">
-                                {item.supplierLineCount} supplier lines
+                                {item.supplierLineCount} poziții la furnizori
                               </span>
                             )}
                             {item.supplierOrderStatus && (
@@ -1868,7 +1901,8 @@ export default function OrderDetailsPage() {
                           {item.supplierSkus &&
                             item.supplierSkus.length > 1 && (
                               <p className="mt-1 text-xs text-muted-foreground">
-                                Component SKUs: {item.supplierSkus.join(", ")}
+                                Coduri componente:{" "}
+                                {item.supplierSkus.join(", ")}
                               </p>
                             )}
                         </>
@@ -1894,7 +1928,7 @@ export default function OrderDetailsPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <ShoppingCart className="h-5 w-5" />
-                    Supplier Orders
+                    Comenzi la furnizori
                   </CardTitle>
                   {(!order.supplierOrders ||
                     order.supplierOrders.length === 0) && (
@@ -1908,7 +1942,7 @@ export default function OrderDetailsPage() {
                       ) : (
                         <Plus className="h-4 w-4 mr-2" />
                       )}
-                      Create Supplier Order
+                      Adaugă o comandă la furnizor
                     </Button>
                   )}
                 </div>
@@ -1921,10 +1955,11 @@ export default function OrderDetailsPage() {
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <p className="font-medium">
-                              Supplier Fulfillment Overview
+                              Situația comenzilor la furnizori
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              Operational view grouped by supplier shipment task
+                              Produse grupate după expedierea de pregătit la
+                              fiecare furnizor
                             </p>
                           </div>
                           <span
@@ -1939,7 +1974,7 @@ export default function OrderDetailsPage() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                           <div className="rounded border bg-white p-2">
                             <p className="text-xs text-muted-foreground">
-                              Ready to place
+                              De plasat la furnizor
                             </p>
                             <p className="text-sm font-semibold">
                               {(
@@ -1950,7 +1985,7 @@ export default function OrderDetailsPage() {
                           </div>
                           <div className="rounded border bg-white p-2">
                             <p className="text-xs text-muted-foreground">
-                              AWB work
+                              AWB de pregătit
                             </p>
                             <p className="text-sm font-semibold">
                               {(
@@ -1961,7 +1996,7 @@ export default function OrderDetailsPage() {
                           </div>
                           <div className="rounded border bg-white p-2">
                             <p className="text-xs text-muted-foreground">
-                              Shipped/Delivered
+                              Expediate / livrate
                             </p>
                             <p className="text-sm font-semibold">
                               {(
@@ -1972,7 +2007,7 @@ export default function OrderDetailsPage() {
                           </div>
                           <div className="rounded border bg-white p-2">
                             <p className="text-xs text-muted-foreground">
-                              Issues
+                              Probleme
                             </p>
                             <p className="text-sm font-semibold">
                               {(
@@ -1996,9 +2031,9 @@ export default function OrderDetailsPage() {
                                       {group.supplierName}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                      {group.lineCount} line
-                                      {group.lineCount === 1 ? "" : "s"} · Qty{" "}
-                                      {group.totalQuantity}
+                                      {group.lineCount} poziție
+                                      {group.lineCount === 1 ? "" : "s"} ·
+                                      Cantitate {group.totalQuantity}
                                     </p>
                                   </div>
                                   <div className="flex flex-wrap gap-2">
@@ -2014,7 +2049,7 @@ export default function OrderDetailsPage() {
 
                                 {group.trackingNumbers.length > 0 && (
                                   <div className="text-xs text-muted-foreground">
-                                    Tracking: {group.trackingNumbers.join(", ")}
+                                    Urmărire: {group.trackingNumbers.join(", ")}
                                   </div>
                                 )}
 
@@ -2027,11 +2062,12 @@ export default function OrderDetailsPage() {
                                       <div className="min-w-0">
                                         <p className="text-sm font-medium truncate">
                                           {line.productName ||
-                                            "Unknown product"}{" "}
+                                            "Produs fără denumire"}{" "}
                                           × {line.quantity}
                                         </p>
                                         <p className="text-xs text-muted-foreground">
-                                          Raw status: {line.lineStatus || "N/A"}
+                                          Stare înregistrată:{" "}
+                                          {line.lineStatus || "N/A"}
                                         </p>
                                         {line.productSku && (
                                           <p className="text-xs text-muted-foreground font-mono">
@@ -2065,42 +2101,42 @@ export default function OrderDetailsPage() {
 
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium">
-                        Supplier Order Lines
+                        Poziții la furnizori
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Use the quick steps below and only use manual status
-                        dropdown for special cases
+                        Urmează pașii de mai jos. Modifică manual starea numai
+                        pentru cazurile speciale.
                       </p>
                     </div>
                     <div className="rounded-lg border bg-slate-50 p-4 space-y-2">
                       <p className="text-sm font-medium">
-                        Supplier Fulfillment Playbook (per supplier line)
+                        Pași de procesare pentru fiecare produs
                       </p>
                       <ol className="list-decimal pl-4 space-y-1 text-xs text-muted-foreground">
                         <li>
-                          Place the order on supplier website, then click{" "}
-                          <strong>Placed to Supplier</strong>.
+                          Plasează comanda pe site-ul furnizorului, apoi apasă{" "}
+                          <strong>Plasată la furnizor</strong>.
                         </li>
                         <li>
-                          When supplier sends AWB, save the tracking number
-                          (AWB), then click <strong>AWB Uploaded</strong>.
+                          Când furnizorul trimite AWB-ul, salvează numărul de
+                          urmărire, apoi apasă <strong>AWB înregistrat</strong>.
                         </li>
                         <li>
-                          After courier pickup/dispatch is confirmed, click{" "}
-                          <strong>Shipped</strong>.
+                          După confirmarea preluării de către curier, apasă{" "}
+                          <strong>Expediată</strong>.
                         </li>
                         <li>
-                          When delivered, click <strong>Delivered</strong>.
+                          După livrare, apasă <strong>Livrată</strong>.
                         </li>
                       </ol>
                       <p className="text-xs text-slate-600">
-                        Parent order status updates automatically based on
-                        supplier line statuses.
+                        Starea comenzii clientului se actualizează automat din
+                        stările produselor la furnizori.
                       </p>
                       <p className="text-xs text-slate-600">
-                        Important: use the supplier line steps below for
-                        dropshipping workflow. The top order status is the
-                        overall order status.
+                        Urmează pașii fiecărui furnizor pentru comenzile
+                        dropshipping. Starea de sus arată situația întregii
+                        comenzi.
                       </p>
                     </div>
                     {order.supplierOrders.map(so => {
@@ -2133,7 +2169,7 @@ export default function OrderDetailsPage() {
                                 )}
                                 {so.supplierOrderId && (
                                   <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
-                                    Supplier Ref: {so.supplierOrderId}
+                                    Referință furnizor: {so.supplierOrderId}
                                   </span>
                                 )}
                               </div>
@@ -2155,7 +2191,7 @@ export default function OrderDetailsPage() {
                             className={`rounded-md border p-3 ${hintToneClasses}`}
                           >
                             <p className="text-sm font-medium">
-                              What to do now: {workflowHint.title}
+                              Următoarea acțiune: {workflowHint.title}
                             </p>
                             <p className="mt-1 text-xs opacity-90">
                               {workflowHint.description}
@@ -2165,11 +2201,10 @@ export default function OrderDetailsPage() {
                           <div className="rounded-md border bg-white p-3 space-y-2">
                             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                               <p className="text-sm font-medium">
-                                Step-by-step checklist
+                                Lista pașilor
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Follow the current step first, then continue in
-                                order
+                                Rezolvă pasul curent, apoi continuă în ordine.
                               </p>
                             </div>
                             <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
@@ -2217,7 +2252,8 @@ export default function OrderDetailsPage() {
                                   so.phase
                                 )}`}
                               >
-                                Workflow phase: {formatWorkflowLabel(so.phase)}
+                                Etapa de procesare:{" "}
+                                {formatWorkflowLabel(so.phase)}
                               </span>
                             </div>
                           )}
@@ -2226,11 +2262,12 @@ export default function OrderDetailsPage() {
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                               <div>
                                 <p className="text-sm font-medium">
-                                  Step 1 / Step 3 / Step 4 / Step 5 Buttons
+                                  Pașii 1, 3, 4 și 5
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  Click these when each step is completed. Step
-                                  2 (AWB save) is the tracking box below.
+                                  Confirmă fiecare pas după ce l-ai finalizat.
+                                  Pentru pasul 2, salvează AWB-ul în formularul
+                                  de mai jos.
                                 </p>
                               </div>
                               <Button
@@ -2240,7 +2277,7 @@ export default function OrderDetailsPage() {
                                 onClick={() => copySupplierLineForOrdering(so)}
                               >
                                 <Copy className="mr-2 h-4 w-4" />
-                                Copy Supplier Line
+                                Copiază poziția furnizorului
                               </Button>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
@@ -2285,9 +2322,9 @@ export default function OrderDetailsPage() {
                             </div>
                             {!hasTracking && (
                               <p className="text-xs text-amber-700">
-                                Step 2 first: save AWB/tracking below to enable{" "}
-                                <strong>AWB Uploaded</strong> and{" "}
-                                <strong>Shipped</strong>.
+                                Mai întâi pasul 2: salvează AWB-ul pentru a
+                                activa <strong>AWB înregistrat</strong> și{" "}
+                                <strong>Expediată</strong>.
                               </p>
                             )}
                           </div>
@@ -2298,12 +2335,12 @@ export default function OrderDetailsPage() {
                                 Cost:
                               </span>
                               <span className="ml-2 font-medium">
-                                {formatPrice(so.totalCost)}
+                                {formatOrderAmount(so.totalCost, "RON")}
                               </span>
                             </div>
                             <div>
                               <span className="text-muted-foreground">
-                                Tracking:
+                                Urmărire:
                               </span>
                               <span className="ml-2 font-medium">
                                 {so.trackingNumber || "Not added yet"}
@@ -2312,12 +2349,16 @@ export default function OrderDetailsPage() {
                           </div>
 
                           <div className="space-y-2 rounded-md border bg-white p-3">
-                            <label className="text-sm font-medium">
-                              Advanced / Manual Supplier Status (optional)
+                            <label
+                              htmlFor={`admin-order-field-1-${so.id}`}
+                              className="text-sm font-medium"
+                            >
+                              Stare manuală la furnizor · cazuri speciale
                             </label>
                             <p className="text-xs text-muted-foreground">
-                              Use quick step buttons above for normal flow. Use
-                              this dropdown only for special cases.
+                              Folosește pașii de mai sus pentru procesarea
+                              obișnuită. Acest selector este rezervat cazurilor
+                              speciale.
                             </p>
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                               <Select
@@ -2329,7 +2370,10 @@ export default function OrderDetailsPage() {
                                   }))
                                 }
                               >
-                                <SelectTrigger className="w-full sm:w-[260px]">
+                                <SelectTrigger
+                                  id={`admin-order-field-1-${so.id}`}
+                                  className="w-full sm:w-[260px]"
+                                >
                                   <SelectValue placeholder="Choose status" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2360,7 +2404,7 @@ export default function OrderDetailsPage() {
                                 ) : (
                                   <Save className="h-4 w-4 mr-2" />
                                 )}
-                                Save Status
+                                Salvează starea
                               </Button>
                             </div>
                           </div>
@@ -2377,53 +2421,56 @@ export default function OrderDetailsPage() {
                                   <div className="flex items-center gap-2">
                                     <MessageSquareWarning className="h-4 w-4 text-red-700" />
                                     <p className="text-sm font-medium text-red-900">
-                                      Out-of-Stock Resolution Workflow
+                                      Rezolvarea lipsei de stoc
                                     </p>
                                   </div>
                                   <p className="text-xs text-red-800">
-                                    Choose a resolution path, save it to the
-                                    supplier line, then copy the customer
-                                    message template and send it.
+                                    Alege soluția, salveaz-o la poziția
+                                    furnizorului și verifică mesajul înainte de
+                                    a-l trimite clientului.
                                   </p>
 
                                   <div className="flex flex-wrap gap-2">
                                     {typeof oosOps.issueAgeHours ===
                                       "number" && (
                                       <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-700 border">
-                                        Issue age:{" "}
+                                        Problema a apărut acum:{" "}
                                         {Math.floor(oosOps.issueAgeHours)}h
                                       </span>
                                     )}
                                     {typeof oosOps.inactivityHours ===
                                       "number" && (
                                       <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-700 border">
-                                        Last activity:{" "}
-                                        {Math.floor(oosOps.inactivityHours)}h
-                                        ago
+                                        Ultima activitate:{" "}
+                                        {Math.floor(oosOps.inactivityHours)}ore
+                                        în urmă
                                       </span>
                                     )}
                                     {oosOps.needsCustomerNotification ? (
                                       <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 border border-red-200">
-                                        Customer not notified yet
+                                        Clientul nu a fost informat
                                       </span>
                                     ) : (
                                       <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 border border-green-200">
-                                        Customer contact logged
+                                        Contactul cu clientul este înregistrat
                                       </span>
                                     )}
                                     {oosOps.isSlaOverdue && (
                                       <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 border border-amber-200">
-                                        Follow-up overdue (
+                                        Termen de revenire depășit (
                                         {OOS_SLA_WARNING_HOURS}
-                                        h+)
+                                        ore)
                                       </span>
                                     )}
                                   </div>
 
                                   <div className="grid gap-3 md:grid-cols-2">
                                     <div className="space-y-2">
-                                      <label className="text-sm font-medium">
-                                        Resolution Action
+                                      <label
+                                        htmlFor={`admin-order-field-2-${so.id}`}
+                                        className="text-sm font-medium"
+                                      >
+                                        Soluție
                                       </label>
                                       <Select
                                         value={getOosDraft(so.id).action}
@@ -2434,7 +2481,9 @@ export default function OrderDetailsPage() {
                                           })
                                         }
                                       >
-                                        <SelectTrigger>
+                                        <SelectTrigger
+                                          id={`admin-order-field-2-${so.id}`}
+                                        >
                                           <SelectValue placeholder="Choose action" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -2456,10 +2505,14 @@ export default function OrderDetailsPage() {
                                       </Select>
                                     </div>
                                     <div className="space-y-2">
-                                      <label className="text-sm font-medium">
-                                        Internal Details
+                                      <label
+                                        htmlFor={`admin-order-field-3-${so.id}`}
+                                        className="text-sm font-medium"
+                                      >
+                                        Detalii interne
                                       </label>
                                       <Textarea
+                                        id={`admin-order-field-3-${so.id}`}
                                         value={getOosDraft(so.id).detail}
                                         onChange={e =>
                                           setOosDraft(so.id, {
@@ -2480,10 +2533,14 @@ export default function OrderDetailsPage() {
                                   </div>
 
                                   <div className="space-y-2">
-                                    <label className="text-sm font-medium">
-                                      Customer Message Template (Preview)
+                                    <label
+                                      htmlFor={`admin-order-field-4-${so.id}`}
+                                      className="text-sm font-medium"
+                                    >
+                                      Mesaj pentru client · previzualizare
                                     </label>
                                     <Textarea
+                                      id={`admin-order-field-4-${so.id}`}
                                       value={buildOosCustomerMessage(
                                         so,
                                         getOosDraft(so.id).action,
@@ -2501,7 +2558,7 @@ export default function OrderDetailsPage() {
                                       onClick={() => copyOosCustomerMessage(so)}
                                     >
                                       <Copy className="mr-2 h-4 w-4" />
-                                      Copy Customer Message
+                                      Copiază mesajul pentru client
                                     </Button>
                                     <Button
                                       size="sm"
@@ -2518,7 +2575,7 @@ export default function OrderDetailsPage() {
                                       ) : (
                                         <Mail className="mr-2 h-4 w-4" />
                                       )}
-                                      Send OOS Email
+                                      Trimite e-mail privind lipsa de stoc
                                     </Button>
                                     <Button
                                       size="sm"
@@ -2530,7 +2587,7 @@ export default function OrderDetailsPage() {
                                       ) : (
                                         <Save className="mr-2 h-4 w-4" />
                                       )}
-                                      Save OOS Resolution
+                                      Salvează soluția
                                     </Button>
                                   </div>
 
@@ -2538,16 +2595,16 @@ export default function OrderDetailsPage() {
                                     <div className="flex items-center justify-between gap-2">
                                       <div>
                                         <p className="text-sm font-medium">
-                                          Customer Contact Log
+                                          Istoricul contactului cu clientul
                                         </p>
                                         <p className="text-xs text-muted-foreground">
-                                          Log when/how you contacted the
-                                          customer and what they replied.
+                                          Înregistrează când și cum ai contactat
+                                          clientul și ce a răspuns.
                                         </p>
                                       </div>
                                       {oosOps.latestNotification?.timestamp && (
                                         <span className="text-xs text-muted-foreground">
-                                          Last contact:{" "}
+                                          Ultimul contact:{" "}
                                           {oosOps.latestNotification.timestamp.toLocaleString()}
                                         </span>
                                       )}
@@ -2556,16 +2613,19 @@ export default function OrderDetailsPage() {
                                     {(!order?.email ||
                                       order.email === "N/A") && (
                                       <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                                        Customer email is not available for this
-                                        order. Use phone/WhatsApp contact and
-                                        log it below.
+                                        Comanda nu are e-mail de contact.
+                                        Contactează clientul prin telefon sau
+                                        WhatsApp și înregistrează rezultatul.
                                       </div>
                                     )}
 
                                     <div className="grid gap-3 md:grid-cols-2">
                                       <div className="space-y-2">
-                                        <label className="text-sm font-medium">
-                                          Channel
+                                        <label
+                                          htmlFor={`admin-order-field-5-${so.id}`}
+                                          className="text-sm font-medium"
+                                        >
+                                          Canal
                                         </label>
                                         <Select
                                           value={oosNotificationDraft.channel}
@@ -2576,7 +2636,9 @@ export default function OrderDetailsPage() {
                                             })
                                           }
                                         >
-                                          <SelectTrigger>
+                                          <SelectTrigger
+                                            id={`admin-order-field-5-${so.id}`}
+                                          >
                                             <SelectValue />
                                           </SelectTrigger>
                                           <SelectContent>
@@ -2594,10 +2656,14 @@ export default function OrderDetailsPage() {
                                         </Select>
                                       </div>
                                       <div className="space-y-2">
-                                        <label className="text-sm font-medium">
-                                          Contact Summary
+                                        <label
+                                          htmlFor={`admin-order-field-6-${so.id}`}
+                                          className="text-sm font-medium"
+                                        >
+                                          Rezumatul contactului
                                         </label>
                                         <Textarea
+                                          id={`admin-order-field-6-${so.id}`}
                                           value={oosNotificationDraft.summary}
                                           onChange={e =>
                                             setOosNotificationDraft(so.id, {
@@ -2611,10 +2677,14 @@ export default function OrderDetailsPage() {
                                     </div>
 
                                     <div className="space-y-2">
-                                      <label className="text-sm font-medium">
-                                        Customer Response (Optional)
+                                      <label
+                                        htmlFor={`admin-order-field-7-${so.id}`}
+                                        className="text-sm font-medium"
+                                      >
+                                        Răspunsul clientului · opțional
                                       </label>
                                       <Textarea
+                                        id={`admin-order-field-7-${so.id}`}
                                         value={
                                           oosNotificationDraft.customerResponse
                                         }
@@ -2644,7 +2714,7 @@ export default function OrderDetailsPage() {
                                         ) : (
                                           <Save className="mr-2 h-4 w-4" />
                                         )}
-                                        Mark Customer Notified
+                                        Marchează clientul ca informat
                                       </Button>
                                     </div>
                                   </div>
@@ -2653,10 +2723,10 @@ export default function OrderDetailsPage() {
                                     <div className="space-y-2 rounded-md border bg-white/80 p-3">
                                       <div className="flex items-center justify-between">
                                         <p className="text-sm font-medium">
-                                          OOS Timeline
+                                          Istoricul problemei de stoc
                                         </p>
                                         <span className="text-xs text-muted-foreground">
-                                          {oosOps.events.length} event
+                                          {oosOps.events.length} eveniment
                                           {oosOps.events.length === 1
                                             ? ""
                                             : "s"}
@@ -2706,9 +2776,9 @@ export default function OrderDetailsPage() {
 
                           {so.notes && (
                             <div className="space-y-1">
-                              <label className="text-sm font-medium">
-                                Supplier Line Notes
-                              </label>
+                              <span className="text-sm font-medium">
+                                Note pentru poziția furnizorului
+                              </span>
                               <div className="rounded-md border bg-muted/30 p-2 text-xs whitespace-pre-wrap text-muted-foreground">
                                 {so.notes}
                               </div>
@@ -2718,9 +2788,9 @@ export default function OrderDetailsPage() {
                           {/* Tracking Number */}
                           <div className="space-y-2 rounded-md border bg-slate-50/70 p-3">
                             <div className="flex items-center justify-between">
-                              <label className="text-sm font-medium">
-                                Step 2 - Save Supplier AWB / Tracking
-                              </label>
+                              <span className="text-sm font-medium">
+                                Pasul 2 · Înregistrează AWB-ul furnizorului
+                              </span>
                               {editingTracking === so.id ? (
                                 <Button
                                   variant="ghost"
@@ -2730,7 +2800,7 @@ export default function OrderDetailsPage() {
                                     setTrackingInput("");
                                   }}
                                 >
-                                  Cancel
+                                  Renunță
                                 </Button>
                               ) : (
                                 <Button
@@ -2742,7 +2812,7 @@ export default function OrderDetailsPage() {
                                   }}
                                 >
                                   <Edit className="h-3 w-3 mr-1" />
-                                  {so.trackingNumber ? "Edit" : "Add"}
+                                  {so.trackingNumber ? "Editează" : "Add"}
                                 </Button>
                               )}
                             </div>
@@ -2761,7 +2831,7 @@ export default function OrderDetailsPage() {
                                   size="sm"
                                   onClick={() => updateTrackingNumber(so)}
                                 >
-                                  Save
+                                  Salvează
                                 </Button>
                               </div>
                             ) : (
@@ -2770,15 +2840,16 @@ export default function OrderDetailsPage() {
                               </p>
                             )}
                             <p className="text-xs text-muted-foreground">
-                              Saving tracking can auto-set the supplier line to{" "}
-                              <strong>AWB Uploaded</strong> when applicable.
+                              Salvarea AWB-ului poate actualiza starea la{" "}
+                              <strong>AWB înregistrat</strong> când sunt
+                              îndeplinite condițiile.
                             </p>
                           </div>
 
                           {so.carrier && (
                             <div className="text-sm">
                               <span className="text-muted-foreground">
-                                Carrier:
+                                Curier:
                               </span>
                               <span className="ml-2">{so.carrier}</span>
                             </div>
@@ -2787,10 +2858,12 @@ export default function OrderDetailsPage() {
                           {so.shippedAt && (
                             <div className="text-sm">
                               <span className="text-muted-foreground">
-                                Shipped:
+                                Expediat la:
                               </span>
                               <span className="ml-2">
-                                {new Date(so.shippedAt).toLocaleDateString()}
+                                {new Date(so.shippedAt).toLocaleDateString(
+                                  "ro-RO"
+                                )}
                               </span>
                             </div>
                           )}
@@ -2800,9 +2873,10 @@ export default function OrderDetailsPage() {
                   </div>
                 ) : (
                   <div className="text-center py-4 text-muted-foreground">
-                    <p>No supplier orders created yet</p>
+                    <p>Nu există încă o comandă plasată la furnizor</p>
                     <p className="text-xs mt-1">
-                      Click "Create Supplier Order" to process this order
+                      Apasă „Adaugă o comandă la furnizor” pentru a începe
+                      procesarea.
                     </p>
                   </div>
                 )}
@@ -2818,7 +2892,7 @@ export default function OrderDetailsPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 <User className="h-4 w-4" />
-                Customer
+                Client
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-3">
@@ -2832,7 +2906,9 @@ export default function OrderDetailsPage() {
                     {order.email}
                   </a>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No email</p>
+                  <p className="text-sm text-muted-foreground">
+                    E-mail indisponibil
+                  </p>
                 )}
               </div>
             </CardContent>
@@ -2843,7 +2919,7 @@ export default function OrderDetailsPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                Shipping Address
+                Adresa de livrare
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
@@ -2880,18 +2956,22 @@ export default function OrderDetailsPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 <CreditCard className="h-4 w-4" />
-                Payment
+                Plată
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Method</span>
+                <span className="text-sm text-muted-foreground">Metodă</span>
                 <span className="text-sm font-medium">
-                  {order.paymentMethod}
+                  {order.paymentMethod === "card"
+                    ? "Card"
+                    : order.paymentMethod === "cod"
+                      ? "Ramburs"
+                      : order.paymentMethod}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Status</span>
+                <span className="text-sm text-muted-foreground">Stare</span>
                 <span
                   className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${
                     order.paymentStatus?.toLowerCase() === "paid"
@@ -2901,14 +2981,15 @@ export default function OrderDetailsPage() {
                         : "bg-slate-100 text-slate-700"
                   }`}
                 >
-                  {order.paymentStatus}
+                  {paymentStatusLabels[order.paymentStatus] ??
+                    order.paymentStatus}
                 </span>
               </div>
               {isCODOrder && codConsentInfo && (
                 <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-medium text-amber-950">
-                      COD Policy Acceptance
+                      Acceptarea condițiilor ramburs
                     </span>
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
@@ -2922,26 +3003,26 @@ export default function OrderDetailsPage() {
                   </div>
                   <div className="mt-2 space-y-1.5 text-xs text-amber-950">
                     <div className="flex justify-between gap-3">
-                      <span className="text-amber-800/80">Accepted at</span>
+                      <span className="text-amber-800/80">Acceptată la</span>
                       <span className="font-medium">
                         {formatAdminDateTime(codConsentInfo.acceptedAt)}
                       </span>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <span className="text-amber-800/80">Version</span>
+                      <span className="text-amber-800/80">Versiune</span>
                       <span className="font-medium">
                         {codConsentInfo.version || "—"}
                       </span>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <span className="text-amber-800/80">Proof source</span>
+                      <span className="text-amber-800/80">Sursa dovezii</span>
                       <span className="font-medium uppercase">
                         {codConsentInfo.source}
                       </span>
                     </div>
                     <div className="flex justify-between gap-3">
                       <span className="text-amber-800/80">
-                        Guarantee authorized
+                        Garanție autorizată
                       </span>
                       <span className="font-medium">
                         {codGuaranteeEvidence?.authorizedAt
@@ -2953,7 +3034,7 @@ export default function OrderDetailsPage() {
                     </div>
                     <div className="flex justify-between gap-3">
                       <span className="text-amber-800/80">
-                        Guarantee amount
+                        Valoarea garanției
                       </span>
                       <span className="font-medium">
                         {typeof codGuaranteeEvidence?.authorizedAmount ===
@@ -2963,14 +3044,16 @@ export default function OrderDetailsPage() {
                       </span>
                     </div>
                     <div className="flex justify-between gap-3">
-                      <span className="text-amber-800/80">Guarantee PI</span>
+                      <span className="text-amber-800/80">
+                        Identificatorul plății garanției
+                      </span>
                       <span className="font-mono text-[11px]">
                         {codGuaranteeEvidence?.authorizedPaymentIntentId || "—"}
                       </span>
                     </div>
                     <div className="flex justify-between gap-3">
                       <span className="text-amber-800/80">
-                        Historical capture record
+                        Istoricul încasării garanției
                       </span>
                       <span className="font-medium">
                         {codGuaranteeEvidence?.capturedAt
@@ -2984,7 +3067,9 @@ export default function OrderDetailsPage() {
                   <CodHoldSettlementNotice notes={order.notes} />
                   {codConsentInfo.termsSnapshot && (
                     <p className="mt-2 text-xs text-amber-900/90">
-                      <span className="font-medium">Snapshot:</span>{" "}
+                      <span className="font-medium">
+                        Situație înregistrată:
+                      </span>{" "}
                       {codConsentInfo.termsSnapshot}
                     </p>
                   )}
@@ -2993,7 +3078,7 @@ export default function OrderDetailsPage() {
                       type="button"
                       size="sm"
                       variant="outline"
-                      onClick={markCODRejected}
+                      onClick={() => setCodDialogOpen(true)}
                       disabled={
                         rejectingCOD ||
                         order.status === "CANCELLED" ||
@@ -3003,10 +3088,10 @@ export default function OrderDetailsPage() {
                       {rejectingCOD ? (
                         <>
                           <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                          Processing...
+                          Se procesează…
                         </>
                       ) : (
-                        "Mark Refused (RTO) + Release Hold"
+                        "Înregistrează refuzul coletului"
                       )}
                     </Button>
                   </div>
@@ -3022,7 +3107,7 @@ export default function OrderDetailsPage() {
                 <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   <Truck className="h-4 w-4" />
                   {courierName === "SAMEDAY" ? "Sameday" : "FanCourier"}{" "}
-                  Shipment
+                  Expediere
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0 space-y-3">
@@ -3033,9 +3118,9 @@ export default function OrderDetailsPage() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Status</span>
+                  <span className="text-sm text-muted-foreground">Stare</span>
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                    {activeShipment?.status || "Pending"}
+                    {formatWorkflowLabel(activeShipment?.status || "PENDING")}
                   </span>
                 </div>
                 <div className="flex flex-col gap-2 pt-1">
@@ -3053,7 +3138,7 @@ export default function OrderDetailsPage() {
                         ) : (
                           <Mail className="h-4 w-4 mr-2" />
                         )}
-                        Resend AWB Email
+                        Retrimite e-mailul cu AWB
                       </Button>
                     )}
                   <Button
@@ -3068,7 +3153,7 @@ export default function OrderDetailsPage() {
                     ) : (
                       <Package className="h-4 w-4 mr-2" />
                     )}
-                    {activeShipment?.awbNumber ? "AWB Created" : "Create AWB"}
+                    {activeShipment?.awbNumber ? "AWB creat" : "Creează AWB"}
                   </Button>
                 </div>
               </CardContent>
@@ -3079,7 +3164,7 @@ export default function OrderDetailsPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Order Summary
+                Totalul comenzii
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-2">
@@ -3088,19 +3173,19 @@ export default function OrderDetailsPage() {
                 <span>{formatPrice(order.subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Shipping</span>
+                <span className="text-muted-foreground">Livrare</span>
                 <span>{formatPrice(order.shippingCost)}</span>
               </div>
               {order.tax > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax</span>
+                  <span className="text-muted-foreground">TVA</span>
                   <span>{formatPrice(order.tax)}</span>
                 </div>
               )}
               {order.discountAmount > 0 && (
                 <div className="flex justify-between text-sm text-green-700">
                   <span>
-                    Discount {order.couponCode && `(${order.couponCode})`}
+                    Reducere {order.couponCode && `(${order.couponCode})`}
                   </span>
                   <span>-{formatPrice(order.discountAmount)}</span>
                 </div>
@@ -3114,6 +3199,13 @@ export default function OrderDetailsPage() {
           </Card>
         </div>
       </div>
+      {codDialogOpen && (
+        <CodRejectionDialog
+          busy={rejectingCOD}
+          onClose={() => setCodDialogOpen(false)}
+          onConfirm={markCODRejected}
+        />
+      )}
     </div>
   );
 }

@@ -1,11 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -19,6 +21,8 @@ export function ProductStatusActions({
   productId: string;
   disabled?: boolean;
 }) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<"none" | "approve" | "reject">("none");
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,6 +30,7 @@ export function ProductStatusActions({
   async function updateStatus(next: "APPROVED" | "REJECTED") {
     try {
       setLoading(true);
+      setError(null);
       const res = await fetch(`/api/admin/products/${productId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -37,11 +42,10 @@ export function ProductStatusActions({
       if (!res.ok) throw new Error("Failed to update status");
       setOpen("none");
       setReason("");
-      // Simple reload to reflect changes
-      window.location.reload();
+      router.refresh();
     } catch (e) {
       console.error(e);
-      alert("Failed to update product status");
+      setError("Starea produsului nu s-a salvat. Încearcă din nou.");
     } finally {
       setLoading(false);
     }
@@ -53,56 +57,91 @@ export function ProductStatusActions({
         variant="default"
         className="bg-green-600 hover:bg-green-700 text-white"
         size="sm"
-        disabled={disabled}
+        disabled={disabled || loading}
         onClick={() => setOpen("approve")}
       >
-        Approve
+        Aprobă
       </Button>
       <Button
         variant="destructive"
         size="sm"
-        disabled={disabled}
+        disabled={disabled || loading}
         onClick={() => setOpen("reject")}
       >
-        Reject
+        Respinge
       </Button>
 
-      <Dialog open={open === "approve"} onOpenChange={() => setOpen("none")}>
+      <Dialog
+        open={open === "approve"}
+        onOpenChange={() => {
+          if (!loading) setOpen("none");
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Approve product</DialogTitle>
+            <DialogTitle>Aprobă produsul</DialogTitle>
+            <DialogDescription>
+              Confirmă aprobarea produsului pentru catalog.
+            </DialogDescription>
           </DialogHeader>
+          {error && (
+            <p role="alert" className="text-sm text-red-700">
+              {error}
+            </p>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen("none")}>
-              Cancel
+            <Button
+              variant="outline"
+              disabled={loading}
+              onClick={() => setOpen("none")}
+            >
+              Renunță
             </Button>
             <Button onClick={() => updateStatus("APPROVED")} disabled={loading}>
-              Confirm
+              Confirmă
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={open === "reject"} onOpenChange={() => setOpen("none")}>
+      <Dialog
+        open={open === "reject"}
+        onOpenChange={() => {
+          if (!loading) setOpen("none");
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject product</DialogTitle>
+            <DialogTitle>Respinge produsul</DialogTitle>
+            <DialogDescription>
+              Furnizorul poate vedea motivul respingerii.
+            </DialogDescription>
           </DialogHeader>
+          {error && (
+            <p role="alert" className="text-sm text-red-700">
+              {error}
+            </p>
+          )}
           <Textarea
-            placeholder="Optional rejection reason (shown to supplier)"
+            aria-label="Motivul respingerii"
+            placeholder="Motivul respingerii (opțional)"
             value={reason}
             onChange={e => setReason(e.target.value)}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen("none")}>
-              Cancel
+            <Button
+              variant="outline"
+              disabled={loading}
+              onClick={() => setOpen("none")}
+            >
+              Renunță
             </Button>
             <Button
               variant="destructive"
               onClick={() => updateStatus("REJECTED")}
               disabled={loading}
             >
-              Reject
+              Respinge
             </Button>
           </DialogFooter>
         </DialogContent>

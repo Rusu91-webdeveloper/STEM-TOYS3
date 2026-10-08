@@ -1,4 +1,9 @@
-import type { Prisma } from "@prisma/client";
+import {
+  ReturnStatus,
+  ReturnReason,
+  ReturnLiability,
+  type Prisma,
+} from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
@@ -26,8 +31,20 @@ export async function GET(request: Request) {
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const page = Number(searchParams.get("page") || "1");
+    const limit = Number(searchParams.get("limit") || "10");
+    if (
+      !Number.isInteger(page) ||
+      page < 1 ||
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      limit > 100
+    )
+      return NextResponse.json(
+        { error: "Pagina sau limita este invalidă." },
+        { status: 400 }
+      );
+    const search = (searchParams.get("search") || "").trim().slice(0, 200);
     const status = searchParams.get("status");
     const reason = searchParams.get("reason");
     const liability = searchParams.get("liability");
@@ -38,16 +55,46 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     // Build the query filter
-    const where: any = {};
+    const where: Prisma.ReturnWhereInput = {};
+    if (search)
+      where.OR = [
+        { id: { contains: search, mode: "insensitive" } },
+        { user: { email: { contains: search, mode: "insensitive" } } },
+        { user: { name: { contains: search, mode: "insensitive" } } },
+        { order: { orderNumber: { contains: search, mode: "insensitive" } } },
+        { orderItem: { name: { contains: search, mode: "insensitive" } } },
+        {
+          orderItem: {
+            product: { name: { contains: search, mode: "insensitive" } },
+          },
+        },
+      ];
     if (status) {
-      where.status = status;
+      if (!Object.values(ReturnStatus).includes(status as ReturnStatus))
+        return NextResponse.json({ error: "Stare invalidă." }, { status: 400 });
+      where.status = status as ReturnStatus;
     }
     if (reason) {
-      where.reason = reason;
+      if (!Object.values(ReturnReason).includes(reason as ReturnReason))
+        return NextResponse.json({ error: "Motiv invalid." }, { status: 400 });
+      where.reason = reason as ReturnReason;
     }
     if (liability) {
-      where.liability = liability;
+      if (
+        !Object.values(ReturnLiability).includes(liability as ReturnLiability)
+      )
+        return NextResponse.json(
+          { error: "Responsabilitate invalidă." },
+          { status: 400 }
+        );
+      where.liability = liability as ReturnLiability;
     }
+    if (
+      [startDate, endDate].some(
+        value => value && Number.isNaN(new Date(value).getTime())
+      )
+    )
+      return NextResponse.json({ error: "Interval invalid." }, { status: 400 });
     if (startDate || endDate) {
       where.createdAt = {};
       if (startDate) where.createdAt.gte = new Date(startDate);
@@ -55,7 +102,7 @@ export async function GET(request: Request) {
     }
 
     // Customer segment filtering requires more complex logic
-    let customerSegmentFilter = {};
+    // Legacy customer segments are no longer exposed in the admin interface.
     if (customerSegment) {
       // We'll handle customer segment filtering in the query with includes
     }
@@ -113,6 +160,7 @@ export async function GET(request: Request) {
             orderNumber: true,
             createdAt: true,
             total: true,
+            currency: true,
             shippingCost: true,
             discountAmount: true,
             paymentMethod: true,
@@ -209,6 +257,7 @@ export async function GET(request: Request) {
               orderNumber: true,
               createdAt: true,
               total: true,
+              currency: true,
               shippingCost: true,
               discountAmount: true,
               paymentMethod: true,
@@ -291,7 +340,9 @@ export async function GET(request: Request) {
       returns: returns.map(record => ({
         ...record,
         destination: getReturnDestination(record),
-        destinationReview: readDestinationEvidence(record.supplierAuthorizationNotes),
+        destinationReview: readDestinationEvidence(
+          record.supplierAuthorizationNotes
+        ),
         supplierContract: supplierContract(record.orderItem.product?.supplier),
         supplierAuthorizationNotes: supplierNotesWithoutDestination(
           record.supplierAuthorizationNotes

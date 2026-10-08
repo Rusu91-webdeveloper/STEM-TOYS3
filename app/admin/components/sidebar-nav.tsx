@@ -1,268 +1,68 @@
 "use client";
 
-import {
-  LayoutDashboard,
-  Package,
-  Star,
-  ShoppingCart,
-  Users,
-  Settings,
-  BarChart,
-  LucideIcon,
-  FileText,
-  BookOpen,
-  Tag,
-  Mail,
-  Building2,
-  MessageSquare,
-  Image,
-  TrendingUp,
-  Search,
-  Share2,
-  Calendar,
-  TestTube,
-  Receipt,
-  Calculator,
-  Target,
-  Truck,
-  Cog,
-  CreditCard,
-  AlertCircle,
-} from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import {
+  adminNavItems,
+  adminNavGroups,
+  activeAdminHref,
+  type AdminNavItem,
+} from "@/lib/admin/navigation";
 import { cn } from "@/lib/utils";
 
-interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
-  items: {
-    href: string;
-    title: string;
-    icon: LucideIcon;
-  }[];
-}
+export { adminNavItems } from "@/lib/admin/navigation";
 
-export default function SidebarNav({
-  className,
-  items,
-  ...props
-}: SidebarNavProps) {
+export default function SidebarNav() {
   const pathname = usePathname();
-
+  const activeHref = activeAdminHref(pathname);
+  const renderItem = (item: AdminNavItem) => {
+    const Icon = item.icon;
+    const active = activeHref === item.href;
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-600",
+          active
+            ? "bg-violet-50 font-semibold text-violet-800"
+            : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+        )}
+      >
+        <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <span>{item.title}</span>
+      </Link>
+    );
+  };
   return (
-    <nav className={cn("space-y-1.5", className)} {...props}>
-      {items.map(item => {
-        const Icon = item.icon;
-        const isActive =
-          item.href === "/admin"
-            ? pathname === item.href
-            : pathname === item.href || pathname?.startsWith(`${item.href}/`);
-
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-              isActive
-                ? "bg-primary/10 text-primary shadow-sm"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
+    <nav aria-label="Navigare administrare" className="space-y-5">
+      <div className="space-y-1">{adminNavItems.map(renderItem)}</div>
+      <div className="border-t border-slate-100 pt-4">
+        <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+          Instrumente de lucru
+        </p>
+        {adminNavGroups.map(group => (
+          <details
+            key={`${group.title}-${group.items.some(item => item.href === activeHref)}`}
+            open={group.items.some(item => item.href === activeHref)}
+            className="group mb-1"
           >
-            <Icon className="h-5 w-5 shrink-0" />
-            <span className="truncate">{item.title}</span>
-          </Link>
-        );
-      })}
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-600 [&::-webkit-details-marker]:hidden">
+              {group.title}
+              <ChevronDown
+                className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
+                aria-hidden="true"
+              />
+            </summary>
+            <div className="ml-3 border-l border-slate-100 pl-1">
+              {group.items.map(renderItem)}
+            </div>
+          </details>
+        ))}
+      </div>
     </nav>
   );
 }
-
-export const adminNavItems = [
-  {
-    title: "Starea magazinului",
-    href: "/admin/store-health",
-    icon: AlertCircle,
-  },
-  {
-    title: "Retrageri din contract",
-    href: "/admin/withdrawals",
-    icon: FileText,
-  },
-  {
-    title: "Dashboard",
-    href: "/admin",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Products",
-    href: "/admin/products",
-    icon: Package,
-  },
-  {
-    title: "Featured Products",
-    href: "/admin/featured-products",
-    icon: Star,
-  },
-  {
-    title: "Books",
-    href: "/admin/books",
-    icon: BookOpen,
-  },
-  {
-    title: "Blog",
-    href: "/admin/blog",
-    icon: FileText,
-  },
-  {
-    title: "Orders",
-    href: "/admin/orders",
-    icon: ShoppingCart,
-  },
-  {
-    title: "My Ops Queue",
-    href: "/admin/ops-queue",
-    icon: Cog,
-  },
-  {
-    title: "Order Management",
-    href: "/admin/order-management",
-    icon: Truck,
-  },
-  {
-    title: "Fulfillment Issues",
-    href: "/admin/fulfillment-issues",
-    icon: AlertCircle,
-  },
-  {
-    title: "Returns",
-    href: "/admin/returns",
-    icon: FileText,
-  },
-  {
-    title: "Coupons",
-    href: "/admin/coupons",
-    icon: Tag,
-  },
-  {
-    title: "Suppliers",
-    href: "/admin/suppliers",
-    icon: Building2,
-  },
-  {
-    title: "Supplier Invoices",
-    href: "/admin/supplier-invoices",
-    icon: Receipt,
-  },
-  {
-    title: "Messages",
-    href: "/admin/messages",
-    icon: Mail,
-  },
-  {
-    title: "Communication Hub",
-    href: "/admin/communication",
-    icon: MessageSquare,
-  },
-  {
-    title: "Support Tickets",
-    href: "/admin/tickets",
-    icon: MessageSquare,
-  },
-  {
-    title: "Customers",
-    href: "/admin/customers",
-    icon: Users,
-  },
-  {
-    title: "Analytics",
-    href: "/admin/analytics",
-    icon: BarChart,
-  },
-  {
-    title: "User Analytics Dashboard",
-    href: "/admin/analytics/dashboard",
-    icon: Users,
-  },
-  {
-    title: "Advanced Analytics",
-    href: "/admin/advanced-analytics",
-    icon: TrendingUp,
-  },
-  {
-    title: "Unit Economics",
-    href: "/admin/analytics/unit-economics",
-    icon: Calculator,
-  },
-  {
-    title: "Pixel Config",
-    href: "/admin/analytics/pixel-config",
-    icon: TestTube,
-  },
-  {
-    title: "Cost Management",
-    href: "/admin/cost-management",
-    icon: Target,
-  },
-  {
-    title: "SEO Dashboard",
-    href: "/admin/seo-dashboard",
-    icon: BarChart,
-  },
-  {
-    title: "Google Search Console",
-    href: "/admin/seo/google-search-console",
-    icon: Search,
-  },
-  {
-    title: "Facebook Pixel Analytics",
-    href: "/admin/analytics/facebook-pixel",
-    icon: Share2,
-  },
-  {
-    title: "Competitor Analysis",
-    href: "/admin/competitor-analysis",
-    icon: TrendingUp,
-  },
-  {
-    title: "A/B Testing",
-    href: "/admin/ab-testing",
-    icon: TestTube,
-  },
-  {
-    title: "Content Calendar",
-    href: "/admin/content-calendar",
-    icon: Calendar,
-  },
-  {
-    title: "Email Templates",
-    href: "/admin/email-templates",
-    icon: Mail,
-  },
-  {
-    title: "Email Sequences",
-    href: "/admin/email-sequences",
-    icon: Mail,
-  },
-  {
-    title: "Email Automation",
-    href: "/admin/email-automation",
-    icon: Mail,
-  },
-  {
-    title: "Payment Rollout",
-    href: "/admin/payment-rollout",
-    icon: CreditCard,
-  },
-  { title: "Confidențialitate", href: "/admin/privacy", icon: FileText },
-  {
-    title: "Settings",
-    href: "/admin/settings",
-    icon: Settings,
-  },
-  {
-    title: "Images",
-    href: "/admin/images",
-    icon: Image,
-  },
-];
