@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 
 interface SupplierOption {
   id: string;
@@ -60,12 +60,14 @@ export function EnhancedProductFilter({
     priceMax: searchParams.get("priceMax") || "",
   });
 
-  const activeFiltersCount = useMemo(() => {
-    return Object.entries(filters).filter(([key, value]) => {
-      if (key === "q") return value.trim() !== "";
-      return value !== "all" && value !== "";
-    }).length;
-  }, [filters]);
+  const activeFiltersCount = useMemo(
+    () =>
+      Object.entries(filters).filter(([key, value]) => {
+        if (key === "q") return value.trim() !== "";
+        return value !== "all" && value !== "";
+      }).length,
+    [filters]
+  );
 
   const updateFilters = useCallback(
     (newFilters: Partial<FilterState>) => {
@@ -136,21 +138,22 @@ export function EnhancedProductFilter({
     if (filters.q.trim()) {
       result.push({
         key: "q",
-        label: `Search: "${filters.q}"`,
+        label: `Căutare: "${filters.q}"`,
         value: filters.q,
       });
     }
 
     if (filters.status !== "all") {
       const statusLabels: Record<string, string> = {
-        APPROVED: "Approved",
-        PENDING_APPROVAL: "Pending",
-        REJECTED: "Rejected",
-        DRAFT: "Draft",
+        APPROVED: "Aprobat",
+        IN_PENDING: "În așteptare",
+        REJECTED: "Respins",
+        PUBLISHED: "Publicat",
+        DENIED: "Refuzat",
       };
       result.push({
         key: "status",
-        label: `Status: ${statusLabels[filters.status] || filters.status}`,
+        label: `Stare: ${statusLabels[filters.status] || filters.status}`,
         value: filters.status,
       });
     }
@@ -160,7 +163,7 @@ export function EnhancedProductFilter({
       if (supplier) {
         result.push({
           key: "supplierId",
-          label: `Supplier: ${supplier.companyName || supplier.name}`,
+          label: `Furnizor: ${supplier.companyName || supplier.name}`,
           value: filters.supplierId,
         });
       }
@@ -171,7 +174,7 @@ export function EnhancedProductFilter({
       if (category) {
         result.push({
           key: "categoryId",
-          label: `Category: ${category.name}`,
+          label: `Categorie: ${category.name}`,
           value: filters.categoryId,
         });
       }
@@ -180,7 +183,7 @@ export function EnhancedProductFilter({
     if (filters.priceMin) {
       result.push({
         key: "priceMin",
-        label: `Min Price: ${filters.priceMin} RON`,
+        label: `Preț minim: ${filters.priceMin} RON`,
         value: filters.priceMin,
       });
     }
@@ -188,7 +191,7 @@ export function EnhancedProductFilter({
     if (filters.priceMax) {
       result.push({
         key: "priceMax",
-        label: `Max Price: ${filters.priceMax} RON`,
+        label: `Preț maxim: ${filters.priceMax} RON`,
         value: filters.priceMax,
       });
     }
@@ -201,13 +204,17 @@ export function EnhancedProductFilter({
       {/* Search and Quick Filters */}
       <div className="grid gap-3 md:grid-cols-4 lg:grid-cols-5 items-end">
         <div className="md:col-span-2 lg:col-span-2">
-          <label className="text-xs text-muted-foreground mb-1 block">
-            Search
+          <label
+            htmlFor="admin-product-search"
+            className="text-xs text-muted-foreground mb-1 block"
+          >
+            Caută
           </label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Product name, SKU, description..."
+              id="admin-product-search"
+              placeholder="Nume produs, SKU, descriere..."
               value={filters.q}
               onChange={e => updateFilters({ q: e.target.value })}
               className="pl-9"
@@ -216,39 +223,46 @@ export function EnhancedProductFilter({
         </div>
 
         <div>
-          <label className="text-xs text-muted-foreground mb-1 block">
-            Status
+          <label
+            htmlFor="admin-product-status"
+            className="text-xs text-muted-foreground mb-1 block"
+          >
+            Stare
           </label>
           <Select
             value={filters.status}
             onValueChange={value => updateFilters({ status: value })}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="All Status" />
+            <SelectTrigger id="admin-product-status">
+              <SelectValue placeholder="Toate stările" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="APPROVED">Approved</SelectItem>
-              <SelectItem value="PENDING_APPROVAL">Pending</SelectItem>
-              <SelectItem value="REJECTED">Rejected</SelectItem>
-              <SelectItem value="DRAFT">Draft</SelectItem>
+              <SelectItem value="all">Toate stările</SelectItem>
+              <SelectItem value="APPROVED">Aprobat</SelectItem>
+              <SelectItem value="IN_PENDING">În așteptare</SelectItem>
+              <SelectItem value="REJECTED">Respins</SelectItem>
+              <SelectItem value="PUBLISHED">Publicat</SelectItem>
+              <SelectItem value="DENIED">Refuzat</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div>
-          <label className="text-xs text-muted-foreground mb-1 block">
-            Supplier
+          <label
+            htmlFor="admin-product-supplier"
+            className="text-xs text-muted-foreground mb-1 block"
+          >
+            Furnizor
           </label>
           <Select
             value={filters.supplierId}
             onValueChange={value => updateFilters({ supplierId: value })}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="All Suppliers" />
+            <SelectTrigger id="admin-product-supplier">
+              <SelectValue placeholder="Toți furnizorii" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Suppliers</SelectItem>
+              <SelectItem value="all">Toți furnizorii</SelectItem>
               {suppliers.map(supplier => (
                 <SelectItem key={supplier.id} value={supplier.id}>
                   {supplier.companyName || supplier.name}
@@ -259,18 +273,21 @@ export function EnhancedProductFilter({
         </div>
 
         <div>
-          <label className="text-xs text-muted-foreground mb-1 block">
-            Category
+          <label
+            htmlFor="admin-product-category"
+            className="text-xs text-muted-foreground mb-1 block"
+          >
+            Categorie
           </label>
           <Select
             value={filters.categoryId}
             onValueChange={value => updateFilters({ categoryId: value })}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="All Categories" />
+            <SelectTrigger id="admin-product-category">
+              <SelectValue placeholder="Toate categoriile" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="all">Toate categoriile</SelectItem>
               {categories.map(category => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
@@ -285,10 +302,14 @@ export function EnhancedProductFilter({
       <div className="grid gap-3 md:grid-cols-3 items-end">
         <div className="md:col-span-2 grid grid-cols-2 gap-2">
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">
-              Min Price (RON)
+            <label
+              htmlFor="admin-product-min"
+              className="text-xs text-muted-foreground mb-1 block"
+            >
+              Preț minim (RON)
             </label>
             <Input
+              id="admin-product-min"
               type="number"
               placeholder="0"
               value={filters.priceMin}
@@ -298,10 +319,14 @@ export function EnhancedProductFilter({
             />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">
-              Max Price (RON)
+            <label
+              htmlFor="admin-product-max"
+              className="text-xs text-muted-foreground mb-1 block"
+            >
+              Preț maxim (RON)
             </label>
             <Input
+              id="admin-product-max"
               type="number"
               placeholder="999999"
               value={filters.priceMax}
@@ -315,12 +340,12 @@ export function EnhancedProductFilter({
         <div className="flex items-center gap-2">
           {activeFiltersCount > 0 && (
             <Button variant="outline" onClick={clearFilters} size="sm">
-              Clear All ({activeFiltersCount})
+              Resetează ({activeFiltersCount})
             </Button>
           )}
           {totalResults !== undefined && (
             <div className="text-sm text-muted-foreground">
-              {totalResults} products found
+              {totalResults} produse găsite
             </div>
           )}
         </div>
@@ -329,7 +354,9 @@ export function EnhancedProductFilter({
       {/* Active Filters Display */}
       {activeFilters.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          <span className="text-sm text-muted-foreground">Active filters:</span>
+          <span className="text-sm text-muted-foreground">
+            Filtre aplicate:
+          </span>
           {activeFilters.map(filter => (
             <Badge
               key={filter.key}
@@ -341,6 +368,7 @@ export function EnhancedProductFilter({
                 variant="ghost"
                 size="sm"
                 className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                aria-label={`Elimină filtrul ${filter.label}`}
                 onClick={() => removeFilter(filter.key)}
               >
                 <X className="h-3 w-3" />

@@ -47,10 +47,12 @@ function canShowPopupOnDevice(): boolean {
 export default function DeferredClientFeatures() {
   const { consent } = useCookieConsent();
   const pathname = usePathname();
+  const isAdminPage = pathname === "/admin" || pathname?.startsWith("/admin/");
   const [enableCoreFeatures, setEnableCoreFeatures] = useState(false);
   const [enablePromotionalPopup, setEnablePromotionalPopup] = useState(false);
 
   useEffect(() => {
+    if (isAdminPage) return undefined;
     let loadTimer: number | undefined;
     let popupTimer: number | undefined;
     let idleId: number | undefined;
@@ -106,7 +108,9 @@ export default function DeferredClientFeatures() {
         window.clearTimeout(popupTimer);
       }
     };
-  }, [pathname]);
+  }, [pathname, isAdminPage]);
+
+  if (isAdminPage) return null;
 
   return (
     <>

@@ -1,8 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   ArrowLeft,
   CheckCircle,
@@ -20,8 +17,14 @@ import {
   Award,
   DollarSign,
   AlertCircle,
-  Send,
+  // Send,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,9 +33,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -42,14 +42,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { formatPriceWithCurrency } from "@/lib/currency-converter";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import {
   type Supplier,
   type SupplierStatus,
 } from "@/features/supplier/types/supplier";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { formatPriceWithCurrency } from "@/lib/currency-converter";
 
 const statusConfig = {
   PENDING: {
@@ -84,7 +85,7 @@ interface AdminSupplierDetailProps {
 }
 
 export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
-  const router = useRouter();
+  const _router = useRouter();
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -197,7 +198,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
     }
   };
 
-  const sendNotification = async (type: "approval" | "rejection") => {
+  const _sendNotification = async (type: "approval" | "rejection") => {
     try {
       const response = await fetch(
         `/api/admin/suppliers/${supplierId}/notify`,
@@ -236,13 +237,14 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
 
       const payload = {
         defaultMargin: parsePercent(marginForm.defaultMargin),
-        minimumMarginPercentage: parsePercent(marginForm.minimumMarginPercentage),
+        minimumMarginPercentage: parsePercent(
+          marginForm.minimumMarginPercentage
+        ),
         priceChangeThreshold: parsePercent(marginForm.priceChangeThreshold),
         plannedPromoDiscountPercentage: parsePercent(
           marginForm.plannedPromoDiscountPercentage
         ),
-        useSupplierRetailPriceAsBase:
-          marginForm.useSupplierRetailPriceAsBase,
+        useSupplierRetailPriceAsBase: marginForm.useSupplierRetailPriceAsBase,
       };
 
       const response = await fetch(`/api/admin/suppliers/${supplierId}`, {
@@ -312,7 +314,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading supplier details...</p>
+            <p className="text-gray-600">Se încarcă datele furnizorului…</p>
           </div>
         </div>
       </div>
@@ -329,7 +331,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
         <Button variant="outline" className="mt-4" asChild>
           <Link href="/admin/suppliers">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Suppliers
+            Înapoi la furnizori
           </Link>
         </Button>
       </div>
@@ -347,14 +349,14 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
           <Button variant="outline" asChild>
             <Link href="/admin/suppliers">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Suppliers
+              Înapoi la furnizori
             </Link>
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
               {supplier.companyName}
             </h1>
-            <p className="text-gray-600">Supplier Application Details</p>
+            <p className="text-gray-600">Datele furnizorului</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -380,45 +382,45 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building2 className="w-5 h-5" />
-                Company Information
+                Datele firmei
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Company Name
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">
+                    Numele firmei
+                  </span>
                   <p className="text-gray-900">{supplier.companyName}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Phone
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">
+                    Telefon
+                  </span>
                   <p className="text-gray-900">{supplier.phone}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    VAT Number
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">
+                    Cod TVA
+                  </span>
                   <p className="text-gray-900">
-                    {supplier.vatNumber || "Not provided"}
+                    {supplier.vatNumber || "Necompletat"}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Tax ID
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">
+                    Identificator fiscal
+                  </span>
                   <p className="text-gray-900">
-                    {supplier.taxId || "Not provided"}
+                    {supplier.taxId || "Necompletat"}
                   </p>
                 </div>
               </div>
               {supplier.description && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Description
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">
+                    Descriere
+                  </span>
                   <p className="text-gray-900">{supplier.description}</p>
                 </div>
               )}
@@ -443,7 +445,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
-                Business Address
+                Sediul firmei
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -463,21 +465,21 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5" />
-                Contact Person
+                Persoana de contact
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Name
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">
+                    Nume
+                  </span>
                   <p className="text-gray-900">{supplier.contactPersonName}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Phone
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">
+                    Telefon
+                  </span>
                   <p className="text-gray-900">{supplier.contactPersonPhone}</p>
                 </div>
               </div>
@@ -498,16 +500,17 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
-                Pickup Address (FanCourier)
+                Adresa de ridicare · Fan Courier
               </CardTitle>
               <CardDescription>
-                This address is used for courier pickup and AWB label delivery.
+                Adresa folosită pentru ridicarea coletelor de către curier și
+                documentele AWB.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="pickup-business-address">Address</Label>
+                  <Label htmlFor="pickup-business-address">Adresă</Label>
                   <Input
                     id="pickup-business-address"
                     value={pickupForm.businessAddress}
@@ -520,7 +523,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pickup-business-city">City</Label>
+                  <Label htmlFor="pickup-business-city">Localitate</Label>
                   <Input
                     id="pickup-business-city"
                     value={pickupForm.businessCity}
@@ -533,7 +536,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pickup-business-state">County/State</Label>
+                  <Label htmlFor="pickup-business-state">Județ</Label>
                   <Input
                     id="pickup-business-state"
                     value={pickupForm.businessState}
@@ -546,7 +549,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pickup-business-postal">Postal Code</Label>
+                  <Label htmlFor="pickup-business-postal">Cod poștal</Label>
                   <Input
                     id="pickup-business-postal"
                     value={pickupForm.businessPostalCode}
@@ -559,7 +562,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pickup-business-country">Country</Label>
+                  <Label htmlFor="pickup-business-country">Țară</Label>
                   <Input
                     id="pickup-business-country"
                     value={pickupForm.businessCountry}
@@ -577,7 +580,9 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="pickup-contact-name">Contact Name</Label>
+                  <Label htmlFor="pickup-contact-name">
+                    Numele persoanei de contact
+                  </Label>
                   <Input
                     id="pickup-contact-name"
                     value={pickupForm.contactPersonName}
@@ -590,7 +595,9 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pickup-contact-email">Contact Email</Label>
+                  <Label htmlFor="pickup-contact-email">
+                    E-mail de contact
+                  </Label>
                   <Input
                     id="pickup-contact-email"
                     type="email"
@@ -604,7 +611,9 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pickup-contact-phone">Contact Phone</Label>
+                  <Label htmlFor="pickup-contact-phone">
+                    Telefon de contact
+                  </Label>
                   <Input
                     id="pickup-contact-phone"
                     value={pickupForm.contactPersonPhone}
@@ -617,7 +626,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pickup-main-phone">Main Phone</Label>
+                  <Label htmlFor="pickup-main-phone">Telefon principal</Label>
                   <Input
                     id="pickup-main-phone"
                     value={pickupForm.phone}
@@ -644,32 +653,32 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="w-5 h-5" />
-                Business Details
+                Informații despre firmă
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {supplier.yearEstablished && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Year Established
-                    </label>
+                    <span className="text-sm font-medium text-gray-700">
+                      Anul înființării
+                    </span>
                     <p className="text-gray-900">{supplier.yearEstablished}</p>
                   </div>
                 )}
                 {supplier.employeeCount && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Employees
-                    </label>
+                    <span className="text-sm font-medium text-gray-700">
+                      Angajați
+                    </span>
                     <p className="text-gray-900">{supplier.employeeCount}</p>
                   </div>
                 )}
                 {supplier.annualRevenue && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Annual Revenue
-                    </label>
+                    <span className="text-sm font-medium text-gray-700">
+                      Cifră de afaceri anuală
+                    </span>
                     <p className="text-gray-900">{supplier.annualRevenue}</p>
                   </div>
                 )}
@@ -677,9 +686,9 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
 
               {supplier.productCategories.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Product Categories
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">
+                    Categorii de produse
+                  </span>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {supplier.productCategories.map(category => (
                       <Badge key={category} variant="secondary">
@@ -692,9 +701,9 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
 
               {supplier.certifications.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Certifications
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">
+                    Certificări
+                  </span>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {supplier.certifications.map(cert => (
                       <Badge key={cert} variant="outline">
@@ -715,9 +724,9 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
           {supplier.status === "PENDING" && (
             <Card>
               <CardHeader>
-                <CardTitle>Review Actions</CardTitle>
+                <CardTitle>Verificarea cererii</CardTitle>
                 <CardDescription>
-                  Approve or reject this supplier application
+                  Aprobă sau respinge cererea furnizorului.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -727,7 +736,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                   disabled={isUpdating}
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Approve Application
+                  Aprobă cererea
                 </Button>
 
                 <Dialog
@@ -740,15 +749,15 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                       className="w-full text-red-600 border-red-600 hover:bg-red-50"
                     >
                       <XCircle className="w-4 h-4 mr-2" />
-                      Reject Application
+                      Respinge cererea
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Reject Supplier Application</DialogTitle>
+                      <DialogTitle>Respinge cererea furnizorului</DialogTitle>
                       <DialogDescription>
-                        Please provide a reason for rejection. This will be sent
-                        to the supplier.
+                        Completează motivul respingerii, pentru comunicarea cu
+                        furnizorul.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -764,14 +773,14 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                         variant="outline"
                         onClick={() => setShowRejectionDialog(false)}
                       >
-                        Cancel
+                        Renunță
                       </Button>
                       <Button
                         variant="destructive"
                         onClick={() => handleStatusUpdate("REJECTED")}
                         disabled={!rejectionReason.trim() || isUpdating}
                       >
-                        Reject Application
+                        Respinge cererea
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -784,7 +793,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
           {supplier.status !== "PENDING" && (
             <Card>
               <CardHeader>
-                <CardTitle>Status Management</CardTitle>
+                <CardTitle>Administrarea stării</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {supplier.status === "APPROVED" && (
@@ -796,7 +805,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                       disabled={isUpdating}
                     >
                       <AlertTriangle className="w-4 h-4 mr-2" />
-                      Suspend Supplier
+                      Suspendă furnizorul
                     </Button>
                     <Button
                       variant="outline"
@@ -805,7 +814,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                       disabled={isUpdating}
                     >
                       <Building2 className="w-4 h-4 mr-2" />
-                      Set Inactive
+                      Dezactivează furnizorul
                     </Button>
                   </>
                 )}
@@ -816,7 +825,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                     disabled={isUpdating}
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    Reactivate Supplier
+                    Reactivează furnizorul
                   </Button>
                 )}
                 {supplier.status === "INACTIVE" && (
@@ -826,7 +835,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                     disabled={isUpdating}
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    Activate Supplier
+                    Activează furnizorul
                   </Button>
                 )}
               </CardContent>
@@ -836,30 +845,30 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
           {/* Application Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Application Info</CardTitle>
+              <CardTitle>Informații despre cerere</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">Applied:</span>
+                <span className="text-gray-600">Cerere depusă:</span>
                 <span className="text-gray-900">
-                  {new Date(supplier.createdAt).toLocaleDateString()}
+                  {new Date(supplier.createdAt).toLocaleDateString("ro-RO")}
                 </span>
               </div>
               {supplier.approvedAt && (
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-green-400" />
-                  <span className="text-gray-600">Approved:</span>
+                  <span className="text-gray-600">Aprobată:</span>
                   <span className="text-gray-900">
-                    {new Date(supplier.approvedAt).toLocaleDateString()}
+                    {new Date(supplier.approvedAt).toLocaleDateString("ro-RO")}
                   </span>
                 </div>
               )}
               {supplier.rejectionReason && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Rejection Reason
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">
+                    Motivul respingerii
+                  </span>
                   <p className="text-sm text-gray-600 mt-1">
                     {supplier.rejectionReason}
                   </p>
@@ -873,35 +882,33 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="w-5 h-5" />
-                Financial Terms
+                Condiții comerciale
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Commission Rate
-                </label>
+                <span className="text-sm font-medium text-gray-700">
+                  Comision
+                </span>
                 <p className="text-gray-900">{supplier.commissionRate}%</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Payment Terms
-                </label>
-                <p className="text-gray-900">
-                  Net {supplier.paymentTerms} days
-                </p>
+                <span className="text-sm font-medium text-gray-700">
+                  Termen de plată
+                </span>
+                <p className="text-gray-900">La {supplier.paymentTerms} zile</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Minimum Order Value
-                </label>
+                <span className="text-sm font-medium text-gray-700">
+                  Valoare minimă de comandă
+                </span>
                 <p className="text-gray-900">
                   {formatPriceWithCurrency(supplier.minimumOrderValue, "RON")}
                 </p>
               </div>
               <div className="pt-2 border-t border-gray-100">
                 <div className="text-sm font-medium text-gray-700 mb-2">
-                  Pricing & Margin (applied on next feed sync)
+                  Prețuri și marje · aplicate la următoarea sincronizare
                 </div>
                 <div className="grid grid-cols-1 gap-3">
                   <div className="rounded-md border border-gray-200 p-3 bg-gray-50">
@@ -917,20 +924,23 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                           }))
                         }
                       />
-                      Use Supplier B2C As Base Price
+                      Folosește prețul de retail al furnizorului ca bază
                     </label>
                     <p className="mt-2 text-xs text-gray-500">
-                      When enabled, feed sync starts from supplier retail/B2C
-                      price, adds your extra buffer on top, and can optionally
-                      raise catalog price further to support planned coupon
-                      campaigns.
+                      La sincronizare, prețul de retail al furnizorului devine
+                      baza. Se adaugă marja suplimentară și, opțional, o rezervă
+                      pentru reducerile planificate.
                     </p>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-600">
-                      Extra Buffer Above Supplier B2C (%)
+                    <label
+                      htmlFor="admin-supplier-field-1"
+                      className="text-xs text-gray-600"
+                    >
+                      Marjă peste prețul de retail al furnizorului (%)
                     </label>
                     <Input
+                      id="admin-supplier-field-1"
                       type="number"
                       min="0"
                       max="100"
@@ -945,10 +955,14 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-600">
-                      Planned Promo Discount (%)
+                    <label
+                      htmlFor="admin-supplier-field-2"
+                      className="text-xs text-gray-600"
+                    >
+                      Reducere promoțională planificată (%)
                     </label>
                     <Input
+                      id="admin-supplier-field-2"
                       type="number"
                       min="0"
                       max="100"
@@ -962,15 +976,20 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                       }
                     />
                     <p className="mt-1 text-[11px] text-gray-500">
-                      Example: supplier B2C 30, extra buffer 20%, planned promo
-                      10% saves a sync price of 40 so a 10% coupon lands at 36.
+                      Exemplu: preț furnizor 30 RON, marjă 20%, reducere
+                      planificată 10%. Prețul sincronizat este 40 RON; după
+                      cuponul de 10%, clientul plătește 36 RON.
                     </p>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-600">
-                      Minimum Margin (%)
+                    <label
+                      htmlFor="admin-supplier-field-3"
+                      className="text-xs text-gray-600"
+                    >
+                      Marjă minimă (%)
                     </label>
                     <Input
+                      id="admin-supplier-field-3"
                       type="number"
                       min="0"
                       max="100"
@@ -985,10 +1004,14 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-600">
-                      Price Change Alert Threshold (%)
+                    <label
+                      htmlFor="admin-supplier-field-4"
+                      className="text-xs text-gray-600"
+                    >
+                      Prag de alertă pentru modificarea prețului (%)
                     </label>
                     <Input
+                      id="admin-supplier-field-4"
                       type="number"
                       min="0"
                       max="100"
@@ -1017,26 +1040,26 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>Acțiuni rapide</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <Button variant="outline" className="w-full" asChild>
                 <Link href={`mailto:${supplier.contactPersonEmail}`}>
                   <Mail className="w-4 h-4 mr-2" />
-                  Send Email
+                  Trimite e-mail
                 </Link>
               </Button>
               <Button variant="outline" className="w-full" asChild>
                 <Link href={`tel:${supplier.contactPersonPhone}`}>
                   <Phone className="w-4 h-4 mr-2" />
-                  Call Contact
+                  Sună persoana de contact
                 </Link>
               </Button>
               {supplier.status === "APPROVED" && (
                 <Button variant="outline" className="w-full" asChild>
                   <Link href={`/admin/suppliers/${supplier.id}/products`}>
                     <FileText className="w-4 h-4 mr-2" />
-                    View Products
+                    Vezi produsele
                   </Link>
                 </Button>
               )}

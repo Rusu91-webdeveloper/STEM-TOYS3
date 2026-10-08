@@ -1,12 +1,77 @@
 # Current tasks
 
+- [ ] 2026-10-09 — Owner authorized deploying all completed admin dashboard
+      changes. Estimate: 30–60 minutes. Publish the reviewed branch through the
+      existing Git/Vercel production workflow, verify the exact release commit,
+      production domains and access boundaries, and record deployed evidence.
+      Preserve existing provider acceptance limits and production data.
+
+- [x] 2026-10-08 — Make the owner admin feel and behave like a premium
+      Romanian management system. Estimate: 4–8 hours. Repair configuration
+      saves, replace unsupported assurances with verified behaviour, simplify
+      settings, verify the core business workflows and retain real data/error
+      states. Core settings, real history/restore, checkout consistency, access
+      boundaries and Romanian core workflows are implemented locally. Real DB,
+      HTTP and desktop/mobile checks pass. Completed locally on 2026-10-09;
+      elapsed time not recorded. All 23 focused suites / 151 tests and the
+      production build pass. Full Jest/TypeScript comparisons add zero
+      regressions; existing repository check debt remains. Live provider and
+      advanced-form acceptance remain tracked below. No production deployment.
+
+- [x] 2026-10-08 — Assess whether the redesigned admin is seamless and ready
+      for the owner's premium standard. Estimate: 20–40 minutes; elapsed time
+      not recorded. Read-only local browser/API and source review confirmed
+      missing backup routes, fabricated settings activity, stale save payloads,
+      disconnected security controls and incomplete Romanian inner pages.
+      The overview's checks do not certify all management workflows. Findings
+      and verification limits are in the
+      [dashboard audit](docs/audits/2026-10-08-admin-dashboard.md#readiness-follow-up--8-october-2026).
+
+- [x] 2026-10-08 — Audit and redesign the owner/admin dashboard in Romanian.
+      Estimate: 3–5 hours; elapsed time not recorded. Nine primary business
+      sections, paid-order reporting from actual records, operational attention,
+      supplier visibility and explicit failure states are implemented locally.
+      Simulated report displays and inactive customer actions are withdrawn;
+      customer spending/pagination and notification currencies are corrected.
+      Eight focused suites / 48 tests, isolated PostgreSQL and desktop/mobile
+      checks pass. Full Jest/TypeScript comparisons add zero regressions;
+      existing check debt remains. No production publication or schema change.
+      Advanced settings/report source gaps remain documented in the
+      [dashboard audit](docs/audits/2026-10-08-admin-dashboard.md).
+
+## Discovered During Work
+
+- [x] 2026-10-08 — Resolve stale legacy settings callbacks. The canonical
+      editor now submits current section drafts directly, with save/reload and
+      conflict verification. Legacy Hours/Orders/Inventory/Marketing editors are
+      withdrawn; existing metadata consumers are preserved. Estimate: 1–2 hours.
+- [x] 2026-10-08 — Make security settings reflect enforced authentication.
+      Unsupported MFA/timeout controls and fabricated status are withdrawn;
+      server-side ADMIN rendering and API checks are verified. The screen
+      describes actual session and credential configuration. Estimate: 2–4 hours.
+- [x] 2026-10-08 — Connect configuration snapshots/history/restore to real
+      ADMIN services with version checks and automatic pre-change copies.
+      Database and browser save/restore pass. Copies cover editable settings,
+      not the full database. Fabricated activity/health are withdrawn. Estimate:
+      2–4 hours.
+- [ ] 2026-10-08 — Complete advanced legacy forms and provider acceptance.
+      Core Romanian order/customer/catalog/return/supplier lists, currency
+      displays, searches, settings, stock and return-note persistence are
+      verified locally. Real payment/refund, inbox receipt and courier AWB
+      execution still require provider acceptance; gross paid-order reports
+      explicitly do not deduct partial refunds. Estimate: 4–8 hours for remaining
+      provider/advanced-form scope, depending on available integration access.
+
+## Earlier tasks
+
 - [x] 2026-10-08 — Owner authorized publication of the completed storefront
       improvements. PR #73 merged as `a419d8b3`; the production build is READY
       on both TechTots domains. Live desktop/mobile gift finder, product
       guidance, image keyboard/focus behavior and catalog search/list pass.
       Public feed contains 97 unique products; readiness succeeds and anonymous
       operations access is denied. No release-window runtime errors were found.
-      See the [release record](docs/audits/2026-10-08-storefront-production-release.md).
+      See the
+      [release record](docs/audits/2026-10-08-storefront-production-release.md).
       Merchant Center, real inbox/customer material, backup/restore evidence and
       field performance remain external acceptance items.
 
@@ -21,9 +86,9 @@
       the [storefront audit](docs/audits/2026-10-07-storefront-excellence.md).
       Production build and 84 focused checks pass; full Jest/TypeScript
       comparisons add zero regressions. Existing repository check debt remains.
-      Production publication completed on 8 October in PR #73. Merchant
-      Center registration, authentic customer footage and provider
-      backup/restore confirmation remain separate acceptance steps.
+      Production publication completed on 8 October in PR #73. Merchant Center
+      registration, authentic customer footage and provider backup/restore
+      confirmation remain separate acceptance steps.
 
 - [x] 2026-10-07 — Owner explicitly authorized publishing all completed PR #71
       changes to production. Estimate: 30–60 minutes. Confirm exact reviewed
@@ -32,8 +97,8 @@
       destinations require case approval/warehouse/deadline review; company
       fallback and digital exceptions remain in place. No live payment or
       customer return is used as a test fixture. Release does not close the
-      outstanding Stripe sandbox, inbox or privacy/provider acceptance items.
-      PR #71 merged as `7c9cce07`; its production build is READY on both domains.
+      outstanding Stripe sandbox, inbox or privacy/provider acceptance items. PR
+      #71 merged as `7c9cce07`; its production build is READY on both domains.
       Public pages, anonymous API denials and desktop/mobile checks pass. No
       release-window runtime errors were found. See the
       [production release record](docs/audits/2026-10-07-holds-returns-production-release.md).
@@ -52,8 +117,8 @@
       were accepted by SMTP, with revised receipt/rendering pending. Details in
       the
       [supplier audit](docs/audits/2026-10-07-supplier-return-destinations.md).
-      Owner subsequently authorized production release on 7 October; PR #71
-      is merged as 7c9cce07. Release verification is tracked above.
+      Owner subsequently authorized production release on 7 October; PR #71 is
+      merged as 7c9cce07. Release verification is tracked above.
 
 - [ ] 2026-10-07 — Finalize COD hold expiry, returns/refund acceptance and
       privacy operations at the owner's request. Estimate: 3–5 hours; elapsed
@@ -70,9 +135,9 @@
       [the operations audit](docs/audits/2026-10-07-holds-refunds-privacy.md).
       Published as
       [PR #71](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/71), now
-      merged and deployed after the owner's explicit release request.
-      Owner confirmed company address and authorized Gmail test inbox. Current
-      Neon 30/60-day auto-delete policies and daily cron HTTP 200 were verified;
+      merged and deployed after the owner's explicit release request. Owner
+      confirmed company address and authorized Gmail test inbox. Current Neon
+      30/60-day auto-delete policies and daily cron HTTP 200 were verified;
       5,593 overdue performance records remain, with deletion counts unobserved.
       Added aggregate cron evidence that survives console stripping and the
       production warn log level; 14 focused tests pass. Two real withdrawal SMTP

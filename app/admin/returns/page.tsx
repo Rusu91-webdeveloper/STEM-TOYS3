@@ -1,20 +1,21 @@
 "use client";
 
-import { formatDistance, format } from "date-fns";
+import { format } from "date-fns";
+import { ro } from "date-fns/locale";
 import {
   Loader2,
   MoreHorizontal,
   Search,
-  Filter,
+  // Filter,
   ChevronLeft,
   ChevronRight,
-  X,
+  // X,
   CheckSquare,
   Package,
-  Calendar,
-  TrendingUp,
+  // Calendar,
+  // TrendingUp,
   Users,
-  Clock,
+  // Clock,
   DollarSign,
   RefreshCw,
   BarChart3,
@@ -27,10 +28,11 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { DateRange } from "react-day-picker";
 
-import { AnalyticsChart } from "@/components/ui/analytics-chart";
+import { DashboardError } from "@/app/admin/components/dashboard-status";
+// import { AnalyticsChart } from "@/components/ui/analytics-chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,14 +75,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { ReturnDestinationReview } from "@/features/returns/components/ReturnDestinationReview";
 import { ReturnRefundReviewDialog } from "@/features/returns/components/ReturnRefundReviewDialog";
 import { useCsrfToken } from "@/hooks/useCsrfToken";
+import { formatOrderAmount } from "@/lib/admin/dashboard-metrics";
 import { RETURN_REASON_LABELS_RO } from "@/lib/returns/policy";
-import type { DestinationEvidence, ReturnDestination } from "@/lib/returns/return-destination";
+import type {
+  DestinationEvidence,
+  ReturnDestination,
+} from "@/lib/returns/return-destination";
 import { canTransitionReturnStatus } from "@/lib/returns/status-machine";
 
 type ReturnReason =
@@ -130,7 +136,7 @@ type CustomerSegment =
   | "medium-value"
   | "low-value";
 
-interface AnalyticsData {
+interface _AnalyticsData {
   totalReturns: number;
   returnRate: number;
   averageProcessingTime: number;
@@ -203,6 +209,7 @@ interface ReturnItem {
     orderNumber: string;
     createdAt: string;
     total: number;
+    currency: string;
     shippingCost: number;
     discountAmount: number;
     paymentMethod: string;
@@ -243,24 +250,24 @@ const liabilityOptions: Array<{
   value: ReturnLiability;
   label: string;
 }> = [
-  { value: "UNDECIDED", label: "Undecided" },
-  { value: "SUPPLIER", label: "Supplier" },
-  { value: "COURIER", label: "Courier" },
-  { value: "INTERNAL", label: "Internal" },
-  { value: "CUSTOMER", label: "Customer" },
+  { value: "UNDECIDED", label: "Nestabilită" },
+  { value: "SUPPLIER", label: "Furnizor" },
+  { value: "COURIER", label: "Curier" },
+  { value: "INTERNAL", label: "Magazin" },
+  { value: "CUSTOMER", label: "Client" },
 ];
 
 const resolutionStatusOptions: Array<{
   value: ReturnResolutionStatus;
   label: string;
 }> = [
-  { value: "OPEN", label: "Open" },
-  { value: "WAITING_SUPPLIER", label: "Waiting Supplier" },
-  { value: "WAITING_COURIER", label: "Waiting Courier" },
-  { value: "READY_TO_REFUND", label: "Ready to Refund" },
-  { value: "REFUNDED", label: "Refunded" },
-  { value: "REJECTED", label: "Rejected" },
-  { value: "CLOSED", label: "Closed" },
+  { value: "OPEN", label: "Deschis" },
+  { value: "WAITING_SUPPLIER", label: "În așteptarea furnizorului" },
+  { value: "WAITING_COURIER", label: "În așteptarea curierului" },
+  { value: "READY_TO_REFUND", label: "Pregătit pentru rambursare" },
+  { value: "REFUNDED", label: "Rambursat" },
+  { value: "REJECTED", label: "Respins" },
+  { value: "CLOSED", label: "Închis" },
 ];
 
 interface PaginationMeta {
@@ -271,11 +278,11 @@ interface PaginationMeta {
 }
 
 const statusBadges: Record<ReturnStatus, { label: string; color: string }> = {
-  PENDING: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
-  APPROVED: { label: "Approved", color: "bg-blue-100 text-blue-800" },
-  REJECTED: { label: "Rejected", color: "bg-red-100 text-red-800" },
-  RECEIVED: { label: "Received", color: "bg-purple-100 text-purple-800" },
-  REFUNDED: { label: "Refunded", color: "bg-green-100 text-green-800" },
+  PENDING: { label: "În așteptare", color: "bg-yellow-100 text-yellow-800" },
+  APPROVED: { label: "Aprobat", color: "bg-blue-100 text-blue-800" },
+  REJECTED: { label: "Respins", color: "bg-red-100 text-red-800" },
+  RECEIVED: { label: "Primit", color: "bg-purple-100 text-purple-800" },
+  REFUNDED: { label: "Rambursat", color: "bg-green-100 text-green-800" },
 };
 
 const reasonLabels: Record<ReturnReason, string> = RETURN_REASON_LABELS_RO;
@@ -284,45 +291,48 @@ const liabilityBadges: Record<
   ReturnLiability,
   { label: string; color: string }
 > = {
-  UNDECIDED: { label: "Undecided", color: "bg-slate-100 text-slate-700" },
-  SUPPLIER: { label: "Supplier", color: "bg-violet-100 text-violet-800" },
-  COURIER: { label: "Courier", color: "bg-orange-100 text-orange-800" },
-  INTERNAL: { label: "Internal", color: "bg-blue-100 text-blue-800" },
-  CUSTOMER: { label: "Customer", color: "bg-amber-100 text-amber-800" },
+  UNDECIDED: { label: "Nestabilită", color: "bg-slate-100 text-slate-700" },
+  SUPPLIER: { label: "Furnizor", color: "bg-violet-100 text-violet-800" },
+  COURIER: { label: "Curier", color: "bg-orange-100 text-orange-800" },
+  INTERNAL: { label: "Magazin", color: "bg-blue-100 text-blue-800" },
+  CUSTOMER: { label: "Client", color: "bg-amber-100 text-amber-800" },
 };
 
 const resolutionBadges: Record<
   ReturnResolutionStatus,
   { label: string; color: string }
 > = {
-  OPEN: { label: "Open", color: "bg-slate-100 text-slate-700" },
+  OPEN: { label: "Deschis", color: "bg-slate-100 text-slate-700" },
   WAITING_SUPPLIER: {
-    label: "Waiting Supplier",
+    label: "În așteptarea furnizorului",
     color: "bg-violet-100 text-violet-800",
   },
   WAITING_COURIER: {
-    label: "Waiting Courier",
+    label: "În așteptarea curierului",
     color: "bg-orange-100 text-orange-800",
   },
   READY_TO_REFUND: {
-    label: "Ready to Refund",
+    label: "Pregătit pentru rambursare",
     color: "bg-emerald-100 text-emerald-800",
   },
-  REFUNDED: { label: "Refunded", color: "bg-green-100 text-green-800" },
-  REJECTED: { label: "Rejected", color: "bg-red-100 text-red-800" },
-  CLOSED: { label: "Closed", color: "bg-gray-200 text-gray-800" },
+  REFUNDED: { label: "Rambursat", color: "bg-green-100 text-green-800" },
+  REJECTED: { label: "Respins", color: "bg-red-100 text-red-800" },
+  CLOSED: { label: "Închis", color: "bg-gray-200 text-gray-800" },
 };
 
-function formatRon(value: number) {
-  return new Intl.NumberFormat("ro-RO", {
-    style: "currency",
-    currency: "RON",
-    maximumFractionDigits: 2,
-  }).format(value);
+function formatDate(
+  date: Date,
+  pattern: string,
+  options?: Parameters<typeof format>[2]
+) {
+  return format(date, pattern, { ...options, locale: ro });
 }
 
 function getReturnExposure(returnItem: ReturnItem) {
-  return Number(returnItem.orderItem.price || 0) * Number(returnItem.orderItem.quantity || 0);
+  return (
+    Number(returnItem.orderItem.price || 0) *
+    Number(returnItem.orderItem.quantity || 0)
+  );
 }
 
 function getClaimDeadlineState(deadline?: string | null) {
@@ -340,9 +350,14 @@ function getClaimDeadlineState(deadline?: string | null) {
   };
 }
 
-function canMoveReturnTo(currentStatus: ReturnStatus, nextStatus: ReturnStatus) {
-  return currentStatus !== nextStatus &&
-    canTransitionReturnStatus(currentStatus, nextStatus);
+function canMoveReturnTo(
+  currentStatus: ReturnStatus,
+  nextStatus: ReturnStatus
+) {
+  return (
+    currentStatus !== nextStatus &&
+    canTransitionReturnStatus(currentStatus, nextStatus)
+  );
 }
 
 export default function AdminReturnsPage() {
@@ -360,13 +375,20 @@ export default function AdminReturnsPage() {
     totalPages: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const requestController = useRef<AbortController | null>(null);
+  const successfulQuery = useRef<string | null>(null);
 
   // Analytics data
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   // Filtering state
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(
+    searchParams.get("search") || ""
+  );
+  const [submittedSearch, setSubmittedSearch] = useState(
+    searchParams.get("search") || ""
+  );
   const [filterStatus, setFilterStatus] = useState<ReturnStatus | undefined>(
     undefined
   );
@@ -375,9 +397,6 @@ export default function AdminReturnsPage() {
   );
   const [filterLiability, setFilterLiability] = useState<
     ReturnLiability | undefined
-  >(undefined);
-  const [filterCustomerSegment, setFilterCustomerSegment] = useState<
-    CustomerSegment | undefined
   >(undefined);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
@@ -425,32 +444,41 @@ export default function AdminReturnsPage() {
     const status = searchParams.get("status");
     const reason = searchParams.get("reason");
     const liability = searchParams.get("liability");
-    const customerSegment = searchParams.get("customerSegment");
+
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     const page = searchParams.get("page");
 
-    if (status && status !== "__ALL__") {
-      setFilterStatus(status as ReturnStatus);
-    }
-    if (reason && reason !== "__ALL__") {
-      setFilterReason(reason as ReturnReason);
-    }
-    if (liability && liability !== "__ALL__") {
-      setFilterLiability(liability as ReturnLiability);
-    }
-    if (customerSegment && customerSegment !== "__ALL__") {
-      setFilterCustomerSegment(customerSegment as CustomerSegment);
-    }
-    if (startDate || endDate) {
-      setDateRange({
+    setFilterStatus(
+      status && status !== "__ALL__" ? (status as ReturnStatus) : undefined
+    );
+    setFilterReason(
+      reason && reason !== "__ALL__" ? (reason as ReturnReason) : undefined
+    );
+    setFilterLiability(
+      liability && liability !== "__ALL__"
+        ? (liability as ReturnLiability)
+        : undefined
+    );
+    setSubmittedSearch(searchParams.get("search") || "");
+    setSearchTerm(searchParams.get("search") || "");
+    setDateRange(previous => {
+      if (!startDate && !endDate) return undefined;
+      if (
+        previous?.from?.toISOString() === startDate &&
+        previous?.to?.toISOString() === endDate
+      )
+        return previous;
+      return {
         from: startDate ? new Date(startDate) : undefined,
         to: endDate ? new Date(endDate) : undefined,
-      });
-    }
-    if (page) {
-      setPagination(prev => ({ ...prev, page: parseInt(page) }));
-    }
+      };
+    });
+    const parsedPage = Number(page || "1");
+    setPagination(prev => ({
+      ...prev,
+      page: Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1,
+    }));
   }, [searchParams]);
 
   // Update URL when filters change
@@ -474,45 +502,19 @@ export default function AdminReturnsPage() {
   };
 
   // Fetch analytics data
-  const fetchAnalytics = async (startDate?: string, endDate?: string) => {
-    try {
-      setAnalyticsLoading(true);
-      const params = new URLSearchParams();
-      if (startDate) params.append("startDate", startDate);
-      if (endDate) params.append("endDate", endDate);
 
-      const response = await fetch(
-        `/api/returns/analytics?${params.toString()}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch analytics");
-      }
-
-      const data = await response.json();
-      setAnalytics(data);
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load analytics data.",
-        variant: "destructive",
-      });
-    } finally {
-      setAnalyticsLoading(false);
-    }
-  };
-
-  const fetchReturns = async (
-    page = 1,
-    status?: ReturnStatus,
-    reason?: ReturnReason,
-    liability?: ReturnLiability,
-    customerSegment?: CustomerSegment,
-    dateRange?: DateRange
-  ) => {
-    try {
-      setLoading(true);
-
+  const fetchReturns = useCallback(
+    async (
+      page = 1,
+      status?: ReturnStatus,
+      reason?: ReturnReason,
+      liability?: ReturnLiability,
+      _customerSegment?: CustomerSegment,
+      dateRange?: DateRange
+    ) => {
+      requestController.current?.abort();
+      const controller = new AbortController();
+      requestController.current = controller;
       const params = new URLSearchParams({
         page: page.toString(),
         limit: pagination.limit.toString(),
@@ -527,41 +529,52 @@ export default function AdminReturnsPage() {
       if (liability) {
         params.append("liability", liability);
       }
-      if (customerSegment) {
-        params.append("customerSegment", customerSegment);
-      }
+      if (submittedSearch.trim()) params.set("search", submittedSearch.trim());
       if (dateRange?.from) {
         params.append("startDate", dateRange.from.toISOString());
       }
       if (dateRange?.to) {
-        params.append("endDate", dateRange.to.toISOString());
+        const inclusiveEnd = new Date(dateRange.to);
+        inclusiveEnd.setHours(23, 59, 59, 999);
+        params.append("endDate", inclusiveEnd.toISOString());
       }
 
-      const response = await fetch(`/api/returns/admin?${params.toString()}`);
+      const query = params.toString();
+      try {
+        setLoading(true);
+        setLoadError(null);
+        const response = await fetch(`/api/returns/admin?${query}`, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (controller.signal.aborted) return;
+        setReturns(data.returns);
+        setPagination(data.pagination);
+        setSelectedReturns([]);
+        setHasLoaded(true);
+        successfulQuery.current = query;
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Error fetching returns:", error);
+        setLoadError("Retururile nu au putut fi încărcate. Încearcă din nou.");
+        if (successfulQuery.current !== query) {
+          setReturns([]);
+          setHasLoaded(false);
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
       }
-
-      const data = await response.json();
-      setReturns(data.returns);
-      setPagination(data.pagination);
-    } catch (error) {
-      console.error("Error fetching returns:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load returns. Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [pagination.limit, submittedSearch]
+  );
 
   // Load analytics on mount
-  useEffect(() => {
-    fetchAnalytics();
-  }, []);
 
   // Fetch returns when filters change
   useEffect(() => {
@@ -570,7 +583,7 @@ export default function AdminReturnsPage() {
       filterStatus,
       filterReason,
       filterLiability,
-      filterCustomerSegment,
+      undefined,
       dateRange
     );
   }, [
@@ -578,10 +591,11 @@ export default function AdminReturnsPage() {
     filterStatus,
     filterReason,
     filterLiability,
-    filterCustomerSegment,
     dateRange,
     pagination.limit,
+    fetchReturns,
   ]);
+  useEffect(() => () => requestController.current?.abort(), []);
 
   const handleUpdateStatus = async (
     returnId: string,
@@ -611,11 +625,13 @@ export default function AdminReturnsPage() {
       }
 
       toast({
-        title: "Status Updated",
-        description: data?.notification?.success === false
-          ? "Statusul a fost salvat, dar emailul a eșuat. Corectează configurația și retrimite aprobarea."
-          : `Return status changed to ${statusBadges[newStatus].label}`,
-        variant: data?.notification?.success === false ? "destructive" : "default",
+        title: "Stare actualizată",
+        description:
+          data?.notification?.success === false
+            ? "Statusul a fost salvat, dar emailul a eșuat. Corectează configurația și retrimite aprobarea."
+            : `Return status changed to ${statusBadges[newStatus].label}`,
+        variant:
+          data?.notification?.success === false ? "destructive" : "default",
       });
 
       // Refresh the data
@@ -624,14 +640,14 @@ export default function AdminReturnsPage() {
         filterStatus,
         filterReason,
         filterLiability,
-        filterCustomerSegment,
+        undefined,
         dateRange
       );
     } catch (error) {
       console.error("Error updating status:", error);
       toast({
-        title: "Error",
-        description: "Failed to update return status.",
+        title: "Eroare",
+        description: "Starea returului nu a putut fi actualizată.",
         variant: "destructive",
       });
     }
@@ -640,8 +656,8 @@ export default function AdminReturnsPage() {
   const handleBulkApproval = async () => {
     if (selectedReturns.length === 0) {
       toast({
-        title: "No Returns Selected",
-        description: "Please select returns to approve.",
+        title: "Niciun retur selectat",
+        description: "Selectează retururile pe care vrei să le aprobi.",
         variant: "destructive",
       });
       return;
@@ -662,13 +678,14 @@ export default function AdminReturnsPage() {
         throw new Error("Failed to approve returns");
       }
 
-      const data = await response.json();
+      const _data = await response.json();
 
       toast({
-        title: "Bulk Approval Successful",
-        description: response.status === 202
-          ? "Retururile au fost aprobate, dar unele emailuri au eșuat. Corectează configurația și retrimite aprobarea."
-          : `Aprobat ${selectedReturns.length} retururi. Serviciul de email a acceptat mesajele cu documente și destinații pentru fiecare articol.`,
+        title: "Retururi aprobate",
+        description:
+          response.status === 202
+            ? "Retururile au fost aprobate, dar unele emailuri au eșuat. Corectează configurația și retrimite aprobarea."
+            : `Aprobat ${selectedReturns.length} retururi. Serviciul de email a acceptat mesajele cu documente și destinații pentru fiecare articol.`,
         variant: response.status === 202 ? "destructive" : "default",
       });
 
@@ -679,14 +696,15 @@ export default function AdminReturnsPage() {
         filterStatus,
         filterReason,
         filterLiability,
-        filterCustomerSegment,
+        undefined,
         dateRange
       );
     } catch (error) {
       console.error("Error in bulk approval:", error);
       toast({
-        title: "Bulk Approval Failed",
-        description: "Failed to approve selected returns. Please try again.",
+        title: "Aprobarea a eșuat",
+        description:
+          "Retururile selectate nu au putut fi aprobate. Încearcă din nou.",
         variant: "destructive",
       });
     } finally {
@@ -754,16 +772,6 @@ export default function AdminReturnsPage() {
     updateURL({ liability: newLiability, page: "1" });
   };
 
-  // Handle customer segment filter change
-  const handleCustomerSegmentFilterChange = (value: string) => {
-    const newSegment =
-      value === "__ALL__" ? undefined : (value as CustomerSegment);
-    setFilterCustomerSegment(newSegment);
-    setPagination(prev => ({ ...prev, page: 1 }));
-
-    updateURL({ customerSegment: newSegment, page: "1" });
-  };
-
   // Handle page change
   const handlePageChange = (newPage: number) => {
     setPagination(prev => ({ ...prev, page: newPage }));
@@ -771,11 +779,6 @@ export default function AdminReturnsPage() {
   };
 
   // Handle analytics refresh
-  const handleAnalyticsRefresh = () => {
-    const startDate = dateRange?.from?.toISOString();
-    const endDate = dateRange?.to?.toISOString();
-    fetchAnalytics(startDate, endDate);
-  };
 
   // View return details
   const handleViewDetails = (returnItem: ReturnItem) => {
@@ -796,9 +799,7 @@ export default function AdminReturnsPage() {
       resolutionStatus:
         (returnItem.resolutionStatus as ReturnResolutionStatus) || "OPEN",
       externalClaimDeadline: returnItem.externalClaimDeadline
-        ? new Date(returnItem.externalClaimDeadline)
-            .toISOString()
-            .slice(0, 10)
+        ? new Date(returnItem.externalClaimDeadline).toISOString().slice(0, 10)
         : "",
       resolutionNotes: returnItem.resolutionNotes || "",
     });
@@ -850,19 +851,19 @@ export default function AdminReturnsPage() {
           filterStatus,
           filterReason,
           filterLiability,
-          filterCustomerSegment,
+          undefined,
           dateRange
         );
       }
 
       toast({
-        title: "Supplier Authorization Updated",
-        description: "RMA/ARP workflow details were saved successfully.",
+        title: "Autorizarea furnizorului a fost actualizată",
+        description: "Detaliile autorizării RMA/ARP au fost salvate.",
       });
     } catch (error) {
       console.error("Error updating supplier authorization:", error);
       toast({
-        title: "Error",
+        title: "Eroare",
         description:
           error instanceof Error
             ? error.message
@@ -910,19 +911,20 @@ export default function AdminReturnsPage() {
           filterStatus,
           filterReason,
           filterLiability,
-          filterCustomerSegment,
+          undefined,
           dateRange
         );
       }
 
       toast({
-        title: "Case Tracking Updated",
-        description: "Liability and recovery workflow were saved.",
+        title: "Caz actualizat",
+        description:
+          "Responsabilitatea și etapa de recuperare au fost salvate.",
       });
     } catch (error) {
       console.error("Error updating case tracking:", error);
       toast({
-        title: "Error",
+        title: "Eroare",
         description:
           error instanceof Error
             ? error.message
@@ -988,268 +990,54 @@ export default function AdminReturnsPage() {
     }
   };
 
-  const filteredReturns = searchTerm
-    ? returns.filter(
-        ret =>
-          ret.orderItem.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          ret.order.orderNumber
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          ret.user.email.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : returns;
+  const filteredReturns = returns;
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Returns Management</h1>
+        <h1 className="text-2xl font-bold">Retururi</h1>
       </div>
 
-      <Tabs defaultValue="returns" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="analytics">Analytics & Insights</TabsTrigger>
-          <TabsTrigger value="returns">Returns Management</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="analytics" className="space-y-6">
-          {/* Analytics Dashboard */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Returns
-                </CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {analyticsLoading ? (
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  ) : (
-                    analytics?.totalReturns || 0
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Return requests processed
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Return Rate
-                </CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {analyticsLoading ? (
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  ) : (
-                    `${analytics?.returnRate || 0}%`
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">Of total orders</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Avg Processing Time
-                </CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {analyticsLoading ? (
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  ) : (
-                    `${analytics?.averageProcessingTime || 0} days`
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  From approval to refund
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Active Returns
-                </CardTitle>
-                <RefreshCw className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {analyticsLoading ? (
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  ) : (
-                    analytics?.returnsByStatus.find(s => s.status === "PENDING")
-                      ?.count || 0
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Pending approval
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Charts Section */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <AnalyticsChart
-              data={
-                analytics?.returnsByStatus.map(item => ({
-                  name:
-                    statusBadges[item.status as ReturnStatus]?.label ||
-                    item.status,
-                  value: item.count,
-                })) || []
-              }
-              type="bar"
-              title="Returns by Status"
-              description="Distribution of return requests by current status"
-              color="#2563eb"
-            />
-
-            <AnalyticsChart
-              data={
-                analytics?.returnsByReason.map(item => ({
-                  name:
-                    reasonLabels[item.reason as ReturnReason] || item.reason,
-                  value: item.count,
-                })) || []
-              }
-              type="pie"
-              title="Returns by Reason"
-              description="Most common reasons for returns"
-            />
-          </div>
-
-          {/* Monthly Trends */}
-          <AnalyticsChart
-            data={
-              analytics?.monthlyTrends.map(item => ({
-                name: format(new Date(item.month + "-01"), "MMM yyyy"),
-                value: item.returns,
-              })) || []
-            }
-            type="line"
-            title="Monthly Return Trends"
-            description="Return requests over the last 12 months"
-            color="#10b981"
-            height={350}
-          />
-
-          {/* Customer Segments */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Customer Segments
-              </CardTitle>
-              <CardDescription>
-                Return behavior by customer type
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {analyticsLoading ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>New Customers</span>
-                      <span className="font-medium">
-                        {analytics?.customerSegments.newCustomers || 0}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{
-                          width: `${analytics?.totalReturns ? ((analytics.customerSegments.newCustomers || 0) / analytics.totalReturns) * 100 : 0}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Returning Customers</span>
-                      <span className="font-medium">
-                        {analytics?.customerSegments.returningCustomers || 0}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-green-600 h-2 rounded-full"
-                        style={{
-                          width: `${analytics?.totalReturns ? ((analytics.customerSegments.returningCustomers || 0) / analytics.totalReturns) * 100 : 0}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>High-Value Customers</span>
-                      <span className="font-medium">
-                        {analytics?.customerSegments.highValueCustomers || 0}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-purple-600 h-2 rounded-full"
-                        style={{
-                          width: `${analytics?.totalReturns ? ((analytics.customerSegments.highValueCustomers || 0) / analytics.totalReturns) * 100 : 0}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="returns" className="space-y-6">
+      <div className="w-full">
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
-                Advanced Filters
+                Filtre
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                 {/* Date Range Filter */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Date Range</label>
+                  <label htmlFor="date" className="text-sm font-medium">
+                    Interval
+                  </label>
                   <DateRangePicker
                     date={dateRange}
                     onDateChange={handleDateRangeChange}
-                    placeholder="Select date range"
+                    placeholder="Alege intervalul"
                   />
                 </div>
 
                 {/* Status Filter */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Status</label>
+                  <label
+                    htmlFor="return-field-1"
+                    className="text-sm font-medium"
+                  >
+                    Stare
+                  </label>
                   <Select
                     value={filterStatus || "__ALL__"}
                     onValueChange={handleStatusFilterChange}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Statuses" />
+                    <SelectTrigger id="return-field-1">
+                      <SelectValue placeholder="Toate stările" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__ALL__">All Statuses</SelectItem>
+                      <SelectItem value="__ALL__">Toate stările</SelectItem>
                       {Object.entries(statusBadges).map(
                         ([status, { label }]) => (
                           <SelectItem key={status} value={status}>
@@ -1263,16 +1051,21 @@ export default function AdminReturnsPage() {
 
                 {/* Reason Filter */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Reason</label>
+                  <label
+                    htmlFor="return-field-2"
+                    className="text-sm font-medium"
+                  >
+                    Motiv
+                  </label>
                   <Select
                     value={filterReason || "__ALL__"}
                     onValueChange={handleReasonFilterChange}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Reasons" />
+                    <SelectTrigger id="return-field-2">
+                      <SelectValue placeholder="Toate motivele" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__ALL__">All Reasons</SelectItem>
+                      <SelectItem value="__ALL__">Toate motivele</SelectItem>
                       {Object.entries(reasonLabels).map(([reason, label]) => (
                         <SelectItem key={reason} value={reason}>
                           {label}
@@ -1283,101 +1076,113 @@ export default function AdminReturnsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Responsibility</label>
+                  <label
+                    htmlFor="return-field-3"
+                    className="text-sm font-medium"
+                  >
+                    Responsabilitate
+                  </label>
                   <Select
                     value={filterLiability || "__ALL__"}
                     onValueChange={handleLiabilityFilterChange}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Responsibilities" />
+                    <SelectTrigger id="return-field-3">
+                      <SelectValue placeholder="Toate responsabilitățile" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__ALL__">All Responsibilities</SelectItem>
-                      {Object.entries(liabilityBadges).map(([liability, { label }]) => (
-                        <SelectItem key={liability} value={liability}>
-                          {label}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="__ALL__">
+                        Toate responsabilitățile
+                      </SelectItem>
+                      {Object.entries(liabilityBadges).map(
+                        ([liability, { label }]) => (
+                          <SelectItem key={liability} value={liability}>
+                            {label}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Customer Segment Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Customer Type</label>
-                  <Select
-                    value={filterCustomerSegment || "__ALL__"}
-                    onValueChange={handleCustomerSegmentFilterChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Customers" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__ALL__">All Customers</SelectItem>
-                      <SelectItem value="new">New Customers</SelectItem>
-                      <SelectItem value="returning">
-                        Returning Customers
-                      </SelectItem>
-                      <SelectItem value="high-value">
-                        High-Value ($1000+)
-                      </SelectItem>
-                      <SelectItem value="medium-value">
-                        Medium-Value ($500-$999)
-                      </SelectItem>
-                      <SelectItem value="low-value">
-                        Low-Value (&lt;$500)
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 {/* Search */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Search</label>
-                  <div className="relative">
+                  <label
+                    htmlFor="return-field-4"
+                    className="text-sm font-medium"
+                  >
+                    Caută
+                  </label>
+                  <form
+                    className="relative"
+                    onSubmit={event => {
+                      event.preventDefault();
+                      setSubmittedSearch(searchTerm);
+                      setPagination(prev => ({ ...prev, page: 1 }));
+                      updateURL({
+                        search: searchTerm.trim() || undefined,
+                        page: "1",
+                      });
+                    }}
+                  >
                     <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      placeholder="Search returns..."
+                      id="return-field-4"
+                      placeholder="Client, comandă sau produs"
+                      aria-label="Caută retururi"
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
                       className="pl-8"
                     />
-                    {searchTerm && (
-                      <X
-                        className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground cursor-pointer"
-                        onClick={() => setSearchTerm("")}
-                      />
-                    )}
-                  </div>
+                    <button
+                      type="submit"
+                      aria-label="Aplică căutarea retururilor"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-600"
+                    >
+                      <Search className="h-4 w-4" />
+                    </button>
+                  </form>
                 </div>
               </div>
 
               {/* Clear Filters */}
               <div className="flex justify-between items-center mt-4 pt-4 border-t">
                 <div className="text-sm text-muted-foreground">
-                  {filteredReturns.length} of {pagination.total} returns
+                  {hasLoaded && !loading
+                    ? `${filteredReturns.length} din ${pagination.total} retururi`
+                    : "Se verifică situația retururilor"}
                 </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={handleAnalyticsRefresh}
-                    disabled={analyticsLoading}
+                    onClick={() =>
+                      fetchReturns(
+                        pagination.page,
+                        filterStatus,
+                        filterReason,
+                        filterLiability,
+                        undefined,
+                        dateRange
+                      )
+                    }
+                    disabled={loading}
                   >
                     <RefreshCw
-                      className={`h-4 w-4 mr-2 ${analyticsLoading ? "animate-spin" : ""}`}
+                      className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
                     />
-                    Refresh Analytics
+                    Actualizează retururile
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => {
                       setSearchTerm("");
+                      setSubmittedSearch("");
                       setFilterStatus(undefined);
                       setFilterReason(undefined);
                       setFilterLiability(undefined);
-                      setFilterCustomerSegment(undefined);
                       setDateRange(undefined);
                       setPagination(prev => ({ ...prev, page: 1 }));
 
@@ -1387,7 +1192,7 @@ export default function AdminReturnsPage() {
                       });
                     }}
                   >
-                    Clear Filters
+                    Resetează filtrele
                   </Button>
                 </div>
               </div>
@@ -1414,8 +1219,8 @@ export default function AdminReturnsPage() {
                       />
                       <span className="text-sm font-medium">
                         {selectedReturns.length > 0
-                          ? `${selectedReturns.length} returns selected`
-                          : "Select all pending returns"}
+                          ? `${selectedReturns.length} retururi selectate`
+                          : "Selectează retururile în așteptare"}
                       </span>
                     </div>
                   </div>
@@ -1430,12 +1235,12 @@ export default function AdminReturnsPage() {
                           {bulkProcessing ? (
                             <>
                               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Processing...
+                              Se procesează…
                             </>
                           ) : (
                             <>
                               <CheckSquare className="h-4 w-4 mr-2" />
-                              Approve Selected ({selectedReturns.length})
+                              Aprobă selecția ({selectedReturns.length})
                             </>
                           )}
                         </Button>
@@ -1444,7 +1249,7 @@ export default function AdminReturnsPage() {
                           onClick={() => setSelectedReturns([])}
                           disabled={bulkProcessing}
                         >
-                          Clear Selection
+                          Anulează selecția
                         </Button>
                       </>
                     )}
@@ -1455,9 +1260,10 @@ export default function AdminReturnsPage() {
                     <div className="flex items-center gap-2 text-sm text-blue-800">
                       <Package className="h-4 w-4" />
                       <span>
-                        <strong>Bulk Processing:</strong> Returns from the same
-                        order will be grouped together. Customers will receive
-                        one email with a return document per physical item and its destination.
+                        <strong>Procesarea selecției:</strong> Retururile
+                        aceleiași comenzi sunt grupate. Clientul primește un
+                        singur e-mail, cu câte un document pentru fiecare produs
+                        fizic și destinația lui.
                       </span>
                     </div>
                   </div>
@@ -1466,22 +1272,38 @@ export default function AdminReturnsPage() {
             </Card>
           )}
 
+          {loadError && (
+            <DashboardError
+              message={loadError}
+              stale={hasLoaded}
+              onRetry={() =>
+                fetchReturns(
+                  pagination.page,
+                  filterStatus,
+                  filterReason,
+                  filterLiability,
+                  undefined,
+                  dateRange
+                )
+              }
+            />
+          )}
           <Card>
             <CardHeader>
-              <CardTitle>Return Requests</CardTitle>
+              <CardTitle>Cereri de retur</CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
                 <div className="flex justify-center items-center py-10">
                   <Loader2 className="h-10 w-10 animate-spin text-primary" />
                 </div>
-              ) : filteredReturns.length === 0 ? (
+              ) : !hasLoaded ? null : filteredReturns.length === 0 ? (
                 <div className="text-center py-10 text-gray-500">
-                  No returns found.
+                  Nu există retururi pentru filtrele alese.
                 </div>
               ) : (
                 <>
-                  <div className="rounded-md border">
+                  <div className="overflow-x-auto rounded-md border">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1499,13 +1321,13 @@ export default function AdminReturnsPage() {
                               onCheckedChange={handleSelectAll}
                             />
                           </TableHead>
-                          <TableHead>Return ID</TableHead>
-                          <TableHead>Customer</TableHead>
-                          <TableHead>Product</TableHead>
-                          <TableHead>Reason</TableHead>
-                          <TableHead>Order Date</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Action</TableHead>
+                          <TableHead>ID retur</TableHead>
+                          <TableHead>Client</TableHead>
+                          <TableHead>Produs</TableHead>
+                          <TableHead>Motiv</TableHead>
+                          <TableHead>Data comenzii</TableHead>
+                          <TableHead>Stare</TableHead>
+                          <TableHead className="text-right">Acțiune</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1555,10 +1377,14 @@ export default function AdminReturnsPage() {
                                     {returnItem.orderItem.name}
                                   </div>
                                   <div className="text-xs text-gray-500">
-                                    Order #{returnItem.order.orderNumber}
+                                    Comanda #{returnItem.order.orderNumber}
                                   </div>
                                   <div className="text-xs text-gray-500">
-                                    Exposure: {formatRon(getReturnExposure(returnItem))}
+                                    Sumă în risc:{" "}
+                                    {formatOrderAmount(
+                                      getReturnExposure(returnItem),
+                                      returnItem.order.currency
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -1574,22 +1400,32 @@ export default function AdminReturnsPage() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              {format(
+                              {formatDate(
                                 new Date(returnItem.order.createdAt),
-                                "MMM dd, yyyy"
+                                "dd MMM yyyy"
                               )}
                             </TableCell>
                             <TableCell>
-                              <Badge className={statusBadges[returnItem.status].color}>
+                              <Badge
+                                className={
+                                  statusBadges[returnItem.status].color
+                                }
+                              >
                                 {statusBadges[returnItem.status].label}
                               </Badge>
                               {returnItem.liability && (
                                 <div className="mt-1">
                                   <Badge
                                     variant="outline"
-                                    className={liabilityBadges[returnItem.liability].color}
+                                    className={
+                                      liabilityBadges[returnItem.liability]
+                                        .color
+                                    }
                                   >
-                                    {liabilityBadges[returnItem.liability].label}
+                                    {
+                                      liabilityBadges[returnItem.liability]
+                                        .label
+                                    }
                                   </Badge>
                                 </div>
                               )}
@@ -1598,10 +1434,16 @@ export default function AdminReturnsPage() {
                                   <Badge
                                     variant="outline"
                                     className={
-                                      resolutionBadges[returnItem.resolutionStatus].color
+                                      resolutionBadges[
+                                        returnItem.resolutionStatus
+                                      ].color
                                     }
                                   >
-                                    {resolutionBadges[returnItem.resolutionStatus].label}
+                                    {
+                                      resolutionBadges[
+                                        returnItem.resolutionStatus
+                                      ].label
+                                    }
                                   </Badge>
                                 </div>
                               )}
@@ -1620,13 +1462,15 @@ export default function AdminReturnsPage() {
                                     }`}
                                   >
                                     {deadlineState.isOverdue
-                                      ? `Claim overdue since ${format(
+                                      ? `Termen depășit din ${formatDate(
                                           deadlineState.date,
-                                          "dd MMM yyyy"
+                                          "dd MMM yyyy",
+                                          { locale: ro }
                                         )}`
-                                      : `Claim deadline ${format(
+                                      : `Termen reclamație ${formatDate(
                                           deadlineState.date,
-                                          "dd MMM yyyy"
+                                          "dd MMM yyyy",
+                                          { locale: ro }
                                         )}`}
                                   </div>
                                 );
@@ -1634,7 +1478,7 @@ export default function AdminReturnsPage() {
                               {returnItem.status === "REFUNDED" && (
                                 <div className="mt-1">
                                   <span className="text-xs font-semibold">
-                                    Refund:
+                                    Rambursare:
                                   </span>{" "}
                                   <span
                                     className={
@@ -1660,18 +1504,20 @@ export default function AdminReturnsPage() {
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="icon">
                                     <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Open menu</span>
+                                    <span className="sr-only">
+                                      Deschide acțiunile
+                                    </span>
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuLabel>Acțiuni</DropdownMenuLabel>
                                   <DropdownMenuItem
                                     onClick={() =>
                                       handleViewDetails(returnItem)
                                     }
                                   >
                                     <Eye className="h-4 w-4 mr-2" />
-                                    View Details
+                                    Vezi detaliile
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
@@ -1682,10 +1528,13 @@ export default function AdminReturnsPage() {
                                       )
                                     }
                                     disabled={
-                                      !canMoveReturnTo(returnItem.status, "APPROVED")
+                                      !canMoveReturnTo(
+                                        returnItem.status,
+                                        "APPROVED"
+                                      )
                                     }
                                   >
-                                    Approve Return
+                                    Aprobă returul
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() =>
@@ -1695,10 +1544,13 @@ export default function AdminReturnsPage() {
                                       )
                                     }
                                     disabled={
-                                      !canMoveReturnTo(returnItem.status, "REJECTED")
+                                      !canMoveReturnTo(
+                                        returnItem.status,
+                                        "REJECTED"
+                                      )
                                     }
                                   >
-                                    Reject Return
+                                    Respinge returul
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() =>
@@ -1708,10 +1560,13 @@ export default function AdminReturnsPage() {
                                       )
                                     }
                                     disabled={
-                                      !canMoveReturnTo(returnItem.status, "RECEIVED")
+                                      !canMoveReturnTo(
+                                        returnItem.status,
+                                        "RECEIVED"
+                                      )
                                     }
                                   >
-                                    Mark as Received
+                                    Marchează primit
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() =>
@@ -1721,10 +1576,13 @@ export default function AdminReturnsPage() {
                                       )
                                     }
                                     disabled={
-                                      !canMoveReturnTo(returnItem.status, "REFUNDED")
+                                      !canMoveReturnTo(
+                                        returnItem.status,
+                                        "REFUNDED"
+                                      )
                                     }
                                   >
-                                    Mark as Refunded
+                                    Înregistrează rambursarea
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -1737,8 +1595,8 @@ export default function AdminReturnsPage() {
 
                   <div className="flex justify-between items-center mt-4">
                     <div className="text-sm text-gray-500">
-                      Showing {filteredReturns.length} of {pagination.total}{" "}
-                      returns
+                      Se afișează {filteredReturns.length} din{" "}
+                      {pagination.total} retururi
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
@@ -1748,10 +1606,10 @@ export default function AdminReturnsPage() {
                         disabled={pagination.page <= 1}
                       >
                         <ChevronLeft className="h-4 w-4 mr-1" />
-                        Previous
+                        Înapoi
                       </Button>
                       <div className="text-sm">
-                        Page {pagination.page} of {pagination.totalPages}
+                        Pagina {pagination.page} din {pagination.totalPages}
                       </div>
                       <Button
                         variant="outline"
@@ -1759,7 +1617,7 @@ export default function AdminReturnsPage() {
                         onClick={() => handlePageChange(pagination.page + 1)}
                         disabled={pagination.page >= pagination.totalPages}
                       >
-                        Next
+                        Înainte
                         <ChevronRight className="h-4 w-4 ml-1" />
                       </Button>
                     </div>
@@ -1768,21 +1626,38 @@ export default function AdminReturnsPage() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       {/* Return Details Modal */}
-      {refundTarget && <ReturnRefundReviewDialog key={refundTarget.id} target={refundTarget} onClose={() => setRefundTarget(null)} onUpdated={record => { applyUpdatedReturn(record as ReturnItem); fetchReturns(pagination.page, filterStatus, filterReason, filterLiability, filterCustomerSegment, dateRange); }} />}
+      {refundTarget && (
+        <ReturnRefundReviewDialog
+          key={refundTarget.id}
+          target={refundTarget}
+          onClose={() => setRefundTarget(null)}
+          onUpdated={record => {
+            applyUpdatedReturn(record as ReturnItem);
+            fetchReturns(
+              pagination.page,
+              filterStatus,
+              filterReason,
+              filterLiability,
+              undefined,
+              dateRange
+            );
+          }}
+        />
+      )}
 
       <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
         <DialogContent className="w-[calc(100vw-2rem)] max-w-3xl max-h-[90dvh] overflow-y-auto overflow-x-hidden min-w-0 [overflow-wrap:anywhere] [&>*]:min-w-0 [&_input]:min-w-0 [&_textarea]:min-w-0 [&_button]:whitespace-normal">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
-              Return Details
+              Detaliile returului
             </DialogTitle>
             <DialogDescription>
-              Return ID: {selectedReturnForDetails?.id.slice(-8)}
+              ID retur: {selectedReturnForDetails?.id.slice(-8)}
             </DialogDescription>
           </DialogHeader>
 
@@ -1796,8 +1671,8 @@ export default function AdminReturnsPage() {
                   {statusBadges[selectedReturnForDetails.status].label}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
-                  Requested:{" "}
-                  {format(
+                  Solicitat la:{" "}
+                  {formatDate(
                     new Date(selectedReturnForDetails.createdAt),
                     "MMM dd, yyyy 'at' HH:mm"
                   )}
@@ -1809,18 +1684,18 @@ export default function AdminReturnsPage() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    Customer Information
+                    Date client
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Name:</span>
+                    <span className="text-muted-foreground">Nume:</span>
                     <p className="font-medium">
                       {selectedReturnForDetails.user.name}
                     </p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Email:</span>
+                    <span className="text-muted-foreground">E-mail:</span>
                     <p className="font-medium">
                       {selectedReturnForDetails.user.email}
                     </p>
@@ -1831,15 +1706,17 @@ export default function AdminReturnsPage() {
               {/* Product Info */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Product Details</CardTitle>
+                  <CardTitle className="text-base">Date produs</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-4">
-                    {selectedReturnForDetails.orderItem.product?.images?.[0] && (
+                    {selectedReturnForDetails.orderItem.product
+                      ?.images?.[0] && (
                       <div className="relative h-24 w-24 rounded-lg overflow-hidden border">
                         <Image
                           src={
-                            selectedReturnForDetails.orderItem.product?.images[0]
+                            selectedReturnForDetails.orderItem.product
+                              ?.images[0]
                           }
                           alt={selectedReturnForDetails.orderItem.name}
                           className="object-cover"
@@ -1858,24 +1735,30 @@ export default function AdminReturnsPage() {
                             "N/A"}
                         </p>
                         <p>
-                          Supplier:{" "}
+                          Furnizor:{" "}
                           {selectedReturnForDetails.orderItem.product?.supplier
                             ?.name || "In-house / Unknown"}
                         </p>
                         <p>
-                          Quantity:{" "}
+                          Cantitate:{" "}
                           {selectedReturnForDetails.orderItem.quantity}
                         </p>
                         <p>
-                          Unit Price:{" "}
-                          {formatRon(selectedReturnForDetails.orderItem.price)}
+                          Preț unitar:{" "}
+                          {formatOrderAmount(
+                            selectedReturnForDetails.orderItem.price,
+                            selectedReturnForDetails.order.currency
+                          )}
                         </p>
                         <p>
-                          Order #{selectedReturnForDetails.order.orderNumber}
+                          Comanda #{selectedReturnForDetails.order.orderNumber}
                         </p>
                         <p>
-                          Exposure:{" "}
-                          {formatRon(getReturnExposure(selectedReturnForDetails))}
+                          Sumă în risc:{" "}
+                          {formatOrderAmount(
+                            getReturnExposure(selectedReturnForDetails),
+                            selectedReturnForDetails.order.currency
+                          )}
                         </p>
                       </div>
                     </div>
@@ -1886,21 +1769,29 @@ export default function AdminReturnsPage() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">
-                    Financial Exposure
+                    Situația financiară
                   </CardTitle>
                   <CardDescription>
-                    Refund impact and recovery urgency for this return.
+                    Valoarea rambursării și termenul de recuperare pentru acest
+                    retur.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">At-Risk Amount</p>
+                    <p className="text-sm text-muted-foreground">
+                      Sumă în risc
+                    </p>
                     <p className="mt-1 text-2xl font-semibold">
-                      {formatRon(getReturnExposure(selectedReturnForDetails))}
+                      {formatOrderAmount(
+                        getReturnExposure(selectedReturnForDetails),
+                        selectedReturnForDetails.order.currency
+                      )}
                     </p>
                   </div>
                   <div className="rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">Liability</p>
+                    <p className="text-sm text-muted-foreground">
+                      Responsabilitate
+                    </p>
                     <p className="mt-1 text-lg font-semibold">
                       {
                         liabilityBadges[
@@ -1911,21 +1802,27 @@ export default function AdminReturnsPage() {
                     </p>
                   </div>
                   <div className="rounded-lg border p-4">
-                    <p className="text-sm text-muted-foreground">Claim Deadline</p>
+                    <p className="text-sm text-muted-foreground">
+                      Termen recuperare
+                    </p>
                     {(() => {
                       const deadlineState = getClaimDeadlineState(
                         selectedReturnForDetails.externalClaimDeadline
                       );
                       if (!deadlineState) {
                         return (
-                          <p className="mt-1 text-lg font-semibold">Not set</p>
+                          <p className="mt-1 text-lg font-semibold">
+                            Nestabilit
+                          </p>
                         );
                       }
 
                       return (
                         <>
                           <p className="mt-1 text-lg font-semibold">
-                            {format(deadlineState.date, "dd MMM yyyy")}
+                            {formatDate(deadlineState.date, "dd MMM yyyy", {
+                              locale: ro,
+                            })}
                           </p>
                           <p
                             className={`text-sm ${
@@ -1948,7 +1845,7 @@ export default function AdminReturnsPage() {
               {/* Return Reason */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Return Reason</CardTitle>
+                  <CardTitle className="text-base">Motivul returului</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Badge variant="outline" className="text-sm">
@@ -1957,7 +1854,7 @@ export default function AdminReturnsPage() {
                   {selectedReturnForDetails.details && (
                     <div className="mt-3 p-3 bg-muted rounded-md">
                       <p className="text-sm font-medium mb-1">
-                        Additional Details:
+                        Detalii suplimentare:
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {selectedReturnForDetails.details}
@@ -1972,11 +1869,11 @@ export default function AdminReturnsPage() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <ImageIcon className="h-4 w-4" />
-                    Uploaded Photos
+                    Fotografii încărcate
                     {selectedReturnForDetails.photos &&
                       selectedReturnForDetails.photos.length > 0 && (
                         <Badge variant="secondary" className="ml-2">
-                          {selectedReturnForDetails.photos.length} photo(s)
+                          {selectedReturnForDetails.photos.length} fotografii
                         </Badge>
                       )}
                   </CardTitle>
@@ -2010,7 +1907,7 @@ export default function AdminReturnsPage() {
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>No photos uploaded for this return</p>
+                      <p>Nu există fotografii încărcate pentru acest retur.</p>
                     </div>
                   )}
                 </CardContent>
@@ -2020,17 +1917,23 @@ export default function AdminReturnsPage() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">
-                    Case Decision & Recovery
+                    Decizie și recuperare
                   </CardTitle>
                   <CardDescription>
-                    Decide who owns the loss and track the next step needed to
-                    recover the loss separately from the customer’s legal refund deadline. Supplier authorization and reimbursement must not delay consumer rights.
+                    Stabilește responsabilitatea și următorul pas pentru
+                    recuperarea pierderii. Aprobarea furnizorului și recuperarea
+                    banilor nu trebuie să întârzie rambursarea către client.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Liability</label>
+                      <label
+                        htmlFor="return-field-5"
+                        className="text-sm font-medium"
+                      >
+                        Responsabilitate
+                      </label>
                       <Select
                         value={caseTrackingDraft.liability}
                         onValueChange={value =>
@@ -2040,7 +1943,7 @@ export default function AdminReturnsPage() {
                           }))
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger id="return-field-5">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -2054,8 +1957,11 @@ export default function AdminReturnsPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        Resolution Status
+                      <label
+                        htmlFor="return-field-6"
+                        className="text-sm font-medium"
+                      >
+                        Etapa soluționării
                       </label>
                       <Select
                         value={caseTrackingDraft.resolutionStatus}
@@ -2066,7 +1972,7 @@ export default function AdminReturnsPage() {
                           }))
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger id="return-field-6">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -2080,10 +1986,14 @@ export default function AdminReturnsPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        External Claim Deadline
+                      <label
+                        htmlFor="return-field-7"
+                        className="text-sm font-medium"
+                      >
+                        Termen recuperare externă
                       </label>
                       <Input
+                        id="return-field-7"
                         type="date"
                         value={caseTrackingDraft.externalClaimDeadline}
                         onChange={e =>
@@ -2097,10 +2007,14 @@ export default function AdminReturnsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      Resolution Notes
+                    <label
+                      htmlFor="return-field-8"
+                      className="text-sm font-medium"
+                    >
+                      Note privind soluționarea
                     </label>
                     <Textarea
+                      id="return-field-8"
                       value={caseTrackingDraft.resolutionNotes}
                       onChange={e =>
                         setCaseTrackingDraft(prev => ({
@@ -2108,7 +2022,7 @@ export default function AdminReturnsPage() {
                           resolutionNotes: e.target.value,
                         }))
                       }
-                      placeholder="What happened, who should reimburse, what proof is still missing, and when to refund."
+                      placeholder="Ce s-a întâmplat, cine rambursează, ce dovezi lipsesc și când se face rambursarea."
                       className="min-h-[90px]"
                     />
                   </div>
@@ -2122,7 +2036,7 @@ export default function AdminReturnsPage() {
                       {savingCaseTracking && (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       )}
-                      Save Case Tracking
+                      Salvează cazul
                     </Button>
                   </div>
                 </CardContent>
@@ -2137,13 +2051,27 @@ export default function AdminReturnsPage() {
                 evidence={selectedReturnForDetails.destinationReview}
                 contract={selectedReturnForDetails.supplierContract}
                 warehouseAddress={[
-                  selectedReturnForDetails.orderItem.product?.supplier?.businessAddress,
-                  selectedReturnForDetails.orderItem.product?.supplier?.businessCity,
-                  selectedReturnForDetails.orderItem.product?.supplier?.businessState,
-                  selectedReturnForDetails.orderItem.product?.supplier?.businessCountry,
-                ].filter(Boolean).join(", ")}
-                headers={csrf.addToHeaders({ "Content-Type": "application/json" })}
-                onSaved={(destination, destinationReview) => applyUpdatedReturn({ ...selectedReturnForDetails, destination, destinationReview })}
+                  selectedReturnForDetails.orderItem.product?.supplier
+                    ?.businessAddress,
+                  selectedReturnForDetails.orderItem.product?.supplier
+                    ?.businessCity,
+                  selectedReturnForDetails.orderItem.product?.supplier
+                    ?.businessState,
+                  selectedReturnForDetails.orderItem.product?.supplier
+                    ?.businessCountry,
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+                headers={csrf.addToHeaders({
+                  "Content-Type": "application/json",
+                })}
+                onSaved={(destination, destinationReview) =>
+                  applyUpdatedReturn({
+                    ...selectedReturnForDetails,
+                    destination,
+                    destinationReview,
+                  })
+                }
               />
 
               {/* Supplier Routing & Authorization */}
@@ -2151,16 +2079,16 @@ export default function AdminReturnsPage() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Building2 className="h-4 w-4" />
-                    Supplier Return Workflow
+                    Autorizarea furnizorului
                   </CardTitle>
                   <CardDescription>
-                    Track supplier approval (RMA/ARP) for this return item.
+                    Urmărește autorizarea RMA/ARP pentru produsul returnat.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-muted-foreground">Supplier: </span>
+                      <span className="text-muted-foreground">Furnizor: </span>
                       <span className="font-medium">
                         {selectedReturnForDetails.orderItem.product?.supplier
                           ?.name || "Unknown"}
@@ -2176,29 +2104,27 @@ export default function AdminReturnsPage() {
                     {selectedReturnForDetails.supplierAuthorizationRequestedAt && (
                       <div>
                         <span className="text-muted-foreground">
-                          Requested At:{" "}
+                          Solicitat la:{" "}
                         </span>
                         <span>
-                          {format(
+                          {formatDate(
                             new Date(
                               selectedReturnForDetails.supplierAuthorizationRequestedAt
                             ),
-                            "MMM dd, yyyy HH:mm"
+                            "dd MMM yyyy, HH:mm"
                           )}
                         </span>
                       </div>
                     )}
                     {selectedReturnForDetails.supplierAuthorizationDeadline && (
                       <div>
-                        <span className="text-muted-foreground">
-                          Deadline:{" "}
-                        </span>
+                        <span className="text-muted-foreground">Termen: </span>
                         <span>
-                          {format(
+                          {formatDate(
                             new Date(
                               selectedReturnForDetails.supplierAuthorizationDeadline
                             ),
-                            "MMM dd, yyyy"
+                            "dd MMM yyyy"
                           )}
                         </span>
                       </div>
@@ -2207,8 +2133,11 @@ export default function AdminReturnsPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        Supplier Authorization Status
+                      <label
+                        htmlFor="return-field-9"
+                        className="text-sm font-medium"
+                      >
+                        Starea autorizării
                       </label>
                       <Select
                         value={supplierAuthDraft.status}
@@ -2219,7 +2148,7 @@ export default function AdminReturnsPage() {
                           }))
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger id="return-field-9">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -2233,10 +2162,14 @@ export default function AdminReturnsPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        RMA / ARP Number
+                      <label
+                        htmlFor="return-field-10"
+                        className="text-sm font-medium"
+                      >
+                        Număr RMA/ARP
                       </label>
                       <Input
+                        id="return-field-10"
                         value={supplierAuthDraft.number}
                         onChange={e =>
                           setSupplierAuthDraft(prev => ({
@@ -2249,10 +2182,14 @@ export default function AdminReturnsPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        Response deadline / approved arrival deadline
+                      <label
+                        htmlFor="return-field-11"
+                        className="text-sm font-medium"
+                      >
+                        Termen răspuns / termen recepție aprobat
                       </label>
                       <Input
+                        id="return-field-11"
                         type="date"
                         value={supplierAuthDraft.deadline}
                         onChange={e =>
@@ -2266,10 +2203,14 @@ export default function AdminReturnsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      Supplier Notes
+                    <label
+                      htmlFor="return-field-12"
+                      className="text-sm font-medium"
+                    >
+                      Note furnizor
                     </label>
                     <Textarea
+                      id="return-field-12"
                       value={supplierAuthDraft.notes}
                       onChange={e =>
                         setSupplierAuthDraft(prev => ({
@@ -2277,7 +2218,7 @@ export default function AdminReturnsPage() {
                           notes: e.target.value,
                         }))
                       }
-                      placeholder="Supplier response, RMA conditions, missing info, next action..."
+                      placeholder="Răspunsul furnizorului, condiții RMA, informații lipsă și următorul pas…"
                       className="min-h-[90px]"
                     />
                   </div>
@@ -2291,7 +2232,7 @@ export default function AdminReturnsPage() {
                       {savingSupplierAuthorization && (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       )}
-                      Save Supplier Workflow
+                      Salvează autorizarea
                     </Button>
                   </div>
                 </CardContent>
@@ -2303,12 +2244,12 @@ export default function AdminReturnsPage() {
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
                       <DollarSign className="h-4 w-4" />
-                      Refund Information
+                      Date rambursare
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2 text-sm">
                     <div>
-                      <span className="text-muted-foreground">Status: </span>
+                      <span className="text-muted-foreground">Stare: </span>
                       <span
                         className={
                           selectedReturnForDetails.refundStatus === "SUCCESS"
@@ -2323,7 +2264,7 @@ export default function AdminReturnsPage() {
                     </div>
                     {selectedReturnForDetails.refundError && (
                       <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700">
-                        <p className="font-medium">Error:</p>
+                        <p className="font-medium">Eroare:</p>
                         <p>{selectedReturnForDetails.refundError}</p>
                       </div>
                     )}
@@ -2350,7 +2291,7 @@ export default function AdminReturnsPage() {
                       {selectedReturnForDetails.sentToSupplierAt && (
                         <p>
                           Ultimul raport la furnizor:{" "}
-                          {format(
+                          {formatDate(
                             new Date(selectedReturnForDetails.sentToSupplierAt),
                             "dd MMM yyyy, HH:mm"
                           )}
@@ -2362,7 +2303,7 @@ export default function AdminReturnsPage() {
                       {selectedReturnForDetails.sentToCourierAt && (
                         <p>
                           Ultima reclamație la curier:{" "}
-                          {format(
+                          {formatDate(
                             new Date(selectedReturnForDetails.sentToCourierAt),
                             "dd MMM yyyy, HH:mm"
                           )}
@@ -2376,7 +2317,9 @@ export default function AdminReturnsPage() {
                   {selectedReturnForDetails.reportLogs &&
                     selectedReturnForDetails.reportLogs.length > 0 && (
                       <div className="w-full rounded-md border border-blue-200 bg-white/80 p-3 text-sm text-slate-700">
-                        <p className="mb-2 font-medium">Report History</p>
+                        <p className="mb-2 font-medium">
+                          Istoricul rapoartelor
+                        </p>
                         <div className="space-y-2">
                           {selectedReturnForDetails.reportLogs.map(log => (
                             <div
@@ -2385,9 +2328,13 @@ export default function AdminReturnsPage() {
                             >
                               <p>
                                 {log.recipientType === "SUPPLIER"
-                                  ? "Supplier"
-                                  : "Courier"}{" "}
-                                | {format(new Date(log.sentAt), "dd MMM yyyy, HH:mm")}
+                                  ? "Furnizor"
+                                  : "Curier"}{" "}
+                                |{" "}
+                                {formatDate(
+                                  new Date(log.sentAt),
+                                  "dd MMM yyyy, HH:mm"
+                                )}
                               </p>
                               <p className="text-slate-500">
                                 {log.recipientEmail}
@@ -2404,38 +2351,47 @@ export default function AdminReturnsPage() {
                       </div>
                     )}
                   <div className="flex flex-col sm:flex-row gap-3">
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700"
-                    onClick={() => handleSendReport("supplier")}
-                    disabled={sendingReport !== null}
-                  >
-                    {sendingReport === "supplier" ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Building2 className="h-4 w-4 mr-2" />
-                    )}
-                    Trimite la Furnizor (RMA)
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-orange-300 bg-orange-50 hover:bg-orange-100 text-orange-700"
-                    onClick={() => handleSendReport("courier")}
-                    disabled={sendingReport !== null}
-                  >
-                    {sendingReport === "courier" ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Truck className="h-4 w-4 mr-2" />
-                    )}
-                    Trimite la Curier (Reclamație)
-                  </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700"
+                      onClick={() => handleSendReport("supplier")}
+                      disabled={sendingReport !== null}
+                    >
+                      {sendingReport === "supplier" ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Building2 className="h-4 w-4 mr-2" />
+                      )}
+                      Trimite la Furnizor (RMA)
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-orange-300 bg-orange-50 hover:bg-orange-100 text-orange-700"
+                      onClick={() => handleSendReport("courier")}
+                      disabled={sendingReport !== null}
+                    >
+                      {sendingReport === "courier" ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Truck className="h-4 w-4 mr-2" />
+                      )}
+                      Trimite la Curier (Reclamație)
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              {(selectedReturnForDetails.status === "APPROVED" || selectedReturnForDetails.status === "REJECTED") && (
-                <Button variant="outline" onClick={() => handleUpdateStatus(selectedReturnForDetails.id, selectedReturnForDetails.status)}>
+              {(selectedReturnForDetails.status === "APPROVED" ||
+                selectedReturnForDetails.status === "REJECTED") && (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    handleUpdateStatus(
+                      selectedReturnForDetails.id,
+                      selectedReturnForDetails.status
+                    )
+                  }
+                >
                   Retrimite emailul cu instrucțiuni
                 </Button>
               )}

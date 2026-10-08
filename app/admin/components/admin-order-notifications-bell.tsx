@@ -1,8 +1,8 @@
 "use client";
 
-import { Bell, CheckCheck, Loader2 } from "lucide-react";
+import { Bell, CheckCheck, Loader2, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,223 +14,77 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type AdminOrderNotification = {
-  id: string;
-  orderNumber: string;
-  status: string;
-  paymentStatus: string;
-  paymentMethod: string | null;
-  total: number;
-  createdAt: string;
-  manualShippingReviewRequired: boolean;
-  shippingReviewReason?: string | null;
-  customerName: string;
-  customerEmail: string | null;
-  supplierOrderCount: number;
-  hasPhysicalItems: boolean;
-  hasTracking: boolean;
-  fulfillmentStatus: string;
-  actionBucket: "needs_action" | "in_progress" | "done";
-  actionLabel: string;
-};
+import {
+  type AdminOrderNotification,
+  OrderNotificationItem,
+} from "./order-notification-item";
+import { useDashboardResource } from "./use-dashboard-resource";
 
+const EMPTY_NOTIFICATIONS: AdminOrderNotification[] = [];
 const STORAGE_KEY = "admin_order_notifications_last_seen_at";
-const POLL_INTERVAL_MS = 30_000;
-
-const formatOrderStatus = (status: string) =>
-  status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-
-const formatFulfillmentStatus = (status: string) =>
-  status
-    .toLowerCase()
-    .split("_")
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-
-const formatDateTime = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString("ro-RO", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+const groups = [
+  {
+    key: "needs_action",
+    label: "Necesită atenție",
+    color: "bg-red-50 text-red-700",
+  },
+  {
+    key: "in_progress",
+    label: "În desfășurare",
+    color: "bg-blue-50 text-blue-700",
+  },
+  { key: "done", label: "Încheiate", color: "bg-green-50 text-green-700" },
+] as const;
 
 export default function AdminOrderNotificationsBell() {
-  const [items, setItems] = useState<AdminOrderNotification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refresh, setRefresh] = useState(0);
   const [open, setOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [lastSeenAt, setLastSeenAt] = useState<string | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const resource = useDashboardResource<{
+    notifications: AdminOrderNotification[];
+  }>("/api/admin/notifications/orders?limit=12", refresh);
+  const items = resource.data?.notifications ?? EMPTY_NOTIFICATIONS;
+  const unreadCount = lastSeenAt
+    ? items.filter(
+        item =>
+          new Date(item.createdAt).getTime() > new Date(lastSeenAt).getTime()
+      ).length
+    : 0;
 
   useEffect(() => {
     try {
       setLastSeenAt(window.localStorage.getItem(STORAGE_KEY));
     } catch {
       setLastSeenAt(null);
-    } finally {
-      setHydrated(true);
     }
+    setHydrated(true);
+    const interval = window.setInterval(
+      () => setRefresh(value => value + 1),
+      30_000
+    );
+    return () => window.clearInterval(interval);
   }, []);
 
-  const fetchNotifications = async (showLoader = false) => {
-    if (showLoader) {
-      setRefreshing(true);
-    }
-
-    try {
-      const response = await fetch("/api/admin/notifications/orders?limit=12", {
-        cache: "no-store",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to load admin notifications");
-      }
-
-      const data = await response.json();
-      setItems(Array.isArray(data.notifications) ? data.notifications : []);
-    } catch (error) {
-      console.error("Failed to fetch admin order notifications:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
   useEffect(() => {
-    if (!hydrated) return;
-
-    fetchNotifications();
-    const intervalId = window.setInterval(() => {
-      fetchNotifications();
-    }, POLL_INTERVAL_MS);
-
-    return () => window.clearInterval(intervalId);
-  }, [hydrated]);
-
-  useEffect(() => {
-    if (!hydrated) return;
-
-    if (!lastSeenAt) {
-      if (items[0]?.createdAt) {
-        try {
-          window.localStorage.setItem(STORAGE_KEY, items[0].createdAt);
-          setLastSeenAt(items[0].createdAt);
-        } catch {
-          // no-op
-        }
+    if (hydrated && !lastSeenAt && items[0]?.createdAt) {
+      setLastSeenAt(items[0].createdAt);
+      try {
+        window.localStorage.setItem(STORAGE_KEY, items[0].createdAt);
+      } catch {
+        /* Storage may be disabled. */
       }
-      setUnreadCount(0);
-      return;
     }
-
-    const seenMs = new Date(lastSeenAt).getTime();
-    if (Number.isNaN(seenMs)) {
-      setUnreadCount(0);
-      return;
-    }
-
-    const count = items.filter(item => {
-      const itemMs = new Date(item.createdAt).getTime();
-      return !Number.isNaN(itemMs) && itemMs > seenMs;
-    }).length;
-
-    setUnreadCount(count);
   }, [hydrated, items, lastSeenAt]);
 
   const markAllSeen = () => {
-    const markAt = items[0]?.createdAt || new Date().toISOString();
+    const markAt = items[0]?.createdAt ?? new Date().toISOString();
     try {
       window.localStorage.setItem(STORAGE_KEY, markAt);
     } catch {
-      // no-op
+      /* Storage may be disabled. */
     }
     setLastSeenAt(markAt);
-    setUnreadCount(0);
-  };
-
-  const needsActionItems = items.filter(item => item.actionBucket === "needs_action");
-  const inProgressItems = items.filter(item => item.actionBucket === "in_progress");
-  const doneItems = items.filter(item => item.actionBucket === "done");
-
-  const renderNotificationItem = (item: AdminOrderNotification) => {
-    const isUnread = (() => {
-      if (!lastSeenAt) return false;
-      const itemMs = new Date(item.createdAt).getTime();
-      const seenMs = new Date(lastSeenAt).getTime();
-      return !Number.isNaN(itemMs) && !Number.isNaN(seenMs)
-        ? itemMs > seenMs
-        : false;
-    })();
-
-    return (
-      <DropdownMenuItem key={item.id} asChild className="p-0">
-        <Link
-          href={`/admin/orders/${item.id}`}
-          onClick={markAllSeen}
-          className="block px-3 py-3 cursor-pointer"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium truncate">
-                  #{item.orderNumber}
-                </span>
-                {isUnread && (
-                  <span className="h-2 w-2 rounded-full bg-red-500 shrink-0" />
-                )}
-              </div>
-              <p className="text-xs text-gray-600 truncate">
-                {item.customerName}
-                {item.customerEmail ? ` • ${item.customerEmail}` : ""}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                <span
-                  className={`text-[10px] rounded-full px-1.5 py-0.5 ${
-                    item.actionBucket === "needs_action"
-                      ? "bg-red-100 text-red-800"
-                      : item.actionBucket === "done"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-blue-100 text-blue-800"
-                  }`}
-                >
-                  {item.actionLabel}
-                </span>
-                <span className="text-[10px] rounded-full bg-slate-100 text-slate-700 px-1.5 py-0.5">
-                  Fulfillment: {formatFulfillmentStatus(item.fulfillmentStatus)}
-                </span>
-                {item.hasTracking && (
-                  <span className="text-[10px] rounded-full bg-slate-100 text-slate-700 px-1.5 py-0.5">
-                    AWB/Tracking added
-                  </span>
-                )}
-                {item.supplierOrderCount > 0 && (
-                  <span className="text-[10px] rounded-full bg-slate-100 text-slate-700 px-1.5 py-0.5">
-                    Supplier lines: {item.supplierOrderCount}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-gray-500">
-                {formatOrderStatus(item.status)} • {item.total.toFixed(2)} lei
-              </p>
-              {item.manualShippingReviewRequired && item.shippingReviewReason ? (
-                <p className="text-[11px] text-amber-700 line-clamp-2">
-                  {item.shippingReviewReason}
-                </p>
-              ) : null}
-            </div>
-            <span className="text-[11px] text-gray-500 shrink-0">
-              {formatDateTime(item.createdAt)}
-            </span>
-          </div>
-        </Link>
-      </DropdownMenuItem>
-    );
   };
 
   return (
@@ -238,33 +92,30 @@ export default function AdminOrderNotificationsBell() {
       open={open}
       onOpenChange={nextOpen => {
         setOpen(nextOpen);
-        if (nextOpen) {
-          fetchNotifications(true);
-        }
+        if (nextOpen) setRefresh(value => value + 1);
       }}
     >
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
-          className="relative h-9 w-9 p-0 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-          aria-label={`Order notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+          className="relative h-9 w-9 p-0 text-slate-600"
+          aria-label={`Notificări comenzi${unreadCount > 0 ? ` (${unreadCount} necitite)` : ""}`}
         >
           <Bell className="h-4 w-4" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-600 text-white text-[10px] leading-[1.1rem] font-semibold text-center">
-              {unreadCount > 99 ? "99+" : unreadCount}
+          {unreadCount > 0 && !resource.error && (
+            <span className="absolute -right-1 -top-1 rounded-full bg-red-600 px-1 text-[10px] text-white">
+              {unreadCount}
             </span>
           )}
         </Button>
       </DropdownMenuTrigger>
-
       <DropdownMenuContent
         align="end"
         className="w-[360px] max-w-[calc(100vw-2rem)] p-0"
       >
         <div className="flex items-center justify-between px-3 py-2">
-          <DropdownMenuLabel className="p-0">New Orders</DropdownMenuLabel>
+          <DropdownMenuLabel className="p-0">Comenzi recente</DropdownMenuLabel>
           <div className="flex items-center gap-1">
             <Button
               type="button"
@@ -272,79 +123,80 @@ export default function AdminOrderNotificationsBell() {
               size="sm"
               className="h-8 px-2 text-xs"
               onClick={markAllSeen}
-              disabled={items.length === 0}
+              disabled={items.length === 0 || !!resource.error}
             >
               <CheckCheck className="mr-1 h-3.5 w-3.5" />
-              Seen
+              Citite
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0"
-              onClick={() => fetchNotifications(true)}
-              disabled={refreshing}
-              aria-label="Refresh notifications"
+              onClick={() => setRefresh(value => value + 1)}
+              disabled={resource.loading}
+              aria-label="Actualizează notificările"
             >
-              {refreshing ? (
+              {resource.loading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <Bell className="h-3.5 w-3.5" />
+                <RefreshCw className="h-3.5 w-3.5" />
               )}
             </Button>
           </div>
         </div>
-        <div className="px-3 pb-2 text-[11px] text-gray-500 flex flex-wrap gap-3">
-          <span>Needs action: {needsActionItems.length}</span>
-          <span>In progress: {inProgressItems.length}</span>
-          <span>Done: {doneItems.length}</span>
-        </div>
+        {resource.error && (
+          <p
+            role="alert"
+            className="mx-3 mb-2 rounded-lg bg-amber-50 p-3 text-xs text-amber-900"
+          >
+            Notificările nu au putut fi actualizate.
+            {resource.data
+              ? " Sunt afișate ultimele date încărcate."
+              : " Reîncearcă folosind butonul de actualizare."}
+          </p>
+        )}
         <DropdownMenuSeparator />
-
         <div className="max-h-96 overflow-y-auto">
-          {loading ? (
-            <div className="px-3 py-6 text-sm text-gray-500 flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading notifications...
-            </div>
-          ) : items.length === 0 ? (
-            <div className="px-3 py-6 text-sm text-gray-500">
-              No recent orders yet.
-            </div>
+          {!resource.data && resource.loading ? (
+            <p className="px-3 py-6 text-sm text-slate-500">
+              Se încarcă notificările…
+            </p>
+          ) : !resource.error && items.length === 0 ? (
+            <p className="px-3 py-6 text-sm text-slate-500">
+              Nu există comenzi recente.
+            </p>
           ) : (
-            <>
-              {needsActionItems.length > 0 && (
-                <>
-                  <div className="px-3 py-2 text-xs font-medium text-red-700 bg-red-50">
-                    Needs Action
+            groups.map(group => {
+              const matching = items.filter(
+                item => item.actionBucket === group.key
+              );
+              return (
+                matching.length > 0 && (
+                  <div key={group.key}>
+                    <div
+                      className={`px-3 py-2 text-xs font-medium ${group.color}`}
+                    >
+                      {group.label} · {matching.length}
+                    </div>
+                    {matching.map(item => (
+                      <OrderNotificationItem
+                        key={item.id}
+                        item={item}
+                        lastSeenAt={lastSeenAt}
+                        onSeen={markAllSeen}
+                      />
+                    ))}
                   </div>
-                  {needsActionItems.map(renderNotificationItem)}
-                </>
-              )}
-              {inProgressItems.length > 0 && (
-                <>
-                  <div className="px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50">
-                    In Progress
-                  </div>
-                  {inProgressItems.map(renderNotificationItem)}
-                </>
-              )}
-              {doneItems.length > 0 && (
-                <>
-                  <div className="px-3 py-2 text-xs font-medium text-green-700 bg-green-50">
-                    Done
-                  </div>
-                  {doneItems.map(renderNotificationItem)}
-                </>
-              )}
-            </>
+                )
+              );
+            })
           )}
         </div>
-
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/admin/orders" className="cursor-pointer">
-            Open Orders
+            Vezi toate comenzile
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

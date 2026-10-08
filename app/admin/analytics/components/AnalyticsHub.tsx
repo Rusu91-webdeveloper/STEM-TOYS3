@@ -1,385 +1,138 @@
-"use client";
-
-import Link from "next/link";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  TrendingUp,
-  Users,
-  Target,
+  ArrowUpRight,
   BarChart3,
-  Zap,
-  Activity,
-  ShoppingCart,
-  DollarSign,
-  PieChart,
-  LineChart,
+  Calculator,
+  Package,
+  Users,
+  Building2,
   Search,
-  Facebook,
   Settings,
-  CreditCard,
-  Globe,
-  Brain,
-  Shield,
-  ArrowRight,
+  type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 
-interface AnalyticsSection {
+interface ReportLink {
   title: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  badge: string;
-  badgeVariant: "default" | "secondary" | "destructive" | "outline";
   href: string;
-  features: string[];
+  icon: LucideIcon;
+  note?: string;
 }
-
-const analyticsSections: AnalyticsSection[] = [
-  // Business Analytics
+const reports: ReportLink[] = [
   {
-    title: "Sales Analytics",
-    description: "Revenue, orders, and business performance metrics",
-    icon: ShoppingCart,
-    badge: "Business",
-    badgeVariant: "default",
+    title: "Vânzări și comenzi",
+    description:
+      "Valoarea comenzilor achitate, evoluția zilnică și produsele fizice de top.",
     href: "/admin/analytics/sales",
-    features: [
-      "Revenue tracking",
-      "Order analysis",
-      "Sales trends",
-      "Product performance",
-    ],
+    icon: BarChart3,
   },
   {
-    title: "Unit Economics",
-    description: "Cost analysis and profitability insights",
-    icon: DollarSign,
-    badge: "Business",
-    badgeVariant: "default",
+    title: "Costuri și marje",
+    description: "Analizează costurile produselor și marjele calculate.",
     href: "/admin/analytics/unit-economics",
-    features: [
-      "Profit margins",
-      "Cost analysis",
-      "Break-even points",
-      "Unit profitability",
-    ],
+    icon: Calculator,
+    note: "Estimările depind de costurile completate. Nu reprezintă profitul contabil.",
   },
   {
-    title: "Advanced Analytics",
-    description: "AI-powered predictions and automated intelligence",
-    icon: Brain,
-    badge: "AI",
-    badgeVariant: "secondary",
-    href: "/admin/advanced-analytics",
-    features: [
-      "Trend predictions",
-      "Automated alerts",
-      "Business intelligence",
-      "Advanced KPIs",
-    ],
+    title: "Catalog și stoc",
+    description: "Verifică produsele, prețurile și cantitățile disponibile.",
+    href: "/admin/products",
+    icon: Package,
   },
-
-  // User Analytics
   {
-    title: "User Analytics",
-    description: "Real-time user behavior and engagement metrics",
+    title: "Clienți",
+    description: "Consultă clienții magazinului și istoricul comenzilor lor.",
+    href: "/admin/customers",
     icon: Users,
-    badge: "Users",
-    badgeVariant: "outline",
-    href: "/admin/analytics/dashboard",
-    features: [
-      "User activity",
-      "Session analytics",
-      "Engagement metrics",
-      "Real-time data",
-    ],
   },
   {
-    title: "User Segmentation",
-    description: "Automated user classification and behavioral analysis",
-    icon: Target,
-    badge: "Users",
-    badgeVariant: "outline",
-    href: "/admin/analytics/segmentation",
-    features: [
-      "User segments",
-      "Lifecycle stages",
-      "Behavioral clustering",
-      "Segmentation rules",
-    ],
-  },
-
-  // Marketing Analytics
-  {
-    title: "Social Media Analytics",
-    description: "Facebook, Instagram, and viral content tracking",
-    icon: Facebook,
-    badge: "Marketing",
-    badgeVariant: "secondary",
-    href: "/admin/analytics/facebook-pixel",
-    features: [
-      "Viral tracking",
-      "Social engagement",
-      "Content performance",
-      "Platform analytics",
-    ],
-  },
-  {
-    title: "Pixel Configuration",
-    description: "Manage Facebook, Instagram, and TikTok pixel settings",
-    icon: Settings,
-    badge: "Marketing",
-    badgeVariant: "secondary",
-    href: "/admin/analytics/pixel-config",
-    features: [
-      "Pixel setup",
-      "Event tracking",
-      "Conversion tracking",
-      "Multi-platform config",
-    ],
-  },
-
-  // Technical Analytics
-  {
-    title: "SEO Dashboard",
-    description: "Search engine optimization and website performance",
-    icon: Search,
-    badge: "Technical",
-    badgeVariant: "destructive",
-    href: "/admin/seo-dashboard",
-    features: [
-      "SEO metrics",
-      "Search rankings",
-      "Technical audits",
-      "Performance tracking",
-    ],
-  },
-  {
-    title: "Cost Management",
-    description: "Product cost analysis and optimization strategies",
-    icon: CreditCard,
-    badge: "Technical",
-    badgeVariant: "destructive",
-    href: "/admin/cost-management",
-    features: [
-      "Cost tracking",
-      "Supplier analysis",
-      "Price optimization",
-      "Profit margins",
-    ],
+    title: "Furnizori și facturi",
+    description: "Urmărește facturile și situația furnizorilor.",
+    href: "/admin/supplier-invoices",
+    icon: Building2,
   },
 ];
 
 export function AnalyticsHub() {
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-full">
-            <BarChart3 className="h-8 w-8 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight">Analytics Hub</h1>
-            <p className="text-xl text-muted-foreground mt-1">
-              Comprehensive business intelligence and data insights
-            </p>
-          </div>
-        </div>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Access all your analytics tools in one centralized location. Choose
-          from business metrics, user insights, marketing analytics, and
-          technical performance monitoring.
+    <div className="space-y-6">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-600">
+          TechTots · Rapoarte
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+          Înțelege evoluția magazinului
+        </h1>
+        <p className="mt-2 text-sm text-slate-500">
+          Alege informația de care ai nevoie pentru următoarea decizie.
         </p>
       </div>
-
-      {/* Business Analytics Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <TrendingUp className="h-5 w-5 text-blue-600" />
-          </div>
-          <h2 className="text-2xl font-semibold">Business Analytics</h2>
-          <Badge variant="default">Revenue & Performance</Badge>
-        </div>
-        <p className="text-muted-foreground">
-          Track your business performance, revenue trends, and financial
-          metrics.
-        </p>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {analyticsSections
-            .filter(
-              section => section.badge === "Business" || section.badge === "AI"
-            )
-            .map(section => (
-              <AnalyticsCard key={section.href} section={section} />
-            ))}
-        </div>
-      </div>
-
-      {/* User Analytics Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <Users className="h-5 w-5 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-semibold">User Analytics</h2>
-          <Badge variant="outline">Customer Insights</Badge>
-        </div>
-        <p className="text-muted-foreground">
-          Understand your customers, their behavior, and segmentation patterns.
-        </p>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {analyticsSections
-            .filter(section => section.badge === "Users")
-            .map(section => (
-              <AnalyticsCard key={section.href} section={section} />
-            ))}
-        </div>
-      </div>
-
-      {/* Marketing Analytics Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Activity className="h-5 w-5 text-purple-600" />
-          </div>
-          <h2 className="text-2xl font-semibold">Marketing Analytics</h2>
-          <Badge variant="secondary">Growth & Engagement</Badge>
-        </div>
-        <p className="text-muted-foreground">
-          Monitor your marketing campaigns, social media performance, and
-          conversion tracking.
-        </p>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {analyticsSections
-            .filter(section => section.badge === "Marketing")
-            .map(section => (
-              <AnalyticsCard key={section.href} section={section} />
-            ))}
-        </div>
-      </div>
-
-      {/* Technical Analytics Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-100 rounded-lg">
-            <Shield className="h-5 w-5 text-orange-600" />
-          </div>
-          <h2 className="text-2xl font-semibold">Technical Analytics</h2>
-          <Badge variant="destructive">Performance & SEO</Badge>
-        </div>
-        <p className="text-muted-foreground">
-          Technical performance monitoring, SEO metrics, and cost optimization
-          tools.
-        </p>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {analyticsSections
-            .filter(section => section.badge === "Technical")
-            .map(section => (
-              <AnalyticsCard key={section.href} section={section} />
-            ))}
-        </div>
-      </div>
-
-      {/* Quick Access */}
-      <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Quick Start Guide
-          </CardTitle>
-          <CardDescription>
-            Not sure where to start? Here's our recommended analytics journey.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="text-center space-y-2">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-primary font-bold">1</span>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {reports.map(report => {
+          const Icon = report.icon;
+          return (
+            <Link
+              key={report.href}
+              href={report.href}
+              className="rounded-2xl border border-slate-200 bg-white p-6 transition-colors hover:border-violet-300"
+            >
+              <div className="flex items-center justify-between">
+                <span className="rounded-xl bg-violet-50 p-3">
+                  <Icon
+                    className="h-5 w-5 text-violet-700"
+                    aria-hidden="true"
+                  />
+                </span>
+                <ArrowUpRight
+                  className="h-4 w-4 text-slate-400"
+                  aria-hidden="true"
+                />
               </div>
-              <h3 className="font-medium">Business Overview</h3>
-              <p className="text-sm text-muted-foreground">
-                Start with Sales Analytics to understand your revenue
-                performance
+              <h2 className="mt-5 font-semibold text-slate-950">
+                {report.title}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                {report.description}
               </p>
-            </div>
-            <div className="text-center space-y-2">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-primary font-bold">2</span>
-              </div>
-              <h3 className="font-medium">Customer Insights</h3>
-              <p className="text-sm text-muted-foreground">
-                Explore User Analytics to understand customer behavior
-              </p>
-            </div>
-            <div className="text-center space-y-2">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-primary font-bold">3</span>
-              </div>
-              <h3 className="font-medium">Advanced Intelligence</h3>
-              <p className="text-sm text-muted-foreground">
-                Use Advanced Analytics for AI-powered predictions and alerts
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              {report.note ? (
+                <p className="mt-3 text-xs leading-relaxed text-amber-800">
+                  {report.note}
+                </p>
+              ) : null}
+            </Link>
+          );
+        })}
+      </div>
+      <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 className="font-semibold">Măsurarea traficului</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+          Datele de trafic și publicitate depind de conectarea serviciilor și de
+          evenimentele colectate. Verifică integrarea înainte de a folosi aceste
+          rapoarte.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-4">
+          <Link
+            href="/admin/seo/google-search-console"
+            className="inline-flex min-h-11 items-center gap-2 text-sm text-violet-700 hover:underline"
+          >
+            <Search className="h-4 w-4" />
+            Google Search Console
+          </Link>
+          <Link
+            href="/admin/analytics/pixel-config"
+            className="inline-flex min-h-11 items-center gap-2 text-sm text-violet-700 hover:underline"
+          >
+            <Settings className="h-4 w-4" />
+            Configurare pixeli
+          </Link>
+        </div>
+      </section>
+      <p className="max-w-3xl text-xs leading-relaxed text-slate-500">
+        Rapoartele predictive, analiza concurenței și vechea analiză a
+        comportamentului au fost retrase din navigare: conțin cifre
+        demonstrative sau au surse incomplete. Vor putea fi reactivate când
+        datele reale sunt conectate.
+      </p>
     </div>
-  );
-}
-
-function AnalyticsCard({ section }: { section: AnalyticsSection }) {
-  const IconComponent = section.icon;
-
-  return (
-    <Link href={section.href}>
-      <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02] h-full">
-        <CardHeader className="pb-4">
-          <div className="flex items-start justify-between">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <IconComponent className="h-6 w-6 text-primary" />
-            </div>
-            <Badge variant={section.badgeVariant} className="text-xs">
-              {section.badge}
-            </Badge>
-          </div>
-          <CardTitle className="text-lg">{section.title}</CardTitle>
-          <CardDescription className="text-sm">
-            {section.description}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-1">
-            {section.features.slice(0, 3).map((feature, index) => (
-              <li
-                key={index}
-                className="text-sm text-muted-foreground flex items-center gap-2"
-              >
-                <div className="w-1.5 h-1.5 bg-primary/60 rounded-full" />
-                {feature}
-              </li>
-            ))}
-            {section.features.length > 3 && (
-              <li className="text-sm text-primary font-medium flex items-center gap-2">
-                +{section.features.length - 3} more features
-                <ArrowRight className="h-3 w-3" />
-              </li>
-            )}
-          </ul>
-        </CardContent>
-      </Card>
-    </Link>
   );
 }

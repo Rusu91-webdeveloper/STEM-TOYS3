@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { buildCsv } from "@/lib/admin/csv-export";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
@@ -25,14 +26,19 @@ export async function POST(request: NextRequest) {
     if (search) {
       where.OR = [
         { companyName: { contains: search, mode: "insensitive" } },
+        { name: { contains: search, mode: "insensitive" } },
+        { contactPerson: { contains: search, mode: "insensitive" } },
         { contactPersonName: { contains: search, mode: "insensitive" } },
         { contactPersonEmail: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+        { businessCity: { contains: search, mode: "insensitive" } },
         { vatNumber: { contains: search, mode: "insensitive" } },
       ];
     }
 
     if (status && status !== "ALL") {
-      where.status = status;
+      where.status =
+        status === "APPROVED" ? { in: ["APPROVED", "ACTIVE"] } : status;
     }
 
     // Fetch suppliers with related data
@@ -62,7 +68,7 @@ export async function POST(request: NextRequest) {
             supplierId: supplier.id,
             status: { in: ["DELIVERED"] },
           },
-          _sum: { supplierRevenue: true },
+          _sum: { totalCost: true },
         });
 
         // Transform database fields to match expected format
@@ -77,8 +83,8 @@ export async function POST(request: NextRequest) {
           email: supplier.email,
           contactPersonName:
             supplier.contactPersonName || supplier.contactPerson,
-          contactPersonEmail: supplier.contactPersonEmail,
-          contactPersonPhone: supplier.contactPersonPhone,
+          contactPersonEmail: supplier.contactPersonEmail || supplier.email,
+          contactPersonPhone: supplier.contactPersonPhone || supplier.phone,
           businessAddress: supplier.businessAddress,
           businessCity: supplier.businessCity,
           businessState: supplier.businessState,
@@ -123,7 +129,7 @@ export async function POST(request: NextRequest) {
           createdAt: supplier.createdAt,
           updatedAt: supplier.updatedAt,
           _count: supplier._count,
-          totalRevenue: revenue._sum.supplierRevenue || 0,
+          totalRevenue: revenue._sum.totalCost || 0,
           user: supplier.user,
         };
       })
@@ -131,11 +137,11 @@ export async function POST(request: NextRequest) {
 
     // Generate CSV content
     const csvHeaders = [
-      "Company Name",
+      "Firmă",
       "Company Slug",
-      "Contact Person Name",
-      "Contact Person Email",
-      "Contact Person Phone",
+      "Persoană de contact",
+      "E-mail de contact",
+      "Telefon de contact",
       "Business Address",
       "Business City",
       "Business State",
@@ -158,7 +164,7 @@ export async function POST(request: NextRequest) {
       "Rejection Reason",
       "Total Products",
       "Total Orders",
-      "Total Revenue",
+      "Costuri comenzi livrate · RON",
       "User Account Created",
       "User Email",
       "Created At",
@@ -229,24 +235,7 @@ export async function POST(request: NextRequest) {
     ]);
 
     // Create CSV content
-    const csvContent = [
-      csvHeaders.join(","),
-      ...csvRows.map(row =>
-        row
-          .map(field => {
-            // Escape commas and quotes in CSV fields
-            if (
-              field.includes(",") ||
-              field.includes('"') ||
-              field.includes("\n")
-            ) {
-              return `"${field.replace(/"/g, '""')}"`;
-            }
-            return field;
-          })
-          .join(",")
-      ),
-    ].join("\n");
+    const csvContent = buildCsv(csvHeaders, csvRows);
 
     logger.info("Supplier export generated successfully", {
       adminId: session.user.id,

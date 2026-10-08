@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getRolloutStatistics,
-  updateRolloutConfig,
-} from "@/lib/middleware/payment-provider";
+
+import { auth } from "@/lib/auth";
+import { getRolloutStatistics } from "@/lib/middleware/payment-provider";
 
 // GET - Get current rollout statistics and configuration
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN")
+      return NextResponse.json(
+        { error: "Acces rezervat administratorilor." },
+        { status: 403, headers: { "Cache-Control": "private, no-store" } }
+      );
     const stats = await getRolloutStatistics();
 
-    return NextResponse.json({
-      success: true,
-      data: stats,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data: stats,
+      },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
   } catch (error) {
     console.error("Error getting rollout statistics:", error);
 
@@ -26,65 +34,27 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Update rollout configuration
-export async function POST(request: NextRequest) {
+// The legacy update helper returned success without persisting any changes.
+export async function POST(_request: NextRequest) {
   try {
-    const body = await request.json();
-    const {
-      gradualRolloutPercentage,
-      netopiaEnabled,
-      stripeEnabled,
-      rolloutStrategy,
-    } = body;
-
-    // Validate input
-    const updates: any = {};
-
-    if (typeof gradualRolloutPercentage === "number") {
-      if (gradualRolloutPercentage < 0 || gradualRolloutPercentage > 100) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Gradual rollout percentage must be between 0 and 100",
-          },
-          { status: 400 }
-        );
-      }
-      updates.gradualRolloutPercentage = gradualRolloutPercentage;
-    }
-
-    if (typeof netopiaEnabled === "boolean") {
-      updates.netopiaEnabled = netopiaEnabled;
-    }
-
-    if (typeof stripeEnabled === "boolean") {
-      updates.stripeEnabled = stripeEnabled;
-    }
-
-    if (
-      rolloutStrategy &&
-      ["percentage", "user_id", "country", "locale"].includes(rolloutStrategy)
-    ) {
-      updates.rolloutStrategy = rolloutStrategy;
-    }
-
-    // Update configuration
-    const result = await updateRolloutConfig(updates);
-
-    return NextResponse.json({
-      success: true,
-      data: result,
-      message: "Rollout configuration updated successfully",
-    });
-  } catch (error) {
-    console.error("Error updating rollout configuration:", error);
-
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN")
+      return NextResponse.json(
+        { error: "Acces rezervat administratorilor." },
+        { status: 403, headers: { "Cache-Control": "private, no-store" } }
+      );
     return NextResponse.json(
       {
-        success: false,
-        error: "Failed to update rollout configuration",
+        error:
+          "Configurarea furnizorilor de plată se face în mediul de găzduire. Acest endpoint nu salvează modificări.",
       },
-      { status: 500 }
+      { status: 503, headers: { "Cache-Control": "private, no-store" } }
+    );
+  } catch (error) {
+    console.error("Payment configuration access failed:", error);
+    return NextResponse.json(
+      { error: "Configurația nu este disponibilă." },
+      { status: 500, headers: { "Cache-Control": "private, no-store" } }
     );
   }
 }

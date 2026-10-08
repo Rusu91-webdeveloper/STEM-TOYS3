@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { auth } from "@/lib/auth";
 import { deriveAdminOrderWorkflowSummary } from "@/lib/admin/order-workflow-action";
+import { auth } from "@/lib/auth";
 import { getCached } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { withRateLimit } from "@/lib/rate-limit";
@@ -30,6 +30,7 @@ export const GET = withRateLimit(
         "period",
         "search",
         "workflowBucket",
+        "customerId",
       ]);
       const workflowBucketFilter =
         filters.workflowBucket && filters.workflowBucket !== "all"
@@ -38,6 +39,7 @@ export const GET = withRateLimit(
 
       // Build where clause for filtering
       const where: any = {};
+      if (filters.customerId) where.userId = String(filters.customerId);
 
       if (filters.status && filters.status !== "all") {
         // Handle special shipping_review filter
@@ -167,7 +169,11 @@ export const GET = withRateLimit(
         formattedOrders = filtered.slice(skip, skip + limit);
       } else {
         // Use shared cache key utility
-        const cacheKey = getCacheKey("admin-orders", { ...filters, page, limit });
+        const cacheKey = getCacheKey("admin-orders", {
+          ...filters,
+          page,
+          limit,
+        });
         const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
         // Get total count for pagination (not cached to ensure accuracy)
@@ -242,8 +248,9 @@ function mapAdminOrderRow(order: any, workflow: any) {
   const uniqueSupplierNames = Array.from(
     new Set(
       supplierOrders
-        .map((supplierOrder: any) =>
-          supplierOrder.supplier?.name || supplierOrder.supplier?.companyName
+        .map(
+          (supplierOrder: any) =>
+            supplierOrder.supplier?.name || supplierOrder.supplier?.companyName
         )
         .filter(Boolean)
     )
@@ -253,12 +260,12 @@ function mapAdminOrderRow(order: any, workflow: any) {
       sum + Number(supplierOrder.totalCost ?? 0),
     0
   );
-  const trackedSupplierOrders = supplierOrders.filter(
-    (supplierOrder: any) =>
-      Boolean(supplierOrder.trackingNumber || supplierOrder.supplierOrderId)
+  const trackedSupplierOrders = supplierOrders.filter((supplierOrder: any) =>
+    Boolean(supplierOrder.trackingNumber || supplierOrder.supplierOrderId)
   ).length;
-  const supplierLinePreview = supplierOrders.slice(0, 3).map(
-    (supplierOrder: any) => ({
+  const supplierLinePreview = supplierOrders
+    .slice(0, 3)
+    .map((supplierOrder: any) => ({
       id: supplierOrder.id,
       supplierName:
         supplierOrder.supplier?.name ||
@@ -271,8 +278,7 @@ function mapAdminOrderRow(order: any, workflow: any) {
       status: supplierOrder.status || "PENDING",
       trackingNumber: supplierOrder.trackingNumber || null,
       imageUrl: supplierOrder.product?.images?.[0] || null,
-    })
-  );
+    }));
 
   return {
     dbId: order.id,
@@ -281,9 +287,13 @@ function mapAdminOrderRow(order: any, workflow: any) {
     email: order.user?.email ?? "N/A",
     date: dateStr,
     total: Number(order.total ?? 0),
+    currency: String(order.currency || "RON").toUpperCase(),
+    paymentStatus: order.paymentStatus,
     status: formatStatus(order.status),
     payment: order.paymentMethod ?? "N/A",
-    items: order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) ?? 0,
+    items:
+      order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) ??
+      0,
     manualShippingReviewRequired: order.manualShippingReviewRequired ?? false,
     shippingReviewReason: order.shippingReviewReason ?? null,
     workflowBucket: workflow.actionBucket,

@@ -1,10 +1,14 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Sparkles, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+// import { Suspense } from "react";
 
+import { ProductDeleteButton } from "@/app/admin/products/components/ProductDeleteButton";
+import { ProductStatusActions } from "@/app/admin/products/components/ProductStatusActions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +18,8 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import { formatOrderAmount } from "@/lib/admin/dashboard-metrics";
 import {
   getAgeGroupDisplayName,
   getStemDisciplineDisplayName,
@@ -23,14 +29,10 @@ import {
 } from "@/lib/utils/product-categorization";
 
 import {
-  ProductCardSkeleton,
+  // ProductCardSkeleton,
   ProductGridSkeleton,
 } from "./ProductCardSkeleton";
-import { ProductDeleteButton } from "@/app/admin/products/components/ProductDeleteButton";
-import { ProductStatusActions } from "@/app/admin/products/components/ProductStatusActions";
 import { ProductEnhancementModal } from "./ProductEnhancementModal";
-import { Sparkles, Star } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 interface Product {
   id: string;
@@ -73,6 +75,7 @@ interface ProductGridProps {
 
 function ProductCard({ product }: { product: Product }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [showEnhancementModal, setShowEnhancementModal] = useState(false);
   const [isFeatured, setIsFeatured] = useState(product.featured ?? false);
   const [isTogglingFeatured, setIsTogglingFeatured] = useState(false);
@@ -90,22 +93,23 @@ function ProductCard({ product }: { product: Product }) {
       if (!res.ok) throw new Error("Failed to update");
       setIsFeatured(newValue);
     } catch {
-      // revert optimistic update on failure
-      setIsFeatured(isFeatured);
+      toast({
+        title: "Modificarea nu s-a salvat",
+        description: "Produsul nu a putut fi actualizat. Încearcă din nou.",
+        variant: "destructive",
+      });
     } finally {
       setIsTogglingFeatured(false);
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("ro-RO", {
-      style: "currency",
-      currency: "RON",
-    }).format(price);
-  };
+  const formatPrice = (price: number) =>
+    formatOrderAmount(price, product.priceCurrency || "RON");
 
   const getStatusBadge = (status?: string) => {
     switch (status) {
+      case "PUBLISHED":
+        return <Badge variant="default">Publicat</Badge>;
       case "APPROVED":
         return <Badge variant="default">Aprobat</Badge>;
       case "IN_PENDING":
@@ -115,7 +119,7 @@ function ProductCard({ product }: { product: Product }) {
       case "DENIED":
         return <Badge variant="destructive">Respins</Badge>;
       case "DRAFT":
-        return <Badge variant="outline">Draft</Badge>;
+        return <Badge variant="outline">Ciornă</Badge>;
       default:
         return <Badge variant="outline">Necunoscut</Badge>;
     }
@@ -147,7 +151,9 @@ function ProductCard({ product }: { product: Product }) {
             </div>
           ) : (
             <div className="w-16 h-20 bg-muted rounded-md border flex items-center justify-center">
-              <span className="text-muted-foreground text-xs">No image</span>
+              <span className="text-muted-foreground text-xs">
+                Fără imagine
+              </span>
             </div>
           )}
 
@@ -163,10 +169,11 @@ function ProductCard({ product }: { product: Product }) {
                 STEM
               </Badge>
               {getStatusBadge(product.status)}
+              {!product.isActive && <Badge variant="secondary">Inactiv</Badge>}
               {isFeatured && (
                 <Badge variant="default" className="bg-amber-500 gap-1">
                   <Star className="h-3 w-3 fill-current" />
-                  Featured
+                  Recomandat
                 </Badge>
               )}
               {product.supplier?.companyName && (
@@ -228,7 +235,7 @@ function ProductCard({ product }: { product: Product }) {
                   ))}
                   {product.learningOutcomes.length > 3 && (
                     <Badge variant="outline" className="text-xs">
-                      +{product.learningOutcomes.length - 3} more
+                      +{product.learningOutcomes.length - 3} în plus
                     </Badge>
                   )}
                 </div>
@@ -254,7 +261,7 @@ function ProductCard({ product }: { product: Product }) {
           {/* Sales Info */}
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
-              <span>📦 {product._count.orderItems} vânzări</span>
+              <span>📦 {product._count.orderItems} poziții în comenzi</span>
             </div>
             <div className="flex items-center gap-1">
               <span>🏷️ {product.tags?.length ?? 0} etichete</span>
@@ -263,7 +270,9 @@ function ProductCard({ product }: { product: Product }) {
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-2">
-            <ProductStatusActions productId={product.id} />
+            {isPendingProduct && (
+              <ProductStatusActions productId={product.id} />
+            )}
 
             {/* Enhance Button for Pending Products */}
             {isPendingProduct && (
@@ -274,7 +283,7 @@ function ProductCard({ product }: { product: Product }) {
                 className="bg-purple-600 hover:bg-purple-700"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
-                Enhance with AI
+                Îmbunătățește cu AI
               </Button>
             )}
 
@@ -283,10 +292,16 @@ function ProductCard({ product }: { product: Product }) {
               size="sm"
               onClick={toggleFeatured}
               disabled={isTogglingFeatured}
-              className={isFeatured ? "bg-amber-500 hover:bg-amber-600 border-amber-500" : ""}
+              className={
+                isFeatured
+                  ? "bg-amber-500 hover:bg-amber-600 border-amber-500"
+                  : ""
+              }
             >
-              <Star className={`h-4 w-4 mr-2 ${isFeatured ? "fill-current" : ""}`} />
-              {isFeatured ? "Remove from Featured" : "Mark as Featured"}
+              <Star
+                className={`h-4 w-4 mr-2 ${isFeatured ? "fill-current" : ""}`}
+              />
+              {isFeatured ? "Retrage din recomandări" : "Recomandă produsul"}
             </Button>
 
             <Button asChild variant="default" size="sm" className="flex-1">

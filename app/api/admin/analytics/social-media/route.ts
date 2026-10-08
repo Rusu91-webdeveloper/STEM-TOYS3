@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN")
+      return NextResponse.json(
+        { error: "Acces rezervat administratorilor." },
+        { status: 403, headers: { "Cache-Control": "private, no-store" } }
+      );
+
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get("days") || "30");
     const platform = searchParams.get("platform"); // facebook, instagram, tiktok, all
@@ -172,6 +181,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN")
+      return NextResponse.json(
+        { error: "Acces rezervat administratorilor." },
+        { status: 403, headers: { "Cache-Control": "private, no-store" } }
+      );
+
     const body = await request.json();
     const {
       eventName,
@@ -248,6 +264,8 @@ export async function POST(request: NextRequest) {
         case "tiktok":
           updateData.tiktokShares = { increment: 1 };
           break;
+        default:
+          break;
       }
 
       const existing = await prisma.romanianViralContent.findFirst({
@@ -281,7 +299,7 @@ export async function POST(request: NextRequest) {
       event: {
         id: event.id,
         eventName: event.eventName,
-        platform: platform,
+        platform,
         timestamp: event.timestamp,
       },
     });

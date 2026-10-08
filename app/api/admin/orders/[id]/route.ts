@@ -164,6 +164,7 @@ export async function GET(
       deliveredAt: formatDateSafe(order.deliveredAt),
       status: order.status,
       paymentStatus: order.paymentStatus,
+      currency: String(order.currency || "RON").toUpperCase(),
       paymentMethod: order.paymentMethod,
       shippingMethod: order.shippingMethod ?? undefined,
       manualShippingReviewRequired: order.manualShippingReviewRequired,
@@ -214,14 +215,14 @@ export async function GET(
               ? null
               : supplierNames.length === 1
                 ? supplierNames[0]
-                : `${supplierNames.length} suppliers`,
+                : `${supplierNames.length} furnizori`,
           supplierNames,
           supplierOrderStatus:
             supplierStatuses.length === 0
               ? null
               : supplierStatuses.length === 1
                 ? supplierStatuses[0]
-                : `${supplierMeta?.lineCount ?? supplierStatuses.length} lines`,
+                : `${supplierMeta?.lineCount ?? supplierStatuses.length} poziții`,
           sku: supplierSkus.length === 1 ? supplierSkus[0] : null,
           supplierSkus,
           supplierLineCount: supplierMeta?.lineCount ?? 0,
@@ -517,6 +518,8 @@ export async function PATCH(
         ? new Date(updatedOrder.deliveredAt).toISOString()
         : undefined,
       total: updatedOrder.total,
+      currency: String(updatedOrder.currency || "RON").toUpperCase(),
+      paymentStatus: updatedOrder.paymentStatus,
       status: formatStatus(updatedOrder.status),
       payment: updatedOrder.paymentMethod,
       items: updatedOrder.items.reduce((sum, item) => sum + item.quantity, 0),

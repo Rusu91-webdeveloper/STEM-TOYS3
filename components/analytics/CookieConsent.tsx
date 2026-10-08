@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { OPEN_CONSENT_EVENT, saveCookieConsent } from "@/lib/analytics/consent";
 import { useCookieConsent } from "@/lib/analytics/use-cookie-consent";
 
 export default function CookieConsent() {
+  const pathname = usePathname();
   const { consent, ready } = useCookieConsent(true);
   const [open, setOpen] = useState(false);
   const [customize, setCustomize] = useState(false);
@@ -25,7 +27,8 @@ export default function CookieConsent() {
     return () => window.removeEventListener(OPEN_CONSENT_EVENT, reopen);
   }, [consent]);
 
-  if (!ready) return null;
+  if (!ready || pathname === "/admin" || pathname?.startsWith("/admin/"))
+    return null;
   const choose = (analyticsChoice: boolean, marketingChoice: boolean) => {
     if (
       !saveCookieConsent({
