@@ -6,6 +6,9 @@ storefront review, beyond testing. Work starts from clean `origin/main`
 stock gates, supplier rows and configured prices remain authoritative.
 Implementation does not certify an A+ or change the production deployment.
 
+Published on 8 October after the owner's release request; see the
+[production release record](2026-10-08-storefront-production-release.md).
+
 ## Shopper changes
 
 - All 104 individually reviewed supplier products now receive a structured
