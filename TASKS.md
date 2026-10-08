@@ -1,5 +1,15 @@
 # Current tasks
 
+- [x] 2026-10-09 — Correct the owner's category screen showing all categories as
+      inactive with zero products. Estimate: 30–60 minutes. Use real ADMIN
+      category records and product relations, validate the response, distinguish
+      failed reads from empty results, and verify Romanian desktop/mobile
+      rendering. Withdraw broken category actions; preserve catalog data.
+      Completed 2026-10-09; elapsed time not recorded. Two focused suites / 15
+      tests and real local PostgreSQL/browser refresh/mobile checks pass.
+      Publication evidence is recorded on the fix PR. See the
+      [category correction audit](docs/audits/2026-10-09-admin-category-data.md).
+
 - [x] 2026-10-09 — Owner authorized deploying all completed admin dashboard
       changes. Estimate: 30–60 minutes. Publish the reviewed branch through the
       existing Git/Vercel production workflow, verify the exact release commit,

@@ -3,14 +3,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+const privateHeaders = { "Cache-Control": "private, no-store" };
+
 // GET all categories (including inactive ones) for admin
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await auth();
 
     // Check if user is authenticated and is an admin
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: privateHeaders }
+      );
     }
 
     // Get all categories, including inactive ones
@@ -36,12 +41,15 @@ export async function GET(request: NextRequest) {
       _count: undefined,
     }));
 
-    return NextResponse.json(categoriesWithCounts, { status: 200 });
+    return NextResponse.json(categoriesWithCounts, {
+      status: 200,
+      headers: privateHeaders,
+    });
   } catch (error) {
     console.error("Error fetching categories:", error);
     return NextResponse.json(
       { error: "Failed to fetch categories" },
-      { status: 500 }
+      { status: 500, headers: privateHeaders }
     );
   }
 }
