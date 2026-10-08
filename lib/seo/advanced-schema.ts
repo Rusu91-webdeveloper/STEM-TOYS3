@@ -13,6 +13,7 @@ import {
   merchantOfferPolicies,
   type MerchantShippingSettings,
 } from "./merchant-policy";
+import { validGtin } from "./product-identifiers";
 
 function getProductBrand(product: Product): string | undefined {
   const attributeBrand = product.attributes?.brand;
@@ -187,6 +188,7 @@ export function generateEducationalProductSchema(
         .trim() || product.name,
     image: product.images || [],
     sku: product.sku || product.id,
+    ...(validGtin(product.barcode) ? { gtin: validGtin(product.barcode) } : {}),
     category:
       disciplineBadgeLabel(
         product.stemDiscipline,

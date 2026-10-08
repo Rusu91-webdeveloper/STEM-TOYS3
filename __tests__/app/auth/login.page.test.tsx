@@ -45,17 +45,11 @@ describe("/auth/login page", () => {
   it("renders hero copy and primary CTA inside the immersive layout", () => {
     render(<LoginPage />);
 
-    expect(
-      screen.getByText(
-        "Conectează-te la platforma părinților care cresc vizionari STEM"
-      )
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "signIn" })
-    ).toBeInTheDocument();
+    expect(screen.getByText("Bine ai revenit la TechTots")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "signIn" })).toBeInTheDocument();
   });
 
-  it("shows styled error banner when credentials fail", async () => {
+  it("shows a clear error when credentials fail", async () => {
     mockSignIn.mockResolvedValue({ error: "CredentialsSignin" });
 
     render(<LoginPage />);
@@ -70,9 +64,7 @@ describe("/auth/login page", () => {
     fireEvent.submit(screen.getByRole("button", { name: "signIn" }));
 
     const errorCopy = await screen.findByText("invalidCredentials");
-    const alertWrapper = errorCopy.closest("div");
-    expect(alertWrapper).toHaveClass("border-red-500/40");
+    expect(errorCopy).toBeVisible();
+    expect(screen.getByText("signInFailed")).toBeVisible();
   });
 });
-
-

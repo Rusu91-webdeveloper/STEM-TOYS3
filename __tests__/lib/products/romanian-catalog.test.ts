@@ -173,7 +173,10 @@ describe("resolveProductAgeChip", () => {
       "6+ ani",
     ],
     ["kit-constructie-robot---t-rex-kidz-robotix-4m-03460", "8+ ani"],
-    ["kit-stem-manusa-robotica-genius-toy-g_7080", "8+ ani"],
+    [
+      "kit-stem-manusa-robotica-genius-toy-g_7080",
+      "8+ cu ajutor / 10+ individual",
+    ],
     ["mini-experiment-sparge-o-geoda-cristal-4m-03925", "3+ ani"],
     ["terariu-cristale-cu-dinozauri-4m-experiment-stem-4m-03926", "10+ ani"],
     ["zig-go-bila-cea-mai-mare-traseu-reactie-in-lant-dj05641", "7+ ani"],

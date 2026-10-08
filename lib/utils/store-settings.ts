@@ -58,9 +58,9 @@ export async function getStoreSettings() {
       // Return default settings if none exist
       const defaultSettings = {
         storeName: "TechTots",
-        storeUrl: "https://techtots.com",
+        storeUrl: "https://www.techtots.ro",
         storeDescription:
-          "TechTots is a premier online destination for STEM toys that inspire learning through play.",
+          "Jucării STEM alese cu grijă, pentru copii care descoperă lumea prin joacă.",
         contactEmail: appConfig.contactEmail,
         contactPhone: appConfig.storePhoneFormatted,
         currency: "ron",

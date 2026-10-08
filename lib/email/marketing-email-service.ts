@@ -3,13 +3,14 @@
  * Integrates marketing settings with actual email functionality
  */
 
+import { sendEmailWithBrevo } from "@/lib/brevo";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
+import { getReviewInvitation } from "@/lib/products/review-invitation";
 import {
   getEmailMarketingConfig,
   getEmailTemplate,
   isEmailMarketingEnabled,
 } from "@/lib/utils/marketing-settings";
-import { sendEmailWithBrevo } from "@/lib/brevo";
-import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 
 export interface MarketingEmailRequest {
   to: string | string[];
@@ -332,7 +333,7 @@ export class MarketingEmailService {
     // Add default variables if not provided
     const defaultVariables = {
       storeName: "TechTots",
-      storeUrl: "https://techtots.com",
+      storeUrl: "https://www.techtots.ro",
       supportEmail: appConfig.supportEmail,
       currentYear: new Date().getFullYear(),
     };
@@ -434,19 +435,18 @@ export class MarketingEmailService {
    */
   static async sendReviewRequestEmail(
     email: string,
-    order: any,
-    product: any
+    order: { id: string }
   ): Promise<MarketingEmailResponse> {
+    const invitation = await getReviewInvitation(order.id, email);
+    if (!invitation)
+      return {
+        success: false,
+        error: "No eligible delivered purchase to review",
+      };
     return this.sendMarketingEmail({
-      to: email,
+      to: invitation.email,
       templateType: "reviewRequest",
-      variables: {
-        email: email,
-        orderNumber: order.orderNumber,
-        productName: product.name,
-        productUrl: `${process.env.NEXT_PUBLIC_APP_URL}/products/${product.slug}`,
-        reviewUrl: `${process.env.NEXT_PUBLIC_APP_URL}/products/${product.slug}/review`,
-      },
+      variables: invitation,
     });
   }
 

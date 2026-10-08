@@ -74,6 +74,7 @@ export async function notifyDeliveredOrder(params: {
       to: order.user.email,
       customerName: order.user.name || "Customer",
       orderId: order.orderNumber,
+      internalOrderId: order.id,
       orderItems: order.items.map(item => ({
         id: item.id,
         productId: item.productId ?? "",

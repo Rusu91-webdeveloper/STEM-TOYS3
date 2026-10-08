@@ -8,7 +8,7 @@ describe("PillarSection", () => {
 
     const links = [
       { name: /Ghid STEM 2026/i, href: "/ghid-jucarii-stem-2026" },
-      { name: /Cadouri 6–8 ani/i, href: "/cadouri-stem-6-8-ani" },
+      { name: /Găsește un cadou/i, href: "/alege-cadoul" },
       { name: /Beneficii STEM/i, href: "/beneficiile-jucariilor-stem" },
       { name: /Întrebări frecvente/i, href: "/faq" },
     ];

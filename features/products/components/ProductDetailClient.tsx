@@ -3,7 +3,7 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React from "react";
 
 import { LazyProductReviews } from "@/components/lazy/client";
 import { CodPaymentNotice } from "@/components/storefront/CodPaymentNotice";
@@ -16,6 +16,7 @@ import {
   disciplineBadgeLabel,
   resolveProductAgeChip,
 } from "@/lib/products/romanian-catalog";
+import type { ProductDelivery } from "@/lib/shipping/product-delivery";
 import { resolveStorefrontCategoryLink } from "@/lib/utils/category-page-links";
 
 import { useProductActions } from "../hooks/useProductActions";
@@ -23,6 +24,8 @@ import { useProductActions } from "../hooks/useProductActions";
 import { BundleContents, type BundleContentItem } from "./BundleContents";
 import { ProductBreadcrumb } from "./ProductBreadcrumb";
 import { ProductBuyingSummary } from "./ProductBuyingSummary";
+import { ProductDeliverySummary } from "./ProductDeliverySummary";
+import { ProductDemonstration } from "./ProductDemonstration";
 import { ProductDescription } from "./ProductDescription";
 import ProductEducation from "./ProductEducation";
 import ProductFAQ from "./ProductFAQ";
@@ -47,6 +50,7 @@ import ProductUpsellPicker, { type ProductUpsell } from "./ProductUpsellPicker";
 interface ProductDetailClientProps {
   product: any;
   codSettings?: PublicCODSettings;
+  delivery?: ProductDelivery;
   upsellProducts?: ProductUpsell[];
   relatedProducts?: any[];
   initialReviews?: Review[];
@@ -60,6 +64,7 @@ interface ProductDetailClientProps {
 export default function ProductDetailClient({
   product,
   codSettings,
+  delivery,
   relatedProducts: _relatedProducts = [],
   initialReviews = [],
   reviewsUnavailable = false,
@@ -71,11 +76,10 @@ export default function ProductDetailClient({
 }: ProductDetailClientProps) {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState<
-    number | null
-  >(null);
-  const [isFreeShippingActive, setIsFreeShippingActive] = useState(false);
-  const buyingGuide = getProductBuyingGuide(product.slug);
+  const freeShippingThreshold = delivery?.freeThreshold ?? null;
+  const isFreeShippingActive = freeShippingThreshold !== null;
+  const buyingGuide =
+    product.buyingGuide ?? getProductBuyingGuide(product.slug);
   useProductViewTracking(product);
 
   // Use the custom hook for product actions
@@ -88,28 +92,6 @@ export default function ProductDetailClient({
     handleFavorite,
     handleQuickAddToCart,
   } = useProductActions(product, t);
-
-  // Fetch free shipping settings on component mount
-  useEffect(() => {
-    async function fetchFreeShippingSettings() {
-      try {
-        const response = await fetch("/api/checkout/shipping-settings");
-        if (response.ok) {
-          const shippingSettings = await response.json();
-          if (shippingSettings.freeThreshold?.active) {
-            setFreeShippingThreshold(
-              parseFloat(shippingSettings.freeThreshold.price)
-            );
-            setIsFreeShippingActive(true);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching free shipping settings:", error);
-      }
-    }
-
-    fetchFreeShippingSettings();
-  }, []);
 
   const disciplineLabel = disciplineBadgeLabel(
     product.stemDiscipline,
@@ -195,6 +177,7 @@ export default function ProductDetailClient({
                     tags: m?.tags,
                   }))}
                 />
+                <ProductDemonstration slug={product.slug} />
               </div>
 
               {/* Product Info */}
@@ -245,16 +228,7 @@ export default function ProductDetailClient({
                     <CodPaymentNotice settings={codSettings} />
                   )}
                   {buyingGuide && <ProductBuyingSummary guide={buyingGuide} />}
-                  <p className="text-sm text-slate-600">
-                    Plată cu cardul sau ramburs · Livrare 1–4 zile lucrătoare
-                  </p>
-                  {product.slug ===
-                    "kit-stem-manusa-robotica-genius-toy-G_7080" && (
-                    <p className="text-sm text-slate-600">
-                      De la 8 ani cu ajutor; de la 10 ani pentru lucru
-                      individual.
-                    </p>
-                  )}
+                  {delivery && <ProductDeliverySummary delivery={delivery} />}
                 </div>
 
                 <ProductUpsellPicker

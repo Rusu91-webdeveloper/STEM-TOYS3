@@ -64,6 +64,10 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       return forbidden("You can only review items from your own orders");
     }
 
+    if (orderItem.productId !== validatedData.productId) {
+      return forbidden("You can only review the product in this order item");
+    }
+
     // Verify that the order is delivered
     if (orderItem.order.status !== "DELIVERED") {
       return forbidden("You can only review items from delivered orders");
@@ -73,9 +77,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     const existingReview = await db.review.findFirst({
       where: {
         orderItemId: validatedData.orderItemId,
-        ...(session?.user
-          ? { userId: session.user.id }
-          : { guestEmail: validatedData.guestEmail }),
+        userId: session.user.id,
       },
     });
 

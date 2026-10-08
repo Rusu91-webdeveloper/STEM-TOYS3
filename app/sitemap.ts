@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
 
 const staticRoutes: MetadataRoute.Sitemap = [
+  { url: `${baseUrl}/alege-cadoul`, changeFrequency: "daily", priority: 0.85 },
   {
     url: `${baseUrl}/`,
     changeFrequency: "daily",

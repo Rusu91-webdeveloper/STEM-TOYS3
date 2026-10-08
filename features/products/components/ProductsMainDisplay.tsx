@@ -1,25 +1,18 @@
 "use client";
 
-import {
-  LayoutGrid,
-  List,
-  ChevronDown,
-  X,
-  Search,
-  ShoppingCart,
-} from "lucide-react";
+import { LayoutGrid, List, X, Search, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect, useCallback } from "react";
 
 import { Input } from "@/components/ui/input";
 import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
-import { ProductGrid } from "@/features/products";
 import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { productPublicPath } from "@/lib/products/public-slug";
 import { disciplineBadgeLabel } from "@/lib/products/romanian-catalog";
 import type { Product } from "@/types/product";
 
 import { OptimizedProductImage } from "./OptimizedProductImage";
+import { ProductGrid } from "./ProductGrid";
 
 interface CategoryInfo {
   id: string;
@@ -48,6 +41,7 @@ interface ProductsMainDisplayProps {
   visibleProductsCount: number;
   displayedProducts: any[];
   viewMode: "grid" | "list";
+  onViewModeChange?: (value: "grid" | "list") => void;
   sortOption?: string;
   onSortChange?: (value: string) => void;
   searchQuery?: string;
@@ -71,6 +65,7 @@ export function ProductsMainDisplay({
   visibleProductsCount: _visibleProductsCount,
   displayedProducts,
   viewMode,
+  onViewModeChange,
   sortOption,
   onSortChange,
   searchQuery = "",
@@ -87,7 +82,6 @@ export function ProductsMainDisplay({
   const [prevProductCount, setPrevProductCount] = useState(
     displayedProducts.length
   );
-  const [sortOpen, setSortOpen] = useState(false);
 
   const { addItem } = useShoppingCart();
   const [cartStates, setCartStates] = useState<
@@ -150,10 +144,6 @@ export function ProductsMainDisplay({
     return undefined;
   }, [displayedProducts, prevProductCount]);
 
-  const currentSortLabel =
-    SORT_OPTIONS.find(o => o.value === (sortOption ?? "featured"))?.label ??
-    "Sortează după";
-
   return (
     <div className="flex-1 text-slate-900">
       {/* Toolbar — view toggle + sort (desktop) */}
@@ -163,10 +153,9 @@ export function ProductsMainDisplay({
           <button
             type="button"
             aria-label={t("gridView", "Grid view")}
-            onClick={() => {
-              /* view change handled by parent via ProductGrid */
-            }}
-            className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+            onClick={() => onViewModeChange?.("grid")}
+            aria-pressed={viewMode === "grid"}
+            className={`flex h-11 w-11 items-center justify-center rounded-lg transition ${
               viewMode === "grid"
                 ? "bg-slate-900 text-white"
                 : "text-slate-400 hover:text-slate-700 hover:bg-slate-50"
@@ -177,7 +166,9 @@ export function ProductsMainDisplay({
           <button
             type="button"
             aria-label={t("listView", "List view")}
-            className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+            onClick={() => onViewModeChange?.("list")}
+            aria-pressed={viewMode === "list"}
+            className={`flex h-11 w-11 items-center justify-center rounded-lg transition ${
               viewMode === "list"
                 ? "bg-slate-900 text-white"
                 : "text-slate-400 hover:text-slate-700 hover:bg-slate-50"
@@ -196,16 +187,18 @@ export function ProductsMainDisplay({
             />
             <Input
               type="search"
+              aria-label="Caută produse"
               value={searchQuery}
               onChange={e => onSearchQueryChange?.(e.currentTarget.value)}
               placeholder={t("productsSearchPlaceholder", "Caută produse...")}
-              className="h-10 rounded-xl border-slate-200 bg-slate-50 pl-9 pr-8 text-sm shadow-none focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-100"
+              className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-9 pr-12 text-sm shadow-none focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-100"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={onClearSearch}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                aria-label="Șterge căutarea"
+                className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -213,52 +206,22 @@ export function ProductsMainDisplay({
           </div>
         </div>
 
-        {/* Sort dropdown */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setSortOpen(v => !v)}
-            className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          {t("sortBy", "Sortează după:")}
+          <select
+            aria-label="Sortează produsele"
+            value={sortOption ?? "featured"}
+            onChange={event => onSortChange?.(event.target.value)}
+            className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium"
           >
-            <span className="text-slate-500 text-xs">
-              {t("sortBy", "Sortează după:")}
-            </span>
-            <span className="font-medium">{currentSortLabel}</span>
-            <ChevronDown
-              className={`h-4 w-4 text-slate-400 transition-transform ${sortOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-          {sortOpen && (
-            <div className="absolute right-0 top-full mt-1 z-20 min-w-[200px] rounded-xl border border-slate-200 bg-white shadow-lg py-1 overflow-hidden">
-              {SORT_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => {
-                    onSortChange?.(opt.value);
-                    setSortOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-sm transition hover:bg-slate-50 ${
-                    sortOption === opt.value
-                      ? "font-semibold text-slate-900"
-                      : "text-slate-600"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            {SORT_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
-
-      {/* Close sort dropdown when clicking outside */}
-      {sortOpen && (
-        <div
-          className="fixed inset-0 z-10"
-          onClick={() => setSortOpen(false)}
-        />
-      )}
 
       {/* Products grid or list */}
       <div className={viewMode === "list" ? "space-y-2 sm:space-y-2.5" : ""}>
@@ -288,7 +251,14 @@ export function ProductsMainDisplay({
           <div className="space-y-3">
             {displayProducts.map((product, index) => {
               let displayName = product.name;
-              let displayDescription = product.description;
+              let displayDescription =
+                product.buyingGuide?.summary ??
+                (typeof product.description === "string"
+                  ? product.description
+                      .replace(/<[^>]*>/g, " ")
+                      .replace(/\s+/g, " ")
+                      .trim()
+                  : "");
 
               if (
                 product.name?.includes("Learning") ||
@@ -378,7 +348,9 @@ export function ProductsMainDisplay({
                         {product.compareAtPrice &&
                           product.compareAtPrice > product.price && (
                             <span className="text-xs text-slate-400 line-through">
-                              {formatStorefrontPrice(Number(product.compareAtPrice))}
+                              {formatStorefrontPrice(
+                                Number(product.compareAtPrice)
+                              )}
                             </span>
                           )}
                       </div>
@@ -387,7 +359,8 @@ export function ProductsMainDisplay({
                         type="button"
                         onClick={e => handleAddToCart(product, e)}
                         disabled={cartState === "adding" || isOutOfStock}
-                        className={`inline-flex items-center gap-1.5 rounded-lg text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-4 sm:py-2 transition-all duration-200 whitespace-nowrap ${
+                        aria-label={`${cartState === "added" ? "Adăugat în coș" : "Adaugă în coș"}: ${displayName}`}
+                        className={`inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-4 sm:py-2 transition-all duration-200 whitespace-nowrap ${
                           cartState === "added"
                             ? "bg-emerald-500 text-white"
                             : cartState === "adding"

@@ -280,8 +280,9 @@ export class RedisCache implements Cache {
     withScores = false
   ): Promise<string[]> {
     try {
-      const options = withScores ? "WITHSCORES" : undefined;
-      return await this.client!.zrange(key, start, stop, options);
+      return await this.client!.zrange<string[]>(key, start, stop, {
+        withScores,
+      });
     } catch (error) {
       console.error("Redis zrange error:", error);
       return [];

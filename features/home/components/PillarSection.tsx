@@ -3,9 +3,9 @@ import Link from "next/link";
 
 const items = [
   {
-    title: "Cadouri 6–8 ani",
-    description: "Idei de cadouri pentru următoarea descoperire.",
-    href: "/cadouri-stem-6-8-ani",
+    title: "Găsește un cadou",
+    description: "Alege după vârstă, interes și buget.",
+    href: "/alege-cadoul",
     icon: Gift,
   },
   {

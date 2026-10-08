@@ -25,16 +25,16 @@ type AuthExperienceLayoutProps = {
 };
 
 const defaultStats: Stat[] = [
-  { label: "Durata configurării", value: "< 5 min" },
-  { label: "Garanție", value: "100%" },
-  { label: "Livrare", value: "Rapidă" },
+  { label: "Comenzi", value: "În cont" },
+  { label: "Recenzii", value: "După livrare" },
+  { label: "Suport", value: "Contact" },
 ];
 
 export function AuthExperienceLayout({
-  eyebrow = "Transformă-ți copilul",
+  eyebrow = "Contul tău TechTots",
   title,
   subtitle,
-  highlight = "Acces instant la ecosistemul TechTots",
+  highlight = "Comenzile și informațiile contului într-un singur loc",
   stats = defaultStats,
   children,
 }: AuthExperienceLayoutProps) {
@@ -61,7 +61,9 @@ export function AuthExperienceLayout({
                 <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900 sm:text-4xl">
                   {title}
                 </h1>
-                <p className="text-base text-slate-700 sm:text-lg">{subtitle}</p>
+                <p className="text-base text-slate-700 sm:text-lg">
+                  {subtitle}
+                </p>
               </div>
               <div className="rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 text-sm text-slate-800 shadow-inner shadow-slate-200 sm:text-base">
                 {highlight}
@@ -101,5 +103,3 @@ export function AuthExperienceLayout({
     </div>
   );
 }
-
-

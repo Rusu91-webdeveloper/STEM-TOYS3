@@ -3,6 +3,9 @@ import {
   normalizeTrackingStatus,
 } from "@/lib/shipping/courier-status-sync";
 
+// This Node unit suite imports server delivery helpers transitively.
+jest.mock("server-only", () => ({}));
+
 describe("courier status sync helpers", () => {
   describe("normalizeCourierName", () => {
     it("normalizes supported carriers", () => {
