@@ -1,9 +1,13 @@
 # Owner/admin dashboard redesign — 8 October 2026
 
-Status: implemented locally on `codex/admin-owner-dashboard`, based on clean
-`c248cb22`. No production deployment, database migration, production data mutation or
-external message was performed. The owner requested a simpler dashboard with
-real business data and selected Romanian for the redesigned interface.
+Status: implemented on `codex/admin-owner-dashboard`, based on clean `c248cb22`,
+and published on 9 October 2026 in
+[PR #75](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/75). The
+[production release record](2026-10-09-admin-production-release.md) records the
+deployment and live verification. The implementation stages below used local
+fixtures; no production database mutation or external message was performed for
+verification. The owner requested a simpler dashboard with real business data
+and selected Romanian for the redesigned interface.
 
 ## Findings and changes
 
@@ -49,11 +53,11 @@ through an endpoint with an incompatible shape.
   Background header/content are inert while it is open; resizing to desktop
   closes the drawer and releases scroll locking. One main landmark remains.
 
-At the initial overview stage, configuration remained accessible through Setări. Source inspection confirmed the
-existing ADMIN-only settings API persists `StoreSettings` and invalidates the
-checkout/email settings cache; shipping, tax and COD have dedicated consumers.
-No settings PUT was used as a verification step, and this does not certify all
-advanced metadata/security/backup options.
+At the initial overview stage, configuration remained accessible through Setări.
+Source inspection confirmed the existing ADMIN-only settings API persists
+`StoreSettings` and invalidates the checkout/email settings cache; shipping, tax
+and COD have dedicated consumers. No settings PUT was used as a verification
+step, and this does not certify all advanced metadata/security/backup options.
 
 ## Definitions shown in the interface
 
@@ -156,34 +160,34 @@ Read-only checks found these concrete gaps in the existing settings page:
 
 - **Missing backup service:** the interface fetches and posts to
   `/api/admin/settings/backups` and restores through a nested route. No such
-  route handlers exist; a local GET returned HTTP 404. The authenticated
-  browser displayed Create/Restore Backup actions and “Last Backup: Never”,
-  while its console reported failed backup fetching. Failure is currently
-  presented as an empty backup list.
+  route handlers exist; a local GET returned HTTP 404. The authenticated browser
+  displayed Create/Restore Backup actions and “Last Backup: Never”, while its
+  console reported failed backup fetching. Failure is currently presented as an
+  empty backup list.
 - **Fabricated activity/status:** “Recent Changes” contains hard-coded changes,
   including “Two-factor authentication enabled” and relative timestamps. Store
   Status always says Active/SUCCESS. These are not an audit trail or measured
   service health.
 - **Old values sent on save:** Business Hours, Order Processing, Inventory and
   Marketing children keep their edits in local state. Their parent callbacks
-  call `setSettings` with those edits and immediately invoke `handleSave`,
-  which reads the previous render's `settings`. Source inspection confirms the
-  request is constructed before React applies the update. No settings PUT
-  was submitted during this review; persistence/reload must be verified after
-  repairing the callbacks.
+  call `setSettings` with those edits and immediately invoke `handleSave`, which
+  reads the previous render's `settings`. Source inspection confirms the request
+  is constructed before React applies the update. No settings PUT was submitted
+  during this review; persistence/reload must be verified after repairing the
+  callbacks.
 - **Security configuration disconnected:** the two-factor and session-timeout
-  controls purport to persist `securitySettings`; repository searches found those options
-  only in settings editors. `lib/server/auth.ts` instead sets a fixed 30-day
-  JWT lifetime and does not consume either control. A saved toggle does not
-  establish MFA enforcement or the selected timeout.
+  controls purport to persist `securitySettings`; repository searches found
+  those options only in settings editors. `lib/server/auth.ts` instead sets a
+  fixed 30-day JWT lifetime and does not consume either control. A saved toggle
+  does not establish MFA enforcement or the selected timeout.
 - **Incomplete Romanian interface:** the main overview/navigation use Romanian,
   but the settings and returns pages still expose English headings, tabs and
   actions. The returns page did load the expected local pending return.
 
 Order-processing and marketing have actual consumers of metadata settings;
 inventory also has metadata-reading helpers. Their presence alone does not
-verify every automation, delivery or external integration. No blanket claim
-that all advanced settings are unused is warranted.
+verify every automation, delivery or external integration. No blanket claim that
+all advanced settings are unused is warranted.
 
 This follow-up changed documentation only. The previously recorded 48 focused
 tests and database/browser checks apply to the implemented overview scope, not
@@ -201,28 +205,30 @@ confirmed both pages loaded. Production performance was not measured.
 
 The owner authorized local implementation after the readiness review. The
 historical findings above describe the earlier revision; the repairs below
-supersede its missing-service and incorrect-save findings. No schema, dependency,
-production environment or deployment was changed. Local fixture settings, return
-notes and stock were changed for verification and restored afterward.
+supersede its missing-service and incorrect-save findings. No schema,
+dependency, production environment or deployment was changed. Local fixture
+settings, return notes and stock were changed for verification and restored
+afterward.
 
 ### Configuration and access
 
 The former oversized settings editor is replaced with six Romanian sections:
 Magazin, Livrare, Ramburs, TVA, Acces și integrări, and Copii și istoric. Each
 save submits the current section's edited values directly. Validation, a visible
-server result, section-switch/full-page unload protection, timestamps, retained failed drafts and
-optimistic version checks replace ambiguous saves. Concurrent changes produce a
-conflict rather than silently overwriting another administrator's edit.
+server result, section-switch/full-page unload protection, timestamps, retained
+failed drafts and optimistic version checks replace ambiguous saves. Concurrent
+changes produce a conflict rather than silently overwriting another
+administrator's edit.
 
 Settings snapshots and history now have real authenticated route handlers and
 serializable database transactions. Each change saves the previous editable
 configuration; manual snapshots and confirmed restoration are supported. History
 records the actor, time and section. Retention is bounded to 100 history entries
 and 30 configuration snapshots. These are **configuration copies, not a complete
-database backup**; products, orders, customer records and integration credentials
-are outside their scope. The API exposes snapshot metadata without snapshot
-values or secrets. An ignore-rule exception ensures the `backups` API source
-files are tracked while database backup directories remain ignored.
+database backup**; products, orders, customer records and integration
+credentials are outside their scope. The API exposes snapshot metadata without
+snapshot values or secrets. An ignore-rule exception ensures the `backups` API
+source files are tracked while database backup directories remain ignored.
 
 The security review also found that `StoreSettings` has no `securitySettings`
 column: the old editor's purported MFA/session changes were neither established
@@ -232,7 +238,8 @@ existing 30-day session limit and shows only whether Stripe, SMTP and courier
 credentials are present; it does not claim provider health or transaction
 success. Duplicate configuration and payment-rollout pages redirect to the
 canonical settings console. The old rollout POST returned apparent success
-without persisting its changes; it now reports that configuration is unavailable.
+without persisting its changes; it now reports that configuration is
+unavailable.
 
 An ADMIN server boundary now protects admin rendering before private page data
 is returned. The client boundary remains in place for session changes. Touched
@@ -245,11 +252,11 @@ legacy analytical services and scheduled collection remain separate audit scope.
 
 Checkout shipping, COD and VAT consumers read the current persisted revision;
 public configuration endpoints no longer serve five-minute cached settings.
-Pricing reads fail closed if the database is unavailable. VAT registration can be
-saved with the tax settings and is consumed by pricing; tax cannot be activated
-without registration. Existing environment registration is retained as the
-fallback for old records. Invalid stored editable configuration is identified by
-a warning rather than represented as verified persisted values.
+Pricing reads fail closed if the database is unavailable. VAT registration can
+be saved with the tax settings and is consumed by pricing; tax cannot be
+activated without registration. Existing environment registration is retained as
+the fallback for old records. Invalid stored editable configuration is
+identified by a warning rather than represented as verified persisted values.
 
 ### Core management
 
@@ -260,15 +267,17 @@ opening customer history resets prior filters and includes all dates. Repeated
 badges are reduced and the mobile detail header wraps without horizontal page
 overflow. Refused COD deliveries use a Romanian confirmation dialog with a
 required reason, retained failed drafts and disabled controls during submission.
-The existing request explicitly keeps guarantee capture disabled. Customer detail spending now uses the same paid, non-cancelled RON
-definition as the list, instead of adding unpaid and mixed-currency orders.
-Failure and missing-record states are distinct.
+The existing request explicitly keeps guarantee capture disabled. Customer
+detail spending now uses the same paid, non-cancelled RON definition as the
+list, instead of adding unpaid and mixed-currency orders. Failure and
+missing-record states are distinct.
 
 Returns use a server-side search across all matching records, including order
 and current catalog item names. Invalid pagination, enum and date parameters are
 rejected. Unsupported segmentation/analytics controls are withdrawn. Operational
 labels and dates use Romanian; return amounts retain the order currency.
-Provider actions are preserved but are not executed as part of this verification.
+Provider actions are preserved but are not executed as part of this
+verification.
 
 Supplier lists use real server pagination, global status counts and server
 search. The fabricated grade column is removed. Missing performance records are
@@ -293,7 +302,8 @@ reviews report save failures inside their dialog and retain the rejection draft.
 
 - The isolated PostgreSQL settings script verified save/read/restore, stale
   revisions, simultaneous writes, preservation of unrelated metadata/payment
-  settings, recorded history and configuration copies. Core values were restored.
+  settings, recorded history and configuration copies. Core values were
+  restored.
 - The authenticated local HTTP workflow script passed role denials, server
   rendering redirects, settings/history, order currencies/details, paid customer
   totals/history filtering, legacy supplier search/contact and export, global
@@ -309,9 +319,9 @@ reviews report save failures inside their dialog and retain the rejection draft.
   pending-only selection and actual status filtering (zero approved, one total),
   three published catalog records without redundant approval controls, and the
   overview's fixture totals after the calendar date changed. Mobile catalog,
-  settings and order detail have 390px document width
-  at a 390px viewport. Escape closes the drawer and returns focus after the
-  background header becomes interactive.
+  settings and order detail have 390px document width at a 390px viewport.
+  Escape closes the drawer and returns focus after the background header becomes
+  interactive.
 - The in-app browser's CSV download-event wait did not return a saved file;
   export data/format and order export invocation have automated coverage, and
   supplier CSV was additionally verified through authenticated HTTP.
@@ -323,11 +333,11 @@ reviews report save failures inside their dialog and retain the rejection draft.
   restored legacy supplier coverage and new selection/submission guards.
 - ESLint on the 114 changed/new TypeScript paths completes with zero errors and
   326 warnings after correcting two import-order errors in the new supplier
-  test. Utility scripts remain ignored by the repository configuration.
-  All 60 new code files respect the repository limit of 300 lines.
-- The final full TypeScript comparison against `c248cb22` passes: 1,175
-  baseline errors, 1,169 current errors and zero added diagnostics. Existing
-  type debt remains; this is not a clean full typecheck.
+  test. Utility scripts remain ignored by the repository configuration. All 60
+  new code files respect the repository limit of 300 lines.
+- The final full TypeScript comparison against `c248cb22` passes: 1,175 baseline
+  errors, 1,169 current errors and zero added diagnostics. Existing type debt
+  remains; this is not a clean full typecheck.
 - Final full Jest comparison passes: 63 failing suites / 174 failing tests in
   the baseline, 62 / 157 currently, and zero regressions. Every changed test
   file passes. Existing failures remain; this is not a clean full test suite.
@@ -343,9 +353,9 @@ reviews report save failures inside their dialog and retain the rejection draft.
 
 Local cold compilation and running multiple heavy checks exhausted development
 memory, producing navigation timeouts and a development-server restart. Heavy
-checks were then serialized and the preview recovered. These observations do
-not measure production response times. A temporary translation mistake in a
-catalog variable was caught by the new catalog test and browser error boundary,
+checks were then serialized and the preview recovered. These observations do not
+measure production response times. A temporary translation mistake in a catalog
+variable was caught by the new catalog test and browser error boundary,
 corrected, and the recovered product list verified.
 
 Updated screenshots use local fixtures:
@@ -357,13 +367,15 @@ Updated screenshots use local fixtures:
 - [Published products on mobile](assets/2026-10-08-admin-dashboard/products-premium-mobile.png)
 - [Supplier filtering and stored contacts](assets/2026-10-08-admin-dashboard/suppliers-premium.png)
 
-Local implementation and final review completed on 9 October 2026. The authenticated
-preview is left at `/admin`; temporary viewport overrides are cleared.
+Local implementation and final review completed on 9 October 2026. The
+authenticated preview is left at `/admin`; temporary viewport overrides are
+cleared.
 
-Live provider acceptance, real refunds, inbox receipt/rendering, courier AWB
-creation and production deployment remain unverified by this change. No customer
-email, payment or refund was sent for testing. Gross paid-order value still does
-not deduct partial refunds or represent accounting profit. Legacy metadata
-consumers remain intact; their old general-purpose editors are withdrawn from the
-canonical settings surface. Advanced marketing/import/supplier forms and other
-legacy reports are not comprehensively certified or translated by this work.
+Production publication is now verified separately in the release record. Live
+provider acceptance, real refunds, inbox receipt/rendering and courier AWB
+creation remain unverified by this change. No customer email, payment or refund
+was sent for testing. Gross paid-order value still does not deduct partial
+refunds or represent accounting profit. Legacy metadata consumers remain intact;
+their old general-purpose editors are withdrawn from the canonical settings
+surface. Advanced marketing/import/supplier forms and other legacy reports are
+not comprehensively certified or translated by this work.

@@ -1,30 +1,36 @@
 # Current tasks
 
-- [ ] 2026-10-09 — Owner authorized deploying all completed admin dashboard
+- [x] 2026-10-09 — Owner authorized deploying all completed admin dashboard
       changes. Estimate: 30–60 minutes. Publish the reviewed branch through the
       existing Git/Vercel production workflow, verify the exact release commit,
       production domains and access boundaries, and record deployed evidence.
-      Preserve existing provider acceptance limits and production data.
+      Preserve existing provider acceptance limits and production data. PR #75
+      merged as `22ba5e7e`; the production build is READY on both TechTots
+      domains. All 40 anonymous HTTP checks, checkout configuration and
+      desktop/mobile sign-in checks pass; the release-window runtime scan is
+      clear. Private production workflows were not exercised without an admin
+      session. Elapsed time not recorded. See the
+      [release record](docs/audits/2026-10-09-admin-production-release.md).
 
-- [x] 2026-10-08 — Make the owner admin feel and behave like a premium
-      Romanian management system. Estimate: 4–8 hours. Repair configuration
-      saves, replace unsupported assurances with verified behaviour, simplify
-      settings, verify the core business workflows and retain real data/error
-      states. Core settings, real history/restore, checkout consistency, access
-      boundaries and Romanian core workflows are implemented locally. Real DB,
-      HTTP and desktop/mobile checks pass. Completed locally on 2026-10-09;
-      elapsed time not recorded. All 23 focused suites / 151 tests and the
-      production build pass. Full Jest/TypeScript comparisons add zero
-      regressions; existing repository check debt remains. Live provider and
-      advanced-form acceptance remain tracked below. No production deployment.
+- [x] 2026-10-08 — Make the owner admin feel and behave like a premium Romanian
+      management system. Estimate: 4–8 hours. Repair configuration saves,
+      replace unsupported assurances with verified behaviour, simplify settings,
+      verify the core business workflows and retain real data/error states. Core
+      settings, real history/restore, checkout consistency, access boundaries
+      and Romanian core workflows are implemented locally. Real DB, HTTP and
+      desktop/mobile checks pass. Completed locally on 2026-10-09; elapsed time
+      not recorded. All 23 focused suites / 151 tests and the production build
+      pass. Full Jest/TypeScript comparisons add zero regressions; existing
+      repository check debt remains. Live provider and advanced-form acceptance
+      remain tracked below. No production deployment.
 
-- [x] 2026-10-08 — Assess whether the redesigned admin is seamless and ready
-      for the owner's premium standard. Estimate: 20–40 minutes; elapsed time
-      not recorded. Read-only local browser/API and source review confirmed
-      missing backup routes, fabricated settings activity, stale save payloads,
-      disconnected security controls and incomplete Romanian inner pages.
-      The overview's checks do not certify all management workflows. Findings
-      and verification limits are in the
+- [x] 2026-10-08 — Assess whether the redesigned admin is seamless and ready for
+      the owner's premium standard. Estimate: 20–40 minutes; elapsed time not
+      recorded. Read-only local browser/API and source review confirmed missing
+      backup routes, fabricated settings activity, stale save payloads,
+      disconnected security controls and incomplete Romanian inner pages. The
+      overview's checks do not certify all management workflows. Findings and
+      verification limits are in the
       [dashboard audit](docs/audits/2026-10-08-admin-dashboard.md#readiness-follow-up--8-october-2026).
 
 - [x] 2026-10-08 — Audit and redesign the owner/admin dashboard in Romanian.
@@ -41,25 +47,25 @@
 
 ## Discovered During Work
 
-- [x] 2026-10-08 — Resolve stale legacy settings callbacks. The canonical
-      editor now submits current section drafts directly, with save/reload and
-      conflict verification. Legacy Hours/Orders/Inventory/Marketing editors are
+- [x] 2026-10-08 — Resolve stale legacy settings callbacks. The canonical editor
+      now submits current section drafts directly, with save/reload and conflict
+      verification. Legacy Hours/Orders/Inventory/Marketing editors are
       withdrawn; existing metadata consumers are preserved. Estimate: 1–2 hours.
 - [x] 2026-10-08 — Make security settings reflect enforced authentication.
       Unsupported MFA/timeout controls and fabricated status are withdrawn;
       server-side ADMIN rendering and API checks are verified. The screen
-      describes actual session and credential configuration. Estimate: 2–4 hours.
-- [x] 2026-10-08 — Connect configuration snapshots/history/restore to real
-      ADMIN services with version checks and automatic pre-change copies.
-      Database and browser save/restore pass. Copies cover editable settings,
-      not the full database. Fabricated activity/health are withdrawn. Estimate:
-      2–4 hours.
-- [ ] 2026-10-08 — Complete advanced legacy forms and provider acceptance.
-      Core Romanian order/customer/catalog/return/supplier lists, currency
-      displays, searches, settings, stock and return-note persistence are
-      verified locally. Real payment/refund, inbox receipt and courier AWB
-      execution still require provider acceptance; gross paid-order reports
-      explicitly do not deduct partial refunds. Estimate: 4–8 hours for remaining
+      describes actual session and credential configuration. Estimate: 2–4
+      hours.
+- [x] 2026-10-08 — Connect configuration snapshots/history/restore to real ADMIN
+      services with version checks and automatic pre-change copies. Database and
+      browser save/restore pass. Copies cover editable settings, not the full
+      database. Fabricated activity/health are withdrawn. Estimate: 2–4 hours.
+- [ ] 2026-10-08 — Complete advanced legacy forms and provider acceptance. Core
+      Romanian order/customer/catalog/return/supplier lists, currency displays,
+      searches, settings, stock and return-note persistence are verified
+      locally. Real payment/refund, inbox receipt and courier AWB execution
+      still require provider acceptance; gross paid-order reports explicitly do
+      not deduct partial refunds. Estimate: 4–8 hours for remaining
       provider/advanced-form scope, depending on available integration access.
 
 ## Earlier tasks
