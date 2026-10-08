@@ -1,5 +1,15 @@
 # Current tasks
 
+- [x] 2026-10-08 — Owner authorized publication of the completed storefront
+      improvements. PR #73 merged as `a419d8b3`; the production build is READY
+      on both TechTots domains. Live desktop/mobile gift finder, product
+      guidance, image keyboard/focus behavior and catalog search/list pass.
+      Public feed contains 97 unique products; readiness succeeds and anonymous
+      operations access is denied. No release-window runtime errors were found.
+      See the [release record](docs/audits/2026-10-08-storefront-production-release.md).
+      Merchant Center, real inbox/customer material, backup/restore evidence and
+      field performance remain external acceptance items.
+
 - [x] 2026-10-07 — Implement the storefront A+ review improvements beyond
       testing. Estimate: 2–4 hours; elapsed time not recorded. Branch
       `codex/storefront-excellence` from clean `f1b37da1`. Buying summaries for
@@ -11,8 +21,8 @@
       the [storefront audit](docs/audits/2026-10-07-storefront-excellence.md).
       Production build and 84 focused checks pass; full Jest/TypeScript
       comparisons add zero regressions. Existing repository check debt remains.
-      Production publication,
-      Merchant Center registration, authentic customer footage and provider
+      Production publication completed on 8 October in PR #73. Merchant
+      Center registration, authentic customer footage and provider
       backup/restore confirmation remain separate acceptance steps.
 
 - [x] 2026-10-07 — Owner explicitly authorized publishing all completed PR #71
