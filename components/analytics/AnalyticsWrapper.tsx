@@ -48,7 +48,17 @@ export default function AnalyticsWrapper() {
   const pathname = usePathname();
   // Legal declarations are outside analytics/advertising collection, even
   // when optional consent was granted elsewhere in the storefront.
-  if (pathname === "/withdrawal" || pathname?.startsWith("/withdrawal/"))
+  // Internal pages (staff, login, suppliers) should not send GA4 events.
+  if (
+    pathname === "/withdrawal" ||
+    pathname?.startsWith("/withdrawal/") ||
+    pathname === "/admin" ||
+    pathname?.startsWith("/admin/") ||
+    pathname === "/auth" ||
+    pathname?.startsWith("/auth/") ||
+    pathname === "/supplier" ||
+    pathname?.startsWith("/supplier/")
+  )
     return null;
 
   return (
