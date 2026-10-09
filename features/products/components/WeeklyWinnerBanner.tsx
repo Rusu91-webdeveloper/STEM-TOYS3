@@ -28,7 +28,7 @@ export async function WeeklyWinnerBanner() {
   const manufacturerAge =
     (product.attributes as any)?.manufacturerRecommendedAge ||
     (product.attributes as any)?.originalAgeText ||
-    "6+";
+    null;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("ro-RO", {
@@ -49,15 +49,13 @@ export async function WeeklyWinnerBanner() {
             src={product.images[0]}
             alt={product.name}
             fill
-            priority
             sizes="(min-width: 1024px) 42vw, 100vw"
             className="object-contain p-8"
           />
         </div>
         <div className="flex flex-col justify-center p-6 sm:p-8">
-          <p className="inline-flex w-fit items-center gap-2 rounded-full border border-rose-300 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-rose-700 shadow-sm">
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-rose-600" />
-            Câștigătorul săptămânii
+          <p className="inline-flex w-fit items-center rounded-full border border-rose-300 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-rose-700 shadow-sm">
+            Recomandarea săptămânii
           </p>
           <h2
             id="weekly-winner"
@@ -66,7 +64,8 @@ export async function WeeklyWinnerBanner() {
             {product.name}
           </h2>
           <p className="mt-3 text-lg font-bold text-slate-700">
-            {formatPrice(product.price)} · {manufacturerAge}
+            {formatPrice(product.price)}
+            {manufacturerAge ? ` · ${manufacturerAge}` : ""}
           </p>
           <p className="mt-4 max-w-xl leading-7 text-slate-700">
             Experiment în aer liber cu propulsie pe apă și presiunea aerului.
