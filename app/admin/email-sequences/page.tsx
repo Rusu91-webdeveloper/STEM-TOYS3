@@ -1,398 +1,491 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
+
 import {
-  Plus,
-  Settings,
-  BarChart3,
-  Play,
-  Eye,
-  Edit3,
-  Trash2,
-} from "lucide-react";
-
-import { Badge } from "@/components/ui/badge";
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SequenceManager } from "@/components/ui/SequenceManager";
-import { SequenceTester } from "@/components/ui/SequenceTester";
-import { SequenceFlowData } from "@/components/ui/SequenceFlowBuilder";
-
-interface EmailSequence {
-  id: string;
-  name: string;
-  description?: string;
-  triggerType: "immediate" | "scheduled" | "event" | "manual";
-  status: "draft" | "active" | "paused" | "completed";
-  createdAt: Date;
-  updatedAt: Date;
-  flowData: SequenceFlowData;
-  stats: {
-    totalSent: number;
-    totalOpened: number;
-    totalClicked: number;
-    openRate: number;
-    clickRate: number;
-    completionRate: number;
-  };
-  activeUsers: number;
-}
-
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  emailSequenceList,
+  emailTemplateList,
+  savedEmailSequence,
+} from "@/lib/admin/email-contracts";
+import { useEmailResource } from "@/lib/admin/use-email-resource";
+type Sequence = z.infer<typeof savedEmailSequence>;
+const triggers = [
+  "USER_REGISTRATION",
+  "FIRST_PURCHASE",
+  "ABANDONED_CART",
+  "ORDER_PLACED",
+  "ORDER_SHIPPED",
+  "ORDER_DELIVERED",
+  "INACTIVE_USER",
+  "BIRTHDAY",
+  "CUSTOM",
+];
+const initial = {
+  name: "",
+  description: "",
+  trigger: "USER_REGISTRATION",
+  maxEmails: 5,
+  cooldownHours: 24,
+  isActive: false,
+  steps: [] as { templateId: string; delayHours: number }[],
+};
 export default function EmailSequencesPage() {
-  const [sequences, setSequences] = useState<EmailSequence[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedSequence, setSelectedSequence] =
-    useState<EmailSequence | null>(null);
-  const [showTester, setShowTester] = useState(false);
-
-  // Fetch sequences from API
-  const fetchSequences = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/admin/email-sequences");
-      if (!response.ok) {
-        throw new Error("Failed to fetch sequences");
-      }
-
-      const data = await response.json();
-
-      // Transform API data to match our interface
-      const transformedSequences: EmailSequence[] =
-        data.sequences?.map((seq: any) => ({
-          id: seq.id,
-          name: seq.name,
-          description: seq.description,
-          triggerType: mapTriggerType(seq.trigger),
-          status: mapStatus(seq.isActive),
-          createdAt: new Date(seq.createdAt),
-          updatedAt: new Date(seq.updatedAt),
-          flowData: seq.flowData || createDefaultFlowData(seq),
-          stats: {
-            totalSent: seq.stats?.totalSent || 0,
-            totalOpened: seq.stats?.totalOpened || 0,
-            totalClicked: seq.stats?.totalClicked || 0,
-            openRate: seq.stats?.openRate || 0,
-            clickRate: seq.stats?.clickRate || 0,
-            completionRate: seq.stats?.completionRate || 0,
-          },
-          activeUsers: seq._count?.users || 0,
-        })) || [];
-
-      setSequences(transformedSequences);
-    } catch (error) {
-      console.error("Error fetching sequences:", error);
-      toast.error("Failed to fetch email sequences");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Map API trigger to our trigger type
-  const mapTriggerType = (trigger: string): EmailSequence["triggerType"] => {
-    const triggerMap: Record<string, EmailSequence["triggerType"]> = {
-      USER_REGISTRATION: "event",
-      FIRST_PURCHASE: "event",
-      ABANDONED_CART: "event",
-      ORDER_PLACED: "event",
-      ORDER_SHIPPED: "event",
-      ORDER_DELIVERED: "event",
-      INACTIVE_USER: "event",
-      BIRTHDAY: "scheduled",
-      CUSTOM: "manual",
-    };
-    return triggerMap[trigger] || "manual";
-  };
-
-  // Map API status to our status
-  const mapStatus = (isActive: boolean): EmailSequence["status"] => {
-    return isActive ? "active" : "draft";
-  };
-
-  // Create default flow data for existing sequences
-  const createDefaultFlowData = (seq: any): SequenceFlowData => {
-    return {
-      nodes: [
-        {
-          id: "trigger_1",
-          type: "trigger",
-          title: "Start",
-          description: "Sequence trigger",
-          config: { triggerType: mapTriggerType(seq.trigger) },
-          position: { x: 100, y: 100 },
-          status: "active",
-          nextNodes: [],
-          prevNodes: [],
-        },
-      ],
-      connections: [],
-      metadata: {
-        name: seq.name,
-        description: seq.description,
-        triggerType: mapTriggerType(seq.trigger),
-        isActive: seq.isActive,
-      },
-    };
-  };
-
-  // Save sequence
-  const handleSave = async (sequence: EmailSequence) => {
-    try {
-      const response = await fetch(
-        `/api/admin/email-sequences/${sequence.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+  const [templateSearch, setTemplateSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [editing, setEditing] = useState<Sequence | "new" | null>(null);
+  const [form, setForm] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState<Sequence | null>(null);
+  const list = useEmailResource(
+    `/api/admin/email-sequences?${new URLSearchParams({ page: String(page), search })}`,
+    emailSequenceList
+  );
+  const templates = useEmailResource(
+    `/api/admin/email-templates?${new URLSearchParams({ limit: "100", isActive: "true", search: templateSearch })}`,
+    emailTemplateList
+  );
+  const edit = (sequence?: Sequence) => {
+    setEditing(sequence ?? "new");
+    setForm(
+      sequence
+        ? {
             name: sequence.name,
-            description: sequence.description,
-            triggerType: sequence.triggerType,
-            isActive: sequence.status === "active",
-            flowData: sequence.flowData,
-            updatedAt: new Date().toISOString(),
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to save sequence");
-      }
-
-      const updatedSequence = await response.json();
-
-      // Update local state
-      setSequences(prev =>
-        prev.map(seq =>
-          seq.id === sequence.id ? { ...sequence, ...updatedSequence } : seq
-        )
-      );
-
-      toast.success("Sequence saved successfully");
-    } catch (error) {
-      console.error("Error saving sequence:", error);
-      toast.error("Failed to save sequence");
-    }
-  };
-
-  // Delete sequence
-  const handleDelete = async (sequenceId: string) => {
-    try {
-      const response = await fetch(`/api/admin/email-sequences/${sequenceId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete sequence");
-      }
-
-      setSequences(prev => prev.filter(seq => seq.id !== sequenceId));
-      toast.success("Sequence deleted successfully");
-    } catch (error) {
-      console.error("Error deleting sequence:", error);
-      toast.error("Failed to delete sequence");
-    }
-  };
-
-  // Test sequence
-  const handleTest = (sequence: EmailSequence) => {
-    setSelectedSequence(sequence);
-    setShowTester(true);
-  };
-
-  // Load sequences on mount
-  useEffect(() => {
-    fetchSequences();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading email sequences...</p>
-          </div>
-        </div>
-      </div>
+            description: sequence.description ?? "",
+            trigger: sequence.trigger,
+            maxEmails: sequence.maxEmails,
+            cooldownHours: sequence.cooldownHours,
+            isActive: sequence.isActive,
+            steps: sequence.steps.map(step => ({
+              templateId: step.templateId,
+              delayHours: step.delayHours,
+            })),
+          }
+        : { ...initial, steps: [] }
     );
-  }
-
+  };
+  const mutate = async (url: string, method: string, body?: unknown) => {
+    setBusy(true);
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Operațiunea a eșuat");
+      setEditing(null);
+      await list.refresh();
+      toast.success("Modificarea a fost salvată");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Operațiunea a eșuat"
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Email Sequences</h1>
-          <p className="text-gray-600 mt-2">
-            Create and manage automated email workflows with visual flow builder
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-sm">
-            {sequences.length} sequences
-          </Badge>
-        </div>
+    <div className="min-w-0 space-y-5 p-4 sm:p-6">
+      <AlertDialog
+        open={deleting !== null}
+        onOpenChange={open => {
+          if (!open) setDeleting(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Șterge secvența</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ștergi secvența „{deleting?.name}”? Această acțiune nu poate fi
+              anulată.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Renunță</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={() => {
+                if (deleting)
+                  void mutate(
+                    `/api/admin/email-sequences/${deleting.id}`,
+                    "DELETE"
+                  );
+              }}
+            >
+              Șterge
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <h1 className="text-3xl font-bold">Secvențe email</h1>
+      <p className="text-slate-600">
+        Secvențele și pașii salvați în baza de date. Numărul participanților
+        provine din înscrierile existente.
+      </p>
+      <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm">
+        Activarea salvează configurația. Înregistrarea participanților și
+        procesarea automată depind de motorul de automatizare; pagina nu
+        certifică funcționarea lui și nu trimite emailuri la salvare.
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={() => edit()}>Creează secvență</Button>
+        <Button asChild variant="outline">
+          <Link href="/admin/email-automation">Istoric și statistici</Link>
+        </Button>
+        <Button
+          variant="outline"
+          disabled={list.loading}
+          onClick={() => void list.refresh()}
+        >
+          Reîncarcă
+        </Button>
       </div>
-
-      {/* Main Content */}
-      <div className="space-y-6">
-        {showTester && selectedSequence ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Testing: {selectedSequence.name}</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowTester(false)}
-                >
-                  Back to Sequences
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SequenceTester
-                sequence={selectedSequence.flowData}
-                onClose={() => setShowTester(false)}
-              />
-            </CardContent>
-          </Card>
-        ) : (
-          <SequenceManager
-            sequences={sequences}
-            onSave={handleSave}
-            onDelete={handleDelete}
-            onTest={handleTest}
-          />
-        )}
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <BarChart3 className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Total Sequences
-                </p>
-                <p className="text-2xl font-bold">{sequences.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Play className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Active Sequences
-                </p>
-                <p className="text-2xl font-bold">
-                  {sequences.filter(s => s.status === "active").length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Edit3 className="w-6 h-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Draft Sequences
-                </p>
-                <p className="text-2xl font-bold">
-                  {sequences.filter(s => s.status === "draft").length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Eye className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold">
-                  {sequences.reduce((sum, s) => sum + s.activeUsers, 0)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Performance Overview */}
-      {sequences.length > 0 && (
+      <Input
+        aria-label="Caută secvențe"
+        placeholder="Numele secvenței"
+        value={search}
+        onChange={e => {
+          setPage(1);
+          setSearch(e.target.value);
+        }}
+      />
+      {editing && (
         <Card>
           <CardHeader>
-            <CardTitle>Performance Overview</CardTitle>
+            <CardTitle>
+              {editing === "new" ? "Secvență nouă" : `Editează ${editing.name}`}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {sequences
-                      .reduce((sum, s) => sum + s.stats.totalSent, 0)
-                      .toLocaleString()}
-                  </div>
-                  <div className="text-sm text-gray-600">Total Emails Sent</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {sequences.length > 0
-                      ? (
-                          sequences.reduce(
-                            (sum, s) => sum + s.stats.openRate,
-                            0
-                          ) / sequences.length
-                        ).toFixed(1)
-                      : 0}
-                    %
-                  </div>
-                  <div className="text-sm text-gray-600">Average Open Rate</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {sequences.length > 0
-                      ? (
-                          sequences.reduce(
-                            (sum, s) => sum + s.stats.clickRate,
-                            0
-                          ) / sequences.length
-                        ).toFixed(1)
-                      : 0}
-                    %
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Average Click Rate
-                  </div>
-                </div>
+            <form
+              className="space-y-4"
+              onSubmit={e => {
+                e.preventDefault();
+                const { steps, ...fields } = form;
+                void mutate(
+                  editing === "new"
+                    ? "/api/admin/email-sequences"
+                    : `/api/admin/email-sequences/${editing.id}`,
+                  editing === "new" ? "POST" : "PUT",
+                  editing !== "new" && editing._count.users > 0
+                    ? fields
+                    : { ...fields, steps }
+                );
+              }}
+            >
+              <div>
+                <Label htmlFor="sequence-name">Nume</Label>
+                <Input
+                  id="sequence-name"
+                  required
+                  value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                />
               </div>
-            </div>
+              <div>
+                <Label htmlFor="sequence-description">Descriere</Label>
+                <Input
+                  id="sequence-description"
+                  value={form.description}
+                  onChange={e =>
+                    setForm({ ...form, description: e.target.value })
+                  }
+                />
+              </div>
+              <div className="flex flex-wrap gap-4">
+                <label>
+                  Eveniment{" "}
+                  <select
+                    className="block rounded border p-2"
+                    value={form.trigger}
+                    onChange={e =>
+                      setForm({ ...form, trigger: e.target.value })
+                    }
+                  >
+                    {Array.from(new Set([...triggers, form.trigger])).map(
+                      trigger => (
+                        <option key={trigger}>{trigger}</option>
+                      )
+                    )}
+                  </select>
+                </label>
+                <label>
+                  Limită emailuri{" "}
+                  <Input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={form.maxEmails}
+                    onChange={e =>
+                      setForm({ ...form, maxEmails: Number(e.target.value) })
+                    }
+                  />
+                </label>
+                <label>
+                  Reînscriere după (ore){" "}
+                  <Input
+                    type="number"
+                    min={0}
+                    value={form.cooldownHours}
+                    onChange={e =>
+                      setForm({
+                        ...form,
+                        cooldownHours: Number(e.target.value),
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              <label className="flex gap-2">
+                <input
+                  type="checkbox"
+                  checked={form.isActive}
+                  onChange={e =>
+                    setForm({ ...form, isActive: e.target.checked })
+                  }
+                />
+                Configurație activă
+              </label>
+              <fieldset
+                disabled={
+                  busy || (editing !== "new" && editing._count.users > 0)
+                }
+                className="space-y-3"
+              >
+                <legend className="font-medium">
+                  Pași în ordinea trimiterii
+                </legend>
+                <Input
+                  aria-label="Caută șabloane pentru secvență"
+                  placeholder="Caută șablonul după nume"
+                  value={templateSearch}
+                  onChange={e => setTemplateSearch(e.target.value)}
+                />
+                {templates.error && (
+                  <p role="alert">
+                    Șabloanele nu au putut fi încărcate.{" "}
+                    <button
+                      type="button"
+                      className="underline"
+                      onClick={() => void templates.refresh()}
+                    >
+                      Reîncearcă
+                    </button>
+                  </p>
+                )}
+                {form.steps.map((step, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-wrap items-end gap-3 rounded border p-3"
+                  >
+                    <label>
+                      Pas {index + 1}
+                      <select
+                        aria-label={`Șablon pas ${index + 1}`}
+                        required
+                        className="block max-w-full rounded border p-2"
+                        value={step.templateId}
+                        onChange={e =>
+                          setForm({
+                            ...form,
+                            steps: form.steps.map((item, i) =>
+                              i === index
+                                ? { ...item, templateId: e.target.value }
+                                : item
+                            ),
+                          })
+                        }
+                      >
+                        <option value="">Alege șablonul</option>
+                        {templates.data?.templates.map(template => (
+                          <option key={template.id} value={template.id}>
+                            {template.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label htmlFor={`sequence-delay-${index}`}>
+                      Întârziere (ore)
+                      <Input
+                        id={`sequence-delay-${index}`}
+                        type="number"
+                        min={0}
+                        max={8760}
+                        value={step.delayHours}
+                        onChange={e =>
+                          setForm({
+                            ...form,
+                            steps: form.steps.map((item, i) =>
+                              i === index
+                                ? {
+                                    ...item,
+                                    delayHours: Number(e.target.value),
+                                  }
+                                : item
+                            ),
+                          })
+                        }
+                      />
+                    </label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          steps: form.steps.filter((_, i) => i !== index),
+                        })
+                      }
+                    >
+                      Elimină pasul
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={
+                    form.steps.length >= form.maxEmails ||
+                    templates.loading ||
+                    !!templates.error
+                  }
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      steps: [...form.steps, { templateId: "", delayHours: 0 }],
+                    })
+                  }
+                >
+                  Adaugă pas
+                </Button>
+              </fieldset>
+              {editing !== "new" && editing._count.users > 0 && (
+                <p className="text-sm">
+                  Pașii sunt protejați deoarece există participanți în această
+                  secvență.
+                </p>
+              )}
+              <div className="flex gap-3">
+                <Button type="submit" disabled={busy}>
+                  Salvează
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditing(null)}
+                >
+                  Renunță
+                </Button>
+              </div>
+            </form>
           </CardContent>
         </Card>
+      )}
+      {list.loading ? (
+        <p role="status">Se încarcă secvențele…</p>
+      ) : list.error ? (
+        <div role="alert">
+          <p>{list.error}</p>
+          <Button onClick={() => void list.refresh()}>Reîncearcă</Button>
+        </div>
+      ) : (
+        list.data && (
+          <>
+            <p>{list.data.pagination.total} secvențe salvate</p>
+            {!list.data.sequences.length ? (
+              <p>Nu există secvențe pentru această selecție.</p>
+            ) : (
+              list.data.sequences.map(sequence => (
+                <Card key={sequence.id}>
+                  <CardHeader>
+                    <CardTitle>{sequence.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p>{sequence.description}</p>
+                    <p className="text-sm">
+                      {sequence.isActive
+                        ? "Configurație activă"
+                        : "Configurație inactivă"}{" "}
+                      · {sequence.trigger} · {sequence._count.steps} pași ·{" "}
+                      {sequence._count.users} participanți înscriși
+                    </p>
+                    <ol className="space-y-1">
+                      {sequence.steps.map(step => (
+                        <li key={step.id}>
+                          {step.order}. {step.subject} — întârziere{" "}
+                          {step.delayHours} ore
+                        </li>
+                      ))}
+                    </ol>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() => edit(sequence)}
+                      >
+                        Editează
+                      </Button>
+                      <Button
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() =>
+                          void mutate(
+                            `/api/admin/email-sequences/${sequence.id}`,
+                            "PUT",
+                            { isActive: !sequence.isActive }
+                          )
+                        }
+                      >
+                        {sequence.isActive ? "Dezactivează" : "Activează"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        disabled={busy || sequence._count.users > 0}
+                        onClick={() => setDeleting(sequence)}
+                      >
+                        Șterge
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                Înapoi
+              </Button>
+              <span>Pagina {page}</span>
+              <Button
+                variant="outline"
+                disabled={page >= list.data.pagination.pages}
+                onClick={() => setPage(page + 1)}
+              >
+                Înainte
+              </Button>
+            </div>
+          </>
+        )
       )}
     </div>
   );

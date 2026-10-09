@@ -1,224 +1,99 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { NextRequest } from "next/server";
 
-import { getServerSession } from "@/lib/auth/server";
-import { prisma } from "@/lib/db";
-
-// Validation schema for updating email sequences
-const EmailSequenceUpdateSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Name is required")
-    .max(100, "Name too long")
-    .optional(),
-  description: z.string().optional(),
-  trigger: z
-    .enum([
-      "USER_REGISTRATION",
-      "FIRST_PURCHASE",
-      "ABANDONED_CART",
-      "ORDER_PLACED",
-      "ORDER_SHIPPED",
-      "ORDER_DELIVERED",
-      "INACTIVE_USER",
-      "BIRTHDAY",
-      "CUSTOM",
-    ])
-    .optional(),
-  isActive: z.boolean().optional(),
-  maxEmails: z
-    .number()
-    .min(1, "At least 1 email required")
-    .max(20, "Maximum 20 emails")
-    .optional(),
-  delayBetweenEmails: z
-    .number()
-    .min(1, "Minimum 1 hour delay")
-    .max(168, "Maximum 1 week delay")
-    .optional(),
-  metadata: z.record(z.any()).optional(),
-});
-
-// GET /api/admin/email-sequences/[id] - Get specific email sequence
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+import { emailJson, emailApiError } from "@/lib/admin/email-api";
+import {
+  sequenceInput,
+  sequenceInclude,
+  savedSequenceSteps,
+} from "@/lib/admin/email-sequence-input";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+type Params = { params: Promise<{ id: string }> };
+export async function GET(_request: NextRequest, { params }: Params) {
   try {
-    const { id } = await params;
-    const session = await getServerSession();
-
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const sequence = await prisma.emailSequence.findUnique({
-      where: { id },
-      include: {
-        steps: {
-          include: {
-            template: {
-              select: {
-                id: true,
-                name: true,
-                subject: true,
-                category: true,
-              },
-            },
-          },
-          orderBy: { order: "asc" },
-        },
-        _count: {
-          select: {
-            steps: true,
-            users: true,
-          },
-        },
-      },
+    if ((await auth())?.user?.role !== "ADMIN")
+      return emailJson({ error: "Unauthorized" }, 401);
+    const sequence = await db.emailSequence.findUnique({
+      where: { id: (await params).id },
+      include: sequenceInclude,
     });
-
-    if (!sequence) {
-      return NextResponse.json(
-        { error: "Email sequence not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(sequence);
+    return sequence
+      ? emailJson(sequence)
+      : emailJson({ error: "Secvența nu există" }, 404);
   } catch (error) {
-    console.error("Error fetching email sequence:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch email sequence" },
-      { status: 500 }
-    );
+    return emailApiError(error, "Secvența nu a putut fi încărcată");
   }
 }
-
-// PUT /api/admin/email-sequences/[id] - Update email sequence
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: Params) {
   try {
+    if ((await auth())?.user?.role !== "ADMIN")
+      return emailJson({ error: "Unauthorized" }, 401);
     const { id } = await params;
-    const session = await getServerSession();
-
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const validatedData = EmailSequenceUpdateSchema.parse(body);
-
-    // Check if sequence exists
-    const existingSequence = await prisma.emailSequence.findUnique({
+    const existing = await db.emailSequence.findUnique({
       where: { id },
+      include: sequenceInclude,
     });
-
-    if (!existingSequence) {
-      return NextResponse.json(
-        { error: "Email sequence not found" },
-        { status: 404 }
+    if (!existing) return emailJson({ error: "Secvența nu există" }, 404);
+    const { steps, ...data } = sequenceInput
+      .partial()
+      .parse(await request.json());
+    if (
+      (data.isActive ?? existing.isActive) &&
+      (steps?.length ?? existing.steps.length) === 0
+    )
+      return emailJson(
+        { error: "Adaugă cel puțin un pas înainte de activare" },
+        400
       );
-    }
-
-    // Update the sequence
-    const updatedSequence = await prisma.emailSequence.update({
-      where: { id },
-      data: validatedData,
-      include: {
-        steps: {
-          include: {
-            template: {
-              select: {
-                id: true,
-                name: true,
-                subject: true,
-                category: true,
-              },
-            },
-          },
-          orderBy: { order: "asc" },
-        },
-        _count: {
-          select: {
-            steps: true,
-            users: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json(updatedSequence);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Validation error", details: error.errors },
-        { status: 400 }
+    if (
+      (steps?.length ?? existing.steps.length) >
+      (data.maxEmails ?? existing.maxEmails)
+    )
+      return emailJson(
+        { error: "Numărul de pași depășește limita de emailuri" },
+        400
       );
-    }
-
-    console.error("Error updating email sequence:", error);
-    return NextResponse.json(
-      { error: "Failed to update email sequence" },
-      { status: 500 }
+    // Enrolled users retain their step positions; changing their steps needs a migration.
+    if (steps && existing._count.users > 0)
+      return emailJson(
+        { error: "Secvența are participanți. Pașii nu pot fi înlocuiți." },
+        409
+      );
+    const replacement = steps ? await savedSequenceSteps(steps) : undefined;
+    return emailJson(
+      await db.emailSequence.update({
+        where: { id },
+        data: {
+          ...data,
+          ...(replacement
+            ? { steps: { deleteMany: {}, create: replacement } }
+            : {}),
+        },
+        include: sequenceInclude,
+      })
     );
+  } catch (error) {
+    return emailApiError(error, "Secvența nu a putut fi salvată");
   }
 }
-
-// DELETE /api/admin/email-sequences/[id] - Delete email sequence
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_request: NextRequest, { params }: Params) {
   try {
+    if ((await auth())?.user?.role !== "ADMIN")
+      return emailJson({ error: "Unauthorized" }, 401);
     const { id } = await params;
-    const session = await getServerSession();
-
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check if sequence exists and get usage info
-    const existingSequence = await prisma.emailSequence.findUnique({
+    const existing = await db.emailSequence.findUnique({
       where: { id },
-      include: {
-        steps: true,
-        users: true,
-      },
+      include: { _count: { select: { users: true } } },
     });
-
-    if (!existingSequence) {
-      return NextResponse.json(
-        { error: "Email sequence not found" },
-        { status: 404 }
+    if (!existing) return emailJson({ error: "Secvența nu există" }, 404);
+    if (existing._count.users > 0)
+      return emailJson(
+        { error: "Secvența are participanți și nu poate fi ștearsă" },
+        409
       );
-    }
-
-    // Check if sequence is being used
-    if (existingSequence.users.length > 0) {
-      return NextResponse.json(
-        {
-          error: "Cannot delete sequence that has active users",
-          activeUsersCount: existingSequence.users.length,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Delete the sequence and its steps (cascade)
-    await prisma.emailSequence.delete({
-      where: { id },
-    });
-
-    return NextResponse.json({
-      message: "Email sequence deleted successfully",
-    });
+    await db.emailSequence.delete({ where: { id } });
+    return emailJson({ success: true });
   } catch (error) {
-    console.error("Error deleting email sequence:", error);
-    return NextResponse.json(
-      { error: "Failed to delete email sequence" },
-      { status: 500 }
-    );
+    return emailApiError(error, "Secvența nu a putut fi ștearsă");
   }
 }

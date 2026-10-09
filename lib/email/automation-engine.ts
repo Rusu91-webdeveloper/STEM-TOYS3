@@ -4,7 +4,6 @@
  * for enterprise-grade email automation
  */
 
-import { cache } from "@/lib/cache";
 import { prisma } from "@/lib/prisma";
 
 import { emailAnalyticsEngine } from "./analytics-engine";
@@ -89,9 +88,6 @@ export interface AutomationWorkflow {
  * Advanced Email Automation Engine
  */
 export class EmailAutomationEngine {
-  private readonly CACHE_TTL = 1800; // 30 minutes
-  private readonly TRIGGER_CACHE_TTL = 900; // 15 minutes
-
   /**
    * Process user action and trigger relevant automations
    */
@@ -440,70 +436,10 @@ export class EmailAutomationEngine {
     }
   }
 
-  private async getActiveTriggers(): Promise<EmailTrigger[]> {
-    const cacheKey = "active-triggers";
-
-    // Check cache first
-    const cached = await cache.get<EmailTrigger[]>(cacheKey);
-    if (cached) return cached;
-
-    // This would query the database for active triggers
-    // For now, return mock data
-    const triggers: EmailTrigger[] = [
-      {
-        id: "welcome-trigger",
-        name: "Welcome Trigger",
-        type: "user_action",
-        conditions: [
-          {
-            field: "action",
-            operator: "equals",
-            value: "user_registered",
-          },
-        ],
-        actions: [
-          {
-            type: "send_email",
-            templateId: "welcome-email",
-            data: {
-              subject: "Bine ai venit la {storeName}!",
-              content: "Mulțumim că te-ai înregistrat...",
-            },
-          },
-        ],
-        isActive: true,
-        priority: 1,
-      },
-      {
-        id: "abandoned-cart-trigger",
-        name: "Abandoned Cart Trigger",
-        type: "behavioral",
-        conditions: [
-          {
-            field: "cart_abandoned",
-            operator: "equals",
-            value: true,
-          },
-        ],
-        actions: [
-          {
-            type: "send_email",
-            templateId: "abandoned-cart",
-            data: {
-              subject: "Ai uitat ceva în coșul tău!",
-              content: "Văd că ai lăsat produse în coș...",
-            },
-          },
-        ],
-        isActive: true,
-        priority: 2,
-      },
-    ];
-
-    // Cache the triggers
-    await cache.set(cacheKey, triggers, this.TRIGGER_CACHE_TTL);
-
-    return triggers;
+  private getActiveTriggers(): Promise<EmailTrigger[]> {
+    // The legacy workflow engine has no implemented database mapping or durable
+    // worker. Hard-coded welcome/cart triggers must never invent customer activity.
+    return Promise.resolve([]);
   }
 
   private async getTimeBasedTriggers(): Promise<EmailTrigger[]> {
@@ -546,9 +482,8 @@ export class EmailAutomationEngine {
         return sequence;
       }
 
-      // If no sequence exists, create a default welcome sequence
-      const defaultSequence = await this.createDefaultWelcomeSequence();
-      return defaultSequence;
+      // Only the owner may create sequences; absence is not permission to invent one.
+      return null;
     } catch (error) {
       console.error("Error getting welcome sequence:", error);
       return null;
@@ -568,59 +503,6 @@ export class EmailAutomationEngine {
   private async getReEngagementSequence(): Promise<EmailSequence | null> {
     // This would return the re-engagement sequence configuration
     return null;
-  }
-
-  private async createDefaultWelcomeSequence(): Promise<EmailSequence | null> {
-    try {
-      // Look for a welcome email template
-      const welcomeTemplate = await prisma.emailTemplate.findFirst({
-        where: {
-          category: "welcome",
-          isActive: true,
-        },
-      });
-
-      if (!welcomeTemplate) {
-        console.log("No welcome template found, skipping welcome sequence");
-        return null;
-      }
-
-      // Create welcome sequence
-      const sequence = await prisma.emailSequence.create({
-        data: {
-          name: "Welcome Series",
-          description: "Default welcome email sequence for new users",
-          trigger: "user_registration",
-          isActive: true,
-          maxEmails: 1,
-          cooldownHours: 0,
-          createdBy: "system",
-          steps: {
-            create: {
-              order: 1,
-              delayHours: 0,
-              templateId: welcomeTemplate.id,
-              subject: welcomeTemplate.subject,
-              content: welcomeTemplate.content,
-            },
-          },
-        },
-        include: {
-          steps: {
-            orderBy: { order: "asc" },
-            include: {
-              template: true,
-            },
-          },
-        },
-      });
-
-      console.log("Created default welcome sequence:", sequence.id);
-      return sequence;
-    } catch (error) {
-      console.error("Error creating default welcome sequence:", error);
-      return null;
-    }
   }
 
   private async isUserInSequence(

@@ -2,6 +2,7 @@ import { getAppConfig } from "@/lib/config/app-config";
 import { prisma } from "@/lib/prisma";
 import { generateUnsubscribeLink } from "./base";
 import { EMAIL_TEMPLATES } from "./template-library";
+import { codeOwnedTemplateSlugs } from "./template-ownership";
 
 export interface DatabaseEmailTemplate {
   id: string;
@@ -28,7 +29,7 @@ export interface SendEmailWithDatabaseTemplateOptions {
  *
  * This service handles all email sending using templates stored in the database
  * instead of hardcoded file templates.
- * 
+ *
  * CODE-OWNED TEMPLATES: These template keys skip the database lookup entirely
  * and always use the improved code-based implementations:
  * - order-confirmation
@@ -39,20 +40,11 @@ export interface SendEmailWithDatabaseTemplateOptions {
  * - admin-new-order
  */
 export class DatabaseTemplateService {
-  
   /**
    * Template keys that are code-owned and skip DB lookup
    * Maps to actual slugs used in database/callers
    */
-  private static CODE_OWNED_TEMPLATES = new Set([
-    'order-confirmation',
-    'order-shipped-fancourier',
-    'order-shipped',
-    'password-change-confirmation',
-    'payment-failed',
-    'refund',
-    'admin-new-order',
-  ]);
+  private static CODE_OWNED_TEMPLATES = new Set(codeOwnedTemplateSlugs);
 
   /**
    * Check if a template is code-owned (skips DB lookup)
@@ -286,7 +278,7 @@ export class DatabaseTemplateService {
         to: options.to,
         subject: finalSubject,
         html: processedContent,
-        priority: options.priority,
+        audit: { templateId: "id" in template ? template.id : undefined },
       });
 
       return {
@@ -388,7 +380,9 @@ export class DatabaseTemplateService {
       number: orderData.orderNumber,
       total: orderData.orderTotal.toFixed(2) + " RON",
       subtotal:
-        orderData.subtotal != null ? fmt(orderData.subtotal) + " RON" : undefined,
+        orderData.subtotal != null
+          ? fmt(orderData.subtotal) + " RON"
+          : undefined,
       tax: orderData.tax != null ? fmt(orderData.tax) + " RON" : undefined,
       shippingCost:
         orderData.shippingCost != null
@@ -635,11 +629,11 @@ export class DatabaseTemplateService {
           ? `https://www.fancourier.ro/awb-tracking/?tracking=${shippingData.trackingNumber}`
           : undefined,
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        ...await getAppConfig().then(c => ({
+        ...(await getAppConfig().then(c => ({
           storeName: c.storeName,
           contactEmail: c.contactEmail,
           contactPhone: c.storePhoneFormatted,
-        })),
+        }))),
       },
     });
   }
@@ -663,9 +657,12 @@ export class DatabaseTemplateService {
         customerName: orderData.customerName,
         orderNumber: orderData.orderNumber,
         order: { number: orderData.orderNumber },
-        cancellationReason: orderData.cancellationReason || "Cererea clientului",
+        cancellationReason:
+          orderData.cancellationReason || "Cererea clientului",
         cancellationDate: new Date().toLocaleDateString("ro-RO"),
-        refundInfo: orderData.refundInfo || "Rambursarea va fi procesată în 3-5 zile lucrătoare.",
+        refundInfo:
+          orderData.refundInfo ||
+          "Rambursarea va fi procesată în 3-5 zile lucrătoare.",
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
       },
     });
@@ -737,11 +734,11 @@ export class DatabaseTemplateService {
         productName: returnData.productName,
         reason: returnData.reason,
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        ...await getAppConfig().then(c => ({
+        ...(await getAppConfig().then(c => ({
           storeName: c.storeName,
           contactEmail: c.contactEmail,
           contactPhone: c.storePhoneFormatted,
-        })),
+        }))),
       },
     });
   }

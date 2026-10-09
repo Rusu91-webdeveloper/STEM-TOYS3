@@ -45,49 +45,7 @@ const formatPrice = (price: number) => `${price.toFixed(2)} lei`;
 
 async function getProduct(id: string) {
   try {
-    // In development with mock data, return a mock product
-    if (
-      process.env.NODE_ENV === "development" &&
-      process.env.USE_MOCK_DATA === "true"
-    ) {
-      return {
-        id,
-        name: "Robotic Building Kit",
-        slug: "robotic-building-kit",
-        description:
-          "An educational robotic kit that teaches children coding and engineering principles. Great for ages 8-14, this kit includes all components needed to build various robot configurations.",
-        price: 59.99,
-        compareAtPrice: 79.99,
-        images: [
-          "https://placehold.co/800x600/4F46E5/FFFFFF.png?text=Robot+Kit+1",
-          "https://placehold.co/800x600/4F46E5/FFFFFF.png?text=Robot+Kit+2",
-          "https://placehold.co/800x600/4F46E5/FFFFFF.png?text=Robot+Kit+3",
-        ],
-        categoryId: "cat_1",
-        category: { name: "Technology" },
-        tags: ["robotics", "coding", "engineering", "electronics"],
-        isActive: true,
-        attributes: {
-          metaTitle: "Robotic Building Kit | STEM Toys",
-          metaDescription:
-            "Educational robotic kit that teaches children coding and engineering principles. Perfect for beginners and intermediate learners aged 8-14.",
-          metaKeywords: ["robotics", "coding", "STEM toys", "educational toys"],
-          ageRange: "8-14",
-          stemCategory: "technology",
-          difficultyLevel: "intermediate",
-          learningObjectives: [
-            "Learn basic programming concepts",
-            "Understand engineering principles",
-            "Develop problem-solving skills",
-            "Build creative thinking",
-          ],
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-    }
-
-    // In production, fetch from database
+    // Fetch the saved product in every environment.
     const product = await db.product.findUnique({
       where: { id },
       include: {

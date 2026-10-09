@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { format } from "date-fns";
 import { ro } from "date-fns/locale";
@@ -573,7 +574,7 @@ export async function POST(
       );
     }
 
-    const auditUpdate =
+    const auditUpdate: Prisma.ReturnUpdateInput =
       recipientType === "supplier"
         ? {
             sentToSupplierAt: new Date(),

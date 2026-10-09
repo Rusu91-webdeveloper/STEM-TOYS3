@@ -4,21 +4,14 @@
  * automation, and performance optimization engines
  */
 
+import { sendEmailWithBrevo } from "@/lib/brevo";
 import { appConfig } from "@/lib/config/app-config";
-import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { db } from "@/lib/db";
 import { getStoreSettings } from "@/lib/utils/store-settings";
 
 import { emailAnalyticsEngine } from "./analytics-engine";
 import { emailAutomationEngine } from "./automation-engine";
 import { generateProfessionalEmail, generatePreviewText } from "./base";
-import {
-  createHeroSection,
-  createAlert,
-  createFeatureGrid,
-  createCTASection,
-} from "./components";
-import { colors, gradients, typography, spacing } from "./design-system";
 import { emailPerformanceEngine } from "./performance-engine";
 import { personalizationEngine } from "./personalization-engine";
 
@@ -148,58 +141,58 @@ export class EmailService {
         previewText
       );
 
-      // Send email
-      const emailId = this.generateEmailId();
-
-      if (this.config.enablePerformanceOptimization && request.userId) {
-        // Use performance engine for optimized delivery
-        await emailPerformanceEngine.queueEmail(
-          request.userId,
-          request.to,
-          personalizedSubject,
-          html,
-          request.priority || 1
-        );
-      } else {
-        // Send immediately
-        await sendEmailViaUnifiedSystem({
-          to: request.to,
-          subject: personalizedSubject,
-          html,
-          from: storeSettings?.contactEmail || this.config.fallbackEmail,
-          fromName: storeName,
-        });
-      }
+      // The old performance queue only logged a send. Require actual provider
+      // acceptance before returning success or creating a SENT event.
+      const delivery = await sendEmailWithBrevo({
+        to: request.to,
+        subject: personalizedSubject,
+        html,
+        from: storeSettings?.contactEmail || this.config.fallbackEmail,
+        fromName: storeName,
+        audit: { campaignId: request.campaignId },
+      });
+      if (!delivery.success || !delivery.messageId)
+        throw new Error(delivery.error || "Furnizorul nu a acceptat emailul");
+      const emailId = delivery.messageId;
 
       // Track analytics if enabled
       if (this.config.enableAnalytics && request.userId) {
-        await emailAnalyticsEngine.trackEmailEvent({
-          emailId,
-          userId: request.userId,
-          email: request.to,
-          eventType: "sent",
-          metadata: {
-            template: request.template,
-            subject: personalizedSubject,
-            campaignId: request.campaignId,
-            segmentId: request.segmentId,
-            personalization: request.personalization,
-            tracking: request.tracking,
-          },
-        });
+        try {
+          await emailAnalyticsEngine.trackEmailEvent({
+            emailId,
+            userId: request.userId,
+            email: request.to,
+            eventType: "sent",
+            metadata: {
+              template: request.template,
+              subject: personalizedSubject,
+              campaignId: request.campaignId,
+              segmentId: request.segmentId,
+              personalization: request.personalization,
+              tracking: request.tracking,
+              providerAccepted: true,
+            },
+          });
+        } catch (error) {
+          console.error("Email accepted; analytics could not be saved", error);
+        }
       }
 
       // Trigger automation if enabled
       if (this.config.enableAutomation && request.userId) {
-        await emailAutomationEngine.processUserAction(
-          request.userId,
-          "email_sent",
-          {
-            emailId,
-            template: request.template,
-            campaignId: request.campaignId,
-          }
-        );
+        try {
+          await emailAutomationEngine.processUserAction(
+            request.userId,
+            "email_sent",
+            {
+              emailId,
+              template: request.template,
+              campaignId: request.campaignId,
+            }
+          );
+        } catch (error) {
+          console.error("Email accepted; automation follow-up failed", error);
+        }
       }
 
       const deliveryTime = Date.now() - startTime;
@@ -305,77 +298,19 @@ export class EmailService {
         throw new Error("User not found");
       }
 
-      // Try to use database template first
-      try {
-        console.log("🔍 Looking for welcome email template in database...");
-        const welcomeTemplate = await db.emailTemplate.findFirst({
-          where: {
-            category: "welcome",
-            isActive: true,
-          },
-        });
-
-        console.log("🔍 Database query result:", {
-          found: !!welcomeTemplate,
-          templateId: welcomeTemplate?.id,
-          templateName: welcomeTemplate?.name,
-          templateSlug: welcomeTemplate?.slug,
-          contentLength: welcomeTemplate?.content?.length || 0,
-        });
-
-        if (welcomeTemplate) {
-          console.log(
-            `📧 Using database welcome template: ${welcomeTemplate.name}`
-          );
-          console.log(
-            `📧 Template content preview: ${welcomeTemplate.content.substring(0, 100)}...`
-          );
-
-          // Use new template library instead of database template
-          const { sendWelcomeEmailNew } = await import(
-            "./unified-email-service"
-          );
-
-          const result = await sendWelcomeEmailNew(email, user.name);
-
-          // Trigger welcome automation sequence
-          if (this.config.enableAutomation) {
-            await emailAutomationEngine.createWelcomeSeries(userId);
-          }
-
-          return {
-            success: true,
-            messageId: result.messageId,
-            template: welcomeTemplate.slug,
-          };
-        } else {
-          console.log(
-            "❌ No welcome template found in database, will use fallback"
-          );
-        }
-      } catch (templateError) {
-        console.warn(
-          "Failed to use database template, falling back to hardcoded:",
-          templateError
-        );
-      }
-
-      // Fallback to hardcoded template
-      console.log("📧 Using hardcoded welcome template (fallback)");
-
-      // Trigger welcome automation sequence
-      if (this.config.enableAutomation) {
-        await emailAutomationEngine.createWelcomeSeries(userId);
-      }
-
-      return await this.sendEmail({
+      const welcomeTemplate = await db.emailTemplate.findFirst({
+        where: { category: "welcome", isActive: true },
+        orderBy: { updatedAt: "desc" },
+      });
+      if (!welcomeTemplate)
+        throw new Error("Nu există un șablon welcome activ");
+      return this.sendEmail({
         to: email,
         userId,
-        subject: "Bine ai venit la TechTots! 🎉",
-        template: "welcome",
-        data: { user },
+        subject: welcomeTemplate.subject,
+        template: welcomeTemplate.slug,
+        data: { user, userName: user.name ?? "", userEmail: email },
         priority: 1,
-        campaignId: "welcome-series",
         personalization: true,
         tracking: true,
       });
@@ -553,15 +488,28 @@ export class EmailService {
       throw new Error(`Template ${request.template} not found`);
     }
 
-    // Replace variables in content and subject
-    let content = template.content;
-    let subject = template.subject;
-
-    for (const [key, value] of Object.entries(request.data)) {
-      const placeholder = `{{${key}}}`;
-      content = content.replace(new RegExp(placeholder, "g"), String(value));
-      subject = subject.replace(new RegExp(placeholder, "g"), String(value));
-    }
+    const variables = {
+      storeName: storeSettings.storeName,
+      baseUrl: storeSettings.storeUrl,
+      site: { name: storeSettings.storeName, url: storeSettings.storeUrl },
+      ...request.data,
+    };
+    const replace = (value: string) =>
+      value.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (placeholder, path: string) => {
+        let resolved: unknown = variables;
+        for (const key of path.trim().split("."))
+          resolved =
+            resolved && typeof resolved === "object"
+              ? (resolved as Record<string, unknown>)[key]
+              : undefined;
+        return resolved == null || typeof resolved === "object"
+          ? placeholder
+          : String(resolved);
+      });
+    const content = replace(template.content);
+    const subject = replace(template.subject);
+    if (/\{\{[^}]+\}\}/.test(subject + content))
+      throw new Error("Variabilele șablonului nu sunt completate");
 
     // Generate preview text
     const previewText = generatePreviewText(
@@ -572,225 +520,12 @@ export class EmailService {
     return { content, subject, previewText };
   }
 
-  private async getEmailTemplate(
+  private getEmailTemplate(
     templateId: string
   ): Promise<EmailTemplate | null> {
-    // This would fetch template from database
-    // For now, return mock templates
-    const templates: Record<string, EmailTemplate> = {
-      welcome: {
-        id: "welcome",
-        name: "Welcome Email",
-        subject: "Bine ai venit la {{storeName}}! 🎉",
-        content: `
-          ${createHeroSection(
-            "Bine ai venit în familia TechTots! 🎉",
-            "Suntem încântați să te avem alături de noi în călătoria educațională STEM.",
-            gradients.welcome
-          )}
-          
-          <div style="text-align: center; margin: ${spacing.xl} 0;">
-            <p style="font-size: ${typography.fontSize.lg}; color: ${colors.neutral[700]}; line-height: ${typography.lineHeight.relaxed};">
-              Mulțumim că te-ai înregistrat la {{storeName}}! Suntem aici să te ajutăm să descoperi 
-              lumea fascinantă a jucăriilor educaționale STEM.
-            </p>
-          </div>
-
-          ${createFeatureGrid([
-            {
-              icon: "🎓",
-              title: "Educație STEM",
-              description:
-                "Produse educaționale de calitate pentru dezvoltarea copiilor.",
-              color: colors.primary[600],
-            },
-            {
-              icon: "🚚",
-              title: "Livrare Rapidă",
-              description: "Livrare în toată România cu curieri de încredere.",
-              color: colors.success[600],
-            },
-            {
-              icon: "💎",
-              title: "Calitate Premium",
-              description:
-                "Toate produsele sunt testate și aprobate pentru siguranță.",
-              color: colors.accent.purple,
-            },
-            {
-              icon: "🎯",
-              title: "Dezvoltare Copii",
-              description: "Împreună construim viitorul prin educația STEM.",
-              color: colors.accent.orange,
-            },
-          ])}
-
-          ${createCTASection(
-            "Începe Să Explorezi",
-            "Descoperă colecția noastră de jucării STEM și începe călătoria educațională!",
-            {
-              text: "🛒 Vezi Produsele",
-              url: "{{baseUrl}}",
-            },
-            {
-              text: "📚 Cărți Digitale",
-              url: "{{baseUrl}}/digital-books",
-            }
-          )}
-        `,
-        variables: ["storeName", "baseUrl"],
-        category: "onboarding",
-        isActive: true,
-      },
-      "abandoned-cart": {
-        id: "abandoned-cart",
-        name: "Abandoned Cart Recovery",
-        subject: "Ai uitat ceva în coșul tău! 🛒",
-        content: `
-          ${createHeroSection(
-            "Ai uitat ceva în coșul tău! 🛒",
-            "Văd că ai lăsat produse în coșul tău. Nu rata oportunitatea de a le achiziționa!",
-            gradients.warning
-          )}
-
-          ${createAlert(
-            "Produsele din coșul tău te așteaptă! Grăbește-te să finalizezi comanda înainte să se epuizeze stocul.",
-            "warning",
-            "⏰"
-          )}
-
-          ${createCTASection(
-            "Finalizează Comanda",
-            "Nu rata produsele din coșul tău! Finalizează comanda acum.",
-            {
-              text: "🛒 Finalizează Comanda",
-              url: "{{baseUrl}}/cart",
-            }
-          )}
-        `,
-        variables: ["baseUrl"],
-        category: "recovery",
-        isActive: true,
-      },
-      "post-purchase": {
-        id: "post-purchase",
-        name: "Post Purchase",
-        subject: "Mulțumim pentru comandă! 🎁",
-        content: `
-          ${createHeroSection(
-            "Mulțumim pentru comandă! 🎁",
-            "Comanda ta a fost confirmată și va fi procesată în cel mai scurt timp.",
-            gradients.success
-          )}
-
-          ${createAlert(
-            "Comanda ta va fi livrată în cel mai scurt timp posibil. Vei primi un email cu detalii despre livrare.",
-            "success",
-            "📦"
-          )}
-
-          ${createCTASection(
-            "Urmărește Comanda",
-            "Urmărește statusul comenzii tale și vezi când va ajunge la tine.",
-            {
-              text: "📦 Urmărește Comanda",
-              url: "{{baseUrl}}/orders/{{orderId}}",
-            }
-          )}
-        `,
-        variables: ["baseUrl", "orderId"],
-        category: "post-purchase",
-        isActive: true,
-      },
-      "re-engagement": {
-        id: "re-engagement",
-        name: "Re-engagement",
-        subject: "Ne-am dorit să te vedem din nou! 👋",
-        content: `
-          ${createHeroSection(
-            "Ne-am dorit să te vedem din nou! 👋",
-            "Îți dorim să revii în familia TechTots și să descoperi produsele noastre noi.",
-            gradients.promotional
-          )}
-
-
-
-          ${createCTASection(
-            "Revino la TechTots",
-            "Descoperă produsele noastre noi și bucură-te de oferte speciale!",
-            {
-              text: "🛒 Vezi Produsele Noi",
-              url: "{{baseUrl}}",
-            }
-          )}
-        `,
-        variables: ["baseUrl"],
-        category: "re-engagement",
-        isActive: true,
-      },
-      "supplier-registration": {
-        id: "supplier-registration",
-        name: "Supplier Registration Confirmation",
-        subject: "Aplicația ta de furnizor a fost primită! 📋",
-        content: `
-          ${createHeroSection(
-            "Aplicația ta de furnizor a fost primită! 📋",
-            "Vă mulțumim pentru înregistrarea ta la TechTots. Vom analiza aplicația ta și vom fi în contact cu tine în cel mai scurt timp.",
-            gradients.primary
-          )}
-
-          ${createAlert(
-            "Vă mulțumim că ne-ați ales pe TechTots! Vom analiza aplicația ta și vom fi în contact cu tine în cel mai scurt timp pentru a vă oferi mai multe detalii despre oportunitățile noastre.",
-            "info",
-            "ℹ️"
-          )}
-
-          ${createCTASection(
-            "Urmărește Progresul",
-            "Vă rugăm să urmăriți progresul aplicației tale și să fiți pregătiți să începem colaborarea.",
-            {
-              text: "Vezi Aplicația Mea",
-              url: "{{baseUrl}}/suppliers/application/{{supplier.companySlug}}",
-            }
-          )}
-        `,
-        variables: ["baseUrl", "supplier"],
-        category: "supplier",
-        isActive: true,
-      },
-      "admin-supplier-notification": {
-        id: "admin-supplier-notification",
-        name: "Admin Supplier Notification",
-        subject: "Nouă aplicație de furnizor! 🆕",
-        content: `
-          ${createHeroSection(
-            "Nouă aplicație de furnizor! 🆕",
-            "Ați primit o nouă aplicație de furnizor la TechTots. Vă rugăm să o revizuiți și să luați o decizie rapidă.",
-            gradients.warning
-          )}
-
-          ${createAlert(
-            "Ați primit o nouă aplicație de furnizor la TechTots. Vă rugăm să o revizuiți și să luați o decizie rapidă pentru a vă asigura că aceasta este o oportunitate de valoare pentru TechTots.",
-            "warning",
-            "⚠️"
-          )}
-
-          ${createCTASection(
-            "Revizuiți Aplicația",
-            "Vă rugăm să revizuiți aplicația furnizorului și să luați o decizie rapidă. Puteți accesa aplicația în următoarea adresă: {{reviewUrl}}",
-            {
-              text: "Vezi Aplicația",
-              url: "{{reviewUrl}}",
-            }
-          )}
-        `,
-        variables: ["reviewUrl"],
-        category: "admin",
-        isActive: true,
-      },
-    };
-
-    return templates[templateId] || null;
+    return db.emailTemplate.findFirst({
+      where: { isActive: true, OR: [{ id: templateId }, { slug: templateId }] },
+    });
   }
 
   private getOrderStatusTemplate(status: string): {
@@ -852,10 +587,6 @@ export class EmailService {
     }
 
     return recommendations;
-  }
-
-  private generateEmailId(): string {
-    return `email-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
 

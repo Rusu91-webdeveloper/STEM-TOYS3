@@ -1,5 +1,17 @@
 # Current tasks
 
+- [ ] 2026-10-09 — Make admin email screens use saved store records and remove
+      fictional/failed-read values. Estimate: 2–4 hours. Template filtering and
+      content, saved sequence fields/steps, real subscriber/history/trigger
+      data, campaign draft/send controls and provider acceptance auditing are
+      implemented locally. Five focused suites / 37 tests, isolated PostgreSQL
+      assertions and authenticated HTTP create/edit/reload checks pass. Browser
+      checks confirm saved template pagination/preview and sequence fields. An
+      additional older-service acceptance suite and final regression/build
+      checks are in progress; publication remains pending. Direct production DB
+      verification requires Neon reauthorization. See the
+      [email data audit](docs/audits/2026-10-09-admin-email-data.md).
+
 - [x] 2026-10-09 — Correct the owner's category screen showing all categories as
       inactive with zero products. Estimate: 30–60 minutes. Use real ADMIN
       category records and product relations, validate the response, distinguish
@@ -56,6 +68,21 @@
       [dashboard audit](docs/audits/2026-10-08-admin-dashboard.md).
 
 ## Discovered During Work
+
+- [ ] 2026-10-09 — Complete withdrawn image optimization, supplier performance
+      scores and supplier-invoice dispatch. Existing implementations simulated
+      processing statistics, scored unmeasured return/issue data, or marked
+      invoices SENT without sending. They now fail explicitly without data
+      writes. Real file processing/storage, complete score sources and invoice
+      provider acceptance are required before these actions return success.
+      Estimate: 3–6 hours depending on provider/storage access.
+
+- [ ] 2026-10-09 — Replace the unfinished email sequence execution engine with
+      durable scheduling, real event enrollment, opt-in enforcement and
+      idempotent progress. The editor now persists actual sequence steps and
+      identifies activation as saved configuration; automatic execution is not
+      certified. No new schedule should silently send to existing customers.
+      Estimate: 4–8 hours including provider acceptance and recovery.
 
 - [x] 2026-10-08 — Resolve stale legacy settings callbacks. The canonical editor
       now submits current section drafts directly, with save/reload and conflict

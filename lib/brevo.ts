@@ -6,6 +6,7 @@
 import axios from "axios";
 import nodemailer from "nodemailer";
 
+import { auditEmailDelivery, type DeliveryAudit } from "./email/delivery-audit";
 import { isDevelopment } from "./security";
 
 // Brevo API configuration
@@ -52,20 +53,6 @@ export const brevoTransporter = nodemailer.createTransport({
   },
 });
 
-// For development environment, provide console-based email simulation
-const devTransporter = {
-  sendEmailViaUnifiedSystem: async (options: any) => {
-    // Development mode: Email not sent, but would be sent with these details
-    return { messageId: `dev-${Date.now()}@localhost` };
-  },
-};
-
-// Use dev transporter in development mode if credentials are missing
-const activeTransporter =
-  isDevelopment() && !process.env.BREVO_API_KEY && !process.env.BREVO_SMTP_KEY
-    ? devTransporter
-    : brevoTransporter;
-
 // Send an email using Brevo API with axios
 export async function sendEmailWithBrevoApi({
   to,
@@ -95,10 +82,13 @@ export async function sendEmailWithBrevoApi({
   }>;
 }) {
   try {
-    // In development mode with missing credentials, use the dev transporter
-    if (isDevelopment() && !process.env.BREVO_API_KEY) {
-      // Development mode: Email not sent, but would be sent with these details
-      return { success: true, messageId: `dev-${Date.now()}@localhost` };
+    // Fail explicitly when the provider is not configured
+    if (!process.env.BREVO_API_KEY) {
+      return {
+        success: false,
+        messageId: null,
+        error: "Furnizorul de email nu este configurat",
+      };
     }
 
     // Prepare email payload
@@ -138,10 +128,13 @@ export async function sendEmailWithBrevoApi({
   } catch (error) {
     console.error("❌ Error sending email with Brevo API:", error);
 
-    // In development mode, simulate success
+    // Return a real failure in local development as well
     if (isDevelopment()) {
-      // Development mode: Email simulation despite error
-      return { success: true, messageId: `dev-error-${Date.now()}@localhost` };
+      return {
+        success: false,
+        messageId: null,
+        error: "Trimiterea emailului a eșuat",
+      };
     }
 
     throw error;
@@ -170,14 +163,17 @@ export async function sendEmailWithBrevoSmtp({
   }>;
 }) {
   try {
-    // In development mode with missing credentials, use the dev transporter
-    if (isDevelopment() && !process.env.BREVO_SMTP_KEY) {
-      // Development mode: Email not sent, but would be sent with these details
-      return { success: true, messageId: `dev-${Date.now()}@localhost` };
+    // Fail explicitly when the provider is not configured
+    if (!process.env.BREVO_SMTP_KEY) {
+      return {
+        success: false,
+        messageId: null,
+        error: "Furnizorul de email nu este configurat",
+      };
     }
 
     // Send mail with defined transport object
-    const info = await activeTransporter.sendMail({
+    const info = await brevoTransporter.sendMail({
       from,
       to,
       subject,
@@ -186,15 +182,23 @@ export async function sendEmailWithBrevoSmtp({
       attachments,
     });
 
-    // Email sent successfully via Brevo SMTP
-    return { success: true, messageId: info.messageId };
+    return {
+      success: true,
+      messageId: info.messageId,
+      rejectedRecipients: (info.rejected ?? []).map((recipient: string | { address: string }) =>
+        typeof recipient === "string" ? recipient : recipient.address
+      ),
+    };
   } catch (error) {
     console.error("❌ Error sending email with Brevo SMTP:", error);
 
-    // In development mode, simulate success
+    // Return a real failure in local development as well
     if (isDevelopment()) {
-      // Development mode: Email simulation despite error
-      return { success: true, messageId: `dev-error-${Date.now()}@localhost` };
+      return {
+        success: false,
+        messageId: null,
+        error: "Trimiterea emailului a eșuat",
+      };
     }
 
     throw error;
@@ -212,8 +216,10 @@ export async function sendEmailWithBrevo({
   params = {},
   templateId,
   attachments = [],
+  audit,
 }: {
   to: string | string[];
+  audit?: DeliveryAudit;
   subject: string;
   html: string;
   text?: string;
@@ -228,32 +234,40 @@ export async function sendEmailWithBrevo({
     contentType?: string;
   }>;
 }) {
-  // Prefer API method if API key is available
-  if (process.env.BREVO_API_KEY) {
-    // Convert to format expected by the API
-    const toArray = Array.isArray(to)
-      ? to.map(email => ({ email }))
-      : [{ email: to }];
-
-    return sendEmailWithBrevoApi({
-      to: toArray,
-      subject,
-      htmlContent: html,
-      textContent: text,
-      from: { email: from, name: fromName },
-      params,
-      templateId,
-      attachments,
-    });
-  }
-
-  // Fall back to SMTP method
-  return sendEmailWithBrevoSmtp({
+  return auditEmailDelivery(
     to,
     subject,
-    html,
-    text,
-    from: `${fromName} <${from}>`,
-    attachments,
-  });
+    process.env.BREVO_API_KEY ? "brevo-api" : "brevo-smtp",
+    async () => {
+      // Prefer API method if API key is available
+      if (process.env.BREVO_API_KEY) {
+        // Convert to format expected by the API
+        const toArray = Array.isArray(to)
+          ? to.map(email => ({ email }))
+          : [{ email: to }];
+
+        return sendEmailWithBrevoApi({
+          to: toArray,
+          subject,
+          htmlContent: html,
+          textContent: text,
+          from: { email: from, name: fromName },
+          params,
+          templateId,
+          attachments,
+        });
+      }
+
+      // Fall back to SMTP method
+      return sendEmailWithBrevoSmtp({
+        to,
+        subject,
+        html,
+        text,
+        from: `${fromName} <${from}>`,
+        attachments,
+      });
+    },
+    audit
+  );
 }

@@ -129,6 +129,7 @@ export const adminNavGroups: AdminNavGroup[] = [
         icon: FileText,
       },
       { title: "Secvențe email", href: "/admin/email-sequences", icon: Mail },
+      { title: "Reguli email", href: "/admin/email-triggers", icon: Mail },
       {
         title: "Calendar de conținut",
         href: "/admin/content-calendar",

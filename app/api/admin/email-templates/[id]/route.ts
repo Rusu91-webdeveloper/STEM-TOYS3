@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/server/auth";
+import { emailJson as privateJson } from "@/lib/admin/email-api";
+import { auth } from "@/lib/auth";
+import { db as prisma } from "@/lib/db";
+
+const emailJson = (body: unknown, options?: { status: number }) =>
+  privateJson(body, options?.status);
 
 // Validation schema for updating email templates
 const EmailTemplateUpdateSchema = z.object({
@@ -30,6 +34,7 @@ const EmailTemplateUpdateSchema = z.object({
     .optional(),
   isActive: z.boolean().optional(),
   metadata: z.record(z.any()).optional(),
+  images: z.array(z.any()).optional(),
 });
 
 // GET /api/admin/email-templates/[id] - Get specific email template
@@ -42,7 +47,7 @@ export async function GET(
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return emailJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const template = await prisma.emailTemplate.findUnique({
@@ -50,16 +55,13 @@ export async function GET(
     });
 
     if (!template) {
-      return NextResponse.json(
-        { error: "Email template not found" },
-        { status: 404 }
-      );
+      return emailJson({ error: "Email template not found" }, { status: 404 });
     }
 
-    return NextResponse.json(template);
+    return emailJson(template);
   } catch (error) {
     console.error("Error fetching email template:", error);
-    return NextResponse.json(
+    return emailJson(
       { error: "Failed to fetch email template" },
       { status: 500 }
     );
@@ -76,7 +78,7 @@ export async function PUT(
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return emailJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -88,10 +90,7 @@ export async function PUT(
     });
 
     if (!existingTemplate) {
-      return NextResponse.json(
-        { error: "Email template not found" },
-        { status: 404 }
-      );
+      return emailJson({ error: "Email template not found" }, { status: 404 });
     }
 
     // If slug is being updated, check if it already exists
@@ -101,7 +100,7 @@ export async function PUT(
       });
 
       if (slugExists) {
-        return NextResponse.json(
+        return emailJson(
           { error: "Template with this slug already exists" },
           { status: 400 }
         );
@@ -109,22 +108,34 @@ export async function PUT(
     }
 
     // Update the template
+    const { images, metadata, ...fields } = validatedData;
     const updatedTemplate = await prisma.emailTemplate.update({
       where: { id },
-      data: validatedData,
+      data: {
+        ...fields,
+        ...(metadata || images
+          ? {
+              metadata: {
+                ...((existingTemplate.metadata as object) ?? {}),
+                ...metadata,
+                ...(images ? { images } : {}),
+              },
+            }
+          : {}),
+      },
     });
 
-    return NextResponse.json(updatedTemplate);
+    return emailJson(updatedTemplate);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return emailJson(
         { error: "Validation error", details: error.errors },
         { status: 400 }
       );
     }
 
     console.error("Error updating email template:", error);
-    return NextResponse.json(
+    return emailJson(
       { error: "Failed to update email template" },
       { status: 500 }
     );
@@ -141,7 +152,7 @@ export async function DELETE(
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return emailJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check if template exists
@@ -154,10 +165,7 @@ export async function DELETE(
     });
 
     if (!existingTemplate) {
-      return NextResponse.json(
-        { error: "Email template not found" },
-        { status: 404 }
-      );
+      return emailJson({ error: "Email template not found" }, { status: 404 });
     }
 
     // Check if template is being used
@@ -165,7 +173,7 @@ export async function DELETE(
       existingTemplate.campaigns.length > 0 ||
       existingTemplate.sequenceSteps.length > 0
     ) {
-      return NextResponse.json(
+      return emailJson(
         {
           error:
             "Cannot delete template that is being used by campaigns or sequences",
@@ -181,12 +189,12 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({
+    return emailJson({
       message: "Email template deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting email template:", error);
-    return NextResponse.json(
+    return emailJson(
       { error: "Failed to delete email template" },
       { status: 500 }
     );

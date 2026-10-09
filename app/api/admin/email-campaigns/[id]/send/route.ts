@@ -1,170 +1,144 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 
-import { getServerSession } from "@/lib/auth/server";
-import { prisma } from "@/lib/db";
-import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
-
-// Validation schema for sending campaign emails
-const SendCampaignSchema = z.object({
-  recipientEmails: z
-    .array(z.string().email())
-    .min(1, "At least one recipient required"),
-  testMode: z.boolean().default(false),
-});
-
-// POST /api/admin/email-campaigns/[id]/send - Send campaign emails
+import { emailJson, emailApiError } from "@/lib/admin/email-api";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { sendAuditedAdminEmail } from "@/lib/email/admin-delivery";
+const sendInput = z
+  .object({
+    recipientEmails: z.array(z.string().trim().email()).min(1).max(100),
+    testMode: z.boolean().default(false),
+  })
+  .strict();
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    if ((await auth())?.user?.role !== "ADMIN")
+      return emailJson({ error: "Unauthorized" }, 401);
     const { id } = await params;
-    const session = await getServerSession();
-
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const validatedData = SendCampaignSchema.parse(body);
-
-    // Get the campaign
-    const campaign = await prisma.emailCampaign.findUnique({
+    const { recipientEmails, testMode } = sendInput.parse(await request.json());
+    const recipients = [
+      ...new Set(recipientEmails.map(email => email.toLowerCase())),
+    ];
+    if (testMode && recipients.length !== 1)
+      return emailJson(
+        { error: "Testul folosește o singură adresă aleasă explicit" },
+        400
+      );
+    const campaign = await db.emailCampaign.findUnique({
       where: { id },
-      include: {
-        template: true,
-      },
+      include: { template: true },
     });
-
-    if (!campaign) {
-      return NextResponse.json(
-        { error: "Campaign not found" },
-        { status: 404 }
+    if (!campaign) return emailJson({ error: "Campania nu există" }, 404);
+    if (/\{\{[^}]+\}\}/.test(campaign.subject + campaign.content))
+      return emailJson(
+        { error: "Completează variabilele șablonului înainte de trimitere" },
+        400
       );
-    }
-
-    if (campaign.status !== "DRAFT" && campaign.status !== "SCHEDULED") {
-      return NextResponse.json(
-        { error: "Campaign must be in DRAFT or SCHEDULED status to send" },
-        { status: 400 }
+    if (!campaign.template.isActive)
+      return emailJson({ error: "Șablonul campaniei este inactiv" }, 400);
+    if (campaign.status !== "DRAFT")
+      return emailJson(
+        { error: "Trimiterea este permisă numai din draft" },
+        409
       );
-    }
-
-    const results = [];
-    const emailEvents = [];
-
-    // Send emails to each recipient
-    for (const email of validatedData.recipientEmails) {
-      try {
-        // Generate unique email ID for tracking
-        const emailId = `campaign-${campaign.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-        // Send the email
-        const emailResult = await sendEmailViaUnifiedSystem(
-          email,
-          campaign.subject,
-          campaign.content,
+    if (!testMode) {
+      const subscribed = await db.newsletter.findMany({
+        where: {
+          isActive: true,
+          OR: recipients.map(email => ({
+            email: { equals: email, mode: "insensitive" as const },
+          })),
+        },
+        select: { email: true },
+      });
+      const activeEmails = new Set(
+        subscribed.map(row => row.email.toLowerCase())
+      );
+      if (recipients.some(email => !activeEmails.has(email)))
+        return emailJson(
           {
-            campaignId: campaign.id,
-          }
+            error:
+              "Destinatarii campaniei trebuie să fie abonați activi. Pentru verificare folosește trimiterea de test.",
+          },
+          400
         );
-
-        if (!emailResult.success) {
-          throw new Error(emailResult.error || "Email sending failed");
+      // Claim the draft before provider calls so concurrent requests cannot send it twice.
+      const claim = await db.emailCampaign.updateMany({
+        where: { id, status: "DRAFT" },
+        data: { status: "SENDING" },
+      });
+      if (!claim.count)
+        return emailJson({ error: "Campania este deja în procesare" }, 409);
+    }
+    const results = [];
+    for (const email of recipients) {
+      const result = await sendAuditedAdminEmail({
+        to: email,
+        subject: campaign.subject,
+        html: campaign.content,
+        audit: { campaignId: id, templateId: campaign.templateId, testMode },
+      });
+      results.push({
+        email,
+        success: result.success,
+        messageId: result.jobId,
+        error: result.error,
+      });
+      if (result.success && result.jobId) {
+        try {
+          await db.emailEvent.create({
+            data: {
+              emailId: result.jobId,
+              email,
+              eventType: "SENT",
+              campaignId: id,
+              templateId: campaign.templateId,
+              metadata: { testMode, providerAccepted: true },
+            },
+          });
+        } catch (error) {
+          console.error(
+            "Provider accepted campaign email; tracking could not be saved",
+            error
+          );
         }
-
-        // Record email event
-        const emailEvent = await prisma.emailEvent.create({
-          data: {
-            emailId,
-            email,
-            eventType: "SENT",
-            campaignId: campaign.id,
-            templateId: campaign.templateId,
-            metadata: {
-              campaignName: campaign.name,
-              templateName: campaign.template?.name,
-              sentAt: new Date().toISOString(),
-              messageId: emailResult.jobId,
-              testMode: validatedData.testMode,
-            },
-          },
-        });
-
-        emailEvents.push(emailEvent);
-        results.push({
-          email,
-          success: true,
-          messageId: emailResult.jobId,
-          emailId,
-        });
-      } catch (error) {
-        console.error(`Error sending email to ${email}:`, error);
-
-        // Record failed email event
-        const emailId = `campaign-${campaign.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        await prisma.emailEvent.create({
-          data: {
-            emailId,
-            email,
-            eventType: "BOUNCED",
-            campaignId: campaign.id,
-            templateId: campaign.templateId,
-            metadata: {
-              campaignName: campaign.name,
-              templateName: campaign.template?.name,
-              error: error instanceof Error ? error.message : "Unknown error",
-              testMode: validatedData.testMode,
-            },
-          },
-        });
-
-        results.push({
-          email,
-          success: false,
-          error: error instanceof Error ? error.message : "Unknown error",
-        });
       }
     }
-
-    // Update campaign status if not in test mode
-    if (!validatedData.testMode && results.some(r => r.success)) {
-      await prisma.emailCampaign.update({
+    const successful = results.filter(result => result.success).length;
+    if (!testMode)
+      await db.emailCampaign.update({
         where: { id },
         data: {
-          status: "SENT",
-          sentAt: new Date(),
+          status: successful === results.length ? "SENT" : "PAUSED",
+          sentAt: successful ? new Date() : null,
+          metadata: {
+            ...((campaign.metadata as object) ?? {}),
+            lastSend: {
+              successful,
+              failed: results.length - successful,
+              recipients: results.length,
+            },
+          },
         },
       });
-    }
-
-    const successCount = results.filter(r => r.success).length;
-    const failureCount = results.filter(r => !r.success).length;
-
-    return NextResponse.json({
-      success: true,
-      message: `Campaign sent successfully. ${successCount} emails sent, ${failureCount} failed.`,
-      results,
-      summary: {
-        total: results.length,
-        successful: successCount,
-        failed: failureCount,
-        testMode: validatedData.testMode,
+    return emailJson(
+      {
+        success: successful === results.length,
+        results,
+        summary: {
+          total: results.length,
+          successful,
+          failed: results.length - successful,
+          testMode,
+        },
       },
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Validation error", details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    console.error("Error sending campaign emails:", error);
-    return NextResponse.json(
-      { error: "Failed to send campaign emails" },
-      { status: 500 }
+      successful ? 200 : 502
     );
+  } catch (error) {
+    return emailApiError(error, "Campania nu a putut fi trimisă");
   }
 }
