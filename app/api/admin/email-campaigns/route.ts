@@ -1,8 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 
+import {
+  emailJson as privateJson,
+  parseEmailListQuery,
+} from "@/lib/admin/email-api";
 import { getServerSession } from "@/lib/auth/server";
-import { prisma } from "@/lib/db";
+import { db as prisma } from "@/lib/db";
+
+const emailJson = (body: unknown, options?: { status: number }) =>
+  privateJson(body, options?.status);
 
 // Validation schema for creating/updating email campaigns
 const EmailCampaignSchema = z.object({
@@ -14,10 +21,8 @@ const EmailCampaignSchema = z.object({
     .min(1, "Subject is required")
     .max(200, "Subject too long"),
   content: z.string().min(1, "Content is required"),
-  status: z
-    .enum(["DRAFT", "SCHEDULED", "SENDING", "SENT", "PAUSED", "CANCELLED"])
-    .default("DRAFT"),
-  scheduledAt: z.string().datetime().optional(),
+  status: z.enum(["DRAFT"]).default("DRAFT"),
+  scheduledAt: z.string().datetime().nullish(),
   metadata: z.record(z.any()).optional(),
 });
 
@@ -27,19 +32,30 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession();
 
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return emailJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
+    const { page, limit, search } = parseEmailListQuery(searchParams);
     const status = searchParams.get("status");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const search = searchParams.get("search");
+    if (
+      status &&
+      status !== "all" &&
+      ![
+        "DRAFT",
+        "SCHEDULED",
+        "SENDING",
+        "SENT",
+        "PAUSED",
+        "CANCELLED",
+      ].includes(status)
+    )
+      return emailJson({ error: "Stare invalidă" }, { status: 400 });
 
     // Build where clause
     const where: any = {};
 
-    if (status) {
+    if (status && status !== "all") {
       where.status = status;
     }
 
@@ -55,7 +71,7 @@ export async function GET(request: NextRequest) {
     const [campaigns, total] = await Promise.all([
       prisma.emailCampaign.findMany({
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ createdAt: "desc" }, { id: "asc" }],
         skip: (page - 1) * limit,
         take: limit,
         include: {
@@ -71,7 +87,7 @@ export async function GET(request: NextRequest) {
       prisma.emailCampaign.count({ where }),
     ]);
 
-    return NextResponse.json({
+    return emailJson({
       campaigns,
       pagination: {
         page,
@@ -81,8 +97,13 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof z.ZodError)
+      return emailJson(
+        { error: "Date invalide", details: error.errors },
+        { status: 400 }
+      );
     console.error("Error fetching email campaigns:", error);
-    return NextResponse.json(
+    return emailJson(
       { error: "Failed to fetch email campaigns" },
       { status: 500 }
     );
@@ -95,7 +116,7 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession();
 
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return emailJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -107,11 +128,17 @@ export async function POST(request: NextRequest) {
     });
 
     if (!template) {
-      return NextResponse.json(
-        { error: "Email template not found" },
+      return emailJson({ error: "Email template not found" }, { status: 400 });
+    }
+
+    if (validatedData.scheduledAt)
+      return emailJson(
+        {
+          error:
+            "Programarea automată nu este disponibilă. Salvează campania ca draft.",
+        },
         { status: 400 }
       );
-    }
 
     // Create the campaign
     const campaign = await prisma.emailCampaign.create({
@@ -133,17 +160,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(campaign, { status: 201 });
+    return emailJson(campaign, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return emailJson(
         { error: "Validation error", details: error.errors },
         { status: 400 }
       );
     }
 
     console.error("Error creating email campaign:", error);
-    return NextResponse.json(
+    return emailJson(
       { error: "Failed to create email campaign" },
       { status: 500 }
     );

@@ -2,6 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import nodemailer from "nodemailer";
 
 import { appConfig } from "@/lib/config/app-config";
+
+import { auditEmailDelivery, type DeliveryAudit } from "./email/delivery-audit";
 import { logger } from "./logger";
 
 const prisma = new PrismaClient();
@@ -41,47 +43,30 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
-// For development environment, provide console-based email simulation
-const devTransporter = {
-  sendEmailViaUnifiedSystem: async (options: any) => {
-    logger.debug("Email would be sent (DEV MODE)", {
-      from: options.from,
-      to: options.to,
-      subject: options.subject,
-      contentPreview: `${options.html.substring(0, 100)}...`,
+// Missing credentials must not produce a simulated operational status.
+if (EMAIL_USER && EMAIL_PASS) {
+  transporter
+    .verify()
+    .then(() => {
+      logger.info("SMTP connection verified");
+    })
+    .catch(error => {
+      logger.error("Email transport configuration failed", error);
     });
-    return { messageId: `dev-${Date.now()}@localhost` };
-  },
-  verify: async () => true,
-};
-
-// Use dev transporter in development mode if email credentials are missing
-const activeTransporter =
-  process.env.NODE_ENV === "development" && (!EMAIL_USER || !EMAIL_PASS)
-    ? devTransporter
-    : transporter;
-
-// Verify transporter configuration on startup
-activeTransporter
-  .verify()
-  .then(() => {
-    logger.info("Email transport configured successfully");
-  })
-  .catch(error => {
-    logger.error("Email transport configuration failed", error);
-    logger.info("Will use fallback development mode for emails");
-  });
+}
 
 // Send an email using Nodemailer
-export async function sendEmailViaUnifiedSystem({
+export function sendEmailViaUnifiedSystem({
   to,
   subject,
   html,
   text,
   from = EMAIL_FROM,
   attachments,
+  audit,
 }: {
   to: string | string[];
+  audit?: DeliveryAudit;
   subject: string;
   html: string;
   text?: string;
@@ -93,53 +78,38 @@ export async function sendEmailViaUnifiedSystem({
     contentType?: string;
   }>;
 }) {
-  try {
-    // In development mode with missing credentials, use the dev transporter
-    if (
-      process.env.NODE_ENV === "development" &&
-      (!EMAIL_USER || !EMAIL_PASS)
-    ) {
-      logger.debug("Email would be sent (DEV MODE)", {
+  return auditEmailDelivery(
+    to,
+    subject,
+    "smtp",
+    async () => {
+      if (!EMAIL_USER || !EMAIL_PASS)
+        return { success: false, error: "SMTP nu este configurat" };
+      const info = await transporter.sendMail({
         from,
-        to: typeof to === "string" ? to : to.join(", "),
+        to,
         subject,
-        contentPreview: `${html.substring(0, 100)}...`,
-        hasAttachments: !!attachments?.length,
+        text,
+        html,
+        attachments: attachments?.map(att => ({
+          filename: att.filename,
+          content: Buffer.from(
+            att.content,
+            (att.encoding as BufferEncoding) || "base64"
+          ),
+          contentType: att.contentType,
+        })),
       });
-      return { success: true, messageId: `dev-${Date.now()}@localhost` };
-    }
-
-    // Send mail with defined transport object
-    const info = await activeTransporter.sendMail({
-      from,
-      to,
-      subject,
-      text,
-      html,
-      attachments: attachments?.map(att => ({
-        filename: att.filename,
-        content: Buffer.from(att.content, (att.encoding as BufferEncoding) || 'base64'),
-        contentType: att.contentType,
-      })),
-    });
-
-    logger.info("Email sent successfully", { messageId: info.messageId });
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Error sending email", error);
-
-    // In development mode, simulate success
-    if (process.env.NODE_ENV === "development") {
-      logger.debug("Email would be sent despite error (DEV MODE)", {
-        from,
-        to: typeof to === "string" ? to : to.join(", "),
-        subject,
-      });
-      return { success: true, messageId: `dev-error-${Date.now()}@localhost` };
-    }
-
-    throw error;
-  }
+      return {
+        success: true,
+        messageId: info.messageId,
+        rejectedRecipients: (info.rejected ?? []).map((recipient: string | { address: string }) =>
+          typeof recipient === "string" ? recipient : recipient.address
+        ),
+      };
+    },
+    audit
+  );
 }
 
 // Email templates

@@ -18,41 +18,7 @@ interface EditProductPageProps {
 
 async function getProduct(id: string) {
   try {
-    // In development with mock data, we'd return a mock product
-    if (
-      process.env.NODE_ENV === "development" &&
-      process.env.USE_MOCK_DATA === "true"
-    ) {
-      return {
-        id,
-        name: "Mock Product",
-        slug: "mock-product",
-        description: "This is a mock product for development.",
-        price: 49.99,
-        compareAtPrice: 59.99,
-        images: [
-          "https://placehold.co/800x600/4F46E5/FFFFFF.png?text=Mock+Product",
-        ],
-        categoryId: "cat_1",
-        tags: ["mock", "development"],
-        isActive: true,
-        featured: false,
-        // SEO fields
-        metaTitle: "Mock Product | STEM Toys",
-        metaDescription: "A mock product for development purposes.",
-        metaKeywords: ["mock", "development", "stem"],
-        ageGroup: "ELEMENTARY_6_8",
-        stemDiscipline: "SCIENCE",
-        difficultyLevel: "beginner",
-        learningOutcomes: ["PROBLEM_SOLVING", "CRITICAL_THINKING"],
-        productType: "EXPERIMENT_KITS",
-        specialCategories: ["NEW_ARRIVALS"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-    }
-
-    // In production, fetch from database
+    // Fetch the saved product in every environment.
     const product = await db.product.findUnique({
       where: { id },
     });

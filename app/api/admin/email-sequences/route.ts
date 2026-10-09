@@ -1,166 +1,79 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { NextRequest } from "next/server";
 
-import { getServerSession } from "@/lib/auth/server";
-import { prisma } from "@/lib/db";
+import {
+  emailJson,
+  emailApiError,
+  parseEmailListQuery,
+} from "@/lib/admin/email-api";
+import {
+  sequenceInput,
+  sequenceInclude,
+  savedSequenceSteps,
+} from "@/lib/admin/email-sequence-input";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
-// Validation schema for creating/updating email sequences
-const EmailSequenceSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name too long"),
-  description: z.string().optional(),
-  trigger: z.enum([
-    "USER_REGISTRATION",
-    "FIRST_PURCHASE",
-    "ABANDONED_CART",
-    "ORDER_PLACED",
-    "ORDER_SHIPPED",
-    "ORDER_DELIVERED",
-    "INACTIVE_USER",
-    "BIRTHDAY",
-    "CUSTOM",
-  ]),
-  isActive: z.boolean().default(true),
-  maxEmails: z
-    .number()
-    .min(1, "At least 1 email required")
-    .max(20, "Maximum 20 emails"),
-  delayBetweenEmails: z
-    .number()
-    .min(1, "Minimum 1 hour delay")
-    .max(168, "Maximum 1 week delay"), // in hours
-  metadata: z.record(z.any()).optional(),
-});
-
-// GET /api/admin/email-sequences - List all email sequences
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
-
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const trigger = searchParams.get("trigger");
-    const isActive = searchParams.get("isActive");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const search = searchParams.get("search");
-
-    // Build where clause
-    const where: any = {};
-
-    if (trigger) {
-      where.trigger = trigger;
-    }
-
-    if (isActive !== null) {
-      where.isActive = isActive === "true";
-    }
-
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-      ];
-    }
-
-    // Get sequences with pagination and step count
+    if ((await auth())?.user?.role !== "ADMIN")
+      return emailJson({ error: "Unauthorized" }, 401);
+    const { page, limit, search, isActive } = parseEmailListQuery(
+      request.nextUrl.searchParams
+    );
+    const trigger = request.nextUrl.searchParams.get("trigger");
+    const where = {
+      ...(isActive ? { isActive: isActive === "true" } : {}),
+      ...(trigger && trigger !== "all" ? { trigger } : {}),
+      ...(search
+        ? { name: { contains: search, mode: "insensitive" as const } }
+        : {}),
+    };
     const [sequences, total] = await Promise.all([
-      prisma.emailSequence.findMany({
+      db.emailSequence.findMany({
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ updatedAt: "desc" }, { id: "asc" }],
         skip: (page - 1) * limit,
         take: limit,
-        include: {
-          steps: {
-            select: {
-              id: true,
-              order: true,
-              templateId: true,
-              delayHours: true,
-            },
-            orderBy: { order: "asc" },
-          },
-          _count: {
-            select: {
-              steps: true,
-              users: true,
-            },
-          },
-        },
+        include: sequenceInclude,
       }),
-      prisma.emailSequence.count({ where }),
+      db.emailSequence.count({ where }),
     ]);
-
-    return NextResponse.json({
+    return emailJson({
       sequences,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     });
   } catch (error) {
-    console.error("Error fetching email sequences:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch email sequences" },
-      { status: 500 }
-    );
+    return emailApiError(error, "Secvențele nu au putut fi încărcate");
   }
 }
-
-// POST /api/admin/email-sequences - Create new email sequence
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
-
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const validatedData = EmailSequenceSchema.parse(body);
-
-    // Create the sequence
-    const sequence = await prisma.emailSequence.create({
-      data: {
-        ...validatedData,
-        createdBy: session.user.id,
-      },
-      include: {
-        steps: {
-          select: {
-            id: true,
-            order: true,
-            templateId: true,
-            delayHours: true,
-          },
-          orderBy: { order: "asc" },
-        },
-        _count: {
-          select: {
-            steps: true,
-            users: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json(sequence, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Validation error", details: error.errors },
-        { status: 400 }
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN" || !session.user.id)
+      return emailJson({ error: "Unauthorized" }, 401);
+    const { steps = [], ...data } = sequenceInput.parse(await request.json());
+    if (data.isActive && !steps.length)
+      return emailJson(
+        { error: "Adaugă cel puțin un pas înainte de activare" },
+        400
       );
-    }
-
-    console.error("Error creating email sequence:", error);
-    return NextResponse.json(
-      { error: "Failed to create email sequence" },
-      { status: 500 }
+    if (steps.length > data.maxEmails)
+      return emailJson(
+        { error: "Numărul de pași depășește limita de emailuri" },
+        400
+      );
+    return emailJson(
+      await db.emailSequence.create({
+        data: {
+          ...data,
+          createdBy: session.user.id,
+          steps: { create: await savedSequenceSteps(steps) },
+        },
+        include: sequenceInclude,
+      }),
+      201
     );
+  } catch (error) {
+    return emailApiError(error, "Secvența nu a putut fi creată");
   }
 }

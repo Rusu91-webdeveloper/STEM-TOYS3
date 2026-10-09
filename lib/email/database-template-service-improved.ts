@@ -236,7 +236,6 @@ export class DatabaseTemplateService {
         to: options.to,
         subject: finalSubject,
         html: processedContent,
-        priority: options.priority,
       });
 
       return {

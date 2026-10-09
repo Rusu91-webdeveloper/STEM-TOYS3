@@ -1,740 +1,483 @@
 "use client";
+import { useState } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
 
-import { publicConfig } from "@/lib/config/app-config";
 import {
-  Mail,
-  Plus,
-  MoreHorizontal,
-  Eye,
-  Edit,
-  Copy,
-  Trash2,
-  Play,
-  Pause,
-  Calendar,
-  Target,
-  Users,
-  TrendingUp,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-} from "lucide-react";
-import { useState, useEffect } from "react";
-
-import { Badge } from "@/components/ui/badge";
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-
-interface EmailCampaign {
-  id: string;
-  name: string;
-  description: string;
-  templateId: string;
-  template: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-  subject: string;
-  content: string;
-  status: "DRAFT" | "SCHEDULED" | "SENDING" | "SENT" | "PAUSED" | "CANCELLED";
-  scheduledAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  metrics: {
-    totalSent: number;
-    totalOpened: number;
-    totalClicked: number;
-    totalBounced: number;
-    totalUnsubscribed: number;
-    openRate: number;
-    clickRate: number;
-  };
-}
-
+import {
+  emailCampaignList,
+  emailTemplateList,
+  savedEmailCampaign,
+} from "@/lib/admin/email-contracts";
+import { useEmailResource } from "@/lib/admin/use-email-resource";
+type Campaign = z.infer<typeof savedEmailCampaign>;
+const empty = {
+  name: "",
+  description: "",
+  templateId: "",
+  subject: "",
+  content: "",
+};
+const statuses: Record<string, string> = {
+  DRAFT: "Draft",
+  SENT: "Acceptată de furnizor",
+  SENDING: "În procesare",
+  PAUSED: "În pauză — verifică rezultatele",
+  SCHEDULED: "Programată în baza de date",
+  CANCELLED: "Anulată",
+};
 export function EmailCampaigns() {
-  const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [newCampaign, setNewCampaign] = useState({
-    name: "",
-    description: "",
-    templateId: "",
-    subject: "",
-    content: "",
-    scheduledAt: "",
-  });
-  const [isCreating, setIsCreating] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [sendingCampaign, setSendingCampaign] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchCampaigns();
-    fetchTemplates();
-  }, []);
-
-  const fetchCampaigns = async () => {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [templateSearch, setTemplateSearch] = useState("");
+  const list = useEmailResource(
+    `/api/admin/email-campaigns?${new URLSearchParams({ page: String(page), search })}`,
+    emailCampaignList
+  );
+  const templates = useEmailResource(
+    `/api/admin/email-templates?${new URLSearchParams({ limit: "100", isActive: "true", search: templateSearch })}`,
+    emailTemplateList
+  );
+  const [editing, setEditing] = useState<Campaign | "new" | null>(null);
+  const [form, setForm] = useState(empty);
+  const [selected, setSelected] = useState<Campaign | null>(null);
+  const [recipients, setRecipients] = useState("");
+  const [testMode, setTestMode] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [sendResult, setSendResult] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<"send" | Campaign | null>(
+    null
+  );
+  const update = async (url: string, method: string, body?: unknown) => {
+    setBusy(true);
     try {
-      const response = await fetch("/api/admin/email-campaigns");
-      if (response.ok) {
-        const data = await response.json();
-
-        // Fetch metrics for each campaign
-        const campaignsWithMetrics = await Promise.all(
-          data.campaigns.map(async (campaign: any) => {
-            try {
-              const metricsResponse = await fetch(
-                `/api/admin/email-metrics?campaignId=${campaign.id}`
-              );
-              const metrics = metricsResponse.ok
-                ? await metricsResponse.json()
-                : {
-                    totalSent: 0,
-                    totalOpened: 0,
-                    totalClicked: 0,
-                    totalBounced: 0,
-                    totalUnsubscribed: 0,
-                    openRate: 0,
-                    clickRate: 0,
-                  };
-
-              return {
-                id: campaign.id,
-                name: campaign.name,
-                description: campaign.description || "",
-                templateId: campaign.templateId,
-                template: campaign.template,
-                subject: campaign.subject,
-                content: campaign.content,
-                status: campaign.status,
-                scheduledAt: campaign.scheduledAt,
-                createdAt: campaign.createdAt,
-                updatedAt: campaign.updatedAt,
-                metrics,
-              };
-            } catch (error) {
-              console.error(
-                `Error fetching metrics for campaign ${campaign.id}:`,
-                error
-              );
-              return {
-                id: campaign.id,
-                name: campaign.name,
-                description: campaign.description || "",
-                templateId: campaign.templateId,
-                template: campaign.template,
-                subject: campaign.subject,
-                content: campaign.content,
-                status: campaign.status,
-                scheduledAt: campaign.scheduledAt,
-                createdAt: campaign.createdAt,
-                updatedAt: campaign.updatedAt,
-                metrics: {
-                  totalSent: 0,
-                  totalOpened: 0,
-                  totalClicked: 0,
-                  totalBounced: 0,
-                  totalUnsubscribed: 0,
-                  openRate: 0,
-                  clickRate: 0,
-                },
-              };
-            }
-          })
-        );
-
-        setCampaigns(campaignsWithMetrics);
-      } else {
-        console.error("Failed to fetch campaigns");
-        setCampaigns([]);
-      }
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Operațiunea a eșuat");
+      setEditing(null);
+      await list.refresh();
+      toast.success("Campania a fost salvată");
     } catch (error) {
-      console.error("Error fetching campaigns:", error);
-      setCampaigns([]);
+      toast.error(
+        error instanceof Error ? error.message : "Operațiunea a eșuat"
+      );
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
-
-  const fetchTemplates = async () => {
-    try {
-      const response = await fetch("/api/admin/email-templates");
-      if (response.ok) {
-        const data = await response.json();
-        setTemplates(data.templates || []);
-      }
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "SENT":
-        return "bg-green-100 text-green-800";
-      case "SENDING":
-        return "bg-blue-100 text-blue-800";
-      case "SCHEDULED":
-        return "bg-yellow-100 text-yellow-800";
-      case "PAUSED":
-        return "bg-orange-100 text-orange-800";
-      case "DRAFT":
-        return "bg-gray-100 text-gray-800";
-      case "CANCELLED":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "SENT":
-        return <CheckCircle className="h-4 w-4" />;
-      case "SENDING":
-        return <Play className="h-4 w-4" />;
-      case "SCHEDULED":
-        return <Clock className="h-4 w-4" />;
-      case "PAUSED":
-        return <Pause className="h-4 w-4" />;
-      case "DRAFT":
-        return <Edit className="h-4 w-4" />;
-      case "CANCELLED":
-        return <AlertCircle className="h-4 w-4" />;
-      default:
-        return <Mail className="h-4 w-4" />;
-    }
-  };
-
-  const filteredCampaigns = campaigns.filter(campaign => {
-    const matchesSearch =
-      campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      campaign.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      campaign.subject.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || campaign.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const handleCreateCampaign = async () => {
-    if (
-      !newCampaign.name ||
-      !newCampaign.templateId ||
-      !newCampaign.subject ||
-      !newCampaign.content
-    ) {
-      const missingFields = [];
-      if (!newCampaign.name) missingFields.push("Campaign Name");
-      if (!newCampaign.templateId) missingFields.push("Template");
-      if (!newCampaign.subject) missingFields.push("Subject");
-      if (!newCampaign.content) missingFields.push("Content");
-
-      alert(`Please fill in all required fields: ${missingFields.join(", ")}`);
+  const send = async () => {
+    if (!selected) return;
+    const recipientEmails = [
+      ...new Set(
+        recipients
+          .split(/[\s,;]+/)
+          .filter(Boolean)
+          .map(email => email.toLowerCase())
+      ),
+    ];
+    if (!recipientEmails.length) {
+      setSendResult("Introdu cel puțin o adresă email.");
       return;
     }
-
-    setIsCreating(true);
-    try {
-      const response = await fetch("/api/admin/email-campaigns", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: newCampaign.name,
-          description: newCampaign.description,
-          templateId: newCampaign.templateId,
-          subject: newCampaign.subject,
-          content: newCampaign.content,
-          status: "DRAFT",
-          scheduledAt: newCampaign.scheduledAt || null,
-        }),
-      });
-
-      if (response.ok) {
-        const newCampaignData = await response.json();
-
-        // Add to local state
-        const transformedCampaign: EmailCampaign = {
-          id: newCampaignData.id,
-          name: newCampaignData.name,
-          description: newCampaignData.description || "",
-          templateId: newCampaignData.templateId,
-          template: newCampaignData.template,
-          subject: newCampaignData.subject,
-          content: newCampaignData.content,
-          status: newCampaignData.status,
-          scheduledAt: newCampaignData.scheduledAt,
-          createdAt: newCampaignData.createdAt,
-          updatedAt: newCampaignData.updatedAt,
-          metrics: {
-            totalSent: 0,
-            totalOpened: 0,
-            totalClicked: 0,
-            totalBounced: 0,
-            totalUnsubscribed: 0,
-            openRate: 0,
-            clickRate: 0,
-          },
-        };
-
-        setCampaigns(prev => [transformedCampaign, ...prev]);
-
-        // Reset form and close dialog
-        setNewCampaign({
-          name: "",
-          description: "",
-          templateId: "",
-          subject: "",
-          content: "",
-          scheduledAt: "",
-        });
-        setIsCreateDialogOpen(false);
-
-        // Show success message
-        setShowSuccessMessage(true);
-        setTimeout(() => setShowSuccessMessage(false), 3000);
-      } else {
-        const errorData = await response.json();
-        alert(`Error creating campaign: ${errorData.error || "Unknown error"}`);
-      }
-    } catch (error) {
-      console.error("Error creating campaign:", error);
-      alert("Error creating campaign. Please try again.");
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const handleSendCampaign = async (
-    campaignId: string,
-    testMode: boolean = false
-  ) => {
-    const recipientEmails = testMode
-      ? ["test@example.com"] // Test email
-      : [publicConfig.contactEmail]; // For now, send to admin email
-
-    setSendingCampaign(campaignId);
+    setBusy(true);
+    setSendResult(null);
     try {
       const response = await fetch(
-        `/api/admin/email-campaigns/${campaignId}/send`,
+        `/api/admin/email-campaigns/${selected.id}/send`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            recipientEmails,
-            testMode,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipientEmails, testMode }),
         }
       );
-
-      if (response.ok) {
-        const result = await response.json();
-        alert(
-          `Campaign ${testMode ? "test" : ""} sent successfully! ${result.message}`
+      const result = await response.json();
+      if (result.summary) {
+        setSendResult(
+          `${result.summary.successful} acceptate de furnizor, ${result.summary.failed} eșuate. ${result.results
+            .filter((item: { success: boolean }) => !item.success)
+            .map(
+              (item: { email: string; error?: string }) =>
+                `${item.email}: ${item.error ?? "Eșuat"}`
+            )
+            .join("; ")}`
         );
-        // Refresh campaigns to update status
-        fetchCampaigns();
-      } else {
-        const error = await response.json();
-        alert(`Failed to send campaign: ${error.error || "Unknown error"}`);
-      }
+        await list.refresh();
+        if (!testMode) {
+          setSelected({
+            ...selected,
+            status: result.summary.failed ? "PAUSED" : "SENT",
+          });
+        }
+      } else throw new Error(result.error || "Trimiterea a eșuat");
     } catch (error) {
-      console.error("Error sending campaign:", error);
-      alert("Failed to send campaign. Please try again.");
+      setSendResult(
+        error instanceof Error ? error.message : "Trimiterea a eșuat"
+      );
     } finally {
-      setSendingCampaign(null);
+      setBusy(false);
     }
   };
-
-  const handleInputChange = (field: string, value: string) => {
-    setNewCampaign(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleTemplateChange = (templateId: string) => {
-    const selectedTemplate = templates.find(t => t.id === templateId);
-    if (selectedTemplate) {
-      setNewCampaign(prev => ({
-        ...prev,
-        templateId,
-        subject: selectedTemplate.subject,
-        content: selectedTemplate.content,
-      }));
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+  const edit = (campaign?: Campaign) => {
+    setEditing(campaign ?? "new");
+    setForm(
+      campaign
+        ? {
+            name: campaign.name,
+            description: campaign.description ?? "",
+            templateId: campaign.templateId,
+            subject: campaign.subject,
+            content: campaign.content,
+          }
+        : empty
     );
-  }
-
+  };
   return (
-    <div className="space-y-6">
-      {/* Success Message */}
-      {showSuccessMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-4">
-          <div className="flex">
-            <CheckCircle className="h-5 w-5 text-green-400" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-green-800">
-                Campaign created successfully!
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Email Campaigns</h2>
-          <p className="text-muted-foreground">
-            Manage one-time email campaigns and broadcasts
-          </p>
-        </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Campaign
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Email Campaign</DialogTitle>
-              <DialogDescription>
-                Create a new email campaign with template and scheduling
-                options.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Campaign Name *</label>
-                  <Input
-                    placeholder="Enter campaign name"
-                    value={newCampaign.name}
-                    onChange={e => handleInputChange("name", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Template *</label>
-                  <Select
-                    value={newCampaign.templateId}
-                    onValueChange={handleTemplateChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select template" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {templates.map(template => (
-                        <SelectItem key={template.id} value={template.id}>
-                          {template.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Description</label>
-                <Input
-                  placeholder="Describe the campaign purpose"
-                  value={newCampaign.description}
-                  onChange={e =>
-                    handleInputChange("description", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Subject *</label>
-                <Input
-                  placeholder="Enter email subject"
-                  value={newCampaign.subject}
-                  onChange={e => handleInputChange("subject", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Content *</label>
-                <Textarea
-                  placeholder="Enter email content (HTML supported)"
-                  value={newCampaign.content}
-                  onChange={e => handleInputChange("content", e.target.value)}
-                  rows={10}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  Schedule (Optional)
-                </label>
-                <Input
-                  type="datetime-local"
-                  value={newCampaign.scheduledAt}
-                  onChange={e =>
-                    handleInputChange("scheduledAt", e.target.value)
-                  }
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsCreateDialogOpen(false);
-                    setNewCampaign({
-                      name: "",
-                      description: "",
-                      templateId: "",
-                      subject: "",
-                      content: "",
-                      scheduledAt: "",
-                    });
-                  }}
-                  disabled={isCreating}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreateCampaign}
-                  disabled={
-                    isCreating ||
-                    !newCampaign.name ||
-                    !newCampaign.templateId ||
-                    !newCampaign.subject ||
-                    !newCampaign.content
-                  }
-                >
-                  {isCreating ? "Creating..." : "Create Campaign"}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+    <div className="space-y-4">
+      <AlertDialog
+        open={confirmation !== null}
+        onOpenChange={open => {
+          if (!open) setConfirmation(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmation === "send"
+                ? "Confirmă trimiterea"
+                : "Șterge draftul"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="break-all">
+              {confirmation === "send"
+                ? `Trimiți ${testMode ? "testul" : "campania"} „${selected?.name}” către: ${recipients}`
+                : `Ștergi draftul „${confirmation?.name}”? Această acțiune nu poate fi anulată.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Renunță</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={() => {
+                if (confirmation === "send") void send();
+                else if (confirmation)
+                  void update(
+                    `/api/admin/email-campaigns/${confirmation.id}`,
+                    "DELETE"
+                  );
+              }}
+            >
+              Confirmă
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <h2 className="text-xl font-semibold">Campanii email</h2>
+      <p className="text-sm text-slate-600">
+        Creează un draft dintr-un șablon, verifică subiectul și conținutul, apoi
+        alege explicit destinatarii. Campaniile pot fi trimise către abonați
+        activi; un test folosește o singură adresă.
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={() => edit()}>Creează campanie</Button>
+        <Button
+          variant="outline"
+          disabled={list.loading}
+          onClick={() => void list.refresh()}
+        >
+          Reîncarcă
+        </Button>
       </div>
-
-      {/* Filters */}
-      <div className="flex items-center space-x-4">
-        <div className="flex-1">
-          <Input
-            placeholder="Search campaigns..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="DRAFT">Draft</SelectItem>
-            <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-            <SelectItem value="SENDING">Sending</SelectItem>
-            <SelectItem value="SENT">Sent</SelectItem>
-            <SelectItem value="PAUSED">Paused</SelectItem>
-            <SelectItem value="CANCELLED">Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Campaigns Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCampaigns.map(campaign => (
-          <Card key={campaign.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg">{campaign.name}</CardTitle>
-                  <CardDescription className="mt-1">
-                    {campaign.description}
-                  </CardDescription>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Campaign
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Duplicate
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleSendCampaign(campaign.id, true)}
-                    >
-                      <Target className="h-4 w-4 mr-2" />
-                      Send Test
-                    </DropdownMenuItem>
-                    {campaign.status === "DRAFT" && (
-                      <DropdownMenuItem
-                        onClick={() => handleSendCampaign(campaign.id, false)}
-                      >
-                        <Play className="h-4 w-4 mr-2" />
-                        Send Campaign
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem className="text-red-600">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="flex items-center space-x-2 mt-2">
-                <Badge className={getStatusColor(campaign.status)}>
-                  {getStatusIcon(campaign.status)}
-                  <span className="ml-1 capitalize">
-                    {campaign.status.toLowerCase()}
-                  </span>
-                </Badge>
-                <Badge variant="outline">
-                  <Mail className="h-3 w-3 mr-1" />
-                  {campaign.template?.name || "No template"}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Subject */}
-                <div className="flex items-center space-x-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Subject:</span>
-                  <span className="text-sm text-muted-foreground truncate">
-                    {campaign.subject}
-                  </span>
-                </div>
-
-                {/* Scheduled Date */}
-                {campaign.scheduledAt && (
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      Scheduled:{" "}
-                      {new Date(campaign.scheduledAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
-
-                {/* Metrics */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">
-                      {campaign.metrics.totalSent}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Total Sent
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">
-                      {campaign.metrics.openRate}%
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Open Rate
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex space-x-2">
-                  {campaign.status === "DRAFT" && (
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Play className="h-4 w-4 mr-1" />
-                      Send Now
-                    </Button>
-                  )}
-                  {campaign.status === "SENDING" && (
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Pause className="h-4 w-4 mr-1" />
-                      Pause
-                    </Button>
-                  )}
-                  {campaign.status === "PAUSED" && (
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Play className="h-4 w-4 mr-1" />
-                      Resume
-                    </Button>
-                  )}
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                {/* Last Modified */}
-                <div className="text-xs text-muted-foreground">
-                  Modified: {new Date(campaign.updatedAt).toLocaleDateString()}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {filteredCampaigns.length === 0 && (
-        <Card className="text-center py-12">
+      <Input
+        aria-label="Caută campanii"
+        placeholder="Numele campaniei"
+        value={search}
+        onChange={e => {
+          setPage(1);
+          setSearch(e.target.value);
+        }}
+      />
+      {editing && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {editing === "new" ? "Campanie nouă" : "Editează draftul"}
+            </CardTitle>
+          </CardHeader>
           <CardContent>
-            <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No campaigns found</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm || statusFilter !== "all"
-                ? "Try adjusting your search or filters"
-                : "Get started by creating your first email campaign"}
-            </p>
-            {!searchTerm && statusFilter === "all" && (
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Your First Campaign
-              </Button>
-            )}
+            <form
+              className="space-y-4"
+              onSubmit={e => {
+                e.preventDefault();
+                const { templateId, ...fields } = form;
+                void update(
+                  editing === "new"
+                    ? "/api/admin/email-campaigns"
+                    : `/api/admin/email-campaigns/${editing.id}`,
+                  editing === "new" ? "POST" : "PUT",
+                  editing === "new" ? { ...fields, templateId } : fields
+                );
+              }}
+            >
+              <label htmlFor="campaign-name" className="block">
+                Nume
+                <Input
+                  id="campaign-name"
+                  required
+                  value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                />
+              </label>
+              {editing === "new" && (
+                <div className="space-y-2">
+                  <Input
+                    aria-label="Caută șabloane pentru campanie"
+                    placeholder="Caută șablonul după nume"
+                    value={templateSearch}
+                    onChange={e => setTemplateSearch(e.target.value)}
+                  />
+                  {templates.error ? (
+                    <div role="alert">
+                      {templates.error}
+                      <Button
+                        type="button"
+                        onClick={() => void templates.refresh()}
+                      >
+                        Reîncearcă
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="block">
+                      Șablon
+                      <select
+                        required
+                        className="block w-full rounded border p-2"
+                        value={form.templateId}
+                        onChange={e => {
+                          const template = templates.data?.templates.find(
+                            item => item.id === e.target.value
+                          );
+                          if (template)
+                            setForm({
+                              ...form,
+                              templateId: template.id,
+                              subject: template.subject,
+                              content: template.content,
+                            });
+                        }}
+                      >
+                        <option value="">Alege șablonul activ</option>
+                        {templates.data?.templates.map(template => (
+                          <option key={template.id} value={template.id}>
+                            {template.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                </div>
+              )}
+              <label htmlFor="campaign-description" className="block">
+                Descriere
+                <Input
+                  id="campaign-description"
+                  value={form.description}
+                  onChange={e =>
+                    setForm({ ...form, description: e.target.value })
+                  }
+                />
+              </label>
+              <label htmlFor="campaign-subject" className="block">
+                Subiect
+                <Input
+                  id="campaign-subject"
+                  required
+                  value={form.subject}
+                  onChange={e => setForm({ ...form, subject: e.target.value })}
+                />
+              </label>
+              <label htmlFor="campaign-content" className="block">
+                Conținut HTML
+                <Textarea
+                  id="campaign-content"
+                  required
+                  rows={8}
+                  value={form.content}
+                  onChange={e => setForm({ ...form, content: e.target.value })}
+                />
+              </label>
+              <p className="text-sm text-slate-500">
+                Completează variabilele șablonului înainte de trimitere. Draftul
+                păstrează conținutul ales; salvarea nu trimite emailuri.
+              </p>
+              <div className="flex gap-3">
+                <Button disabled={busy} type="submit">
+                  Salvează draftul
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditing(null)}
+                >
+                  Renunță
+                </Button>
+              </div>
+            </form>
           </CardContent>
         </Card>
+      )}
+      {selected && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Previzualizare: {selected.name}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="font-medium">{selected.subject}</p>
+            <iframe
+              title="Previzualizare campanie"
+              sandbox=""
+              referrerPolicy="no-referrer"
+              srcDoc={selected.content}
+              className="h-80 w-full rounded border bg-white"
+            />
+            {selected.status === "DRAFT" && (
+              <>
+                <label htmlFor="campaign-recipients" className="block">
+                  Destinatari
+                  <Textarea
+                    id="campaign-recipients"
+                    rows={3}
+                    value={recipients}
+                    onChange={e => setRecipients(e.target.value)}
+                    placeholder="Introdu adresele, separate prin virgulă sau pe linii diferite"
+                  />
+                </label>
+                <label className="flex gap-2">
+                  <input
+                    type="checkbox"
+                    checked={testMode}
+                    onChange={e => setTestMode(e.target.checked)}
+                  />
+                  Trimitere de test către o singură adresă (nu încheie campania)
+                </label>
+                <Button disabled={busy} onClick={() => setConfirmation("send")}>
+                  {busy
+                    ? "Se trimite…"
+                    : testMode
+                      ? "Trimite testul"
+                      : "Trimite campania"}
+                </Button>
+              </>
+            )}
+            {sendResult && (
+              <p role="status" className="break-words rounded border p-3">
+                {sendResult}
+              </p>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelected(null);
+                setSendResult(null);
+              }}
+            >
+              Închide
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+      {list.loading ? (
+        <p role="status">Se încarcă campaniile…</p>
+      ) : list.error ? (
+        <div role="alert">
+          <p>{list.error}</p>
+          <Button onClick={() => void list.refresh()}>Reîncearcă</Button>
+        </div>
+      ) : (
+        list.data && (
+          <>
+            <p>{list.data.pagination.total} campanii salvate</p>
+            {!list.data.campaigns.length ? (
+              <p>Nu există campanii pentru această selecție.</p>
+            ) : (
+              list.data.campaigns.map(campaign => (
+                <Card key={campaign.id}>
+                  <CardHeader>
+                    <CardTitle>{campaign.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm">
+                      {statuses[campaign.status]} · {campaign.template.name}
+                    </p>
+                    <p>{campaign.subject}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSelected(campaign);
+                          setRecipients("");
+                          setTestMode(true);
+                          setSendResult(null);
+                        }}
+                      >
+                        Previzualizare și trimitere
+                      </Button>
+                      {campaign.status === "DRAFT" && (
+                        <>
+                          <Button
+                            variant="outline"
+                            onClick={() => edit(campaign)}
+                          >
+                            Editează
+                          </Button>
+                          <Button
+                            variant="outline"
+                            disabled={busy}
+                            onClick={() => setConfirmation(campaign)}
+                          >
+                            Șterge draftul
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                Înapoi
+              </Button>
+              <span>Pagina {page}</span>
+              <Button
+                variant="outline"
+                disabled={page >= list.data.pagination.pages}
+                onClick={() => setPage(page + 1)}
+              >
+                Înainte
+              </Button>
+            </div>
+          </>
+        )
       )}
     </div>
   );

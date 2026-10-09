@@ -1,391 +1,162 @@
 "use client";
 
-import {
-  Mail,
-  Users,
-  BarChart3,
-  Settings,
-  Plus,
-  Play,
-  // Pause,
-  // Trash2,
-  Eye,
-  Edit,
-  // Copy,
-  // Calendar,
-  Clock,
-  Target,
-  TrendingUp,
-  AlertCircle,
-  // CheckCircle,
-  XCircle,
-} from "lucide-react";
-import { useState, useEffect } from "react";
+import Link from "next/link";
 
-// import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  // CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { emailDashboardContract } from "@/lib/admin/email-contracts";
+import { useEmailResource } from "@/lib/admin/use-email-resource";
 
 import { EmailAnalytics } from "./components/email-analytics";
 import { EmailAutomationOverview } from "./components/email-automation-overview";
 import { EmailCampaigns } from "./components/email-campaigns";
+import { EmailHistory } from "./components/email-history";
 import { EmailSegments } from "./components/email-segments";
-import { EmailSequences } from "./components/email-sequences";
-// import { EmailSettings } from "./components/email-settings";
-import { EmailTemplates } from "./components/email-templates";
-
-interface EmailStats {
-  totalSent: number;
-  totalOpened: number;
-  totalClicked: number;
-  openRate: number;
-  clickRate: number;
-  bounceRate: number;
-  unsubscribeRate: number;
-  activeSequences: number;
-  activeCampaigns: number;
-  totalSubscribers: number;
-}
 
 export default function EmailAutomationPage() {
-  const [stats, setStats] = useState<EmailStats>({
-    totalSent: 0,
-    totalOpened: 0,
-    totalClicked: 0,
-    openRate: 0,
-    clickRate: 0,
-    bounceRate: 0,
-    unsubscribeRate: 0,
-    activeSequences: 0,
-    activeCampaigns: 0,
-    totalSubscribers: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
-
-  useEffect(() => {
-    fetchEmailStats();
-  }, []);
-
-  const fetchEmailStats = async () => {
-    try {
-      // Fetch real data from our API endpoints
-      const [
-        sequencesResponse,
-        campaignsResponse,
-        templatesResponse,
-        metricsResponse,
-      ] = await Promise.all([
-        fetch("/api/admin/email-sequences"),
-        fetch("/api/admin/email-campaigns"),
-        fetch("/api/admin/email-templates"),
-        fetch("/api/admin/email-metrics"),
-      ]);
-
-      const sequences = sequencesResponse.ok
-        ? await sequencesResponse.json()
-        : { sequences: [] };
-      const campaigns = campaignsResponse.ok
-        ? await campaignsResponse.json()
-        : { campaigns: [] };
-      const templates = templatesResponse.ok
-        ? await templatesResponse.json()
-        : { templates: [] };
-      const metrics = metricsResponse.ok
-        ? await metricsResponse.json()
-        : {
-            totalSent: 0,
-            totalOpened: 0,
-            totalClicked: 0,
-            openRate: 0,
-            clickRate: 0,
-            bounceRate: 0,
-            unsubscribeRate: 0,
-          };
-
-      // Calculate real stats from actual data
-      const activeSequences =
-        sequences.sequences?.filter((seq: any) => seq.isActive === true)
-          .length || 0;
-      const activeCampaigns =
-        campaigns.campaigns?.filter(
-          (camp: any) =>
-            camp.status === "SENDING" || camp.status === "SCHEDULED"
-        ).length || 0;
-
-      // Use real metrics data from the database
-      const realStats: EmailStats = {
-        totalSent: metrics.totalSent,
-        totalOpened: metrics.totalOpened,
-        totalClicked: metrics.totalClicked,
-        openRate: metrics.openRate,
-        clickRate: metrics.clickRate,
-        bounceRate: metrics.bounceRate,
-        unsubscribeRate: metrics.unsubscribeRate,
-        activeSequences,
-        activeCampaigns,
-        totalSubscribers: templates.templates?.length || 0, // This should come from newsletter subscribers
-      };
-
-      setStats(realStats);
-    } catch (error) {
-      console.error("Error fetching email stats:", error);
-      // Fallback to some basic stats if API fails
-      setStats({
-        totalSent: 0,
-        totalOpened: 0,
-        totalClicked: 0,
-        openRate: 0,
-        clickRate: 0,
-        bounceRate: 0,
-        unsubscribeRate: 0,
-        activeSequences: 0,
-        activeCampaigns: 0,
-        totalSubscribers: 0,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusColor = (
-    rate: number,
-    type: "open" | "click" | "bounce" | "unsubscribe"
-  ) => {
-    if (type === "open" || type === "click") {
-      if (rate >= 80) return "text-green-600";
-      if (rate >= 60) return "text-yellow-600";
-      return "text-red-600";
-    }
-    if (rate <= 2) return "text-green-600";
-    if (rate <= 5) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  const handleNewCampaign = () => {
-    setActiveTab("campaigns");
-  };
-
-  const handleSettings = () => {
-    // For now, just show an alert. In the future, this could open a settings modal
-    window.location.assign("/admin/settings");
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
+  const { data, loading, error, refresh } = useEmailResource(
+    "/api/admin/email-dashboard",
+    emailDashboardContract
+  );
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="min-w-0 space-y-6 p-4 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Email Automation
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your email marketing campaigns, sequences, and analytics
+          <h1 className="text-3xl font-bold">Email și automatizări</h1>
+          <p className="mt-2 text-slate-600">
+            Șabloane, abonați și istoricul emailurilor din baza de date a
+            magazinului.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleSettings}>
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Button>
-          <Button onClick={handleNewCampaign}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Campaign
+        <Button
+          variant="outline"
+          onClick={() => void refresh()}
+          disabled={loading}
+        >
+          Reîncarcă datele
+        </Button>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <Button asChild variant="outline">
+          <Link href="/admin/email-templates">Gestionare șabloane</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/admin/email-sequences">Gestionare secvențe</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/admin/email-triggers">Reguli de automatizare</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/admin/settings">Setări email</Link>
+        </Button>
+      </div>
+      {loading ? (
+        <p role="status">Se încarcă datele email…</p>
+      ) : error ? (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-white p-5"
+        >
+          <p>{error}</p>
+          <Button className="mt-3" onClick={() => void refresh()}>
+            Reîncearcă
           </Button>
         </div>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Sent</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.totalSent.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats.activeSequences} active sequences, {stats.activeCampaigns}{" "}
-              campaigns
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open Rate</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div
-              className={`text-2xl font-bold ${getStatusColor(stats.openRate, "open")}`}
+      ) : data ? (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              ["Șabloane salvate", data.counts.templates, "Toate stările"],
+              [
+                "Abonați activi",
+                data.counts.subscribers,
+                `${data.counts.inactiveSubscribers} abonați inactivi`,
+              ],
+              [
+                "Acceptate de furnizor",
+                data.counts.accepted,
+                "Include teste; acceptare, nu livrare",
+              ],
+              [
+                "Trimiteri eșuate",
+                data.counts.failed,
+                `${data.counts.logs} înregistrări în istoric`,
+              ],
+              [
+                "Secvențe salvate",
+                data.counts.sequences,
+                `${data.counts.activeSequences} configurate active`,
+              ],
+              [
+                "Campanii salvate",
+                data.counts.campaigns,
+                `${data.counts.activeCampaigns} în trimitere / programate`,
+              ],
+              [
+                "Reguli de automatizare",
+                data.counts.triggers,
+                `${data.counts.activeTriggers} configurate active`,
+              ],
+              [
+                "Trimiteri urmărite",
+                data.metrics.totalSent,
+                "Evenimente SENT salvate, fără teste",
+              ],
+            ].map(([title, value, detail]) => (
+              <Card key={title}>
+                <CardContent className="p-5">
+                  <p className="text-sm text-slate-600">{title}</p>
+                  <p className="my-2 text-3xl font-bold">
+                    {Number(value).toLocaleString("ro-RO")}
+                  </p>
+                  <p className="text-xs text-slate-500">{detail}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {data.counts.unverified > 0 && (
+            <p
+              role="note"
+              className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm"
             >
-              {stats.openRate}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats.totalOpened.toLocaleString()} opens
+              {data.counts.unverified} înregistrări vechi au starea „sent”, fără
+              confirmare de la furnizor. Sunt vizibile în istoric și nu sunt
+              numărate ca emailuri acceptate.
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Click Rate</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div
-              className={`text-2xl font-bold ${getStatusColor(stats.clickRate, "click")}`}
-            >
-              {stats.clickRate}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats.totalClicked.toLocaleString()} clicks
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Subscribers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.totalSubscribers.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">+5% from last month</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bounce Rate</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div
-              className={`text-2xl font-bold ${getStatusColor(stats.bounceRate, "bounce")}`}
-            >
-              {stats.bounceRate}%
-            </div>
-            <p className="text-xs text-muted-foreground">Industry avg: 2.5%</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Unsubscribe Rate
-            </CardTitle>
-            <XCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div
-              className={`text-2xl font-bold ${getStatusColor(stats.unsubscribeRate, "unsubscribe")}`}
-            >
-              {stats.unsubscribeRate}%
-            </div>
-            <p className="text-xs text-muted-foreground">Industry avg: 0.5%</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Automations
-            </CardTitle>
-            <Play className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.activeSequences + stats.activeCampaigns}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats.activeSequences} sequences, {stats.activeCampaigns}{" "}
-              campaigns
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-4"
-      >
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="sequences" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Sequences
-          </TabsTrigger>
-          <TabsTrigger value="campaigns" className="flex items-center gap-2">
-            <Mail className="h-4 w-4" />
-            Campaigns
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Analytics
-          </TabsTrigger>
-          <TabsTrigger value="segments" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Segments
-          </TabsTrigger>
-          <TabsTrigger value="templates" className="flex items-center gap-2">
-            <Edit className="h-4 w-4" />
-            Templates
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          <EmailAutomationOverview stats={stats} />
-        </TabsContent>
-
-        <TabsContent value="sequences" className="space-y-4">
-          <EmailSequences />
-        </TabsContent>
-
-        <TabsContent value="campaigns" className="space-y-4">
-          <EmailCampaigns />
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-4">
-          <EmailAnalytics />
-        </TabsContent>
-
-        <TabsContent value="segments" className="space-y-4">
-          <EmailSegments />
-        </TabsContent>
-
-        <TabsContent value="templates" className="space-y-4">
-          <EmailTemplates />
-        </TabsContent>
-      </Tabs>
+          )}
+          <p className="text-sm text-slate-500">
+            Sunt afișate numai înregistrările păstrate în baza de date.
+            Emailurile vechi fără jurnal și evenimentele eliminate prin politica
+            de retenție nu pot fi reconstruite. O listă goală confirmată nu este
+            o eroare de încărcare.
+          </p>
+          <Tabs defaultValue="overview" className="min-w-0 space-y-4">
+            <TabsList className="flex h-auto flex-wrap justify-start gap-1">
+              <TabsTrigger value="overview">Activitate</TabsTrigger>
+              <TabsTrigger value="history">Istoric email</TabsTrigger>
+              <TabsTrigger value="campaigns">Campanii</TabsTrigger>
+              <TabsTrigger value="analytics">Statistici</TabsTrigger>
+              <TabsTrigger value="subscribers">Abonați</TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview">
+              <EmailAutomationOverview data={data} />
+            </TabsContent>
+            <TabsContent value="history">
+              <EmailHistory />
+            </TabsContent>
+            <TabsContent value="campaigns">
+              <EmailCampaigns />
+            </TabsContent>
+            <TabsContent value="analytics">
+              <EmailAnalytics metrics={data.metrics} />
+            </TabsContent>
+            <TabsContent value="subscribers">
+              <EmailSegments />
+            </TabsContent>
+          </Tabs>
+        </>
+      ) : null}
     </div>
   );
 }

@@ -172,7 +172,7 @@ export async function sendEmailViaUnifiedSystem(
 
     return {
       success: result.success,
-      jobId: result.messageId || `email-${Date.now()}`,
+      jobId: result.messageId || undefined,
       error: result.success ? undefined : "Email sending failed",
     };
   } catch (error) {

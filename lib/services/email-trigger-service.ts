@@ -98,6 +98,7 @@ export class EmailTriggerService {
       where: {
         type: EmailTriggerType.SEGMENT_ENTER,
         isActive: true,
+        status: EmailTriggerStatus.ACTIVE,
       },
     });
 
@@ -138,6 +139,7 @@ export class EmailTriggerService {
       where: {
         type: EmailTriggerType.LIFECYCLE_CHANGE,
         isActive: true,
+        status: EmailTriggerStatus.ACTIVE,
       },
     });
 
@@ -175,6 +177,7 @@ export class EmailTriggerService {
       where: {
         type: EmailTriggerType.BEHAVIOR_EVENT,
         isActive: true,
+        status: EmailTriggerStatus.ACTIVE,
       },
     });
 
@@ -204,6 +207,7 @@ export class EmailTriggerService {
       where: {
         type: EmailTriggerType.TIME_BASED,
         isActive: true,
+        status: EmailTriggerStatus.ACTIVE,
       },
     });
 
@@ -267,6 +271,9 @@ export class EmailTriggerService {
         case "update_user":
           actionResult = await this.updateUser(trigger, userId, executionData);
           break;
+
+        default:
+          throw new Error(`Unsupported trigger action: ${trigger.actionType}`);
       }
 
       // Log the execution
@@ -323,31 +330,50 @@ export class EmailTriggerService {
       throw new Error(`Email template ${actionData.templateId} not found`);
     }
 
-    // Create email log entry (you would integrate with your email service here)
-    const emailLog = await this.prisma.emailLog.create({
-      data: {
-        templateId: template.id,
-        to: userEmail,
-        subject: actionData.subject || template.subject,
-        status: "pending",
+    if (!template.isActive) throw new Error("Șablonul este inactiv");
+    const subscriber = await this.prisma.newsletter.findFirst({
+      where: {
+        email: { equals: userEmail, mode: "insensitive" },
+        isActive: true,
       },
+      select: { id: true },
     });
-
-    // TODO: Integrate with your email service (Brevo, SendGrid, etc.)
-    // For now, we'll just mark it as sent
-    await this.prisma.emailLog.update({
-      where: { id: emailLog.id },
-      data: {
-        status: "sent",
-        sentAt: new Date(),
-      },
+    if (!subscriber)
+      throw new Error("Destinatarul nu este abonat activ la emailuri de marketing");
+    // Load provider/template dependencies only for a real email action, so
+    // segmentation reads do not initialize SMTP or the broader email stack.
+    const [{ sendAuditedAdminEmail }, { DatabaseTemplateService }] =
+      await Promise.all([
+        import("@/lib/email/admin-delivery"),
+        import("@/lib/email/database-template-service"),
+      ]);
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true },
     });
-
-    return {
-      emailLogId: emailLog.id,
-      templateId: template.id,
-      subject: actionData.subject || template.subject,
+    const variables = {
+      ...executionData,
+      user: { name: user?.name ?? "", email: userEmail },
     };
+    const subject = DatabaseTemplateService.replaceVariables(
+      actionData.subject || template.subject,
+      variables
+    );
+    const content = DatabaseTemplateService.replaceVariables(
+      template.content,
+      variables
+    );
+    if (/\{\{[^}]+\}\}/.test(subject + content))
+      throw new Error("Variabilele șablonului nu sunt completate");
+    const result = await sendAuditedAdminEmail({
+      to: userEmail,
+      subject,
+      html: content,
+      audit: { templateId: template.id },
+    });
+    if (!result.success)
+      throw new Error(result.error || "Furnizorul nu a acceptat emailul");
+    return { templateId: template.id, subject, messageId: result.jobId };
   }
 
   /**
@@ -437,7 +463,8 @@ export class EmailTriggerService {
       where: { id: triggerId },
     });
 
-    if (!trigger) return false;
+    if (!trigger?.isActive || trigger.status !== EmailTriggerStatus.ACTIVE)
+      return false;
 
     // Check cooldown
     if (trigger.cooldownHours > 0) {

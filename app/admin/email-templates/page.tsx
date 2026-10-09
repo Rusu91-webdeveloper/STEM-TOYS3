@@ -9,36 +9,22 @@ import {
   Filter,
   Copy,
   Download,
-  Upload,
   Settings,
   Save,
   X,
-  Check,
   AlertCircle,
   Info,
   Zap,
-  Palette,
   Type,
   Image as ImageIcon,
   Mail,
-  Calendar,
-  User,
-  Package,
-  Globe,
-  Lightbulb,
-  ChevronDown,
-  ChevronRight,
   RefreshCw,
   FileText,
-  Code,
-  Smartphone,
-  Monitor,
-  Tablet,
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { useOptimizedSession } from "@/lib/auth/SessionContext";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,8 +36,11 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { EmailImageUploader } from "@/components/ui/EmailImageUploader";
+import { EmailTemplatePreview } from "@/components/ui/EmailTemplatePreview";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import {
   Select,
   SelectContent,
@@ -59,6 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -67,19 +57,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
-import { RichTextEditor } from "@/components/ui/RichTextEditor";
-import { EmailImageUploader } from "@/components/ui/EmailImageUploader";
-import { EmailTemplatePreview } from "@/components/ui/EmailTemplatePreview";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  readEmailResource,
+  emailTemplateList,
+} from "@/lib/admin/email-contracts";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
+import { isCodeOwnedEmailTemplate } from "@/lib/email/template-ownership";
 
 interface EmailTemplate {
   id: string;
@@ -93,6 +82,7 @@ interface EmailTemplate {
   createdAt: string;
   updatedAt: string;
   createdBy: string;
+  metadata: Record<string, any> | null;
 }
 
 interface Pagination {
@@ -107,6 +97,9 @@ export default function EmailTemplatesPage() {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
+  const [savedCategories, setSavedCategories] = useState<string[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadRequest = useRef<AbortController | null>(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isActiveFilter, setIsActiveFilter] = useState("all");
@@ -128,10 +121,7 @@ export default function EmailTemplatesPage() {
   });
 
   // Enhanced UI state
-  const [isAdvancedMode, setIsAdvancedMode] = useState(false);
-  const [showVariablePanel, setShowVariablePanel] = useState(true);
-  const [showImagePanel, setShowImagePanel] = useState(true);
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [_isAdvancedMode, setIsAdvancedMode] = useState(false);
   const [selectedTab, setSelectedTab] = useState("content");
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -141,18 +131,23 @@ export default function EmailTemplatesPage() {
     imageCount: 0,
   });
 
-  const categories = [
-    "welcome",
-    "order-confirmation",
-    "order-shipped",
-    "order-delivered",
-    "password-reset",
-    "email-verification",
-    "abandoned-cart",
-    "newsletter",
-    "promotional",
-    "other",
-  ];
+  const categories = Array.from(
+    new Set([
+      ...savedCategories,
+      ...[
+        "welcome",
+        "order-confirmation",
+        "order-shipped",
+        "order-delivered",
+        "password-reset",
+        "email-verification",
+        "abandoned-cart",
+        "newsletter",
+        "promotional",
+        "other",
+      ],
+    ])
+  );
 
   const commonVariables = [
     "{{user.name}}",
@@ -171,66 +166,41 @@ export default function EmailTemplatesPage() {
     "{{image.4}}",
   ];
 
-  // Fetch templates
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
+    loadRequest.current?.abort();
+    const controller = new AbortController();
+    loadRequest.current = controller;
+    setLoading(true);
+    setLoadError(null);
+    setTemplates([]);
+    setPagination(null);
     try {
-      setLoading(true);
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: "10",
-        search,
-        category: categoryFilter,
-        isActive: isActiveFilter,
       });
-
-      const response = await fetch(`/api/admin/email-templates?${params}`);
-      if (!response.ok) {
-        let errorMessage = "Failed to fetch templates";
-        let debugInfo = null;
-        try {
-          const error = await response.json();
-          errorMessage = error.error ?? errorMessage;
-          debugInfo = error.debug;
-
-          // Log debug information in development
-          if (process.env.NODE_ENV === "development" && debugInfo) {
-            console.error("Email templates API debug info:", debugInfo);
-          }
-        } catch (parseError) {
-          // If response is not JSON, use status text
-          errorMessage = response.statusText || errorMessage;
-        }
-
-        // Show more detailed error in development
-        if (process.env.NODE_ENV === "development" && debugInfo) {
-          errorMessage += ` (Debug: ${JSON.stringify(debugInfo)})`;
-        }
-
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-
-      // Debug logging for development
-      if (process.env.NODE_ENV === "development") {
-        console.log("Email templates fetched:", {
-          templatesCount: data.templates?.length || 0,
-          pagination: data.pagination,
-          rawData: data,
-        });
-      }
-
-      setTemplates(data.templates || []);
-      setPagination(
-        data.pagination || { total: 0, page: 1, limit: 10, pages: 0 }
+      if (search) params.set("search", search);
+      if (categoryFilter !== "all") params.set("category", categoryFilter);
+      if (isActiveFilter !== "all") params.set("isActive", isActiveFilter);
+      const data = await readEmailResource(
+        `/api/admin/email-templates?${params}`,
+        emailTemplateList,
+        controller.signal
       );
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-      toast.error("Failed to fetch templates");
+      if (!controller.signal.aborted) {
+        setTemplates(data.templates);
+        setSavedCategories(data.categories);
+        setPagination(data.pagination);
+      }
+    } catch {
+      if (!controller.signal.aborted)
+        setLoadError(
+          "Șabloanele nu au putut fi încărcate. Verifică sesiunea și reîncearcă."
+        );
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
-  };
+  }, [currentPage, search, categoryFilter, isActiveFilter]);
 
   // Enhanced create template function
   const createTemplate = async () => {
@@ -259,7 +229,7 @@ export default function EmailTemplatesPage() {
         try {
           const error = await response.json();
           errorMessage = error.error ?? errorMessage;
-        } catch (parseError) {
+        } catch {
           errorMessage = response.statusText || errorMessage;
         }
         throw new Error(errorMessage);
@@ -325,7 +295,7 @@ export default function EmailTemplatesPage() {
         try {
           const error = await response.json();
           errorMessage = error.error ?? errorMessage;
-        } catch (parseError) {
+        } catch {
           errorMessage = response.statusText || errorMessage;
         }
         throw new Error(errorMessage);
@@ -356,7 +326,7 @@ export default function EmailTemplatesPage() {
         try {
           const error = await response.json();
           errorMessage = error.error ?? errorMessage;
-        } catch (parseError) {
+        } catch {
           // If response is not JSON, use status text
           errorMessage = response.statusText || errorMessage;
         }
@@ -401,11 +371,16 @@ export default function EmailTemplatesPage() {
       category: template.category ?? "other",
       isActive: template.isActive,
       variables: template.variables,
-      images: [], // Will be loaded from metadata if available
+      images: Array.isArray(template.metadata?.images)
+        ? template.metadata.images
+        : [],
     });
     setHasUnsavedChanges(false);
     setIsEditDialogOpen(true);
-    calculateTemplateStats(template.content, []);
+    calculateTemplateStats(
+      template.content,
+      Array.isArray(template.metadata?.images) ? template.metadata.images : []
+    );
   };
 
   // Open preview dialog
@@ -476,12 +451,13 @@ export default function EmailTemplatesPage() {
   const duplicateTemplate = async (template: EmailTemplate) => {
     try {
       const duplicateData = {
-        ...formData,
         name: `${template.name} (Copy)`,
         slug: generateSlug(`${template.name} (Copy)`),
         subject: template.subject,
         content: template.content,
         category: template.category,
+        variables: template.variables,
+        metadata: template.metadata ?? {},
         isActive: false, // Start as inactive
       };
 
@@ -511,6 +487,7 @@ export default function EmailTemplatesPage() {
       content: template.content,
       category: template.category,
       variables: template.variables,
+      metadata: template.metadata,
       exportedAt: new Date().toISOString(),
     };
 
@@ -536,9 +513,10 @@ export default function EmailTemplatesPage() {
   // Enhanced effects
   useEffect(() => {
     if (isAdmin) {
-      fetchTemplates();
+      void fetchTemplates();
     }
-  }, [currentPage, search, categoryFilter, isActiveFilter, isAdmin]);
+    return () => loadRequest.current?.abort();
+  }, [fetchTemplates, isAdmin]);
 
   useEffect(() => {
     calculateTemplateStats(formData.content, formData.images);
@@ -610,16 +588,17 @@ export default function EmailTemplatesPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="w-full min-w-0 space-y-6 p-4 sm:p-6">
       {/* Enhanced Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex flex-col gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Mail className="h-8 w-8 text-blue-600" />
-            Email Templates
+            Șabloane email
           </h1>
           <p className="text-gray-600">
-            Create and manage email templates for your automated campaigns
+            Șabloanele salvate în baza de date a magazinului. Conținutul este
+            folosit de serviciul de email.
           </p>
         </div>
 
@@ -1026,7 +1005,7 @@ export default function EmailTemplatesPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              Filters & Search
+              Filtre și căutare
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1039,7 +1018,10 @@ export default function EmailTemplatesPage() {
                     id="search"
                     placeholder="Search by name, subject, or content..."
                     value={search}
-                    onChange={e => setSearch(e.target.value)}
+                    onChange={e => {
+                      setCurrentPage(1);
+                      setSearch(e.target.value);
+                    }}
                     className="pl-10"
                   />
                 </div>
@@ -1048,7 +1030,10 @@ export default function EmailTemplatesPage() {
                 <Label htmlFor="category-filter">Category</Label>
                 <Select
                   value={categoryFilter}
-                  onValueChange={setCategoryFilter}
+                  onValueChange={value => {
+                    setCurrentPage(1);
+                    setCategoryFilter(value);
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All categories" />
@@ -1069,7 +1054,10 @@ export default function EmailTemplatesPage() {
                 <Label htmlFor="status-filter">Status</Label>
                 <Select
                   value={isActiveFilter}
-                  onValueChange={setIsActiveFilter}
+                  onValueChange={value => {
+                    setCurrentPage(1);
+                    setIsActiveFilter(value);
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All statuses" />
@@ -1085,6 +1073,7 @@ export default function EmailTemplatesPage() {
                 <Button
                   variant="outline"
                   onClick={() => {
+                    setCurrentPage(1);
                     setSearch("");
                     setCategoryFilter("all");
                     setIsActiveFilter("all");
@@ -1105,17 +1094,24 @@ export default function EmailTemplatesPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Templates ({pagination?.total || 0})
+                Șabloane ({pagination?.total ?? "—"})
               </CardTitle>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span>
-                  {templates.length} of {pagination?.total || 0} templates
+                  {templates.length} din {pagination?.total ?? "—"} șabloane
                 </span>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            {templates.length === 0 ? (
+            {loadError ? (
+              <div role="alert" className="space-y-3 p-4 text-red-700">
+                <p>{loadError}</p>
+                <Button variant="outline" onClick={() => void fetchTemplates()}>
+                  Reîncearcă
+                </Button>
+              </div>
+            ) : templates.length === 0 ? (
               <div className="text-center py-12">
                 <Mail className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -1155,6 +1151,12 @@ export default function EmailTemplatesPage() {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="font-medium">{template.name}</div>
+                          {isCodeOwnedEmailTemplate(template.slug) && (
+                            <p className="text-xs text-amber-800">
+                              Email tranzacțional gestionat în cod. Editarea
+                              modifică numai copia din baza de date.
+                            </p>
+                          )}
                           <div className="text-sm text-gray-500 font-mono">
                             {template.slug}
                           </div>
@@ -1194,6 +1196,7 @@ export default function EmailTemplatesPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                aria-label={`Previzualizare ${template.name}`}
                                 onClick={() => openPreviewDialog(template)}
                               >
                                 <Eye className="w-4 h-4" />
@@ -1207,6 +1210,7 @@ export default function EmailTemplatesPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                aria-label={`Duplicare ${template.name}`}
                                 onClick={() => duplicateTemplate(template)}
                               >
                                 <Copy className="w-4 h-4" />
@@ -1220,6 +1224,7 @@ export default function EmailTemplatesPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                aria-label={`Export ${template.name}`}
                                 onClick={() => exportTemplate(template)}
                               >
                                 <Download className="w-4 h-4" />
@@ -1233,6 +1238,7 @@ export default function EmailTemplatesPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                aria-label={`Editare ${template.name}`}
                                 onClick={() => openEditDialog(template)}
                               >
                                 <Edit className="w-4 h-4" />
@@ -1246,6 +1252,7 @@ export default function EmailTemplatesPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                aria-label={`Ștergere ${template.name}`}
                                 onClick={() => deleteTemplate(template.id)}
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
                               >

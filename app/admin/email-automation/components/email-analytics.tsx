@@ -1,40 +1,47 @@
 "use client";
+import { Card, CardContent } from "@/components/ui/card";
+import type { EmailDashboard } from "@/lib/admin/email-contracts";
 
-import { TrendingUp } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
-export function EmailAnalytics() {
+export function EmailAnalytics({
+  metrics,
+}: {
+  metrics: EmailDashboard["metrics"];
+}) {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Email Analytics</h2>
-          <p className="text-muted-foreground">
-            Comprehensive analytics and insights for your email marketing
-          </p>
-        </div>
-        <Button variant="outline">Export Report</Button>
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">Statistici de urmărire</h2>
+      <p className="text-sm text-slate-600">
+        Procentele folosesc mesajele distincte cu eveniment SENT înregistrat.
+        Deschiderile și clicurile repetate sunt numărate o singură dată per
+        mesaj. Testele sunt excluse. Fără o bază de trimiteri, procentul este
+        indisponibil.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[
+          ["Deschideri", metrics.totalOpened, metrics.openRate],
+          ["Clicuri", metrics.totalClicked, metrics.clickRate],
+          ["Livrări confirmate", metrics.totalDelivered, metrics.deliveryRate],
+          ["Respingeri", metrics.totalBounced, metrics.bounceRate],
+          ["Dezabonări", metrics.totalUnsubscribed, metrics.unsubscribeRate],
+        ].map(([label, count, rate]) => (
+          <Card key={String(label)}>
+            <CardContent className="p-5">
+              <p>{label}</p>
+              <p className="my-2 text-2xl font-bold">
+                {rate === null ? "—" : `${rate}%`}
+              </p>
+              <p className="text-sm text-slate-500">
+                {count} mesaje cu eveniment înregistrat
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
-
-      <Card className="text-center py-12">
-        <CardContent>
-          <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">Analytics Coming Soon</h3>
-          <p className="text-muted-foreground mb-4">
-            Advanced email analytics and reporting features are currently under
-            development.
-          </p>
-          <Button disabled>View Analytics</Button>
-        </CardContent>
-      </Card>
+      <p className="text-sm text-slate-500">
+        Absența unui eveniment de deschidere sau clic nu dovedește că
+        destinatarul nu a citit emailul. Nu există comparații sau ținte
+        presupuse.
+      </p>
     </div>
   );
 }
