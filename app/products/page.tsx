@@ -3,6 +3,7 @@ import React, { Suspense } from "react";
 
 import { ProductsPageSkeleton } from "@/components/skeletons/products-skeleton";
 import ClientProductsPage from "@/features/products/components/ClientProductsPage";
+import { WeeklyWinnerBanner } from "@/features/products/components/WeeklyWinnerBanner";
 import { getBooks } from "@/lib/api/books";
 import { getProducts } from "@/lib/api/products";
 import { CurrencyProvider } from "@/lib/currency";
@@ -207,13 +208,18 @@ export default async function ProductsPage({
 
     return (
       <CurrencyProvider>
-        <Suspense fallback={<ProductsPageSkeleton />}>
-          <ClientProductsPage
-            initialProducts={products}
-            searchParams={params}
-            allSidebarCategories={allSidebarCategories}
-          />
-        </Suspense>
+        <div className="bg-[linear-gradient(180deg,#f7f6f2_0%,#ffffff_100%)]">
+          <div className="container mx-auto px-4 pt-6">
+            <WeeklyWinnerBanner />
+          </div>
+          <Suspense fallback={<ProductsPageSkeleton />}>
+            <ClientProductsPage
+              initialProducts={products}
+              searchParams={params}
+              allSidebarCategories={allSidebarCategories}
+            />
+          </Suspense>
+        </div>
       </CurrencyProvider>
     );
   } catch (error) {
