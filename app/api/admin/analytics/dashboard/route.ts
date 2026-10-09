@@ -1,6 +1,6 @@
 import { emailJson } from "@/lib/admin/email-api";
 import { auth } from "@/lib/auth";
-export async function GET(_request?: Request) {
+export async function GET() {
   try {
     if ((await auth())?.user?.role !== "ADMIN")
       return emailJson({ error: "Unauthorized" }, 403);
