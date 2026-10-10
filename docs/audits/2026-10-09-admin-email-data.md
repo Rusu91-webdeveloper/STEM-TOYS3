@@ -119,12 +119,23 @@ applied by the desktop browser). The viewport override was reset. Local fixture
 screenshots are kept separately from production evidence. Focused API,
 delivery-audit, trigger, older-service and component tests cover source
 contracts, failed refresh/retry, authorization, provider failures and opt-in.
-Final regression/build results and publication status are recorded below as
-checks complete.
+Final checks: six focused suites / 45 tests pass. The isolated authenticated
+HTTP create/edit/reload/delete workflow also passed against the compiled
+production server. The production build passed. Scoped email lint has no errors
+and 17 warnings. Required pre-commit Jest comparison: baseline 62 failed suites /
+157 failed tests; current 61 / 157, zero regressions. Required pre-push TypeScript
+comparison: baseline 1,188 errors; current 1,145, zero added diagnostics.
+Repository-wide tests and types retain existing debt. No hooks were disabled.
+Migration validation found no schema or migration changes. The final reviewed
+head is `f94b086c3bfc0cd07a36986ee63280a14090848a` in
+[PR #78](https://github.com/Rusu91-webdeveloper/STEM-TOYS3/pull/78); its Vercel
+preview reached READY for that exact commit.
 
-Neon connector access currently returns a reauthorization requirement. Private
-production counts and live provider/inbox receipt remain unverified. No external
-email was sent during this work.
+Neon connector access returns a reauthorization requirement, so independent
+direct SQL reconciliation remains unavailable. Production publication below
+records authenticated browser reads using the owner's existing session. Live
+provider/inbox receipt remains unverified. No external email was sent during
+this work.
 
 ## Remaining automation work
 
@@ -141,3 +152,69 @@ The previous dashboard audit also retains unresolved live payment/refund,
 courier and inbox acceptance, advanced forms and cost/margin source coverage.
 Those are tracked in `TASKS.md`; the entire admin cannot yet be called fully
 verified.
+
+## Production publication — 9 October 2026
+
+The owner explicitly authorized production publication: “i authorized it ,push
+it to production”. The clean worktree, unchanged main at `754c569c`, intended
+Vercel team/project and READY preview for reviewed head `f94b086c` were checked
+before publication. PR #78 was marked ready and squash-merged with the exact-head
+constraint at 10:39:43 UTC as
+`f808b5b34cfcdfa21cb5c1d8e473b90275f026ad`. Its Git tree
+`ba9bf8f2cd3ae6fd850c2e02bb7a4dd7e6bc5c5a` matches the reviewed head.
+
+The existing main-branch Git integration built production in project
+`stem-toys-3` (`prj_ToPwZRPSjvd9qI25Vscf6CeMSrVW`), team
+`team_eCqAADZN7NQMTvnd2J9FniNU`. Deployment ID:
+`dpl_HRt3p9miWQUCbAhranjmPpfxgmcL`; immutable deployment URL:
+<https://stem-toys-3-n0cf1onwz-rusujobs-3774s-projects.vercel.app>.
+Previous READY production rollback candidate:
+`dpl_3k46FGRB5cFLZHGf1pQ6JZUSqXSY`, source `754c569c`.
+
+No schema, migration, dependency or compiler configuration changed. The remote
+build reported 16 existing migrations and no pending migrations to apply, then
+compiled successfully and generated 493 pages. The established build skips
+type/lint validation; local enforced regression comparisons above are separate
+evidence. Existing optional Husky-install and manifest-route warnings remain.
+Ignored local environment files and local fixture data were not uploaded.
+
+The deployment reached READY at 10:43:32 UTC, 3 minutes 45 seconds after building
+started. Independent alias lookups confirmed both `www.techtots.ro` and
+`techtots.ro` point to that exact deployment; the apex retains its 308 canonical
+redirect to www.
+
+All 44 anonymous HTTP assertions passed at 10:44:03 UTC: public storefront,
+products, cart, checkout and login render; the five admin pages redirect to
+login with no-store; all eight email read APIs reject anonymous access with 401
+and private/no-store; the three retired analytics endpoints reject access with
+403 and private/no-store; database readiness returns 200/no-store. Checks ran on
+both domains, following only the expected apex redirect. Local results are in
+`/tmp/stem-email-release-http.json`.
+
+An initial Chrome automation connection failed; a fresh tab recovered the
+owner's existing authenticated session. Read-only production browser checks
+confirmed the following saved records:
+
+| Source visible in admin | Production result |
+| --- | --- |
+| Templates | 87, with real page-two rows and saved HTML preview |
+| Newsletter subscribers | 4 active, 0 inactive; list loads |
+| Email history | 12 legacy `sent` records, explicitly unconfirmed |
+| Sequences | 0 saved; confirmed empty list and execution limitation |
+| Campaigns | 0 saved |
+| Trigger rules | 17 saved, 1 configured ACTIVE; list and execution counts load |
+| Provider acknowledgements / SENT tracking events | 0 recorded; rates show unavailable |
+
+The saved template preview retains unresolved variables and uses no invented
+customer/order values. No production record was created, edited, paused or
+deleted for verification, and no email was sent. These reads verify application
+access to production data; they do not replace independent SQL reconciliation
+or certify historical inbox receipt. Screenshot evidence is kept outside Git at
+`/Users/emanuelrusu/.codex/visualizations/2026/10/08/01a11db1-b86c-71f3-8583-17aaecb2597a/admin-email-production.jpg`.
+
+At approximately 10:44:48 UTC the release-scoped warning/error/fatal count query
+from 10:39:43 UTC returned no groups, and the project runtime-error query found
+no clusters. This is a bounded observation, not continuous monitoring. Drain
+inventory returned 404 and remains unverified; no monitoring configuration was
+changed. Automatic sequence execution and other integration acceptance remain
+open as described above.

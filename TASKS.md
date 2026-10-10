@@ -1,15 +1,19 @@
 # Current tasks
 
-- [ ] 2026-10-09 — Make admin email screens use saved store records and remove
+- [x] 2026-10-09 — Make admin email screens use saved store records and remove
       fictional/failed-read values. Estimate: 2–4 hours. Template filtering and
       content, saved sequence fields/steps, real subscriber/history/trigger
       data, campaign draft/send controls and provider acceptance auditing are
-      implemented locally. Five focused suites / 37 tests, isolated PostgreSQL
-      assertions and authenticated HTTP create/edit/reload checks pass. Browser
-      checks confirm saved template pagination/preview and sequence fields. An
-      additional older-service acceptance suite and final regression/build
-      checks are in progress; publication remains pending. Direct production DB
-      verification requires Neon reauthorization. See the
+      deployed in PR #78, production source `f808b5b3`, READY on both domains.
+      Six focused suites / 45 tests, isolated PostgreSQL, compiled authenticated
+      HTTP mutations and local browser checks pass; required Jest/TypeScript
+      comparisons add zero regressions. All 44 live anonymous HTTP assertions
+      pass. Authenticated production reads confirm 87 templates, 4 active
+      subscribers, 17 rules and 12 legacy unconfirmed email logs; no sequences
+      or campaigns are saved. Preview and pagination work. No live email was
+      sent or test data written. Direct SQL reconciliation requires Neon
+      reauthorization. Automatic sequence execution remains open below.
+      Completed 2026-10-09; elapsed time not recorded. See the
       [email data audit](docs/audits/2026-10-09-admin-email-data.md).
 
 - [x] 2026-10-09 — Correct the owner's category screen showing all categories as
