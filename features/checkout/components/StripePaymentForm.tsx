@@ -16,6 +16,56 @@ import { useCurrency } from "@/lib/currency";
 
 import { PaymentDetails } from "../types";
 
+// Map Stripe error codes to clear Romanian messages
+function mapStripeErrorToRomanian(
+  errorCode?: string | null,
+  declineCode?: string | null
+): string {
+  // Card declined errors
+  if (errorCode === "card_declined") {
+    switch (declineCode) {
+      case "generic_decline":
+        return "Banca a refuzat autorizarea temporară. Încearcă din nou sau folosește alt card.";
+      case "insufficient_funds":
+        return "Fonduri insuficiente. Verifică soldul cardului sau folosește alt card.";
+      case "lost_card":
+      case "stolen_card":
+        return "Cardul a fost marcat ca pierdut sau furat. Contactează banca ta.";
+      case "expired_card":
+        return "Cardul a expirat. Verifică data de expirare sau folosește alt card.";
+      case "incorrect_cvc":
+        return "CVV/CVC incorect. Verifică codul de securitate de pe spatele cardului.";
+      case "processing_error":
+        return "Eroare de procesare. Încearcă din nou sau contactează banca ta.";
+      case "authentication_required":
+        return "Autentificare 3D Secure necesară. Urmează pașii din fereastra băncii tale.";
+      default:
+        return "Plata a fost refuzată. Verifică datele cardului sau folosește alt card.";
+    }
+  }
+
+  // Specific error codes
+  switch (errorCode) {
+    case "expired_card":
+      return "Cardul a expirat. Verifică data de expirare sau folosește alt card.";
+    case "incorrect_cvc":
+      return "CVV/CVC incorect. Verifică codul de securitate de pe spatele cardului.";
+    case "incorrect_number":
+      return "Număr de card invalid. Verifică numerele introduse.";
+    case "invalid_expiry_month":
+    case "invalid_expiry_year":
+      return "Data de expirare invalidă. Verifică luna și anul.";
+    case "processing_error":
+      return "Eroare de procesare. Încearcă din nou în câteva momente.";
+    case "authentication_required":
+      return "Autentificare 3D Secure necesară. Completează verificarea băncii tale.";
+    case "payment_intent_authentication_failure":
+      return "Autentificarea 3D Secure a eșuat. Încearcă din nou.";
+    default:
+      return "A apărut o eroare la procesarea plății. Verifică datele cardului și încearcă din nou.";
+  }
+}
+
 interface StripePaymentFormProps {
   clientSecret: string;
   paymentIntentId?: string;
@@ -157,6 +207,13 @@ export function StripePaymentForm({
       });
 
       if (error) {
+        // Log error codes for debugging (no sensitive card data)
+        console.error("Stripe payment error:", {
+          code: error.code,
+          decline_code: error.decline_code,
+          type: error.type,
+        });
+
         // Handle payment_intent_unexpected_state error specifically
         // This occurs when trying to confirm a PaymentIntent that's already in a terminal state
         if (error.code === "payment_intent_unexpected_state") {
@@ -179,7 +236,15 @@ export function StripePaymentForm({
           onError(unexpectedStateError);
           return;
         }
-        throw new Error(error.message || "Payment failed");
+
+        // Map error to Romanian message
+        const romanianError = mapStripeErrorToRomanian(
+          error.code,
+          error.decline_code
+        );
+        setCardError(romanianError);
+        onError(romanianError);
+        return;
       }
 
       // With manual capture, status will be "requires_capture" after successful authorization
@@ -193,8 +258,15 @@ export function StripePaymentForm({
         throw new Error("Payment processing failed");
       }
     } catch (error) {
-      const errorMessage =
-        (error as Error).message || "An error occurred with your payment";
+      const err = error as any;
+      const errorMessage = err.message || "An error occurred with your payment";
+
+      // Log error for debugging (no sensitive card data)
+      console.error("Stripe payment error (catch):", {
+        code: err.code,
+        decline_code: err.decline_code,
+        message: errorMessage,
+      });
 
       // Handle payment_intent_unexpected_state error (fallback check)
       // This occurs when trying to confirm a PaymentIntent that's already in a terminal state
@@ -207,8 +279,12 @@ export function StripePaymentForm({
         setCardError(unexpectedStateError);
         onError(unexpectedStateError);
       } else {
-        setCardError(errorMessage);
-        onError(errorMessage);
+        // Try to map the error to Romanian
+        const romanianError = err.code
+          ? mapStripeErrorToRomanian(err.code, err.decline_code)
+          : errorMessage;
+        setCardError(romanianError);
+        onError(romanianError);
       }
     } finally {
       setIsProcessing(false);

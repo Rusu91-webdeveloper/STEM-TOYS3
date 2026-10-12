@@ -23,6 +23,24 @@ import { loginSchema } from "@/lib/validations";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+// Sanitize callbackUrl to prevent open redirect vulnerabilities
+const sanitizeCallbackUrl = (url: string | null): string => {
+  if (!url) return "/";
+  
+  // Only allow paths starting with '/' but not '//' (protocol-relative URLs)
+  // Also reject backslashes which could be used to bypass the check
+  if (
+    url.startsWith("/") &&
+    !url.startsWith("//") &&
+    !url.includes("\\")
+  ) {
+    return url;
+  }
+  
+  // If invalid, fall back to home
+  return "/";
+};
+
 // Helper to clear problematic cookies if we're stuck in a redirect loop
 const clearProblemCookies = () => {
   // Check if we're in a loop by checking URL parameters
@@ -172,12 +190,13 @@ function LoginForm() {
     if (status === "authenticated" && session?.user) {
       setHasValidated(true); // Mark as validated to prevent re-runs
 
-      const callbackUrl = searchParams.get("callbackUrl");
+      const rawCallbackUrl = searchParams.get("callbackUrl");
       console.warn("User is authenticated, redirecting...");
 
-      // Simple redirect without complex validation to avoid loops
+      // Sanitize and validate callback URL
+      const callbackUrl = sanitizeCallbackUrl(rawCallbackUrl);
       const redirectToPath =
-        callbackUrl && callbackUrl !== "/auth/login" ? callbackUrl : "/account";
+        callbackUrl !== "/auth/login" ? callbackUrl : "/account";
 
       console.warn("Redirecting authenticated user to:", redirectToPath);
 
@@ -268,8 +287,9 @@ function LoginForm() {
       // Authentication successful
       setSuccess(t("loginSuccessful"));
 
-      // Get the redirect URL
-      const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+      // Get and sanitize the redirect URL
+      const rawCallbackUrl = searchParams.get("callbackUrl");
+      const callbackUrl = sanitizeCallbackUrl(rawCallbackUrl);
       console.warn("Redirecting to:", callbackUrl);
 
       // Give a moment for the session to be established

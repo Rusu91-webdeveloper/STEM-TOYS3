@@ -39,6 +39,9 @@ export function CheckoutFlow() {
   const [checkoutData, setCheckoutData] = useState<CheckoutData>({
     billingAddressSameAsShipping: true,
   });
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    string | undefined
+  >(undefined);
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const [orderError, setOrderError] = useState<unknown>(null);
   const [redirectToConfirmation, setRedirectToConfirmation] = useState<
@@ -123,6 +126,10 @@ export function CheckoutFlow() {
   const handleCouponRemoved = () => {
     setAppliedCoupon(null);
     setDiscountAmount(0);
+  };
+
+  const handlePaymentMethodChange = (method: string) => {
+    setSelectedPaymentMethod(method);
   };
 
   const goToStep = (step: CheckoutStep) => {
@@ -879,6 +886,7 @@ export function CheckoutFlow() {
                 appliedCoupon={appliedCoupon}
                 discountAmount={discountAmount}
                 isAdmin={session?.user?.role === "ADMIN"}
+                onPaymentMethodChange={handlePaymentMethodChange}
                 onSubmit={data => {
                   updateCheckoutData(data);
                   setCurrentStep("review");
@@ -911,7 +919,7 @@ export function CheckoutFlow() {
           shippingCost={computeShippingCost()}
           appliedCoupon={appliedCoupon}
           onCouponRemoved={handleCouponRemoved}
-          selectedPaymentMethod={checkoutData.paymentMethod}
+          selectedPaymentMethod={selectedPaymentMethod || checkoutData.paymentMethod}
           shippingMethod={checkoutData.shippingMethod}
           stripePaymentIntentId={
             checkoutData.stripePaymentIntentId ||
