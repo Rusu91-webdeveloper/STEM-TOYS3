@@ -291,6 +291,7 @@ export async function fetchFanboxPickupPoints(input: {
   filteredTotal?: number;
   fallbackUsed?: boolean;
   reason?: string;
+  guestUser?: boolean;
 }> {
   try {
     const params = new URLSearchParams();
@@ -302,11 +303,24 @@ export async function fetchFanboxPickupPoints(input: {
     const response = await fetch(
       `/api/checkout/fancourier/fanbox?${params.toString()}`
     );
+
+    const data = await response.json();
+
+    // For 401 guest user response, still parse the data
+    if (response.status === 401 && data.guestUser === true) {
+      return {
+        configured: false,
+        points: [],
+        total: 0,
+        reason: data.reason || "GUEST_USER_UNAUTHORIZED",
+        guestUser: true,
+      };
+    }
+
     if (!response.ok) {
       throw new Error(`Error fetching FANbox points: ${response.statusText}`);
     }
 
-    const data = await response.json();
     return {
       configured: data.configured !== false,
       points: Array.isArray(data.points) ? data.points : [],
@@ -315,6 +329,7 @@ export async function fetchFanboxPickupPoints(input: {
         typeof data.filteredTotal === "number" ? data.filteredTotal : undefined,
       fallbackUsed: data.fallbackUsed === true,
       reason: data.reason,
+      guestUser: false,
     };
   } catch (error) {
     console.error("Failed to fetch FANbox pickup points:", error);
@@ -323,6 +338,7 @@ export async function fetchFanboxPickupPoints(input: {
       points: [],
       total: 0,
       reason: "FETCH_FAILED",
+      guestUser: false,
     };
   }
 }

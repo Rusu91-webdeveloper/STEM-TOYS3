@@ -68,6 +68,7 @@ export function ShippingMethodSelector({
   >(null);
   const [fanboxPoints, setFanboxPoints] = useState<FanboxPickupPoint[]>([]);
   const [fanboxError, setFanboxError] = useState<string | null>(null);
+  const [fanboxGuestUser, setFanboxGuestUser] = useState(false);
   const [selectedFanboxId, setSelectedFanboxId] = useState<string>("");
   const [selectionError, setSelectionError] = useState<string | null>(null);
   const [shippingPolicyMessage, setShippingPolicyMessage] = useState<
@@ -233,6 +234,7 @@ export function ShippingMethodSelector({
     if (!methodRequiresLocker(selectedMethod)) {
       setFanboxPoints([]);
       setFanboxError(null);
+      setFanboxGuestUser(false);
       setSelectedFanboxId("");
       return;
     }
@@ -260,6 +262,16 @@ export function ShippingMethodSelector({
     })
       .then(result => {
         if (!isActive) return;
+
+        // Handle guest user case - user must authenticate to use FANbox
+        if (result.guestUser === true) {
+          setFanboxPoints([]);
+          setFanboxError(null);
+          setFanboxGuestUser(true);
+          return;
+        }
+
+        setFanboxGuestUser(false);
 
         if (!result.configured) {
           setFanboxPoints([]);
@@ -535,6 +547,51 @@ export function ShippingMethodSelector({
               <div className="flex items-center gap-2 text-sm text-sky-800">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Se încarcă FANbox-urile disponibile...
+              </div>
+            ) : fanboxGuestUser ? (
+              <div className="rounded-lg border border-sky-300 bg-sky-50 p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100">
+                    <svg
+                      className="h-4 w-4 text-sky-700"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-sky-950">
+                      Livrarea în FANbox este disponibilă doar pentru clienții
+                      autentificați
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-sky-900">
+                      Autentifică-te sau creează un cont pentru a alege un
+                      FANbox.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <a
+                        href={`/login?callbackUrl=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "/checkout")}`}
+                        className="inline-flex items-center rounded-md bg-sky-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                      >
+                        Autentifică-te
+                      </a>
+                      <a
+                        href={`/register?callbackUrl=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "/checkout")}`}
+                        className="inline-flex items-center rounded-md border border-sky-300 bg-white px-3 py-1.5 text-sm font-medium text-sky-700 shadow-sm transition hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                      >
+                        Creează cont
+                      </a>
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : fanboxError ? (
               <p className="text-sm text-amber-800">{fanboxError}</p>

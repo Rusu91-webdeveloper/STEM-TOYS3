@@ -73,6 +73,8 @@ interface PaymentFormProps {
   discountAmount?: number;
   /** Whether current user has admin role. */
   isAdmin?: boolean;
+  /** Callback fired immediately when payment method changes (for live COD fee display). */
+  onPaymentMethodChange?: (method: string) => void;
   onSubmit: (data: {
     paymentMethod: PaymentMethod;
     paymentDetails?: PaymentDetails;
@@ -102,6 +104,7 @@ export function PaymentForm({
   appliedCoupon,
   discountAmount = 0,
   isAdmin = false,
+  onPaymentMethodChange,
   onSubmit,
   onBack,
 }: PaymentFormProps) {
@@ -839,6 +842,10 @@ export function PaymentForm({
       setStripePaymentIntentId(undefined);
       setStripeIntentAmount(null);
       setStripeIntentError(null);
+    }
+    // Notify parent immediately so CheckoutSummary can update COD fee display
+    if (onPaymentMethodChange) {
+      onPaymentMethodChange(value);
     }
   };
 
