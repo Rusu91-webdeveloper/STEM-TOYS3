@@ -578,13 +578,13 @@ export function ShippingMethodSelector({
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <a
-                        href={`/login?callbackUrl=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "/checkout")}`}
+                        href="/auth/login?callbackUrl=/checkout"
                         className="inline-flex items-center rounded-md bg-sky-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
                       >
                         Autentifică-te
                       </a>
                       <a
-                        href={`/register?callbackUrl=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "/checkout")}`}
+                        href="/auth/register?callbackUrl=/checkout"
                         className="inline-flex items-center rounded-md border border-sky-300 bg-white px-3 py-1.5 text-sm font-medium text-sky-700 shadow-sm transition hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
                       >
                         Creează cont

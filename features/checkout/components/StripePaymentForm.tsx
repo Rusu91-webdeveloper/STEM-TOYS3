@@ -38,7 +38,7 @@ function mapStripeErrorToRomanian(
       case "processing_error":
         return "Eroare de procesare. Încearcă din nou sau contactează banca ta.";
       case "authentication_required":
-        return "Autentificare 3D Secure necesară. Urmează pașii din fereastra bancii tale.";
+        return "Autentificare 3D Secure necesară. Urmează pașii din fereastra băncii tale.";
       default:
         return "Plata a fost refuzată. Verifică datele cardului sau folosește alt card.";
     }
@@ -58,7 +58,7 @@ function mapStripeErrorToRomanian(
     case "processing_error":
       return "Eroare de procesare. Încearcă din nou în câteva momente.";
     case "authentication_required":
-      return "Autentificare 3D Secure necesară. Completează verificarea bancii tale.";
+      return "Autentificare 3D Secure necesară. Completează verificarea băncii tale.";
     case "payment_intent_authentication_failure":
       return "Autentificarea 3D Secure a eșuat. Încearcă din nou.";
     default:
