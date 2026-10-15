@@ -1,5 +1,16 @@
 # Current tasks
 
+- [x] 2026-10-15 — Fix missing admin order cancellation emails and preserve the
+      supplied cancellation reason. Estimate: 30–60 minutes. Trace provider
+      selection, report notification failures separately from saved order
+      changes, and verify success, rejection and missing-recipient paths without
+      sending customer email or modifying production orders. Completed locally
+      2026-10-15; elapsed time not recorded. Cancellation now uses the confirmation
+      SMTP sender, preserves the reason in both email formats, records provider
+      acceptance/failure and warns on both admin screens. Focused checks pass;
+      full TypeScript comparison adds zero errors. No deployment or resend.
+      See the [fix record](docs/ADMIN_ORDER_CANCELLATION_EMAIL_FIX.md).
+
 - [x] 2026-10-15 — Fix HTTP 403 when changing an order status from the admin
       list or details page. Estimate: 30–60 minutes. Trace the security token
       boundary, preserve ADMIN/CSRF protection, and verify success and denial

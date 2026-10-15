@@ -1907,7 +1907,7 @@ export const en = {
   codPaymentMethod: "Cash on delivery",
   codLockerPaymentMethod: "FANbox · online payment only",
   codHomeMethodDescription:
-    "Pay when the courier delivers your parcel. If you refuse or do not collect it, the parcel is returned to sender (RTO).",
+    "Pay the courier. A temporary card guarantee is required for shipping.",
   codLockerMethodDescription:
     "For FANbox, payment is made online by card; cash on delivery is unavailable.",
   codLockerBadge: "Online card payment",
@@ -1921,10 +1921,25 @@ export const en = {
   codRambursHeroTitle: "Cash on delivery",
   codRambursHeroBadge: "Required information",
   codRambursHeroSubtitle:
-    "A short, professional summary of what you should know before choosing cash on delivery.",
+    "Pay the courier for your order. Your card is only used for a temporary shipping guarantee.",
   codKeyPointPayTitle: "Pay the courier on delivery",
   codKeyPointPayBody:
-    "The order total and COD fee are paid when you receive the parcel, not when you place the order.",
+    "Products, shipping and the COD fee are paid when you receive the parcel.",
+  codShippingHoldSummary:
+    "The amount is temporarily reserved, with no charge now. Your card is not saved to your account.",
+  codConsentFullTextToggle: "COD terms and releasing the guarantee",
+  codCardAuthorizationTitle: "Authorize the card guarantee",
+  codCardAuthorizationDescription:
+    "A temporary hold for outbound shipping, required for every cash-on-delivery order.",
+  codTemporaryHoldLabel: "Temporarily reserved on your card",
+  codPayOnDeliveryTotal: "Total to pay on delivery",
+  codChargedNowLabel: "Charged now",
+  codHoldReleaseSummary:
+    "We request release of an active hold on delivery, cancellation or refusal. Timing depends on the processor and your card issuer.",
+  codSecuredByStripe: "Secured by Stripe",
+  codContinueHint:
+    "Continue to authorize the guarantee, then review your order before placing it.",
+  codAuthorizing: "Authorizing...",
   codKeyPointRtoTitle: "Refusal or non-collection",
   codKeyPointRtoBody:
     "If you refuse the parcel at delivery or do not collect it in time, it may be returned to the sender (RTO).",

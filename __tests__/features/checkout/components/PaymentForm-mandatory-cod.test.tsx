@@ -54,12 +54,16 @@ jest.mock("@/features/checkout/components/StripePaymentForm", () => ({
     submitButtonClassName: string;
     submitLabel: string;
     paymentIntentId: string;
+    onProcessingChange?: (processing: boolean) => void;
     onSuccess: (details: { stripePaymentIntentId: string }) => void;
   }) => (
     <div>
       <button
         className={props.submitButtonClassName}
-        onClick={() => mockAuthorize()}
+        onClick={() => {
+          mockAuthorize();
+          props.onProcessingChange?.(true);
+        }}
       >
         {props.submitLabel}
       </button>
@@ -111,12 +115,12 @@ describe("PaymentForm mandatory COD authorization", () => {
     else process.env.NEXT_PUBLIC_STRIPE_ENABLED = originalEnabled;
   });
 
-  function renderCod(holdPrice: number | null = 19.99) {
+  function renderCod(holdPrice: number | null = 19.99, consentAccepted = true) {
     const onSubmit = jest.fn();
     render(
       <PaymentForm
         initialPaymentMethod="cash_on_delivery"
-        initialCodConsentAccepted
+        initialCodConsentAccepted={consentAccepted}
         shippingAddress={{
           fullName: "Test Shopper",
           email: "guest@example.com",
@@ -182,6 +186,36 @@ describe("PaymentForm mandatory COD authorization", () => {
       expect(payload.checkoutContext.paymentMethod).toBe("cash_on_delivery");
     }
   );
+
+  it("requires consent before starting authorization", async () => {
+    const onSubmit = renderCod(19.99, false);
+    await screen.findByRole("button", { name: "Autorizează 19.99 lei" });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continuă la verificare" })
+    );
+
+    expect(mockAuthorize).not.toHaveBeenCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(/Pentru plata ramburs trebuie să accepți/)
+    ).toBeInTheDocument();
+  });
+
+  it("shows progress and prevents repeated continuation during authorization", async () => {
+    renderCod();
+    await screen.findByRole("button", { name: "Autorizează 19.99 lei" });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continuă la verificare" })
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Se autorizează..." })
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Înapoi la metoda de livrare" })
+    ).toBeDisabled();
+    expect(mockAuthorize).toHaveBeenCalledTimes(1);
+  });
 
   it("blocks continuation when the shipping hold price is missing", async () => {
     const onSubmit = renderCod(null);

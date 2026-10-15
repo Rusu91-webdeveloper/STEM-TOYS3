@@ -51,6 +51,7 @@ import {
 } from "@/lib/admin/dashboard-metrics";
 import { adminOrderLabel } from "@/lib/admin/order-labels";
 import { updateAdminOrderStatus } from "@/lib/admin/order-status-client";
+import { CANCELLATION_EMAIL_FAILED_MESSAGE } from "@/lib/admin/order-status-notification";
 import { parseCodGuaranteeEvidence } from "@/lib/checkout/cod-guarantee";
 
 // Types
@@ -1542,15 +1543,26 @@ export default function OrderDetailsPage() {
         requestBody.cancellationReason = cancellationReason.trim();
       }
 
-      await updateAdminOrderStatus(orderId, requestBody);
+      const { emailNotification } = await updateAdminOrderStatus(
+        orderId,
+        requestBody
+      );
 
       // Update local state
       setOrder(prev => (prev ? { ...prev, status: newStatus } : null));
 
-      toast({
-        title: "Salvat",
-        description: `Order status updated to ${formatStatus(newStatus)}`,
-      });
+      toast(
+        emailNotification?.status === "failed"
+          ? {
+              title: "Comanda a fost salvată",
+              description: CANCELLATION_EMAIL_FAILED_MESSAGE,
+              variant: "destructive",
+            }
+          : {
+              title: "Salvat",
+              description: `Starea comenzii a fost actualizată: ${formatStatus(newStatus)}.`,
+            }
+      );
     } catch (error) {
       console.error("Error updating order status:", error);
       toast({

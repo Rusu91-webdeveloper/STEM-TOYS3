@@ -69,6 +69,7 @@ const originalFetch = global.fetch;
 let tokenStatus: number;
 let patchStatus: number;
 let tokenCount: number;
+let emailNotification: { status: string } | undefined;
 const patches = () =>
   (global.fetch as jest.Mock).mock.calls.filter(
     ([, options]) => options?.method === "PATCH"
@@ -103,6 +104,7 @@ describe.each(["list", "details"] as const)("order status from %s", surface => {
     tokenStatus = 200;
     patchStatus = 200;
     tokenCount = 0;
+    emailNotification = { status: "accepted" };
     global.fetch = jest
       .fn()
       .mockImplementation((url: string, options?: RequestInit) => {
@@ -115,7 +117,7 @@ describe.each(["list", "details"] as const)("order status from %s", surface => {
           const headers = options.headers as Record<string, string>;
           return Promise.resolve(
             json(
-              { order: { ...order, status: "Cancelled" } },
+              { order: { ...order, status: "Cancelled" }, emailNotification },
               headers?.["X-CSRF-Token"] ? patchStatus : 403
             )
           );
@@ -196,6 +198,37 @@ describe.each(["list", "details"] as const)("order status from %s", surface => {
       "  La cererea clientului  "
     );
     expect(button).toBeEnabled();
+  });
+
+  it("shows the saved cancellation with an email warning and refreshes the saved state", async () => {
+    emailNotification = { status: "failed" };
+    const button = await openCancellation(surface);
+    fireEvent.click(button);
+    await waitFor(() =>
+      expect(mockToast).toHaveBeenCalledWith({
+        title: "Comanda a fost salvată",
+        description: expect.stringContaining(
+          "emailul de anulare nu a putut fi trimis"
+        ),
+        variant: "destructive",
+      })
+    );
+    expect(patches()).toHaveLength(1);
+    expect(mockToast).not.toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Salvat" })
+    );
+    if (surface === "list") {
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await waitFor(() =>
+        expect(
+          (global.fetch as jest.Mock).mock.calls.filter(([url]) =>
+            url.includes("?")
+          ).length
+        ).toBe(2)
+      );
+    } else {
+      await waitFor(() => expect(button).toBeDisabled());
+    }
   });
 
   it("retains the failed draft and fetches another token for an explicit retry", async () => {

@@ -2097,7 +2097,7 @@ export const ro = {
   codPaymentMethod: "Plată la livrare (Ramburs)",
   codLockerPaymentMethod: "FANbox · doar plată online",
   codHomeMethodDescription:
-    "Plătești la primirea coletului (RTO la refuz/nepreluare).",
+    "Plătești la curier. Garanție temporară pe card pentru transport.",
   codLockerMethodDescription:
     "Pentru FANbox, plata se face online cu cardul; rambursul nu este disponibil.",
   codLockerBadge: "Card online",
@@ -2111,10 +2111,25 @@ export const ro = {
   codRambursHeroTitle: "Ramburs — plătești la livrare",
   codRambursHeroBadge: "Informare obligatorie",
   codRambursHeroSubtitle:
-    "Pe scurt: ce trebuie să știi înainte să alegi ramburs — structurat ca într-un checkout profesionist.",
+    "Plătești comanda la curier. Pe card autorizezi temporar doar garanția pentru transport.",
   codKeyPointPayTitle: "Plătești la curier",
   codKeyPointPayBody:
-    "Suma comenzii și taxa ramburs se achită la primirea coletului, nu în momentul plasării.",
+    "Produsele, livrarea și taxa ramburs se achită la primirea coletului.",
+  codShippingHoldSummary:
+    "Suma este rezervată temporar, fără încasare acum. Cardul nu se salvează în cont.",
+  codConsentFullTextToggle: "Condiții ramburs și eliberarea garanției",
+  codCardAuthorizationTitle: "Autorizează garanția pe card",
+  codCardAuthorizationDescription:
+    "O rezervare temporară pentru transportul tur, necesară pentru fiecare comandă ramburs.",
+  codTemporaryHoldLabel: "Rezervat temporar pe card",
+  codPayOnDeliveryTotal: "Total de plată la livrare",
+  codChargedNowLabel: "Încasat acum",
+  codHoldReleaseSummary:
+    "Solicităm eliberarea rezervării încă active la livrare, anulare sau refuz. Termenul depinde de procesator și de banca emitentă.",
+  codSecuredByStripe: "Securizat prin Stripe",
+  codContinueHint:
+    "La continuare autorizezi garanția, apoi verifici comanda înainte de plasare.",
+  codAuthorizing: "Se autorizează...",
   codKeyPointRtoTitle: "Refuz sau nepreluare",
   codKeyPointRtoBody:
     "Dacă refuzi coletul la livrare sau nu îl ridici în termen, acesta poate fi returnat expeditorului (RTO).",

@@ -10,6 +10,8 @@ remain available without cluttering the core documentation.
 
 ### Admin & payments behavior
 
+- `docs/ADMIN_ORDER_CANCELLATION_EMAIL_FIX.md` – cancellation SMTP transport,
+  reason preservation, acceptance audit and visible notification failures
 - `docs/ADMIN_ORDER_STATUS_CSRF_FIX.md` – why order status changes returned HTTP
   403 and how both admin screens now submit security tokens
 - `docs/ADMIN_ORDER_STATUS_CACHE_FIX.md` – why the admin dashboard now refetches

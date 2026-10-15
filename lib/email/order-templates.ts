@@ -1041,6 +1041,12 @@ export async function sendOrderCancellationEmail({
 }) {
   const storeSettings = await getStoreSettings();
   const baseUrl = getBaseUrl();
+  const reasonHtml = cancellationReason
+    ?.replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 
   const { generateProfessionalEmail, generatePreviewText } = await import(
     "./base"
@@ -1079,7 +1085,7 @@ export async function sendOrderCancellationEmail({
     ${cancellationReason
       ? createAlert(
         `<strong>📝 Motivul anulării:</strong><br>
-             <em>"${cancellationReason}"</em>`,
+             <em>"${reasonHtml}"</em>`,
         "error",
         "📝"
       )
@@ -1187,10 +1193,24 @@ export async function sendOrderCancellationEmail({
     previewText
   );
 
-  const emailService = getEmailService();
-  return emailService.sendEmail({
+  // Use the same configured SMTP transport and acceptance audit as confirmations.
+  const { sendEmailViaUnifiedSystem } = await import("@/lib/nodemailer");
+  return sendEmailViaUnifiedSystem({
     to,
     subject: `❌ Comanda #${orderId} a fost anulată - ${storeSettings.storeName}`,
     html,
+    text: [
+      `Salut ${customerName},`,
+      `Comanda #${orderId} a fost anulată pe data de ${cancelledAt}.`,
+      cancellationReason ? `Motivul anulării: ${cancellationReason}` : "",
+      ...orderItems.map(
+        item =>
+          `${item.name} × ${item.quantity}: ${formatPrice(item.price * item.quantity)}`
+      ),
+      `Total: ${formatPrice(totalAmount)}`,
+      `Contact: ${baseUrl}/contact`,
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
   });
 }
