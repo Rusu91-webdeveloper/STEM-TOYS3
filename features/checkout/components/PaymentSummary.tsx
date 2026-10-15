@@ -1,15 +1,12 @@
 "use client";
 
-import { Banknote, CreditCard, ShieldCheck } from "lucide-react";
+import { CreditCard, ShieldCheck } from "lucide-react";
 import React, { useMemo } from "react";
 
 import { checkoutCardClass } from "@/features/checkout/lib/checkoutTheme";
 import { formatStorefrontPrice } from "@/lib/format/storefront-price";
 import { useTranslation } from "@/lib/i18n";
-import {
-  calculateCODFee,
-  DEFAULT_COD_CONFIG,
-} from "@/lib/pricing/cod-fee-calculator";
+import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 
 interface PaymentSummaryProps {
   appliedCoupon?: any;
@@ -40,9 +37,6 @@ const PaymentSummaryComponent = ({
   const isNetopia = selectedPaymentMethod.startsWith("netopia_");
   const isCOD = selectedPaymentMethod === "cash_on_delivery";
   const isStripeNewCard = !isNetopia && !isCOD && useNewCard;
-  const codPercentageLabel =
-    (codConfig?.percentage ?? DEFAULT_COD_CONFIG.percentage) * 100;
-
   const codFeeResult = useMemo(() => {
     if (!isCOD) return null;
     const orderTotal = getCartTotal() + shippingCost - discountAmount;
@@ -159,82 +153,27 @@ const PaymentSummaryComponent = ({
       )}
 
       {isCOD && codFeeResult && (
-        <div className="my-4 sm:my-6">
-          <div
-            className={`${checkoutCardClass} border-amber-200 bg-amber-50/80 p-3.5 sm:p-4`}
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-800 sm:h-10 sm:w-10">
-                <Banknote className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-[13px] font-semibold text-slate-900 sm:text-sm">
-                    {isLockerCodFlow
-                      ? t("codLockerSummaryTitle", "Plată la ridicare")
-                      : t("codSummaryTitle", "Estimare pentru plata ramburs")}
-                  </p>
-                  <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-900">
-                    {isLockerCodFlow
-                      ? t("codLockerBadge", "Ridicare FANbox")
-                      : t("cashOnDelivery", "Ramburs")}
-                  </span>
-                </div>
-                <p className="mt-1 text-[13px] leading-5 text-slate-600 sm:text-sm">
-                  {isLockerCodFlow
-                    ? t(
-                        "codLockerSummaryBody",
-                        "Plata se face la terminalul FANbox în momentul ridicării."
-                      )
-                    : t(
-                        "codSummaryBody",
-                        "Mai jos vezi taxa ramburs și totalul estimat înainte să confirmi condițiile COD."
-                      )}
-                </p>
-              </div>
+        <div className="my-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+          <dl className="space-y-2 text-sm">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-slate-600">
+              <dt>
+                {isLockerCodFlow
+                  ? t("codLockerFee", "Taxă plată la FANbox")
+                  : t("codFee", "Taxă ramburs")}
+              </dt>
+              <dd>+{formatStorefrontPrice(codFeeResult.fee)}</dd>
             </div>
-
-            <div className="mt-3 grid gap-2.5 sm:mt-4 sm:grid-cols-3 sm:gap-3">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 sm:py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                  {isLockerCodFlow
-                    ? t("codLockerFee", "Taxă plată la FANbox")
-                    : t("codFee", "Taxă ramburs")}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">
-                  +{formatStorefrontPrice(codFeeResult.fee)}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 sm:py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                  {t("feeBreakdown", "Structură taxă")}
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  {codPercentageLabel}% (
-                  {formatStorefrontPrice(codFeeResult.breakdown.percentageFee)})
-                  + {formatStorefrontPrice(codFeeResult.breakdown.fixedFee)}{" "}
-                  {t("fixed", "fix")}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2.5 sm:py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-900">
-                  {isLockerCodFlow
-                    ? t("totalWithLockerCOD", "Total cu plată la FANbox")
-                    : t("totalWithCOD", "Total cu ramburs")}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">
-                  {formatStorefrontPrice(codFeeResult.orderTotalWithFee)}
-                </p>
-              </div>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 font-semibold text-slate-900">
+              <dt>
+                {isLockerCodFlow
+                  ? t("totalWithLockerCOD", "Total cu plată la FANbox")
+                  : t("codPayOnDeliveryTotal", "Total de plată la livrare")}
+              </dt>
+              <dd className="text-lg">
+                {formatStorefrontPrice(codFeeResult.orderTotalWithFee)}
+              </dd>
             </div>
-
-            <p className="mt-3 text-xs leading-relaxed text-slate-500">
-              {t(
-                "codSummaryFinePrint",
-                "După acest rezumat, confirmi condițiile COD și autorizezi pe card garanția temporară pentru transportul tur, obligatorie pentru fiecare comandă ramburs."
-              )}
-            </p>
-          </div>
+          </dl>
         </div>
       )}
     </>

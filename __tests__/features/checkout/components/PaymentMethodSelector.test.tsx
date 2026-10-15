@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 
 import { PaymentMethodSelector } from "@/features/checkout/components/PaymentMethodSelector";
 import { I18nProvider } from "@/lib/i18n";
@@ -10,7 +10,7 @@ jest.mock("@/features/cart", () => ({
   }),
 }));
 
-function renderPaymentMethodSelector(
+async function renderPaymentMethodSelector(
   props: Partial<React.ComponentProps<typeof PaymentMethodSelector>> = {}
 ) {
   const defaultProps: React.ComponentProps<typeof PaymentMethodSelector> = {
@@ -24,11 +24,13 @@ function renderPaymentMethodSelector(
     shippingCountry: "",
   };
 
-  return render(
-    <I18nProvider initialLanguage="ro">
-      <PaymentMethodSelector {...defaultProps} {...props} />
-    </I18nProvider>
-  );
+  await act(async () => {
+    render(
+      <I18nProvider initialLanguage="ro">
+        <PaymentMethodSelector {...defaultProps} {...props} />
+      </I18nProvider>
+    );
+  });
 }
 
 describe("PaymentMethodSelector (COD visibility)", () => {
@@ -36,6 +38,10 @@ describe("PaymentMethodSelector (COD visibility)", () => {
   const originalNetopiaEnabled = process.env.NEXT_PUBLIC_NETOPIA_ENABLED;
 
   beforeEach(() => {
+    jest.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ active: true, percentage: "1", fixedFee: "5" }),
+    } as Response);
     // Make tests deterministic: hide Stripe & Netopia so only COD can appear when eligible.
     process.env.NEXT_PUBLIC_STRIPE_ENABLED = "false";
     process.env.NEXT_PUBLIC_NETOPIA_ENABLED = "false";
@@ -46,8 +52,8 @@ describe("PaymentMethodSelector (COD visibility)", () => {
     process.env.NEXT_PUBLIC_NETOPIA_ENABLED = originalNetopiaEnabled;
   });
 
-  it("shows COD when shipping country is RO (even if locale is en)", () => {
-    renderPaymentMethodSelector({
+  it("shows COD when shipping country is RO (even if locale is en)", async () => {
+    await renderPaymentMethodSelector({
       userLocale: "en-US",
       shippingCountry: "RO",
       billingCountry: "",
@@ -56,8 +62,8 @@ describe("PaymentMethodSelector (COD visibility)", () => {
     expect(screen.getAllByText("Ramburs la livrare").length).toBeGreaterThan(0);
   });
 
-  it("shows COD when locale is ro-RO (even if shipping is not RO)", () => {
-    renderPaymentMethodSelector({
+  it("shows COD when locale is ro-RO (even if shipping is not RO)", async () => {
+    await renderPaymentMethodSelector({
       userLocale: "ro-RO",
       shippingCountry: "United States",
       billingCountry: "United States",
@@ -66,8 +72,8 @@ describe("PaymentMethodSelector (COD visibility)", () => {
     expect(screen.getAllByText("Ramburs la livrare").length).toBeGreaterThan(0);
   });
 
-  it("does not show COD when there is no Romanian signal", () => {
-    renderPaymentMethodSelector({
+  it("does not show COD when there is no Romanian signal", async () => {
+    await renderPaymentMethodSelector({
       userLocale: "en-US",
       shippingCountry: "United States",
       billingCountry: "United States",
@@ -79,10 +85,10 @@ describe("PaymentMethodSelector (COD visibility)", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows a banner and disables COD when order total exceeds 500 RON", () => {
+  it("shows a banner and disables COD when order total exceeds 500 RON", async () => {
     process.env.NEXT_PUBLIC_STRIPE_ENABLED = "true";
 
-    renderPaymentMethodSelector({
+    await renderPaymentMethodSelector({
       userLocale: "ro-RO",
       shippingCountry: "RO",
       billingCountry: "RO",
@@ -94,16 +100,18 @@ describe("PaymentMethodSelector (COD visibility)", () => {
       screen.getByText("Ramburs indisponibil pentru această comandă")
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Comenzile peste 500 RON se finalizează doar cu plată online/i)
+      screen.getByText(
+        /Comenzile peste 500,00 lei se finalizează doar cu plată online/i
+      )
     ).toBeInTheDocument();
     expect(screen.getByText("Doar card online")).toBeInTheDocument();
   });
 
-  it("shows Romanian payment copy and no card surcharge label", () => {
+  it("shows Romanian payment copy and no card surcharge label", async () => {
     process.env.NEXT_PUBLIC_NETOPIA_ENABLED = "true";
     process.env.NEXT_PUBLIC_STRIPE_ENABLED = "true";
 
-    renderPaymentMethodSelector({
+    await renderPaymentMethodSelector({
       userLocale: "ro-RO",
       shippingCountry: "RO",
       billingCountry: "RO",

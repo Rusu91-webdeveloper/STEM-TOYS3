@@ -87,6 +87,10 @@ interface StripePaymentFormProps {
   };
   submitButtonClassName?: string;
   submitLabel?: string;
+  /** Keep the submit target for PaymentForm's consent-checked Continue action. */
+  hideSubmitButton?: boolean;
+  isSubmitDisabled?: boolean;
+  onProcessingChange?: (processing: boolean) => void;
   /** ISO country for the Payment Element. Omit to keep Stripe's own default. */
   defaultBillingCountry?: string;
 }
@@ -101,6 +105,9 @@ export function StripePaymentForm({
   billingDetails,
   submitButtonClassName = "stripe-submit-button",
   submitLabel,
+  hideSubmitButton = false,
+  isSubmitDisabled = false,
+  onProcessingChange,
   defaultBillingCountry,
 }: StripePaymentFormProps) {
   const stripe = useStripe();
@@ -160,11 +167,19 @@ export function StripePaymentForm({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!stripe || !elements || !clientSecret) {
+    if (
+      !stripe ||
+      !elements ||
+      !clientSecret ||
+      isProcessing ||
+      isCalculatingTotal ||
+      isSubmitDisabled
+    ) {
       return;
     }
 
     setIsProcessing(true);
+    onProcessingChange?.(true);
     setCardError(undefined);
 
     try {
@@ -288,6 +303,7 @@ export function StripePaymentForm({
       }
     } finally {
       setIsProcessing(false);
+      onProcessingChange?.(false);
     }
   };
 
@@ -327,8 +343,14 @@ export function StripePaymentForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-white rounded-lg border p-4 space-y-4">
-        <div className="border rounded-md p-3">
+      <div
+        className={
+          hideSubmitButton
+            ? "space-y-3"
+            : "bg-white rounded-lg border p-4 space-y-4"
+        }
+      >
+        <div className={hideSubmitButton ? "" : "border rounded-md p-3"}>
           <PaymentElement
             id="payment-element"
             key={clientSecret}
@@ -344,10 +366,15 @@ export function StripePaymentForm({
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div
+        hidden={hideSubmitButton}
+        className={hideSubmitButton ? "hidden" : "flex justify-end"}
+      >
         <Button
           type="submit"
-          disabled={!stripe || isProcessing || isCalculatingTotal}
+          disabled={
+            !stripe || isProcessing || isCalculatingTotal || isSubmitDisabled
+          }
           className={`px-8 ${submitButtonClassName}`}
         >
           {isProcessing ? (

@@ -24,15 +24,21 @@ jest.mock("@/features/checkout/components/StripePaymentForm", () => ({
     defaultBillingCountry,
     amount,
     submitLabel,
+    hideSubmitButton,
+    isSubmitDisabled,
   }: {
     defaultBillingCountry?: string;
     amount: number;
     submitLabel?: string;
+    hideSubmitButton?: boolean;
+    isSubmitDisabled?: boolean;
   }) => (
     <div
       data-testid="guarantee-element"
       data-country={defaultBillingCountry ?? ""}
       data-amount={String(amount)}
+      data-submit-hidden={String(hideSubmitButton)}
+      data-submit-disabled={String(isSubmitDisabled)}
     >
       {submitLabel}
     </div>
@@ -69,7 +75,9 @@ function renderPanel(
           isCreatingCodGuaranteeIntent={false}
           codGuaranteeClientSecret="cs_test"
           codGuaranteeIntentAmount={2500}
+          codConsentAccepted
           isCalculatingTotal={false}
+          onProcessingChange={jest.fn()}
           getBillingDetails={billingDetails}
           onCODGuaranteeSuccess={jest.fn()}
           onCODGuaranteeError={jest.fn()}
@@ -84,8 +92,8 @@ describe("CodRambursGuaranteePanel", () => {
   it("shows the server hold amount and Romanian Payment Element defaults", () => {
     renderPanel();
 
-    expect(screen.getByText("25.00 lei")).toBeInTheDocument();
-    expect(screen.queryByText("19.99 lei")).not.toBeInTheDocument();
+    expect(screen.getByText("25,00 lei")).toBeInTheDocument();
+    expect(screen.queryByText("19,99 lei")).not.toBeInTheDocument();
     expect(screen.getByTestId("guarantee-stripe")).toHaveAttribute(
       "data-locale",
       "ro"
@@ -98,7 +106,43 @@ describe("CodRambursGuaranteePanel", () => {
       "data-amount",
       "2500"
     );
-    expect(screen.getByText(/Autorizează 25.00 lei/)).toBeInTheDocument();
+    expect(screen.getByText(/Autorizează 25,00 lei/)).toBeInTheDocument();
+  });
+
+  it("separates the temporary hold from the amount charged now", () => {
+    renderPanel({ codConsentAccepted: false });
+
+    expect(screen.getByText("Rezervat temporar pe card")).toBeInTheDocument();
+    expect(screen.getByText("Încasat acum")).toBeInTheDocument();
+    expect(screen.getByText("0,00 lei")).toBeInTheDocument();
+    expect(screen.getByTestId("guarantee-element")).toHaveAttribute(
+      "data-submit-hidden",
+      "true"
+    );
+    expect(screen.getByTestId("guarantee-element")).toHaveAttribute(
+      "data-submit-disabled",
+      "true"
+    );
+  });
+
+  it("shows authorization success without the card form", () => {
+    renderPanel({ codGuaranteeAuthorized: true });
+
+    expect(screen.getByRole("status")).toHaveTextContent("Garanție autorizată");
+    expect(screen.queryByTestId("guarantee-element")).not.toBeInTheDocument();
+  });
+
+  it("announces initialization and authorization errors", () => {
+    renderPanel({
+      codGuaranteeClientSecret: null,
+      isCreatingCodGuaranteeIntent: true,
+      codGuaranteeIntentError: "Autorizarea a eșuat. Reîncearcă.",
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Pregătim autorizarea"
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("Autorizarea a eșuat");
   });
 
   it("does not show the client shipping estimate before the server amount arrives", () => {
@@ -109,7 +153,7 @@ describe("CodRambursGuaranteePanel", () => {
     });
 
     expect(screen.getByText("Se calculează...")).toBeInTheDocument();
-    expect(screen.queryByText("19.99 lei")).not.toBeInTheDocument();
+    expect(screen.queryByText("19,99 lei")).not.toBeInTheDocument();
     expect(screen.queryByTestId("guarantee-element")).not.toBeInTheDocument();
   });
 

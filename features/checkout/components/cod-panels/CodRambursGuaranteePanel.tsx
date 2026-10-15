@@ -1,7 +1,6 @@
 "use client";
 
-import { RETURN_POLICY_COD_RTO_RO } from "@/lib/returns/policy";
-import { CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Loader2, LockKeyhole, ShieldCheck } from "lucide-react";
 import React from "react";
 
 import { StripePaymentForm } from "@/features/checkout/components/StripePaymentForm";
@@ -40,7 +39,9 @@ interface CodRambursGuaranteePanelProps {
   isCreatingCodGuaranteeIntent: boolean;
   codGuaranteeClientSecret: string | null;
   codGuaranteeIntentAmount: number | null;
+  codConsentAccepted: boolean;
   isCalculatingTotal: boolean;
+  onProcessingChange: (processing: boolean) => void;
   getBillingDetails: () => BillingDetails;
   onCODGuaranteeSuccess: (paymentDetails: PaymentDetails) => void;
   onCODGuaranteeError: (error: string) => void;
@@ -57,7 +58,9 @@ export function CodRambursGuaranteePanel({
   isCreatingCodGuaranteeIntent,
   codGuaranteeClientSecret,
   codGuaranteeIntentAmount,
+  codConsentAccepted,
   isCalculatingTotal,
+  onProcessingChange,
   getBillingDetails,
   onCODGuaranteeSuccess,
   onCODGuaranteeError,
@@ -120,98 +123,85 @@ export function CodRambursGuaranteePanel({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-sky-200/90 bg-white shadow-[0_4px_24px_-12px_rgba(14,165,233,0.15)]">
-      <div className="h-1 bg-gradient-to-r from-sky-400 via-sky-500 to-indigo-500" />
-      <div className="p-4 sm:p-6">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] lg:items-start">
-          <div>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-              <span className="rounded-md bg-sky-50 px-2 py-0.5 text-sky-800 ring-1 ring-sky-100">
-                {t("codStepTwo", "Pasul 2")}
-              </span>
-              <span className="text-slate-400">·</span>
-              <span className="text-slate-600">
-                {t("temporaryAuthorizationLabel", "Autorizare temporară")}
-              </span>
-            </div>
-            <div className="mt-3 flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sky-800 ring-1 ring-sky-200/60">
-                <ShieldCheck className="h-5 w-5" aria-hidden />
-              </div>
-              <div className="min-w-0">
-                <p className="text-base font-semibold text-slate-950 sm:text-lg">
-                  {t(
-                    "codGuaranteeTitle",
-                    "Autorizare temporară pentru transportul tur"
-                  )}
-                </p>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
-                  {t(
-                    "codGuaranteeDescription",
-                    "Pentru fiecare comandă ramburs este necesară o pre-autorizare pe card. Suma nu este încasată acum și acoperă numai transportul tur."
-                  )}
-                </p>
-              </div>
-            </div>
-
-            <ul className="mt-5 space-y-2.5 text-sm text-slate-600">
-              <li className="flex gap-2.5">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500" />
-                {t(
-                  "codGuaranteePointOne",
-                  "Autorizarea este temporară și nu înseamnă încasare imediată."
-                )}
-              </li>
-              <li className="flex gap-2.5">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500" />
-                {t(
-                  "codGuaranteePointTwo",
-                  "Garanția este obligatorie indiferent de valoarea comenzii sau de comenzile anterioare."
-                )}
-              </li>
-              <li className="flex gap-2.5">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500" />
-                {t("codGuaranteePostRefusalNotice", RETURN_POLICY_COD_RTO_RO)}
-              </li>
-            </ul>
+    <section
+      aria-labelledby="cod-guarantee-title"
+      className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+    >
+      <div className="p-4 sm:p-5">
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+            <ShieldCheck className="h-5 w-5" aria-hidden />
           </div>
-
-          <aside className="rounded-2xl border border-sky-100 bg-gradient-to-b from-sky-50/90 to-white p-4 ring-1 ring-sky-100/80">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-800">
-              {t("codGuaranteeAmountLabel", "Valoare autorizată")}
+          <div className="min-w-0">
+            <h3
+              id="cod-guarantee-title"
+              className="text-base font-semibold tracking-tight text-slate-900"
+            >
+              {t("codCardAuthorizationTitle", "Autorizează garanția pe card")}
+            </h3>
+            <p className="mt-1 text-sm leading-relaxed text-slate-600">
+              {t(
+                "codCardAuthorizationDescription",
+                "O rezervare temporară pentru transportul tur, necesară pentru fiecare comandă ramburs."
+              )}
             </p>
-            <p className="mt-1 text-2xl font-bold tracking-tight text-slate-950">
+          </div>
+        </div>
+
+        <dl className="mt-4 grid grid-cols-2 divide-x divide-slate-200 rounded-lg border border-slate-200 bg-slate-50 py-4">
+          <div className="min-w-0 px-4">
+            <dt className="text-xs font-medium leading-relaxed text-slate-600">
+              {t("codTemporaryHoldLabel", "Rezervat temporar pe card")}
+            </dt>
+            <dd className="mt-1 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
               {authorizedAmount !== null
                 ? formatPrice(authorizedAmount)
                 : t("codGuaranteeAmountPending", "Se calculează...")}
-            </p>
-            <div className="mt-4 rounded-xl border border-white/80 bg-white/90 px-3 py-3 shadow-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                {t("codGuaranteeStatusLabel", "Status")}
-              </p>
-              <p className="mt-1 text-sm font-medium text-slate-900">
-                {codGuaranteeAuthorized && codGuaranteePaymentIntentId
-                  ? t(
-                      "codGuaranteeAuthorized",
-                      "Garanție autorizată. Poți continua la pasul următor."
-                    )
-                  : t(
-                      "codGuaranteePending",
-                      "Este necesară autorizarea cardului pentru a continua."
-                    )}
-              </p>
-            </div>
-          </aside>
-        </div>
+            </dd>
+          </div>
+          <div className="min-w-0 px-4">
+            <dt className="text-xs font-medium leading-relaxed text-slate-600">
+              {t("codChargedNowLabel", "Încasat acum")}
+            </dt>
+            <dd className="mt-1 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+              {formatPrice(0)}
+            </dd>
+          </div>
+        </dl>
+        <p className="mt-3 text-xs leading-relaxed text-slate-500">
+          {t(
+            "codHoldReleaseSummary",
+            "Solicităm eliberarea rezervării încă active la livrare, anulare sau refuz. Termenul depinde de procesator și de banca emitentă."
+          )}
+        </p>
+
+        {codGuaranteeAuthorized && codGuaranteePaymentIntentId && (
+          <div
+            role="status"
+            className="mt-4 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-800"
+          >
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            {t(
+              "codGuaranteeAuthorized",
+              "Garanție autorizată. Poți continua la pasul următor."
+            )}
+          </div>
+        )}
 
         {codGuaranteeIntentError && (
-          <div className="mt-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          <div
+            role="alert"
+            className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
+          >
             {codGuaranteeIntentError}
           </div>
         )}
 
         {isCreatingCodGuaranteeIntent && !codGuaranteeClientSecret && (
-          <div className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-sky-100 bg-sky-50/50 py-4 text-sm text-slate-600">
+          <div
+            role="status"
+            className="mt-4 flex items-center gap-2 py-3 text-sm text-slate-600"
+          >
             <Loader2 className="h-4 w-4 animate-spin" />
             {t(
               "initializingCodGuarantee",
@@ -221,7 +211,16 @@ export function CodRambursGuaranteePanel({
         )}
 
         {codGuaranteeClientSecret && !codGuaranteeAuthorized && (
-          <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+          <div className="mt-5 border-t border-slate-200 pt-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-medium text-slate-900">
+                {t("cardDetailsTitle", "Detalii card")}
+              </p>
+              <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
+                <LockKeyhole className="h-3.5 w-3.5" aria-hidden />
+                {t("codSecuredByStripe", "Securizat prin Stripe")}
+              </span>
+            </div>
             <StripeProvider
               options={{
                 clientSecret: codGuaranteeClientSecret,
@@ -239,6 +238,9 @@ export function CodRambursGuaranteePanel({
                 defaultBillingCountry={COD_GUARANTEE_STRIPE_COUNTRY}
                 isCalculatingTotal={isCalculatingTotal}
                 submitButtonClassName="cod-guarantee-submit-button"
+                hideSubmitButton
+                isSubmitDisabled={!codConsentAccepted}
+                onProcessingChange={onProcessingChange}
                 submitLabel={t(
                   "authorizeCodGuarantee",
                   `Autorizează ${formatPrice(chargeAmount)}`
@@ -248,6 +250,6 @@ export function CodRambursGuaranteePanel({
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

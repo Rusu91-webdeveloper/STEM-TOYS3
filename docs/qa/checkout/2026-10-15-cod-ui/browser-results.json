@@ -1,0 +1,56 @@
+{
+  "metrics": [
+    {
+      "width": 1440,
+      "viewport": 1440,
+      "page": 1440,
+      "height": 1778,
+      "consentHeight": 352.25,
+      "guaranteeHeight": 486.75
+    },
+    {
+      "width": 1024,
+      "viewport": 1024,
+      "page": 1024,
+      "height": 1922,
+      "consentHeight": 397.75,
+      "guaranteeHeight": 529
+    },
+    {
+      "width": 768,
+      "viewport": 768,
+      "page": 768,
+      "height": 2328,
+      "consentHeight": 352.25,
+      "guaranteeHeight": 506.25
+    },
+    {
+      "width": 390,
+      "viewport": 390,
+      "page": 390,
+      "height": 2676,
+      "consentHeight": 491.15625,
+      "guaranteeHeight": 607.6875
+    },
+    {
+      "width": 320,
+      "viewport": 320,
+      "page": 320,
+      "height": 3159,
+      "consentHeight": 672.9375,
+      "guaranteeHeight": 738.28125
+    }
+  ],
+  "beforeHeight": 4007,
+  "desktopReductionPercent": 56,
+  "checks": [
+    "no horizontal overflow at 5 widths",
+    "agreement disclosure",
+    "consent gating",
+    "single visible action",
+    "progress state",
+    "authorization and review handoff",
+    "error recovery"
+  ],
+  "errors": []
+}

@@ -1,7 +1,6 @@
 "use client";
 
 import { Banknote, Info, Loader2, Lock } from "lucide-react";
-import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -249,10 +248,6 @@ const PaymentMethodSelectorComponent = ({
     t,
   ]);
 
-  const showCodOverview =
-    paymentMethods.some(method => method.provider === "cod") &&
-    selectedPaymentMethod === "cash_on_delivery";
-
   useEffect(() => {
     if (paymentMethods.length === 0) {
       return;
@@ -445,69 +440,6 @@ const PaymentMethodSelectorComponent = ({
             </div>
           </div>
         </div>
-      )}
-
-      {showCodOverview && (
-        <details className="rounded-xl border border-slate-200 bg-slate-50">
-          <summary className="min-h-11 cursor-pointer px-4 py-3 text-sm font-medium text-slate-700">
-            Ramburs: plata la livrare și garanția pe card
-          </summary>
-          <div className="h-0.5 bg-gradient-to-r from-amber-400 to-orange-400" />
-          <div className="px-4 py-4 sm:px-5 sm:py-4">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800 ring-1 ring-amber-200/60">
-                <Info className="h-4 w-4" aria-hidden />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-semibold text-slate-900">
-                    {t("codSelectorPreviewTitle", "Ramburs la livrare")}
-                  </p>
-                  <span className="inline-flex items-center rounded-full border border-amber-200 bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
-                    {t("codInfoBadge", "Confirmare înainte de finalizare")}
-                  </span>
-                </div>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
-                  {t(
-                    "codSelectorPreviewBody",
-                    "Plătești produsele la curier. Pentru unele comenzi solicităm o autorizare temporară pe card, limitată la transportul tur; TechTots suportă returul la expeditor."
-                  )}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="inline-flex items-center rounded-lg border border-amber-100 bg-white/90 px-2.5 py-1 text-xs font-medium text-amber-950 shadow-sm">
-                    {t("codInfoPointOne", "Nu plătești acum produsele")}
-                  </span>
-                  <span className="inline-flex items-center rounded-lg border border-amber-100 bg-white/90 px-2.5 py-1 text-xs font-medium text-amber-950 shadow-sm">
-                    {t("codInfoPointTwo", "Refuzul poate genera cost logistic")}
-                  </span>
-                </div>
-                <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                  {t("codSelectorPreviewLinksLead", "Documente:")}{" "}
-                  <Link
-                    href="/shipping"
-                    className="font-semibold text-amber-900 underline decoration-amber-300 underline-offset-2 hover:text-amber-950"
-                  >
-                    {t("shippingPolicy", "Politica de livrare")}
-                  </Link>
-                  {", "}
-                  <Link
-                    href="/returns"
-                    className="font-semibold text-amber-900 underline decoration-amber-300 underline-offset-2 hover:text-amber-950"
-                  >
-                    {t("returnsPolicy", "Politica de retur")}
-                  </Link>
-                  {", "}
-                  <Link
-                    href="/terms"
-                    className="font-semibold text-amber-900 underline decoration-amber-300 underline-offset-2 hover:text-amber-950"
-                  >
-                    {t("termsAndConditions", "Termeni și Condiții")}
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </div>
-        </details>
       )}
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">

@@ -182,6 +182,8 @@ export function PaymentForm({
   const [codConsentAccepted, setCodConsentAccepted] = useState(
     initialCodConsentAccepted
   );
+  const [isAuthorizingCodGuarantee, setIsAuthorizingCodGuarantee] =
+    useState(false);
   const [codGuaranteeRequired, setCodGuaranteeRequired] = useState(true);
   const [isResolvingCodGuaranteePolicy, setIsResolvingCodGuaranteePolicy] =
     useState(false);
@@ -1097,7 +1099,9 @@ export function PaymentForm({
               isCreatingCodGuaranteeIntent={isCreatingCodGuaranteeIntent}
               codGuaranteeClientSecret={codGuaranteeClientSecret}
               codGuaranteeIntentAmount={codGuaranteeIntentAmount}
+              codConsentAccepted={codConsentAccepted}
               isCalculatingTotal={isCalculatingTotal}
+              onProcessingChange={setIsAuthorizingCodGuarantee}
               getBillingDetails={getBillingDetails}
               onCODGuaranteeSuccess={handleCODGuaranteeSuccess}
               onCODGuaranteeError={handleCODGuaranteeError}
@@ -1220,23 +1224,30 @@ export function PaymentForm({
           </div>
         )}
 
-        <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 border-t border-slate-200 pt-5">
+          <div className="flex flex-col gap-4">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900">
                 {t("paymentNextStepTitle", "Urmează verificarea finală")}
               </p>
               <p className="mt-1 text-sm text-slate-600">
-                {t(
-                  "paymentNextStepBody",
-                  "Revizuiești comanda, adresele și metoda de plată înainte de plasare."
-                )}
+                {selectedPaymentMethod === "cash_on_delivery" &&
+                !codGuaranteeAuthorized
+                  ? t(
+                      "codContinueHint",
+                      "La continuare autorizezi garanția, apoi verifici comanda înainte de plasare."
+                    )
+                  : t(
+                      "paymentNextStepBody",
+                      "Revizuiești comanda, adresele și metoda de plată înainte de plasare."
+                    )}
               </p>
             </div>
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+            <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 variant="outline"
                 onClick={onBack}
+                disabled={isAuthorizingCodGuarantee}
                 className="w-full border-slate-300 bg-white text-sm text-slate-900 hover:bg-slate-50 sm:w-auto sm:text-base"
               >
                 {t("backToShippingMethod", "Înapoi la metoda de livrare")}
@@ -1246,13 +1257,24 @@ export function PaymentForm({
                 className="w-full bg-primary text-sm text-primary-foreground hover:bg-primary/90 sm:w-auto sm:min-w-[220px] sm:text-base"
                 disabled={
                   !selectedPaymentMethod ||
+                  isAuthorizingCodGuarantee ||
                   isCodLimitExceeded ||
                   (selectedPaymentMethod === "cash_on_delivery" &&
                     isResolvingCodGuaranteePolicy) ||
                   isCheckoutRestricted
                 }
               >
-                {t("continueToReview", "Continuă la verificare")}
+                {isAuthorizingCodGuarantee ? (
+                  <>
+                    <Loader2
+                      className="mr-2 h-4 w-4 animate-spin"
+                      aria-hidden
+                    />
+                    {t("codAuthorizing", "Se autorizează...")}
+                  </>
+                ) : (
+                  t("continueToReview", "Continuă la verificare")
+                )}
               </Button>
             </div>
           </div>
