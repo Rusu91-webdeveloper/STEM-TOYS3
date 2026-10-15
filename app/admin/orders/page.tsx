@@ -72,6 +72,7 @@ import {
 } from "@/lib/admin/dashboard-metrics";
 import { adminOrderLabel } from "@/lib/admin/order-labels";
 import { updateAdminOrderStatus } from "@/lib/admin/order-status-client";
+import { CANCELLATION_EMAIL_FAILED_MESSAGE } from "@/lib/admin/order-status-notification";
 
 // Type definitions
 type Order = {
@@ -366,7 +367,7 @@ function OrderManagement({ customerId }: { customerId: string | null }) {
           statusUpdateModal.cancellationReason.trim();
       }
 
-      await updateAdminOrderStatus(
+      const { emailNotification } = await updateAdminOrderStatus(
         statusUpdateModal.order.dbId || statusUpdateModal.order.id,
         requestBody
       );
@@ -375,10 +376,18 @@ function OrderManagement({ customerId }: { customerId: string | null }) {
       closeStatusUpdateModal();
 
       // Show success message
-      toast({
-        title: "Salvat",
-        description: `Starea comenzii a fost actualizată: ${formatStatus(statusUpdateModal.newStatus)}.`,
-      });
+      toast(
+        emailNotification?.status === "failed"
+          ? {
+              title: "Comanda a fost salvată",
+              description: CANCELLATION_EMAIL_FAILED_MESSAGE,
+              variant: "destructive",
+            }
+          : {
+              title: "Salvat",
+              description: `Starea comenzii a fost actualizată: ${formatStatus(statusUpdateModal.newStatus)}.`,
+            }
+      );
 
       // Re-fetch orders from server to ensure we have the latest data
       // This prevents any sync issues between frontend and backend

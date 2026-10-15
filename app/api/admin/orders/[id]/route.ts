@@ -2,6 +2,7 @@ import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import type { OrderStatusEmailNotification } from "@/lib/admin/order-status-notification";
 import { auth } from "@/lib/auth";
 import { invalidateCachePattern } from "@/lib/cache";
 import { invalidateAnalyticsOnOrderChange } from "@/lib/cache/analytics-cache";
@@ -363,7 +364,11 @@ export async function PATCH(
     }
 
     // If cancelling order and cancellation reason is provided, save it in notes
-    if (status === "CANCELLED" && cancellationReason) {
+    if (
+      status === "CANCELLED" &&
+      existingOrder.status !== "CANCELLED" &&
+      cancellationReason
+    ) {
       updateData.notes = [
         existingOrder.notes,
         `Cancellation reason: ${cancellationReason}`,
@@ -409,10 +414,21 @@ export async function PATCH(
           })
         : null;
 
-    // Send email notification if status changed to SHIPPED, DELIVERED, CANCELLED, or COMPLETED
+    const cancellationChanged =
+      status === "CANCELLED" && existingOrder.status !== "CANCELLED";
+    let emailNotification: OrderStatusEmailNotification | undefined =
+      status === "CANCELLED" ? { status: "not-required" } : undefined;
+
+    // Keep notification failures separate from the successfully saved status.
     try {
       const userEmail = updatedOrder.user?.email;
       const customerName = updatedOrder.user?.name || "Client";
+      if (cancellationChanged && !userEmail) {
+        emailNotification = { status: "failed" };
+        console.error(
+          `Cancellation email has no recipient for order ${updatedOrder.orderNumber}`
+        );
+      }
       if (userEmail) {
         if (status === "SHIPPED") {
           // Use improved shipped email with real tracking info
@@ -455,11 +471,11 @@ export async function PATCH(
               updatedOrder.deliveredAt ?? new Date()
             ).toLocaleDateString("ro-RO"),
           });
-        } else if (status === "CANCELLED") {
+        } else if (cancellationChanged) {
           const { sendOrderCancellationEmail } = await import(
             "@/lib/email/order-templates"
           );
-          await sendOrderCancellationEmail({
+          const cancellationResult = await sendOrderCancellationEmail({
             to: userEmail,
             customerName,
             orderId: updatedOrder.orderNumber,
@@ -475,6 +491,15 @@ export async function PATCH(
             cancellationReason: cancellationReason || undefined,
             cancelledAt: new Date().toLocaleDateString("ro-RO"),
           });
+          emailNotification = {
+            status: cancellationResult.success ? "accepted" : "failed",
+          };
+          if (!cancellationResult.success) {
+            console.error(
+              `Failed to send cancellation email for order ${updatedOrder.orderNumber}:`,
+              cancellationResult.error
+            );
+          }
         } else if (status === "COMPLETED") {
           const { sendOrderCompletedEmail } = await import(
             "@/lib/email/order-templates"
@@ -500,6 +525,7 @@ export async function PATCH(
         }
       }
     } catch (emailError) {
+      if (cancellationChanged) emailNotification = { status: "failed" };
       console.error(
         "Error sending order status email notification:",
         emailError
@@ -534,7 +560,11 @@ export async function PATCH(
       invalidateCachePattern("enhanced-orders*"),
     ]);
 
-    return NextResponse.json({ order: formattedOrder, guaranteeSettlement });
+    return NextResponse.json({
+      order: formattedOrder,
+      guaranteeSettlement,
+      emailNotification,
+    });
   } catch (error) {
     console.error("Error updating order:", error);
 

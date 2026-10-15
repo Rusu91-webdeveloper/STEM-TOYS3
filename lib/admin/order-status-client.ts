@@ -1,3 +1,5 @@
+import type { OrderStatusEmailNotification } from "./order-status-notification";
+
 interface OrderStatusUpdate {
   status: string;
   cancellationReason?: string;
@@ -24,7 +26,7 @@ async function fetchStatusCsrfToken(): Promise<string> {
 export async function updateAdminOrderStatus(
   orderId: string,
   update: OrderStatusUpdate
-): Promise<void> {
+): Promise<{ emailNotification?: OrderStatusEmailNotification }> {
   // Fetch on submission: a token loaded with the page may already have expired.
   const token = await fetchStatusCsrfToken();
 
@@ -49,4 +51,6 @@ export async function updateAdminOrderStatus(
         : "Starea comenzii nu a putut fi actualizată. Încearcă din nou."
     );
   }
+  const data = await response.json();
+  return { emailNotification: data.emailNotification };
 }

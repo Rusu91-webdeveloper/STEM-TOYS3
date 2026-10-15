@@ -38,6 +38,7 @@ This file lists all markdown docs in the project so tools/AI can quickly see wha
 - `docs/audits/2026-10-07-holds-refunds-privacy.md` – COD hold expiry, repayment and privacy procedures, verification and external acceptance gaps.
 - `docs/audits/2026-10-03-admin-analytics-auth.md` – Confirmed analytics API exposure, authorization fix, verification and release status.
 - `docs/ADMIN_ORDER_STATUS_CACHE_FIX.md` – Why admin order status now refetches from the server and how cache invalidation works.
+- `docs/ADMIN_ORDER_CANCELLATION_EMAIL_FIX.md` – Cancellation SMTP transport, supplied reasons, acceptance audit and admin failure warnings.
 - `docs/COD_PAYMENT_STATUS_FIX.md` – Business rules for COD orders (`DELIVERED` ⇒ `PAID`) and the backfill script.
 - `docs/FAN_COURIER_GUIDE.md` – Operational guide for Fan Courier: setup, pricing, AWB flow, and special cases.
 - `docs/GOOGLE_SEARCH_CONSOLE_SETUP.md` – How to configure GSC service account + env vars for the SEO dashboard.

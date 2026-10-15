@@ -26,7 +26,9 @@ jest.mock("@/lib/checkout/release-cod-hold", () => ({
   releaseCodGuaranteeHoldIfNeeded: jest.fn().mockResolvedValue(null),
 }));
 jest.mock("@/lib/email/order-templates", () => ({
-  sendOrderCancellationEmail: jest.fn(),
+  sendOrderCancellationEmail: jest
+    .fn()
+    .mockResolvedValue({ success: true, messageId: "cancellation-test" }),
 }));
 Object.defineProperty(globalThis, "crypto", {
   value: webcrypto,
