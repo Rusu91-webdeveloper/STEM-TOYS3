@@ -1,5 +1,16 @@
 # Current tasks
 
+- [x] 2026-10-15 — Fix HTTP 403 when changing an order status from the admin
+      list or details page. Estimate: 30–60 minutes. Trace the security token
+      boundary, preserve ADMIN/CSRF protection, and verify success and denial
+      paths without modifying production orders. Completed locally 2026-10-15;
+      elapsed time not recorded. Both screens now fetch a fresh token before
+      each submission. All 25 focused checks and real local ADMIN/browser/
+      PostgreSQL cancellation, retry and reload checks pass. TypeScript adds
+      zero errors against the starting commit; existing check debt remains.
+      Production publication authorized 2026-10-15; release evidence belongs on
+      the fix PR. See the [fix record](docs/ADMIN_ORDER_STATUS_CSRF_FIX.md).
+
 - [ ] 2026-10-09 — Make admin email screens use saved store records and remove
       fictional/failed-read values. Estimate: 2–4 hours. Template filtering and
       content, saved sequence fields/steps, real subscriber/history/trigger

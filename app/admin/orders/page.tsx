@@ -71,6 +71,7 @@ import {
   paymentStatusLabels,
 } from "@/lib/admin/dashboard-metrics";
 import { adminOrderLabel } from "@/lib/admin/order-labels";
+import { updateAdminOrderStatus } from "@/lib/admin/order-status-client";
 
 // Type definitions
 type Order = {
@@ -365,23 +366,10 @@ function OrderManagement({ customerId }: { customerId: string | null }) {
           statusUpdateModal.cancellationReason.trim();
       }
 
-      const response = await fetch(
-        `/api/admin/orders/${statusUpdateModal.order.dbId || statusUpdateModal.order.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-          cache: "no-store", // Prevent caching of the update request
-        }
+      await updateAdminOrderStatus(
+        statusUpdateModal.order.dbId || statusUpdateModal.order.id,
+        requestBody
       );
-
-      if (!response.ok) {
-        throw new Error("Failed to update order status");
-      }
-
-      await response.json();
 
       // Close modal first
       closeStatusUpdateModal();
@@ -400,7 +388,9 @@ function OrderManagement({ customerId }: { customerId: string | null }) {
       toast({
         title: "Eroare",
         description:
-          "Starea comenzii nu a putut fi actualizată. Încearcă din nou.",
+          error instanceof Error
+            ? error.message
+            : "Starea comenzii nu a putut fi actualizată. Încearcă din nou.",
         variant: "destructive",
       });
       setStatusUpdateModal(prev => ({ ...prev, updating: false }));
