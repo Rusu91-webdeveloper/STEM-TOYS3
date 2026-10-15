@@ -50,6 +50,7 @@ import {
   orderStatusLabels,
 } from "@/lib/admin/dashboard-metrics";
 import { adminOrderLabel } from "@/lib/admin/order-labels";
+import { updateAdminOrderStatus } from "@/lib/admin/order-status-client";
 import { parseCodGuaranteeEvidence } from "@/lib/checkout/cod-guarantee";
 
 // Types
@@ -1528,7 +1529,7 @@ export default function OrderDetailsPage() {
 
     setUpdating(true);
     try {
-      const requestBody: any = {
+      const requestBody: { status: string; cancellationReason?: string } = {
         status: newStatus.toUpperCase(),
       };
 
@@ -1541,17 +1542,7 @@ export default function OrderDetailsPage() {
         requestBody.cancellationReason = cancellationReason.trim();
       }
 
-      const response = await fetch(`/api/admin/orders/${orderId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update order status");
-      }
+      await updateAdminOrderStatus(orderId, requestBody);
 
       // Update local state
       setOrder(prev => (prev ? { ...prev, status: newStatus } : null));
@@ -1565,7 +1556,9 @@ export default function OrderDetailsPage() {
       toast({
         title: "Eroare",
         description:
-          "Starea comenzii nu a putut fi actualizată. Încearcă din nou.",
+          error instanceof Error
+            ? error.message
+            : "Starea comenzii nu a putut fi actualizată. Încearcă din nou.",
         variant: "destructive",
       });
     } finally {
