@@ -278,5 +278,13 @@
     "ean": "5710409104227",
     "role": "UPSELL",
     "theme": "Add-on / Expansion"
+  },
+  {
+    "sourceId": "31216",
+    "sku": "HJ018",
+    "ean": "850044215232",
+    "role": "UPSELL",
+    "theme": "Logic puzzles",
+    "ageGroupOverride": "ELEMENTARY_6_8"
   }
 ]
