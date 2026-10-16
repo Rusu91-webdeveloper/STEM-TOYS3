@@ -91,7 +91,10 @@ export function kidstoryContent(row: KidstoryRow) {
   
   // Map Kidstory age range to standard AgeGroup enum
   const ageRange = row.varsta || "";
-  const ageGroup = mapAgeRangeToAgeGroup(ageRange);
+  const entry = portfolio.find(
+    p => p.sourceId === row.id && p.sku === row.sku && p.ean === row.ean
+  );
+  const ageGroup = entry?.ageGroupOverride ?? mapAgeRangeToAgeGroup(ageRange);
   
   return {
     name: row.name,
@@ -111,12 +114,15 @@ export function kidstoryContent(row: KidstoryRow) {
   };
 }
 
-export async function fetchKidstoryProducts(sourceUrl: string) {
+export async function fetchKidstoryProducts(
+  sourceUrl: string,
+  selection: KidstoryIdentity[] = portfolio
+) {
   const response = await fetch(sourceUrl, {
     cache: "no-store",
     signal: AbortSignal.timeout(15000),
     headers: { Accept: "text/csv,*/*" },
   });
   if (!response.ok) throw new Error(`Kidstory feed HTTP ${response.status}`);
-  return parseKidstoryCsv(await response.text(), portfolio);
+  return parseKidstoryCsv(await response.text(), selection);
 }
